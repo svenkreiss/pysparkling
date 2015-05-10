@@ -25,9 +25,7 @@ setup(
     author_email='me@svenkreiss.com',
     url='https://github.com/svenkreiss/pysparkling',
 
-    install_requires=[
-        # 'pykka>=1.2.0',
-    ],
+    install_requires=[],
     entry_points={
         'console_scripts': [],
     },
