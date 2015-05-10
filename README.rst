@@ -12,8 +12,6 @@ pytld
 
 .. image:: https://travis-ci.org/svenkreiss/pytld.png?branch=master
     :target: https://travis-ci.org/svenkreiss/pytld
-.. image:: https://coveralls.io/repos/svenkreiss/pytld/badge.png
-    :target: https://coveralls.io/r/svenkreiss/pytld
 .. image:: https://pypip.in/v/pytld/badge.svg
     :target: https://pypi.python.org/pypi/pytld/
 .. image:: https://pypip.in/d/pytld/badge.svg
