@@ -59,9 +59,34 @@ class TLD(object):
     def flatMapValues(self, f):
         return self.mapValues(f)._flattenValues()
 
+    def fold(self, zeroValue, op):
+        return reduce(op, self.x, zeroValue)
+
+    def foldByKey(self, zeroValue, op):
+        keys = set(k for k, v in self.x)
+        return dict(
+            (
+                k,
+                reduce(op, (e[1] for e in self.x if e[0] == k), zeroValue)
+            )
+            for k in keys
+        )
+
     def foreach(self, f):
         self.x = self.ctx['pool'].map(f, self.x)
         return self
+
+    def foreachPartition(self, f):
+        self.foreach(f)
+        return self
+
+    def groupBy(self, f):
+        f_applied = self.ctx['pool'].map(f, self.x)
+        keys = set(f_applied)
+        return TLD([
+            (k, [vv for kk, vv in zip(f_applied, self.x) if kk == k])
+            for k in keys
+        ], self.ctx)
 
     def map(self, f):
         return TLD(self.ctx['pool'].map(f, self.x), self.ctx)

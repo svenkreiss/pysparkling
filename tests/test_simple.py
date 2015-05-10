@@ -30,8 +30,25 @@ def test_countByKey():
 def test_flatMapValues():
     my_tld = pytld.Context().parallelize([('message', ('hello', 'world'))])
     mapped = my_tld.flatMapValues(lambda x: ['a']+list(x)).collect()
-    print(mapped)
     assert mapped[0][1][0] == 'a'
+
+
+def test_fold():
+    my_tld = pytld.Context().parallelize([4, 7, 2])
+    folded = my_tld.fold(0, lambda a, b: a+b)
+    assert folded == 13
+
+
+def test_foldByKey():
+    my_tld = pytld.Context().parallelize([('a', 4), ('b', 7), ('a', 2)])
+    folded = my_tld.foldByKey(0, lambda a, b: a+b)
+    assert folded['a'] == 6
+
+
+def test_groupBy():
+    my_tld = pytld.Context().parallelize([4, 7, 2])
+    grouped = my_tld.groupBy(lambda x: x % 2).collect()
+    assert grouped[0][1][1] == 2
 
 
 if __name__ == '__main__':
@@ -41,3 +58,5 @@ if __name__ == '__main__':
     test_countByValue()
     test_countByKey()
     test_flatMapValues()
+    test_fold()
+    test_foldByKey()

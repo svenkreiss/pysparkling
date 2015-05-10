@@ -12,7 +12,7 @@ class Context(object):
             'pool': pool
         }
 
-    def parallelize(self, x):
+    def parallelize(self, x, numPartitions=None):
         return TLD(x, self.ctx)
 
     def textFile(self, filename):

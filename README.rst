@@ -47,7 +47,11 @@ TLD
 * ``first()``: return first element
 * ``flatMap(func)``: return a new TLD of a flattened map
 * ``flatMapValues(func)``: return new TLD
+* ``fold(zeroValue, op)``: aggregate elements
+* ``foldByKey(zeroValue, op)``: aggregate elements by key
 * ``foreach(func)``: apply func to every element in place
+* ``foreachPartition(func)``: same as ``foreach()``
+* ``groupBy(func)``: group by the output of func
 * ``map(func)``: apply func to every element and return a new TLD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new TLD
 * ``take(n)``: get the first n elements
