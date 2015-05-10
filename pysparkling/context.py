@@ -61,7 +61,10 @@ class Context(object):
                 lines += [l.rstrip('\n')
                           for l in key.get_contents_as_string().splitlines()]
             else:
-                with open(f_name, 'r') as f:
+                f_name_local = f_name
+                if f_name_local.startswith('file://'):
+                    f_name_local = f_name_local[7:]
+                with open(f_name_local, 'r') as f:
                     lines += [l.rstrip('\n') for l in f]
         return self.parallelize(lines)
 
@@ -90,7 +93,10 @@ class Context(object):
                        fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
                         files.append(scheme+'://'+bucket_name+'/'+k.name)
             else:
-                files += glob.glob(expr)+glob.glob(expr+'/part*')
+                expr_local = expr
+                if expr_local.startswith('file://'):
+                    expr_local = expr_local[7:]
+                files += glob.glob(expr_local)+glob.glob(expr_local+'/part*')
         return files
 
 
