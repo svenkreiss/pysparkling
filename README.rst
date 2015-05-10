@@ -1,14 +1,19 @@
 pysparkling
 ===========
 
-    A native Python implementation of Spark's RDD interface, but instead of
-    being resilient and distributed it is just transient and local; but
-    fast (mucher lower latency than PySpark). It is a drop in replacement
-    for PySpark's SparkContext and RDD. This is useful when a set of
-    transformations for training a machine learning tool are used for training
-    in full Spark, but also need to be used when deployed on a server. On the
-    server, all transformations are fast enough to be done in a single thread,
-    but a dependency on Spark or the JVM is not possible.
+  A native Python implementation of Spark's RDD interface, but instead of
+  being resilient and distributed it is just transient and local; but
+  fast (lower latency than PySpark). It is a drop in replacement
+  for PySpark's SparkContext and RDD.
+
+  Use case: you have a pipeline that processes 100k input documents
+  and converts them to normalized features. They are used to train a local
+  scikit-learn classifier. The preprocessing is perfect for a full Spark
+  task. Now, you want to use this trained classifier in an API
+  endpoint. You need the same pre-processing pipeline for a single
+  document per API call. This does not have to be done in parallel, but there
+  should be only a small overhead in initialization and preferably no
+  dependency on the JVM. This is where ``pysparkling`` shines.
 
 .. image:: https://travis-ci.org/svenkreiss/pysparkling.png?branch=master
     :target: https://travis-ci.org/svenkreiss/pysparkling
@@ -40,10 +45,10 @@ Count the lines in the ``*.py`` files in the ``tests`` directory:
 
 .. code-block:: python
 
-    import pysparkling
+  import pysparkling
 
-    context = pysparkling.Context()
-    print(context.textFile('tests/*.py').count())
+  context = pysparkling.Context()
+  print(context.textFile('tests/*.py').count())
 
 
 API
