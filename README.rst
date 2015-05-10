@@ -34,12 +34,24 @@ Context
 TLD
 ---
 
-* ``map(func)``: apply func to every element and return a new TLD
-* ``foreach(func)``: apply func to every element in place
+* ``cache()``: do nothing
+* ``coalesce()``: do nothing
 * ``collect()``: return the underlying list
+* ``count()``: get length of internal list
+* ``countApprox()``: same as ``count()``
+* ``countByKey``: input is list of pairs, returns a dictionary
+* ``countByValue``: input is a list, returns a dictionary
+* ``context()``: return the context
+* ``distinct(numPartitions=None)``: returns a new TLD containing the distinct elements
+* ``filter(func)``: return new TLD filtered with func
+* ``first()``: return first element
+* ``flatMap(func, preservesPartitioning=False)``: return a new TLD of a flattened map (``preservesPartitioning`` has no effect)
+* ``flatMapValues(func)``: return new TLD
+* ``foreach(func)``: apply func to every element in place
+* ``map(func)``: apply func to every element and return a new TLD
+* ``mapValues(func)``: apply func to value in (key, value) pairs and return a new TLD
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
-* ``cache()``: does nothing
 
 
 Changelog
