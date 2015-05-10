@@ -14,7 +14,11 @@ class Tokenizer(object):
     def next(self, separator=None):
         if isinstance(separator, list):
             sep_pos = [self.expression.find(s) for s in separator]
-            sep_pos = min(s for s in sep_pos if s >= 0)
+            sep_pos = [s for s in sep_pos if s >= 0]
+            if sep_pos:
+                sep_pos = min(sep_pos)
+            else:
+                sep_pos = -1
         elif separator:
             sep_pos = self.expression.find(separator)
         else:
@@ -54,7 +58,8 @@ class Context(object):
                 conn = self._get_s3_conn()
                 bucket = conn.get_bucket(bucket_name, validate=False)
                 key = bucket.get_key(key_name)
-                lines += [l.rstrip('\n') for l in key.get_contents_as_string()]
+                lines += [l.rstrip('\n')
+                          for l in key.get_contents_as_string().splitlines()]
             else:
                 with open(f_name, 'r') as f:
                     lines += [l.rstrip('\n') for l in f]
@@ -70,10 +75,6 @@ class Context(object):
         for expr in all_expr.split(','):
             expr = expr.strip()
             if expr.startswith('s3://') or expr.startswith('s3n://'):
-                if '*' not in expr and '?' not in expr:
-                    files.append(expr)
-                    continue
-
                 t = Tokenizer(expr)
                 scheme = t.next('://')
                 bucket_name = t.next('/')
@@ -84,11 +85,12 @@ class Context(object):
                     validate=False
                 )
                 expr_after_bucket = expr[len(scheme)+3+len(bucket_name)+1:]
-                files += [scheme+'://'+bucket_name+'/'+k.name
-                          for k in bucket.list(prefix=prefix)
-                          if fnmatch.fnmatch(k.name, expr_after_bucket)]
+                for k in bucket.list(prefix=prefix):
+                    if fnmatch.fnmatch(k.name, expr_after_bucket) or \
+                       fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
+                        files.append(scheme+'://'+bucket_name+'/'+k.name)
             else:
-                files += glob.glob(expr)
+                files += glob.glob(expr)+glob.glob(expr+'/part*')
         return files
 
 
