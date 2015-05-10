@@ -23,12 +23,12 @@ Features
 
 * Parallelization via ``multiprocessing.Pool`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
-* AWS S3 support is supported. Use
-  ``pysparkling.Context().textFile('s3n://bucket_name/filename.txt')``
-  to open a text file on S3. Specify multiple files separated by comma.
-  Mixed local and S3 files are supported. Glob expressions (use ``*`` and ``?``)
-  are resolved. Use environment variables ``AWS_SECRET_ACCESS_KEY`` and
-  ``AWS_ACCESS_KEY_ID`` for auth.
+* AWS S3 is supported. Use file path of the form
+  ``s3n://bucket_name/filename.txt`` with ``Context.textFile()``.
+  Specify multiple files separated by comma.
+  Use environment variables ``AWS_SECRET_ACCESS_KEY`` and
+  ``AWS_ACCESS_KEY_ID`` for auth. Mixed local and S3 files are supported.
+  Glob expressions (use ``*`` and ``?``) are resolved.
 * Lazy execution is in development.
 * only dependency: ``boto`` for AWS S3 access
 
