@@ -25,7 +25,7 @@ setup(
     author_email='me@svenkreiss.com',
     url='https://github.com/svenkreiss/pysparkling',
 
-    install_requires=[],
+    install_requires=['boto>=2.38.0'],
     entry_points={
         'console_scripts': [],
     },
