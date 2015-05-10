@@ -45,7 +45,7 @@ TLD
 * ``distinct(numPartitions=None)``: returns a new TLD containing the distinct elements
 * ``filter(func)``: return new TLD filtered with func
 * ``first()``: return first element
-* ``flatMap(func, preservesPartitioning=False)``: return a new TLD of a flattened map (``preservesPartitioning`` has no effect)
+* ``flatMap(func)``: return a new TLD of a flattened map
 * ``flatMapValues(func)``: return new TLD
 * ``foreach(func)``: apply func to every element in place
 * ``map(func)``: apply func to every element and return a new TLD
