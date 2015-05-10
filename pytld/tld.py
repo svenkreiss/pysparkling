@@ -1,6 +1,7 @@
 """TLD implementation."""
 
 import random
+import functools
 
 
 class TLD(object):
@@ -60,14 +61,18 @@ class TLD(object):
         return self.mapValues(f)._flattenValues()
 
     def fold(self, zeroValue, op):
-        return reduce(op, self.x, zeroValue)
+        return functools.reduce(op, self.x, zeroValue)
 
     def foldByKey(self, zeroValue, op):
         keys = set(k for k, v in self.x)
         return dict(
             (
                 k,
-                reduce(op, (e[1] for e in self.x if e[0] == k), zeroValue)
+                functools.reduce(
+                    op,
+                    (e[1] for e in self.x if e[0] == k),
+                    zeroValue
+                )
             )
             for k in keys
         )
