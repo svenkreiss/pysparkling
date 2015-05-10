@@ -33,6 +33,19 @@ Features
 * only dependency: ``boto`` for AWS S3 access
 
 
+Examples
+========
+
+Count the lines in the ``*.py`` files in the ``tests`` directory:
+
+.. code-block:: python
+
+    import pysparkling
+
+    context = pysparkling.Context()
+    print(context.textFile('tests/*.py').count())
+
+
 API
 ===
 
