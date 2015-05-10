@@ -28,7 +28,9 @@ def test_countByKey():
 
 
 def test_flatMapValues():
-    my_rdd = pysparkling.Context().parallelize([('message', ('hello', 'world'))])
+    my_rdd = pysparkling.Context().parallelize([
+        ('message', ('hello', 'world'))
+    ])
     mapped = my_rdd.flatMapValues(lambda x: ['a']+list(x)).collect()
     assert mapped[0][1][0] == 'a'
 
