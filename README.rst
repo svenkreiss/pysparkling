@@ -24,8 +24,9 @@ API
 Context
 -------
 
-* ``__init__(pool=None)``: takes a pool object (e.g. a multiprocessing.Pool)
-  to parallelize all ``map()`` and ``foreach()`` methods.
+* ``__init__(pool=None)``: takes a pool object (an object that has a ``map()``
+  method, e.g. a multiprocessing.Pool) to parallelize all ``map()`` and
+  ``foreach()`` methods.
 
 * ``textFile(filename)``: load every line of a text file into a TLD.
 

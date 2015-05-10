@@ -18,10 +18,10 @@ class TLD(object):
         return random.sample(self.x, n)
 
     def foreach(self, f):
-        self.x = [f(x) for x in self.x]
+        self.x = self.ctx['pool'].map(f, self.x)
 
     def map(self, f):
-        return TLD([f(x) for x in self.x], self.ctx)
+        return TLD(self.ctx['pool'].map(f, self.x), self.ctx)
 
     def cache(self):
         pass
