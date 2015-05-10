@@ -29,7 +29,7 @@ Context
 * ``__init__(pool=None)``: takes a pool object (e.g. a multiprocessing.Pool)
   to parallelize all ``map()`` and ``foreach()`` methods.
 
-* __TextFile__: load every line of a text file into a TLD.
+* ``textFile(filename)``: load every line of a text file into a TLD.
 
 
 TLD
