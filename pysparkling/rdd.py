@@ -1,10 +1,10 @@
-"""TLD implementation."""
+"""RDD implementation."""
 
 import random
 import functools
 
 
-class TLD(object):
+class RDD(object):
     """methods starting with underscore are not in the Spark interface"""
 
     def __init__(self, x, ctx):
@@ -46,10 +46,10 @@ class TLD(object):
         return dict((k, self.x.count(k)) for k in keys)
 
     def distinct(self, numPartitions=None):
-        return TLD(list(set(self.x)), self.ctx)
+        return RDD(list(set(self.x)), self.ctx)
 
     def filter(self, f):
-        return TLD([x for x in self.x if f(x)], self.ctx)
+        return RDD([x for x in self.x if f(x)], self.ctx)
 
     def first(self):
         return self.x[0]
@@ -88,16 +88,16 @@ class TLD(object):
     def groupBy(self, f):
         f_applied = self.ctx['pool'].map(f, self.x)
         keys = set(f_applied)
-        return TLD([
+        return RDD([
             (k, [vv for kk, vv in zip(f_applied, self.x) if kk == k])
             for k in keys
         ], self.ctx)
 
     def map(self, f):
-        return TLD(self.ctx['pool'].map(f, self.x), self.ctx)
+        return RDD(self.ctx['pool'].map(f, self.x), self.ctx)
 
     def mapValues(self, f):
-        return TLD(zip(
+        return RDD(zip(
             (e[0] for e in self.x),
             self.ctx['pool'].map(f, (e[1] for e in self.x))
         ), self.ctx)

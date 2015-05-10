@@ -1,6 +1,6 @@
 """Imitates SparkContext."""
 
-from .tld import TLD
+from .rdd import RDD
 
 
 class Context(object):
@@ -13,7 +13,7 @@ class Context(object):
         }
 
     def parallelize(self, x, numPartitions=None):
-        return TLD(x, self.ctx)
+        return RDD(x, self.ctx)
 
     def textFile(self, filename):
         with open(filename, 'r') as f:

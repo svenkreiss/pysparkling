@@ -9,21 +9,21 @@ except ImportError:
 
 
 # extract version from __init__.py
-with open('pytld/__init__.py', 'r') as f:
+with open('pysparkling/__init__.py', 'r') as f:
     version_line = [l for l in f if l.startswith('__version__')][0]
     VERSION = version_line.split('=')[1].strip()[1:-1]
 
 
 setup(
-    name='pytld',
+    name='pysparkling',
     version=VERSION,
-    packages=['pytld'],
+    packages=['pysparkling'],
     license='MIT',
-    description='Data analysis tool using Flask, WebSockets and d3.js.',
+    description='Python native implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
     author='Sven Kreiss',
     author_email='me@svenkreiss.com',
-    url='https://github.com/svenkreiss/pytld',
+    url='https://github.com/svenkreiss/pysparkling',
 
     install_requires=[
         # 'pykka>=1.2.0',
@@ -34,7 +34,6 @@ setup(
 
     tests_require=[
         'nose>=1.3.4',
-        'coverage>=3.7.1',
     ],
     test_suite='nose.collector',
 
