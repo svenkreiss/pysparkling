@@ -26,13 +26,13 @@ class RDD(object):
         return self
 
     def collect(self):
-        return self.x
+        return list(self.x)
 
     def context(self):
         return self.ctx
 
     def count(self):
-        return len(self.x)
+        return len(list(self.x))
 
     def countApprox(self):
         return self.count()
@@ -52,7 +52,7 @@ class RDD(object):
         return RDD([x for x in self.x if f(x)], self.ctx)
 
     def first(self):
-        return self.x[0]
+        return list(self.x)[0]
 
     def flatMap(self, f, preservesPartitioning=False):
         return self.map(f)._flatten()
@@ -103,7 +103,7 @@ class RDD(object):
         ), self.ctx)
 
     def take(self, n):
-        return self.x[:n]
+        return list(self.x)[:n]
 
     def takeSample(self, n):
-        return random.sample(self.x, n)
+        return random.sample(list(self.x), n)

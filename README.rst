@@ -26,7 +26,8 @@ pysparkling
 Features
 ========
 
-* Parallelization via ``multiprocessing.Pool`` or any other Pool-like
+* Parallelization via ``multiprocessing.Pool``,
+  ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
 * AWS S3 is supported. Use file paths of the form
   ``s3n://bucket_name/filename.txt`` with ``Context.textFile()``.
