@@ -22,3 +22,6 @@ class TLD(object):
 
     def map(self, f):
         return TLD([f(x) for x in self.x], self.ctx)
+
+    def cache(self):
+        pass

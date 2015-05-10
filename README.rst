@@ -38,6 +38,7 @@ TLD
 * ``collect()``: return the underlying list
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
+* ``cache()``: does nothing
 
 
 Changelog
