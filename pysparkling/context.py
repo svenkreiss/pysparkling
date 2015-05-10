@@ -54,7 +54,7 @@ class Context(object):
                 conn = self._get_s3_conn()
                 bucket = conn.get_bucket(bucket_name, validate=False)
                 key = bucket.get_key(key_name)
-                lines += key.get_contents_as_string().splitlines()
+                lines += [l.rstrip('\n') for l in key.get_contents_as_string()]
             else:
                 with open(f_name, 'r') as f:
                     lines += [l.rstrip('\n') for l in f]
