@@ -63,6 +63,11 @@ Context
   ``foreach()`` methods.
 
 * ``textFile(filename)``: load every line of a text file into a RDD.
+  ``filename`` can contain a comma separated list of many files, ``?`` and
+  ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
+  local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
+  or ``file:///absolute/file/path.txt``). If the filename points to a folder
+  containing ``part*`` files, those are resolved.
 
 
 RDD
