@@ -68,6 +68,7 @@ class Context(object):
     def _resolve_filenames(self, all_expr):
         files = []
         for expr in all_expr.split(','):
+            expr = expr.strip()
             if expr.startswith('s3://') or expr.startswith('s3n://'):
                 if '*' not in expr and '?' not in expr:
                     files.append(expr)
