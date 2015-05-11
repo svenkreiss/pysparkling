@@ -36,6 +36,7 @@ Features
   ``AWS_ACCESS_KEY_ID`` for auth. Mixed local and S3 files are supported.
   Glob expressions (filenames with ``*`` and ``?``) are resolved.
 * Lazy execution is in development.
+* Seamless handling of compressed files is not supported yet.
 * only dependency: ``boto`` for AWS S3 access
 
 
