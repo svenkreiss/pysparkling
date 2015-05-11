@@ -103,6 +103,31 @@ class RDD(object):
             for k in keys
         ], self.ctx)
 
+    def groupByKey(self):
+        as_list = list(self.x())
+        keys = set([e[0] for e in as_list])
+        return RDD([
+            (k, [e[1] for e in as_list if e[0] == k])
+            for k in keys
+        ], self.ctx)
+
+    def histogram(self, buckets):
+        if isinstance(buckets, int):
+            num_buckets = buckets
+            min_v = self.min()
+            max_v = self.max()
+            buckets = [min_v + float(i)*(max_v-min_v)/num_buckets
+                       for i in range(num_buckets+1)]
+        h = [0 for _ in buckets]
+        for x in self.x():
+            for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
+                if x >= b[0] and x < b[1]:
+                    h[i] += 1
+            # make the last bin inclusive on the right
+            if x == buckets[-1]:
+                h[-1] += 1
+        return (buckets, h)
+
     def map(self, f):
         return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
 
@@ -111,6 +136,12 @@ class RDD(object):
             (e[0] for e in self.x()),
             self.ctx['pool'].map(f, (e[1] for e in self.x()))
         ), self.ctx)
+
+    def max(self):
+        return max(self.x())
+
+    def min(self):
+        return min(self.x())
 
     def take(self, n):
         i = self.x()

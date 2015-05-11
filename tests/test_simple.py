@@ -68,6 +68,12 @@ def test_takeSample():
     assert my_rdd.takeSample(1)[0] in [4, 7, 2]
 
 
+def test_histogram():
+    my_rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    b, h = my_rdd.histogram(10)
+    assert h[4] == 2
+
+
 if __name__ == '__main__':
     test_collect()
     test_broadcast()
@@ -80,3 +86,4 @@ if __name__ == '__main__':
     test_foldByKey()
     test_take()
     test_takeSample()
+    test_histogram()

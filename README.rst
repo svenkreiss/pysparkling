@@ -92,9 +92,13 @@ RDD
 * ``foreach(func)``: apply func to every element in place
 * ``foreachPartition(func)``: same as ``foreach()``
 * ``groupBy(func)``: group by the output of func
+* ``groupByKey()``: group by key where the RDD is of type [(key, value), ...]
+* ``histogram(buckets)``: buckets can be a list or an int
 * **TODO**: continue going through the list
 * ``map(func)``: apply func to every element and return a new RDD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
+* ``max()``: get the maximum element
+* ``min()``: get the minimum element
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
 
