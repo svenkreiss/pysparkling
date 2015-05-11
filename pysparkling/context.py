@@ -105,4 +105,4 @@ class DummyPool(object):
         pass
 
     def map(self, f, input_list):
-        return [f(x) for x in input_list]
+        return (f(x) for x in input_list)

@@ -73,7 +73,7 @@ Context
 RDD
 ---
 
-* ``cache()``: do nothing
+* ``cache()``: execute previous steps and cache result
 * ``coalesce()``: do nothing
 * ``collect()``: return the underlying list
 * ``count()``: get length of internal list

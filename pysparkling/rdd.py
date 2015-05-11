@@ -2,57 +2,66 @@
 
 import random
 import functools
+import itertools
 
 
 class RDD(object):
     """methods starting with underscore are not in the Spark interface"""
 
     def __init__(self, x, ctx):
-        self.x = x
+        self._x = x
         self.ctx = ctx
 
+    def x(self):
+        self._x, r = itertools.tee(self._x, 2)
+        return r
+
     def _flatten(self):
-        self.x = [xx for x in self.x for xx in x]
+        self._x = (xx for x in self.x() for xx in x)
         return self
 
     def _flattenValues(self):
-        self.x = [(e[0], v) for e in self.x for v in e[1]]
+        self._x = ((e[0], v) for e in self.x() for v in e[1])
         return self
 
     def cache(self):
+        # This cache is not lazy, but it will guarantee that previous
+        # steps are only executed once.
+        self._x = list(self._x)
         return self
 
     def coalesce(self):
         return self
 
     def collect(self):
-        return list(self.x)
+        return list(self.x())
 
     def context(self):
         return self.ctx
 
     def count(self):
-        return len(list(self.x))
+        return sum(1 for _ in self.x())
 
     def countApprox(self):
         return self.count()
 
     def countByKey(self):
-        keys = set(k for k, v in self.x)
-        return dict((k, sum(v for kk, v in self.x if kk == k)) for k in keys)
+        keys = set(k for k, v in self.x())
+        return dict((k, sum(v for kk, v in self.x() if kk == k)) for k in keys)
 
     def countByValue(self):
-        keys = set(self.x)
-        return dict((k, self.x.count(k)) for k in keys)
+        as_list = list(self.x())
+        keys = set(as_list)
+        return dict((k, as_list.count(k)) for k in keys)
 
     def distinct(self, numPartitions=None):
-        return RDD(list(set(self.x)), self.ctx)
+        return RDD(list(set(self.x())), self.ctx)
 
     def filter(self, f):
-        return RDD([x for x in self.x if f(x)], self.ctx)
+        return RDD([x for x in self.x() if f(x)], self.ctx)
 
     def first(self):
-        return list(self.x)[0]
+        return self.x()[0]
 
     def flatMap(self, f, preservesPartitioning=False):
         return self.map(f)._flatten()
@@ -61,16 +70,16 @@ class RDD(object):
         return self.mapValues(f)._flattenValues()
 
     def fold(self, zeroValue, op):
-        return functools.reduce(op, self.x, zeroValue)
+        return functools.reduce(op, self.x(), zeroValue)
 
     def foldByKey(self, zeroValue, op):
-        keys = set(k for k, v in self.x)
+        keys = set(k for k, v in self.x())
         return dict(
             (
                 k,
                 functools.reduce(
                     op,
-                    (e[1] for e in self.x if e[0] == k),
+                    (e[1] for e in self.x() if e[0] == k),
                     zeroValue
                 )
             )
@@ -78,7 +87,7 @@ class RDD(object):
         )
 
     def foreach(self, f):
-        self.x = self.ctx['pool'].map(f, self.x)
+        self._x = self.ctx['pool'].map(f, self.x())
         return self
 
     def foreachPartition(self, f):
@@ -86,24 +95,25 @@ class RDD(object):
         return self
 
     def groupBy(self, f):
-        f_applied = self.ctx['pool'].map(f, self.x)
+        as_list = list(self.x())
+        f_applied = list(self.ctx['pool'].map(f, as_list))
         keys = set(f_applied)
         return RDD([
-            (k, [vv for kk, vv in zip(f_applied, self.x) if kk == k])
+            (k, [vv for kk, vv in zip(f_applied, as_list) if kk == k])
             for k in keys
         ], self.ctx)
 
     def map(self, f):
-        return RDD(self.ctx['pool'].map(f, self.x), self.ctx)
+        return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
 
     def mapValues(self, f):
         return RDD(zip(
-            (e[0] for e in self.x),
-            self.ctx['pool'].map(f, (e[1] for e in self.x))
+            (e[0] for e in self.x()),
+            self.ctx['pool'].map(f, (e[1] for e in self.x()))
         ), self.ctx)
 
     def take(self, n):
-        return list(self.x)[:n]
+        return self.x()[:n]
 
     def takeSample(self, n):
-        return random.sample(list(self.x), n)
+        return random.sample(self.x(), n)
