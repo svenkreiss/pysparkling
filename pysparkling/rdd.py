@@ -128,6 +128,22 @@ class RDD(object):
                 h[-1] += 1
         return (buckets, h)
 
+    def id(self):
+        # not implemented yet
+        return None
+
+    def intersection(self, other):
+        return RDD(list(set(self.collect()) & set(other.collect())), self.ctx)
+
+    def isCheckpointed(self):
+        return False
+
+    def join(self, other, numPartitions=None):
+        d1 = dict(self.x())
+        d2 = dict(other.x())
+        keys = set(d1.keys()) & set(d2.keys())
+        return RDD(((k, (d1[k], d2[k])) for k in keys), self.ctx)
+
     def map(self, f):
         return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
 

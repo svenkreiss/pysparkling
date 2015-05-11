@@ -94,6 +94,10 @@ RDD
 * ``groupBy(func)``: group by the output of func
 * ``groupByKey()``: group by key where the RDD is of type [(key, value), ...]
 * ``histogram(buckets)``: buckets can be a list or an int
+* ``id()``: currently just returns None
+* ``intersection(other)``: return a new RDD with the intersection
+* ``isCheckpointed()``: returns False
+* ``join(other)``: hash join
 * **TODO**: continue going through the list
 * ``map(func)``: apply func to every element and return a new RDD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD

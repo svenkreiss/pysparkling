@@ -74,6 +74,20 @@ def test_histogram():
     assert h[4] == 2
 
 
+def test_intersection():
+    rdd1 = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    rdd2 = pysparkling.Context().parallelize([3, 4, 7, 4, 5])
+    i = rdd1.intersection(rdd2)
+    assert i.collect()[0] == 4
+
+
+def test_join():
+    rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
+    rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])
+    j = rdd1.join(rdd2)
+    assert dict(j.collect())[1][1] == 3
+
+
 if __name__ == '__main__':
     test_collect()
     test_broadcast()
