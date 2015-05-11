@@ -26,8 +26,6 @@ pysparkling
 Install
 =======
 
-Install with
-
   .. code-block:: bash
 
   pip install pysparkling
