@@ -106,6 +106,11 @@ def test_leftOuterJoin():
     assert dict(j.collect())[1][1] == 3
 
 
+def test_lookup():
+    rdd = pysparkling.Context().parallelize([(0, 1), (1, 1), (1, 3)])
+    assert 3 in rdd.lookup(1)
+
+
 def test_rightOuterJoin():
     rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
     rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])

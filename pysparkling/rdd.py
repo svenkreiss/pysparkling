@@ -156,6 +156,9 @@ class RDD(object):
         return RDD(((k, (d1[k], d2[k] if k in d2 else None))
                     for k in d1.iterkeys()), self.ctx)
 
+    def lookup(self, key):
+        return [e[1] for e in self.x() if e[0] == key]
+
     def map(self, f):
         return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
 
