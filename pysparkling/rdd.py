@@ -114,7 +114,7 @@ class RDD(object):
 
     def take(self, n):
         i = self.x()
-        return [next(i) for _ in xrange(n)]
+        return [next(i) for _ in range(n)]
 
     def takeSample(self, n):
         return random.sample(list(self.x()), n)
