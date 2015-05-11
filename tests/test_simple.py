@@ -53,6 +53,16 @@ def test_groupBy():
     assert grouped[0][1][1] == 2
 
 
+def test_take():
+    my_rdd = pysparkling.Context().parallelize([4, 7, 2])
+    assert my_rdd.take(2)[1] == 7
+
+
+def test_takeSample():
+    my_rdd = pysparkling.Context().parallelize([4, 7, 2])
+    assert my_rdd.takeSample(1)[0] in [4, 7, 2]
+
+
 if __name__ == '__main__':
     test_collect()
     test_map()
@@ -62,3 +72,5 @@ if __name__ == '__main__':
     test_flatMapValues()
     test_fold()
     test_foldByKey()
+    test_take()
+    test_takeSample()

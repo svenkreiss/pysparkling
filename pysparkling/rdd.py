@@ -58,10 +58,10 @@ class RDD(object):
         return RDD(list(set(self.x())), self.ctx)
 
     def filter(self, f):
-        return RDD([x for x in self.x() if f(x)], self.ctx)
+        return RDD((x for x in self.x() if f(x)), self.ctx)
 
     def first(self):
-        return self.x()[0]
+        return next(self.x())
 
     def flatMap(self, f, preservesPartitioning=False):
         return self.map(f)._flatten()
@@ -113,7 +113,8 @@ class RDD(object):
         ), self.ctx)
 
     def take(self, n):
-        return self.x()[:n]
+        i = self.x()
+        return [next(i) for _ in xrange(n)]
 
     def takeSample(self, n):
-        return random.sample(self.x(), n)
+        return random.sample(list(self.x()), n)
