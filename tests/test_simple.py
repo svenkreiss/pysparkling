@@ -111,6 +111,16 @@ def test_lookup():
     assert 3 in rdd.lookup(1)
 
 
+def test_reduce():
+    rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    assert rdd.reduce(lambda a, b: a+b) == 25
+
+
+def test_reduceByKey():
+    rdd = pysparkling.Context().parallelize([(0, 1), (1, 1), (1, 3)])
+    assert dict(rdd.reduceByKey(lambda a, b: a+b).collect())[1] == 4
+
+
 def test_rightOuterJoin():
     rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
     rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])

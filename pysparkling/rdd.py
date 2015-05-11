@@ -174,6 +174,12 @@ class RDD(object):
     def min(self):
         return min(self.x())
 
+    def reduce(self, f):
+        return functools.reduce(f, self.x())
+
+    def reduceByKey(self, f):
+        return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
+
     def rightOuterJoin(self, other):
         d1 = dict(self.x())
         d2 = dict(other.x())
