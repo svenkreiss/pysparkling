@@ -144,6 +144,18 @@ class RDD(object):
         keys = set(d1.keys()) & set(d2.keys())
         return RDD(((k, (d1[k], d2[k])) for k in keys), self.ctx)
 
+    def keyBy(self, f):
+        return RDD(((f(e), e) for e in self.x()), self.ctx)
+
+    def keys(self):
+        return RDD((e[0] for e in self.x()), self.ctx)
+
+    def leftOuterJoin(self, other):
+        d1 = dict(self.x())
+        d2 = dict(other.x())
+        return RDD(((k, (d1[k], d2[k] if k in d2 else None))
+                    for k in d1.iterkeys()), self.ctx)
+
     def map(self, f):
         return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
 
@@ -158,6 +170,12 @@ class RDD(object):
 
     def min(self):
         return min(self.x())
+
+    def rightOuterJoin(self, other):
+        d1 = dict(self.x())
+        d2 = dict(other.x())
+        return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
+                    for k in d2.iterkeys()), self.ctx)
 
     def take(self, n):
         i = self.x()

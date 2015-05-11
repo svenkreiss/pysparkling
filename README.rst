@@ -97,12 +97,16 @@ RDD
 * ``id()``: currently just returns None
 * ``intersection(other)``: return a new RDD with the intersection
 * ``isCheckpointed()``: returns False
-* ``join(other)``: hash join
+* ``join(other)``: join
+* ``keyBy(func)``: creates tuple in new RDD
+* ``keys()``: returns the keys of tuples in new RDD
+* ``leftOuterJoin(other)``: left outer join
 * **TODO**: continue going through the list
 * ``map(func)``: apply func to every element and return a new RDD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
 * ``max()``: get the maximum element
 * ``min()``: get the minimum element
+* ``rightOuterJoin(other)``: right outer join
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
 

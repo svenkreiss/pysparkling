@@ -88,6 +88,31 @@ def test_join():
     assert dict(j.collect())[1][1] == 3
 
 
+def test_keyBy():
+    rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    rdd = rdd.keyBy(lambda x: x % 2)
+    assert rdd.collect()[2][0] == 1  # the third element (7) is odd
+
+
+def test_keys():
+    rdd = pysparkling.Context().parallelize([(0, 1), (1, 1)]).keys()
+    assert rdd.collect()[0] == 0
+
+
+def test_leftOuterJoin():
+    rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
+    rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])
+    j = rdd1.leftOuterJoin(rdd2)
+    assert dict(j.collect())[1][1] == 3
+
+
+def test_rightOuterJoin():
+    rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
+    rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])
+    j = rdd1.rightOuterJoin(rdd2)
+    assert dict(j.collect())[1][1] == 3
+
+
 if __name__ == '__main__':
     test_collect()
     test_broadcast()
