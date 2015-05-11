@@ -61,13 +61,14 @@ Context
 * ``__init__(pool=None)``: takes a pool object (an object that has a ``map()``
   method, e.g. a multiprocessing.Pool) to parallelize all ``map()`` and
   ``foreach()`` methods.
-
 * ``textFile(filename)``: load every line of a text file into a RDD.
   ``filename`` can contain a comma separated list of many files, ``?`` and
   ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
   local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
   or ``file:///absolute/file/path.txt``). If the filename points to a folder
   containing ``part*`` files, those are resolved.
+* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
+  are accessed with ``value``.
 
 
 RDD
@@ -98,8 +99,14 @@ RDD
 * ``takeSample(n)``: get n random samples
 
 
-Changelog
+Broadcast
 ---------
+
+* ``value``: access the value it stores
+
+
+Changelog
+=========
 
 * `master <https://github.com/svenkreiss/pysparkling/compare/v0.1.0...master>`_
 * `0.1.0 <https://github.com/svenkreiss/pysparkling/compare/v0.1.0...v0.1.0>`_ (2015-05-09)

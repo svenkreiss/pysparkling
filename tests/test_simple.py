@@ -6,6 +6,11 @@ def test_collect():
     assert my_rdd.collect()[0] == 1
 
 
+def test_broadcast():
+    b = pysparkling.Context().broadcast([1, 2, 3])
+    assert b.value[0] == 1
+
+
 def test_map():
     my_rdd = pysparkling.Context().parallelize([1, 2, 3]).map(lambda x: x+1)
     assert my_rdd.collect()[0] == 2
@@ -65,6 +70,7 @@ def test_takeSample():
 
 if __name__ == '__main__':
     test_collect()
+    test_broadcast()
     test_map()
     test_foreach()
     test_countByValue()

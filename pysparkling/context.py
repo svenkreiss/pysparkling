@@ -5,6 +5,7 @@ import glob
 import fnmatch
 
 from .rdd import RDD
+from .broadcast import Broadcast
 
 
 class Tokenizer(object):
@@ -46,6 +47,9 @@ class Context(object):
 
     def parallelize(self, x, numPartitions=None):
         return RDD(x, self.ctx)
+
+    def broadcast(self, x):
+        return Broadcast(x)
 
     def textFile(self, filename):
         lines = []
