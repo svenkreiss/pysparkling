@@ -81,7 +81,7 @@ RDD
 * ``countByKey``: input is list of pairs, returns a dictionary
 * ``countByValue``: input is a list, returns a dictionary
 * ``context()``: return the context
-* ``distinct(numPartitions=None)``: returns a new RDD containing the distinct elements
+* ``distinct()``: returns a new RDD containing the distinct elements
 * ``filter(func)``: return new RDD filtered with func
 * ``first()``: return first element
 * ``flatMap(func)``: return a new RDD of a flattened map
