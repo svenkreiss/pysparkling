@@ -154,7 +154,7 @@ class RDD(object):
         d1 = dict(self.x())
         d2 = dict(other.x())
         return RDD(((k, (d1[k], d2[k] if k in d2 else None))
-                    for k in d1.iterkeys()), self.ctx)
+                    for k in d1.keys()), self.ctx)
 
     def lookup(self, key):
         return [e[1] for e in self.x() if e[0] == key]
@@ -184,7 +184,7 @@ class RDD(object):
         d1 = dict(self.x())
         d2 = dict(other.x())
         return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
-                    for k in d2.iterkeys()), self.ctx)
+                    for k in d2.keys()), self.ctx)
 
     def take(self, n):
         i = self.x()
