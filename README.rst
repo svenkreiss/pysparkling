@@ -140,6 +140,6 @@ Changelog
 
 * `master <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...master>`_
 * `0.1.1 <https://github.com/svenkreiss/pysparkling/compare/v0.1.0...v0.1.1>`_ (2015-05-12)
-  * implemented a few more RDD methods
-  * changed handling of context in RDD
+    * implemented a few more RDD methods
+    * changed handling of context in RDD
 * 0.1.0 (2015-05-09)
