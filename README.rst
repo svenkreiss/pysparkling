@@ -117,6 +117,8 @@ RDD
 * ``max()``: get the maximum element
 * ``mean()``: mean
 * ``min()``: get the minimum element
+* ``persist()``: implemented as synonym for ``cache()``
+* ``pipe(command)``: pipe the elements through an external command line tool
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
 * ``rightOuterJoin(other)``: right outer join

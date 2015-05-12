@@ -5,6 +5,7 @@ from __future__ import division
 import random
 import functools
 import itertools
+import subprocess
 
 
 class RDD(object):
@@ -182,6 +183,14 @@ class RDD(object):
 
     def min(self):
         return min(self.x())
+
+    def persist(self, storageLevel=None):
+        return self.cache()
+
+    def pipe(self, command, env={}):
+        return RDD((subprocess.check_output(
+            [command]+x if isinstance(x, list) else [command, x]
+        ) for x in self.x()), self.ctx)
 
     def reduce(self, f):
         return functools.reduce(f, self.x())

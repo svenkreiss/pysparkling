@@ -116,6 +116,13 @@ def test_mean():
     assert rdd.mean() == 5
 
 
+def test_pipe():
+    rdd = pysparkling.Context().parallelize(['0', 'hello', 'world'])
+    piped = rdd.pipe('echo').collect()
+    print(piped)
+    assert 'hello\n' in piped
+
+
 def test_reduce():
     rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
     assert rdd.reduce(lambda a, b: a+b) == 25
