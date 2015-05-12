@@ -5,6 +5,8 @@ SC = pyspark.SparkContext()
 
 def simple_textFile():
     print(SC.textFile('tests/test_simple.py').collect())
+    print(SC.textFile('tests/test_simple.py').name())
+    print(SC.parallelize([1, 2, 3]).name())
 
 
 def indent_line(l):
@@ -23,5 +25,5 @@ def lazy_execution():
 
 
 if __name__ == '__main__':
-    # simple_textFile()
-    lazy_execution()
+    simple_textFile()
+    # lazy_execution()

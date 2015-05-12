@@ -70,7 +70,10 @@ class Context(object):
                     f_name_local = f_name_local[7:]
                 with open(f_name_local, 'r') as f:
                     lines += [l.rstrip('\n') for l in f]
-        return self.parallelize(lines)
+
+        rdd = self.parallelize(lines)
+        rdd._name = filename
+        return rdd
 
     def _get_s3_conn(self):
         if not self.ctx['s3_conn']:

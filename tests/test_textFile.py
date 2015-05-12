@@ -13,6 +13,12 @@ def test_local_textFile_2():
     assert line_count > 90
 
 
+def test_local_textFile_name():
+    name = pysparkling.Context().textFile('tests/*.py').name()
+    print(name)
+    assert name == 'tests/*.py'
+
+
 if __name__ == '__main__':
     test_local_textFile_1()
     test_local_textFile_2()

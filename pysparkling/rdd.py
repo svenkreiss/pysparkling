@@ -14,6 +14,7 @@ class RDD(object):
     def __init__(self, x, ctx):
         self._x = x
         self.ctx = ctx
+        self._name = None
 
     def x(self):
         self._x, r = itertools.tee(self._x, 2)
@@ -183,6 +184,9 @@ class RDD(object):
 
     def min(self):
         return min(self.x())
+
+    def name(self):
+        return self._name
 
     def persist(self, storageLevel=None):
         return self.cache()
