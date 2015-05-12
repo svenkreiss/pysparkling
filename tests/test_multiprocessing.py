@@ -45,12 +45,10 @@ def test_lazy_execution_threadpool():
         r = pysparkling.Context(pool=p).textFile('tests/test_simple.py')
         r = r.map(indent_line)
         r.foreach(indent_line)
-        exec_before_collect = INDENT_WAS_EXECUTED
-        # at this point, no map() or foreach() should have been executed
-        r.collect()
-        exec_after_collect = INDENT_WAS_EXECUTED
+        r = r.collect()
         # ThreadPool is not lazy although it returns generators.
-        # assert not exec_before_collect and exec_after_collect
+        print(r)
+        assert '--- --- import pysparkling' in r
 
 
 if __name__ == '__main__':

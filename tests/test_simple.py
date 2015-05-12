@@ -147,7 +147,8 @@ def test_saveAsTextFile():
     pysparkling.Context().parallelize(range(10)).saveAsTextFile(tempFile.name)
     with open(tempFile.name, 'r') as f:
         r = f.readlines()
-        assert b'5\n' in r
+        print(r)
+        assert '5\n' in r
 
 
 def test_subtract():
