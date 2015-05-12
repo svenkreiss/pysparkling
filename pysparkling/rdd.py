@@ -1,11 +1,13 @@
 """RDD implementation."""
 
-from __future__ import division
+from __future__ import division, absolute_import
 
 import random
 import functools
 import itertools
 import subprocess
+
+from .utils import Tokenizer
 
 
 class RDD(object):
@@ -13,7 +15,7 @@ class RDD(object):
 
     def __init__(self, x, ctx):
         self._x = x
-        self.ctx = ctx
+        self.context = ctx
         self._name = None
 
     def x(self):
@@ -40,9 +42,6 @@ class RDD(object):
     def collect(self):
         return list(self.x())
 
-    def context(self):
-        return self.ctx
-
     def count(self):
         return sum(1 for _ in self.x())
 
@@ -59,10 +58,10 @@ class RDD(object):
         return dict((k, as_list.count(k)) for k in keys)
 
     def distinct(self, numPartitions=None):
-        return RDD(list(set(self.x())), self.ctx)
+        return RDD(list(set(self.x())), self.context)
 
     def filter(self, f):
-        return RDD((x for x in self.x() if f(x)), self.ctx)
+        return RDD((x for x in self.x() if f(x)), self.context)
 
     def first(self):
         return next(self.x())
@@ -91,7 +90,7 @@ class RDD(object):
         )
 
     def foreach(self, f):
-        self._x = self.ctx['pool'].map(f, self.x())
+        self._x = self.context._pool.map(f, self.x())
         return self
 
     def foreachPartition(self, f):
@@ -100,12 +99,12 @@ class RDD(object):
 
     def groupBy(self, f):
         as_list = list(self.x())
-        f_applied = list(self.ctx['pool'].map(f, as_list))
+        f_applied = list(self.context._pool.map(f, as_list))
         keys = set(f_applied)
         return RDD([
             (k, [vv for kk, vv in zip(f_applied, as_list) if kk == k])
             for k in keys
-        ], self.ctx)
+        ], self.context)
 
     def groupByKey(self):
         as_list = list(self.x())
@@ -113,7 +112,7 @@ class RDD(object):
         return RDD([
             (k, [e[1] for e in as_list if e[0] == k])
             for k in keys
-        ], self.ctx)
+        ], self.context)
 
     def histogram(self, buckets):
         if isinstance(buckets, int):
@@ -137,7 +136,8 @@ class RDD(object):
         return None
 
     def intersection(self, other):
-        return RDD(list(set(self.collect()) & set(other.collect())), self.ctx)
+        return RDD(list(set(self.collect()) & set(other.collect())),
+                   self.context)
 
     def isCheckpointed(self):
         return False
@@ -146,31 +146,31 @@ class RDD(object):
         d1 = dict(self.x())
         d2 = dict(other.x())
         keys = set(d1.keys()) & set(d2.keys())
-        return RDD(((k, (d1[k], d2[k])) for k in keys), self.ctx)
+        return RDD(((k, (d1[k], d2[k])) for k in keys), self.context)
 
     def keyBy(self, f):
-        return RDD(((f(e), e) for e in self.x()), self.ctx)
+        return RDD(((f(e), e) for e in self.x()), self.context)
 
     def keys(self):
-        return RDD((e[0] for e in self.x()), self.ctx)
+        return RDD((e[0] for e in self.x()), self.context)
 
     def leftOuterJoin(self, other):
         d1 = dict(self.x())
         d2 = dict(other.x())
         return RDD(((k, (d1[k], d2[k] if k in d2 else None))
-                    for k in d1.keys()), self.ctx)
+                    for k in d1.keys()), self.context)
 
     def lookup(self, key):
         return [e[1] for e in self.x() if e[0] == key]
 
     def map(self, f):
-        return RDD(self.ctx['pool'].map(f, self.x()), self.ctx)
+        return RDD(self.context._pool.map(f, self.x()), self.context)
 
     def mapValues(self, f):
         return RDD(zip(
             (e[0] for e in self.x()),
-            self.ctx['pool'].map(f, (e[1] for e in self.x()))
-        ), self.ctx)
+            self.context._pool.map(f, (e[1] for e in self.x()))
+        ), self.context)
 
     def max(self):
         return max(self.x())
@@ -194,7 +194,7 @@ class RDD(object):
     def pipe(self, command, env={}):
         return RDD((subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
-        ) for x in self.x()), self.ctx)
+        ) for x in self.x()), self.context)
 
     def reduce(self, f):
         return functools.reduce(f, self.x())
@@ -206,11 +206,31 @@ class RDD(object):
         d1 = dict(self.x())
         d2 = dict(other.x())
         return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
-                    for k in d2.keys()), self.ctx)
+                    for k in d2.keys()), self.context)
+
+    def saveAsTextFile(self, path, compressionCodecClass=None):
+        if path.startswith('s3://') or path.startswith('s3n://'):
+            t = Tokenizer(path)
+            t.next('//')  # skip scheme
+            bucket_name = t.next('/')
+            key_name = t.next()
+            conn = self.context._get_s3_conn()
+            bucket = conn.get_bucket(bucket_name, validate=False)
+            key = bucket.new_key(key_name)
+            key.set_contents_from_string('\n'.join(str(x) for x in self.x()))
+        else:
+            path_local = path
+            if path_local.startswith('file://'):
+                path_local = path_local[7:]
+            with open(path_local, 'w') as f:
+                for x in self.x():
+                    f.write(str(x))
+                    f.write('\n')
+        return self
 
     def subtract(self, other, numPartitions=None):
         list_other = list(other.x())
-        return RDD((x for x in self.x() if x not in list_other), self.ctx)
+        return RDD((x for x in self.x() if x not in list_other), self.context)
 
     def sum(self):
         return sum(self.x())

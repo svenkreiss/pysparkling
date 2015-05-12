@@ -1,3 +1,4 @@
+import tempfile
 import pysparkling
 
 
@@ -140,6 +141,15 @@ def test_rightOuterJoin():
     assert dict(j.collect())[1][1] == 3
 
 
+def test_saveAsTextFile():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    pysparkling.Context().parallelize(range(10)).saveAsTextFile(tempFile.name)
+    with open(tempFile.name, 'r') as f:
+        r = f.readlines()
+        assert b'5\n' in r
+
+
 def test_subtract():
     rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
     rdd2 = pysparkling.Context().parallelize([(1, 1), (1, 3)])
@@ -153,15 +163,4 @@ def test_sum():
 
 
 if __name__ == '__main__':
-    test_collect()
-    test_broadcast()
-    test_map()
-    test_foreach()
-    test_countByValue()
-    test_countByKey()
-    test_flatMapValues()
-    test_fold()
-    test_foldByKey()
-    test_take()
-    test_takeSample()
-    test_histogram()
+    test_saveAsTextFile()

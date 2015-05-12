@@ -122,6 +122,7 @@ RDD
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
 * ``rightOuterJoin(other)``: right outer join
+* ``saveAsTextFile(path)``: save RDD as text file
 * ``subtract(other)``: return a new RDD without the elements in other
 * ``sum()``: sum
 * ``take(n)``: get the first n elements

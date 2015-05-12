@@ -6,33 +6,7 @@ import fnmatch
 
 from .rdd import RDD
 from .broadcast import Broadcast
-
-
-class Tokenizer(object):
-    def __init__(self, expression):
-        self.expression = expression
-
-    def next(self, separator=None):
-        if isinstance(separator, list):
-            sep_pos = [self.expression.find(s) for s in separator]
-            sep_pos = [s for s in sep_pos if s >= 0]
-            if sep_pos:
-                sep_pos = min(sep_pos)
-            else:
-                sep_pos = -1
-        elif separator:
-            sep_pos = self.expression.find(separator)
-        else:
-            sep_pos = -1
-
-        if sep_pos < 0:
-            value = self.expression
-            self.expression = ''
-            return value
-
-        value = self.expression[:sep_pos]
-        self.expression = self.expression[sep_pos+len(separator):]
-        return value
+from .utils import Tokenizer
 
 
 class Context(object):
@@ -40,13 +14,11 @@ class Context(object):
         if not pool:
             pool = DummyPool()
 
-        self.ctx = {
-            'pool': pool,
-            's3_conn': None,
-        }
+        self._pool = pool
+        self._s3_conn = None
 
     def parallelize(self, x, numPartitions=None):
-        return RDD(x, self.ctx)
+        return RDD(x, self)
 
     def broadcast(self, x):
         return Broadcast(x)
@@ -76,9 +48,9 @@ class Context(object):
         return rdd
 
     def _get_s3_conn(self):
-        if not self.ctx['s3_conn']:
-            self.ctx['s3_conn'] = boto.connect_s3()
-        return self.ctx['s3_conn']
+        if not self._s3_conn:
+            self._s3_conn = boto.connect_s3()
+        return self._s3_conn
 
     def _resolve_filenames(self, all_expr):
         files = []
