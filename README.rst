@@ -111,7 +111,6 @@ RDD
 * ``keys()``: returns the keys of tuples in new RDD
 * ``leftOuterJoin(other)``: left outer join
 * ``lookup(key)``: return list of values for this key
-* **TODO**: continue going through the list
 * ``map(func)``: apply func to every element and return a new RDD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
 * ``max()``: get the maximum element

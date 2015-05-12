@@ -120,7 +120,7 @@ def test_pipe():
     rdd = pysparkling.Context().parallelize(['0', 'hello', 'world'])
     piped = rdd.pipe('echo').collect()
     print(piped)
-    assert 'hello\n' in piped
+    assert b'hello\n' in piped
 
 
 def test_reduce():
