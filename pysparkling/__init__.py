@@ -1,6 +1,6 @@
 """pytld module."""
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 from .context import Context
 from .rdd import RDD
