@@ -1,5 +1,7 @@
 """RDD implementation."""
 
+from __future__ import division
+
 import random
 import functools
 import itertools
@@ -171,6 +173,13 @@ class RDD(object):
     def max(self):
         return max(self.x())
 
+    def mean(self):
+        summed, length = (0.0, 0)
+        for x in self.x():
+            summed += x
+            length += 1
+        return summed / length
+
     def min(self):
         return min(self.x())
 
@@ -185,6 +194,13 @@ class RDD(object):
         d2 = dict(other.x())
         return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
                     for k in d2.keys()), self.ctx)
+
+    def subtract(self, other, numPartitions=None):
+        list_other = list(other.x())
+        return RDD((x for x in self.x() if x not in list_other), self.ctx)
+
+    def sum(self):
+        return sum(self.x())
 
     def take(self, n):
         i = self.x()

@@ -115,10 +115,13 @@ RDD
 * ``map(func)``: apply func to every element and return a new RDD
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
 * ``max()``: get the maximum element
+* ``mean()``: mean
 * ``min()``: get the minimum element
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
 * ``rightOuterJoin(other)``: right outer join
+* ``subtract(other)``: return a new RDD without the elements in other
+* ``sum()``: sum
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
 

@@ -111,6 +111,11 @@ def test_lookup():
     assert 3 in rdd.lookup(1)
 
 
+def test_mean():
+    rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    assert rdd.mean() == 5
+
+
 def test_reduce():
     rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
     assert rdd.reduce(lambda a, b: a+b) == 25
@@ -126,6 +131,18 @@ def test_rightOuterJoin():
     rdd2 = pysparkling.Context().parallelize([(2, 1), (1, 3)])
     j = rdd1.rightOuterJoin(rdd2)
     assert dict(j.collect())[1][1] == 3
+
+
+def test_subtract():
+    rdd1 = pysparkling.Context().parallelize([(0, 1), (1, 1)])
+    rdd2 = pysparkling.Context().parallelize([(1, 1), (1, 3)])
+    subtracted = rdd1.subtract(rdd2).collect()
+    assert (0, 1) in subtracted and (1, 1) not in subtracted
+
+
+def test_sum():
+    rdd = pysparkling.Context().parallelize([0, 4, 7, 4, 10])
+    assert rdd.sum() == 25
 
 
 if __name__ == '__main__':
