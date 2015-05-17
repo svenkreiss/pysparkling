@@ -70,14 +70,16 @@ Context
 * ``__init__(pool=None)``: takes a pool object (an object that has a ``map()``
   method, e.g. a multiprocessing.Pool) to parallelize all ``map()`` and
   ``foreach()`` methods.
+* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
+  are accessed with ``value``.
+* ``newRddId()``: incrementing number
 * ``textFile(filename)``: load every line of a text file into a RDD.
   ``filename`` can contain a comma separated list of many files, ``?`` and
   ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
   local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
   or ``file:///absolute/file/path.txt``). If the filename points to a folder
   containing ``part*`` files, those are resolved.
-* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
-  are accessed with ``value``.
+* ``union(rdds)``: forms the union of a list of RDDs
 
 
 RDD
@@ -100,6 +102,8 @@ RDD
 * ``foldByKey(zeroValue, op)``: aggregate elements by key
 * ``foreach(func)``: apply func to every element in place
 * ``foreachPartition(func)``: same as ``foreach()``
+* ``getNumPartitions()``: number of partitions
+* ``getPartitions()``: returns an iterator over the partitions
 * ``groupBy(func)``: group by the output of func
 * ``groupByKey()``: group by key where the RDD is of type [(key, value), ...]
 * ``histogram(buckets)``: buckets can be a list or an int
@@ -112,6 +116,7 @@ RDD
 * ``leftOuterJoin(other)``: left outer join
 * ``lookup(key)``: return list of values for this key
 * ``map(func)``: apply func to every element and return a new RDD
+* ``mapPartitions(func)``: apply f to entire partitions
 * ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
 * ``max()``: get the maximum element
 * ``mean()``: mean
