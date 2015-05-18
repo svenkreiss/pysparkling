@@ -33,6 +33,7 @@ setup(
     tests_require=[
         'nose>=1.3.4',
         'futures>=3.0.1',
+        'dill>=0.2.2',
     ],
     test_suite='nose.collector',
 

@@ -1,88 +1,161 @@
 """RDD implementation."""
 
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
+import os
 import random
 import functools
 import itertools
 import subprocess
+from collections import defaultdict
 
-from .utils import Tokenizer
+from . import utils
 
 
 class RDD(object):
     """methods starting with underscore are not in the Spark interface"""
 
-    def __init__(self, x, ctx):
-        self._x = x
+    def __init__(self, partitions, ctx):
+        self._p = partitions
         self.context = ctx
         self._name = None
 
-    def x(self):
-        self._x, r = itertools.tee(self._x, 2)
+    def __getstate__(self):
+        r = dict((k, v) for k, v in self.__dict__.items())
+        r['_p'] = list(self.partitions())
+        r['context'] = None
         return r
 
-    def _flatten(self):
-        self._x = (xx for x in self.x() for xx in x)
-        return self
+    def compute(self, split, task_context):
+        """split is a partition. This function is used in derived RDD
+        classes. To add smarter behavior for specific cases."""
+        return split.x()
 
-    def _flattenValues(self):
-        self._x = ((e[0], v) for e in self.x() for v in e[1])
-        return self
+    def partitions(self):
+        self._p, r = itertools.tee(self._p, 2)
+        return r
+
+    """
+
+    Public API
+    ----------
+    """
+
+    def aggregate(self, zeroValue, seqOp, combOp):
+        """[distributed]"""
+        return self.context.runJob(
+            self,
+            lambda tc, i: functools.reduce(seqOp, i, zeroValue),
+            resultHandler=lambda l: functools.reduce(combOp, l, zeroValue)
+        )
+
+    def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
+        def seqFuncByKey(tc, i):
+            r = defaultdict(zeroValue)
+            for k, v in i:
+                r[k] = seqFunc(r[k], v)
+            return r
+        def combFuncByKey(l):
+            r = defaultdict(zeroValue)
+            for p in l:
+                for k, v in p.items():
+                    r[k] = combFunc(r[k], v)
+            return r
+        return self.context.runJob(self, seqFuncByKey,
+                                   resultHandler=combFuncByKey)
 
     def cache(self):
         # This cache is not lazy, but it will guarantee that previous
         # steps are only executed once.
-        self._x = list(self._x)
+        for p in self.partitions():
+            p._x = list(p.x())
         return self
 
-    def coalesce(self):
-        return self
+    def cartesian(self, other):
+        v1 = self.collect()
+        v2 = self.collect()
+        return self.context.parallelize([(a, b) for a in v1 for b in v2])
+
+    def coalesce(self, numPartitions, shuffle=False):
+        return self.context.parallelize(self.collect(), numPartitions)
 
     def collect(self):
-        return list(self.x())
+        """[distributed]"""
+        return self.context.runJob(self, lambda tc, i: list(i),
+                                   resultHandler=lambda l: [x for p in l for x in p])
 
     def count(self):
-        return sum(1 for _ in self.x())
+        """[distributed]"""
+        return self.context.runJob(self, lambda tc, i: sum(1 for _ in i),
+                                   resultHandler=sum)
 
     def countApprox(self):
         return self.count()
 
     def countByKey(self):
-        keys = set(k for k, v in self.x())
-        return dict((k, sum(v for kk, v in self.x() if kk == k)) for k in keys)
+        """[distributed]"""
+        def map_func(tc, x):
+            r = defaultdict(int)
+            for k, v in x:
+                r[k] += v
+            return r
+        return self.context.runJob(self, map_func,
+                                   resultHandler=utils.sum_counts_by_keys)
 
     def countByValue(self):
-        as_list = list(self.x())
-        keys = set(as_list)
-        return dict((k, as_list.count(k)) for k in keys)
+        """[distributed]"""
+        def map_func(tc, x):
+            r = defaultdict(int)
+            for v in x:
+                r[v] += 1
+            return r
+        return self.context.runJob(self, map_func,
+                                   resultHandler=utils.sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
-        return RDD(list(set(self.x())), self.context)
+        return self.context.parallelize(list(set(self.collect())), numPartitions)
 
     def filter(self, f):
-        return RDD((x for x in self.x() if f(x)), self.context)
+        """[distributed]"""
+        def map_func(tc, i, x):
+            return (xx for xx in x if f(xx))
+        return MapPartitionsRDD(self, map_func, preservesPartitioning=True)
 
     def first(self):
-        return next(self.x())
+        """[distributed]"""
+        return self.context.runJob(
+            self,
+            lambda tc, i: next(i) if tc.partition_id == 0 else None,
+            resultHandler=lambda l: next(l),
+        )
 
     def flatMap(self, f, preservesPartitioning=False):
-        return self.map(f)._flatten()
+        """[distributed]"""
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: (e for xx in x for e in f(xx)),
+            preservesPartitioning=True,
+        )
 
     def flatMapValues(self, f):
-        return self.mapValues(f)._flattenValues()
+        """[distributed]"""
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: ((xx[0], e) for xx in x for e in f(xx[1])),
+            preservesPartitioning=True,
+        )
 
     def fold(self, zeroValue, op):
-        return functools.reduce(op, self.x(), zeroValue)
+        return functools.reduce(op, self.collect(), zeroValue)
 
     def foldByKey(self, zeroValue, op):
-        keys = set(k for k, v in self.x())
+        keys = set(k for k, v in self.collect())
         return dict(
             (
                 k,
                 functools.reduce(
                     op,
-                    (e[1] for e in self.x() if e[0] == k),
+                    (e[1] for e in self.collect() if e[0] == k),
                     zeroValue
                 )
             )
@@ -90,29 +163,34 @@ class RDD(object):
         )
 
     def foreach(self, f):
-        self._x = self.context._pool.map(f, self.x())
-        return self
+        self.context.runJob(self, lambda tc, x: (f(xx) for xx in x),
+                            resultHandler=None)
 
     def foreachPartition(self, f):
-        self.foreach(f)
-        return self
+        self.context.runJob(self, lambda tc, x: f(x),
+                            resultHandler=None)
 
-    def groupBy(self, f):
-        as_list = list(self.x())
-        f_applied = list(self.context._pool.map(f, as_list))
-        keys = set(f_applied)
-        return RDD([
-            (k, [vv for kk, vv in zip(f_applied, as_list) if kk == k])
-            for k in keys
-        ], self.context)
+    def getNumPartitions(self):
+        return sum(1 for _ in self.partitions())
 
-    def groupByKey(self):
-        as_list = list(self.x())
-        keys = set([e[0] for e in as_list])
-        return RDD([
-            (k, [e[1] for e in as_list if e[0] == k])
-            for k in keys
-        ], self.context)
+    def getPartitions(self):
+        return self.partitions()
+
+    def groupBy(self, f, numPartitions=None):
+        return self.context.parallelize((
+            (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
+                sorted(self.keyBy(f).collect()),
+                lambda e: e[0],
+            )
+        ), numPartitions)
+
+    def groupByKey(self, numPartitions=None):
+        return self.context.parallelize((
+            (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
+                sorted(self.collect()),
+                lambda e: e[0],
+            )
+        ), numPartitions)
 
     def histogram(self, buckets):
         if isinstance(buckets, int):
@@ -122,7 +200,7 @@ class RDD(object):
             buckets = [min_v + float(i)*(max_v-min_v)/num_buckets
                        for i in range(num_buckets+1)]
         h = [0 for _ in buckets]
-        for x in self.x():
+        for x in self.collect():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
                 if x >= b[0] and x < b[1]:
                     h[i] += 1
@@ -136,54 +214,97 @@ class RDD(object):
         return None
 
     def intersection(self, other):
-        return RDD(list(set(self.collect()) & set(other.collect())),
-                   self.context)
+        return self.context.parallelize(
+            list(set(self.collect()) & set(other.collect()))
+        )
 
     def isCheckpointed(self):
         return False
 
     def join(self, other, numPartitions=None):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
         keys = set(d1.keys()) & set(d2.keys())
-        return RDD(((k, (d1[k], d2[k])) for k in keys), self.context)
+        return self.context.parallelize((
+            (k, (d1[k], d2[k]))
+            for k in keys
+        ), numPartitions)
 
     def keyBy(self, f):
-        return RDD(((f(e), e) for e in self.x()), self.context)
+        return self.map(lambda e: (f(e), e))
 
     def keys(self):
-        return RDD((e[0] for e in self.x()), self.context)
+        return self.map(lambda e: e[0])
 
-    def leftOuterJoin(self, other):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
-        return RDD(((k, (d1[k], d2[k] if k in d2 else None))
-                    for k in d1.keys()), self.context)
+    def leftOuterJoin(self, other, numPartitions=None):
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
+        return self.context.parallelize((
+            (k, (d1[k], d2[k] if k in d2 else None))
+            for k in d1.keys()
+        ), numPartitions)
 
     def lookup(self, key):
-        return [e[1] for e in self.x() if e[0] == key]
+        """[distributed]"""
+        return self.context.runJob(
+            self, 
+            lambda tc, x: (xx[1] for xx in x if xx[0] == key),
+            resultHandler=lambda l: [e for ll in l for e in ll],
+        )
 
     def map(self, f):
-        return RDD(self.context._pool.map(f, self.x()), self.context)
+        """[distributed]"""
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: (f(xx) for xx in x),
+            preservesPartitioning=True,
+        )
+
+    def mapPartitions(self, f, preservesPartitioning=False):
+        """[distributed]"""
+        return MapPartitionsRDD(
+            self, 
+            lambda tc, i, x: f(x), 
+            preservesPartitioning=True,
+        )
 
     def mapValues(self, f):
-        return RDD(zip(
-            (e[0] for e in self.x()),
-            self.context._pool.map(f, (e[1] for e in self.x()))
-        ), self.context)
+        """[distributed]"""
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: ((e[0], f(e[1])) for e in x),
+            preservesPartitioning=True,
+        )
 
     def max(self):
-        return max(self.x())
+        """[distributed]"""
+        return self.context.runJob(
+            self, 
+            lambda tc, x: max(x),
+            resultHandler=max,
+        )
 
     def mean(self):
-        summed, length = (0.0, 0)
-        for x in self.x():
-            summed += x
-            length += 1
-        return summed / length
+        """[distributed]"""
+        def map_func(tc, x):
+            summed, length = (0.0, 0)
+            for xx in x:
+                summed += xx
+                length += 1
+            return (summed, length)
+        def reduce_func(l):
+            summed, length = zip(*l)
+            return sum(summed)/sum(length)
+        return self.context.runJob(self, map_func,
+                                   resultHandler=reduce_func)
 
     def min(self):
-        return min(self.x())
+        """[distributed]"""
+        return self.context.runJob(
+            self, 
+            lambda tc, x: min(x),
+            resultHandler=min,
+        )
 
     def name(self):
         return self._name
@@ -192,52 +313,95 @@ class RDD(object):
         return self.cache()
 
     def pipe(self, command, env={}):
-        return RDD((subprocess.check_output(
+        return self.context.parallelize(subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
-        ) for x in self.x()), self.context)
+        ) for x in self.collect())
 
     def reduce(self, f):
-        return functools.reduce(f, self.x())
+        """[distributed] f must be a commutative and associative binary operator"""
+        return self.context.runJob(
+            self, 
+            lambda tc, x: functools.reduce(f, x),
+            resultHandler=lambda x: functools.reduce(f, x),
+        )
 
     def reduceByKey(self, f):
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
-    def rightOuterJoin(self, other):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
-        return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
-                    for k in d2.keys()), self.context)
+    def rightOuterJoin(self, other, numPartitions=None):
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
+        return self.context.parallelize((
+            (k, (d1[k] if k in d1 else None, d2[k]))
+            for k in d2.keys()
+        ), numPartitions)
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
-        if path.startswith('s3://') or path.startswith('s3n://'):
-            t = Tokenizer(path)
-            t.next('//')  # skip scheme
-            bucket_name = t.next('/')
-            key_name = t.next()
-            conn = self.context._get_s3_conn()
-            bucket = conn.get_bucket(bucket_name, validate=False)
-            key = bucket.new_key(key_name)
-            key.set_contents_from_string('\n'.join(str(x) for x in self.x()))
-        else:
-            path_local = path
-            if path_local.startswith('file://'):
-                path_local = path_local[7:]
-            with open(path_local, 'w') as f:
-                for x in self.x():
-                    f.write(str(x))
-                    f.write('\n')
+        def write_file(this_path, iter_content):
+            if path.startswith('s3://') or path.startswith('s3n://'):
+                t = utils.Tokenizer(this_path)
+                t.next('//')  # skip scheme
+                bucket_name = t.next('/')
+                key_name = t.next()
+                conn = self.context._get_s3_conn()
+                bucket = conn.get_bucket(bucket_name, validate=False)
+                key = bucket.new_key(key_name)
+                key.set_contents_from_string(str(x)+'\n' for x in iter_content)
+            else:
+                path_local = this_path
+                if path_local.startswith('file://'):
+                    path_local = path_local[7:]
+                print('creating dir {0}/'.format(path))
+                os.system('mkdir -p '+path+'/')
+                print('writing file {0}/'.format(path_local))
+                with open(path_local, 'w') as f:
+                    for x in iter_content:
+                        f.write(str(x))
+                        f.write('\n')
+        self.context.runJob(
+            self, 
+            lambda tc, x: write_file(path+'/part-{0:05d}'.format(tc.partitionId()), x),
+            resultHandler=lambda l: write_file(path+'/_SUCCESS', list(l)),
+        )
         return self
 
     def subtract(self, other, numPartitions=None):
-        list_other = list(other.x())
-        return RDD((x for x in self.x() if x not in list_other), self.context)
+        """[distributed]"""
+        list_other = other.collect()
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: (e for e in x if e not in list_other),
+            preservesPartitioning=True,
+        )
 
     def sum(self):
-        return sum(self.x())
+        """[distributed]"""
+        return self.context.runJob(self, lambda tc, x: sum(x), resultHandler=sum)
 
     def take(self, n):
-        i = self.x()
-        return [next(i) for _ in range(n)]
+        return self.collect()[:n]
 
     def takeSample(self, n):
-        return random.sample(list(self.x()), n)
+        return random.sample(self.collect(), n)
+
+
+class MapPartitionsRDD(RDD):
+    def __init__(self, prev, f, preservesPartitioning=False):
+        """prev is the previous RDD.
+
+        f is a function with the signature
+        (task_context, partition index, iterator over elements).
+        """
+        RDD.__init__(self, prev.partitions(), prev.context)
+        
+        self.prev = prev
+        self.f = f
+        self.preservesPartitioning = preservesPartitioning
+
+    def compute(self, split, task_context):
+        return self.f(task_context, split.index, self.prev.compute(split, task_context._create_child()))
+
+    def partitions(self):
+        return self.prev.partitions()
+
+
