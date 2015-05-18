@@ -71,6 +71,11 @@ class RDD(object):
             p._x = list(p.x())
         return self
 
+    def cartesian(self, other):
+        v1 = self.collect()
+        v2 = self.collect()
+        return self.context.parallelize([(a, b) for a in v1 for b in v2])
+
     def coalesce(self, numPartitions, shuffle=False):
         return self.context.parallelize(self.collect(), numPartitions)
 

@@ -18,6 +18,12 @@ def test_aggregateByKey():
     r = Context().parallelize([('a', 1), ('b', 2), ('a', 3), ('c', 4)]).aggregateByKey(int, seqOp, combOp)
     assert r['a'] == 4 and r['b'] == 2
 
+def test_cartesian():
+    rdd = Context().parallelize([1, 2])
+    r = sorted(rdd.cartesian(rdd).collect())
+    print(r)
+    assert r[0][0] == 1 and r[2][0] == 2 and len(r) == 4 and len(r[0]) == 2
+
 def test_coalesce():
     my_rdd = Context().parallelize([1, 2, 3], 2).coalesce(1)
     assert my_rdd.getNumPartitions() == 1

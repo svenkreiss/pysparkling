@@ -91,6 +91,7 @@ RDD
   seqOp and combine with combOp
 * ``aggregateByKey(zeroValue, seqFunc, combFunc)``: aggregate by key
 * ``cache()``: execute previous steps and cache result
+* ``cartesian(other)``: cartesian product
 * ``coalesce()``: do nothing
 * ``collect()``: return the underlying list
 * ``count()``: get length of internal list
