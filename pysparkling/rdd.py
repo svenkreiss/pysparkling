@@ -20,8 +20,15 @@ class RDD(object):
         self.context = ctx
         self._name = None
 
+    def __getstate__(self):
+        r = dict((k, v) for k, v in self.__dict__.iteritems())
+        r['_p'] = list(self.partitions())
+        r['context'] = None
+        return r
+
     def compute(self, split, task_context):
-        """split is a partition"""
+        """split is a partition. This function is used in derived RDD
+        classes. To add smarter behavior for specific cases."""
         return split.x()
 
     def partitions(self):
@@ -187,10 +194,13 @@ class RDD(object):
         return False
 
     def join(self, other, numPartitions=None):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
         keys = set(d1.keys()) & set(d2.keys())
-        return RDD(((k, (d1[k], d2[k])) for k in keys), self.context)
+        return self.context.parallelize((
+            (k, (d1[k], d2[k]))
+            for k in keys
+        ), numPartitions)
 
     def keyBy(self, f):
         return self.map(lambda e: (f(e), e))
@@ -198,11 +208,13 @@ class RDD(object):
     def keys(self):
         return self.map(lambda e: e[0])
 
-    def leftOuterJoin(self, other):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
-        return RDD(((k, (d1[k], d2[k] if k in d2 else None))
-                    for k in d1.keys()), self.context)
+    def leftOuterJoin(self, other, numPartitions=None):
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
+        return self.context.parallelize((
+            (k, (d1[k], d2[k] if k in d2 else None))
+            for k in d1.keys()
+        ), numPartitions)
 
     def lookup(self, key):
         """[distributed]"""
@@ -288,11 +300,13 @@ class RDD(object):
     def reduceByKey(self, f):
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
-    def rightOuterJoin(self, other):
-        d1 = dict(self.x())
-        d2 = dict(other.x())
-        return RDD(((k, (d1[k] if k in d1 else None, d2[k]))
-                    for k in d2.keys()), self.context)
+    def rightOuterJoin(self, other, numPartitions=None):
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
+        return self.context.parallelize((
+            (k, (d1[k] if k in d1 else None, d2[k]))
+            for k in d2.keys()
+        ), numPartitions)
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
         def write_file(this_path, iter_content):
@@ -357,7 +371,7 @@ class MapPartitionsRDD(RDD):
         self.preservesPartitioning = preservesPartitioning
 
     def compute(self, split, task_context):
-        return self.f(task_context, split.index, self.prev.compute(split, task_context))
+        return self.f(task_context, split.index, self.prev.compute(split, task_context._create_child()))
 
     def partitions(self):
         return self.prev.partitions()

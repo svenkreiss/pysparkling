@@ -15,6 +15,10 @@ class TaskContext(object):
         self.is_running_locally = True
         self.task_completion_listeners = []
 
+    def _create_child(self):
+        return TaskContext(stage_id=self.stage_id+1,
+                           partition_id=self.partition_id)
+
     def attemptNumber(self):
         return self.attempt_number
 

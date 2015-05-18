@@ -67,9 +67,12 @@ API
 Context
 -------
 
-* ``__init__(pool=None)``: takes a pool object (an object that has a ``map()``
-  method, e.g. a multiprocessing.Pool) to parallelize all ``map()`` and
-  ``foreach()`` methods.
+* ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
+  takes a pool object
+  (an object that has a ``map()`` method, e.g. a multiprocessing.Pool) to
+  parallelize methods. To support functions and lambda functions, specify custom
+  serializers and deserializers,
+  e.g. ``serializer=dill.dumps, deserializer=dill.loads``.
 * ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
   are accessed with ``value``.
 * ``newRddId()``: incrementing number
@@ -79,7 +82,6 @@ Context
   local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
   or ``file:///absolute/file/path.txt``). If the filename points to a folder
   containing ``part*`` files, those are resolved.
-* ``union(rdds)``: forms the union of a list of RDDs
 
 
 RDD
