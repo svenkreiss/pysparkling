@@ -13,7 +13,7 @@ pysparkling
   endpoint. You need the same pre-processing pipeline for a single
   document per API call. This does not have to be done in parallel, but there
   should be only a small overhead in initialization and preferably no
-  dependency on the JVM. This is where ``pysparkling`` shines.
+  dependency on the JVM. This is what ``pysparkling`` is for.
 
 .. image:: https://travis-ci.org/svenkreiss/pysparkling.png?branch=master
     :target: https://travis-ci.org/svenkreiss/pysparkling
