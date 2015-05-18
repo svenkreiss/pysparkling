@@ -24,5 +24,9 @@ def test_union():
     assert len(union) == 2 and 'Hello' in union and 'World' in union
 
 
+def test_version():
+	assert isinstance(Context().version, basestring)
+
+
 if __name__ == '__main__':
 	test_union()

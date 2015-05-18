@@ -82,6 +82,7 @@ Context
   local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
   or ``file:///absolute/file/path.txt``). If the filename points to a folder
   containing ``part*`` files, those are resolved.
+* ``version``: the version of pysparkling
 
 
 RDD

@@ -14,6 +14,7 @@ from .broadcast import Broadcast
 from .utils import Tokenizer
 from .partition import Partition
 from .task_context import TaskContext
+from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,8 @@ class Context(object):
         self._data_deserializer = data_deserializer
         self._s3_conn = None
         self._last_rdd_id = 0
+
+        self.version = PYSPARKLING_VERSION
 
     def broadcast(self, x):
         return Broadcast(x)
