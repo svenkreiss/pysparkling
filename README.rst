@@ -150,7 +150,13 @@ Broadcast
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...master>`_
+* `0.2.0 <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...v0.2.0>`_ (2015-05-17)
+    * proper handling of partitions
+    * custom serializers, deserializers (for functions and data separately)
+    * more tests for parallelization options
+    * execution of distributed jobs is such that a chain of ``map()`` operations gets executed on workers without sending intermediate results back to the master
+    * a few more methods for RDDs implemented
 * `0.1.1 <https://github.com/svenkreiss/pysparkling/compare/v0.1.0...v0.1.1>`_ (2015-05-12)
     * implemented a few more RDD methods
     * changed handling of context in RDD
