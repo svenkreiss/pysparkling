@@ -25,7 +25,7 @@ def test_union():
 
 
 def test_version():
-	assert isinstance(Context().version, basestring)
+	assert isinstance(Context().version, str)
 
 
 if __name__ == '__main__':
