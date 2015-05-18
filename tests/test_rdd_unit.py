@@ -5,6 +5,19 @@ import tempfile
 from pysparkling import Context
 
 
+def test_aggregate():
+    seqOp = (lambda x, y: (x[0] + y, x[1] + 1))
+    combOp = (lambda x, y: (x[0] + y[0], x[1] + y[1]))
+    r = Context().parallelize([1, 2, 3, 4]).aggregate((0, 0), seqOp, combOp)
+    assert r[0] == 10 and r[1] == 4
+
+
+def test_aggregateByKey():
+    seqOp = (lambda x, y: x + y)
+    combOp = (lambda x, y: x + y)
+    r = Context().parallelize([('a', 1), ('b', 2), ('a', 3), ('c', 4)]).aggregateByKey(int, seqOp, combOp)
+    assert r['a'] == 4 and r['b'] == 2
+
 def test_coalesce():
     my_rdd = Context().parallelize([1, 2, 3], 2).coalesce(1)
     assert my_rdd.getNumPartitions() == 1

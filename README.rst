@@ -87,6 +87,9 @@ Context
 RDD
 ---
 
+* ``aggregate(zeroValue, seqOp, combOp)``: aggregate value in partition with 
+  seqOp and combine with combOp
+* ``aggregateByKey(zeroValue, seqFunc, combFunc)``: aggregate by key
 * ``cache()``: execute previous steps and cache result
 * ``coalesce()``: do nothing
 * ``collect()``: return the underlying list

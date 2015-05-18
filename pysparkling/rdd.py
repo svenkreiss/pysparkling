@@ -1,6 +1,6 @@
 """RDD implementation."""
 
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
 import os
 import random
@@ -40,6 +40,29 @@ class RDD(object):
     Public API
     ----------
     """
+
+    def aggregate(self, zeroValue, seqOp, combOp):
+        """[distributed]"""
+        return self.context.runJob(
+            self,
+            lambda tc, i: functools.reduce(seqOp, i, zeroValue),
+            resultHandler=lambda l: functools.reduce(combOp, l, zeroValue)
+        )
+
+    def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
+        def seqFuncByKey(tc, i):
+            r = defaultdict(zeroValue)
+            for k, v in i:
+                r[k] = seqFunc(r[k], v)
+            return r
+        def combFuncByKey(l):
+            r = defaultdict(zeroValue)
+            for p in l:
+                for k, v in p.items():
+                    r[k] = combFunc(r[k], v)
+            return r
+        return self.context.runJob(self, seqFuncByKey,
+                                   resultHandler=combFuncByKey)
 
     def cache(self):
         # This cache is not lazy, but it will guarantee that previous
