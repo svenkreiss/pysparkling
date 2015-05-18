@@ -31,6 +31,6 @@ class Tokenizer(object):
 def sum_counts_by_keys(list_of_pairlists):
     r = defaultdict(int)  # calling int results in a zero
     for l in list_of_pairlists:
-        for key, count in l.iteritems():
+        for key, count in l.items():
             r[key] += count
     return r

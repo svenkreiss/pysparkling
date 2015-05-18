@@ -21,7 +21,7 @@ class RDD(object):
         self._name = None
 
     def __getstate__(self):
-        r = dict((k, v) for k, v in self.__dict__.iteritems())
+        r = dict((k, v) for k, v in self.__dict__.items())
         r['_p'] = list(self.partitions())
         r['context'] = None
         return r
