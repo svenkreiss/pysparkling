@@ -349,13 +349,13 @@ class RDD(object):
                 content = BytesIO()
                 with gzip.GzipFile(fileobj=content, mode='wb') as f:
                     for x in iter_content:
-                        f.write(b'{0}\n'.format(x))
+                        f.write('{0}\n'.format(x).encode('utf-8'))
                 contents = [content.getvalue()]
             elif path.endswith('.bz2'):
                 log.debug('Compressing with bz2 for {0}.'.format(this_path))
-                contents = [bz2.compress(b''.join('{0}\n'.format(x) for x in iter_content))]
+                contents = [bz2.compress(b''.join('{0}\n'.format(x).encode('utf-8') for x in iter_content))]
             else:
-                contents = (b'{0}\n'.format(x) for x in iter_content)
+                contents = ('{0}\n'.format(x).encode('utf-8') for x in iter_content)
 
             if path.startswith('s3://') or path.startswith('s3n://'):
                 t = utils.Tokenizer(this_path)
@@ -365,7 +365,7 @@ class RDD(object):
                 conn = self.context._get_s3_conn()
                 bucket = conn.get_bucket(bucket_name, validate=False)
                 key = bucket.new_key(key_name)
-                key.set_contents_from_string(''.join(contents))
+                key.set_contents_from_string(b''.join(contents))
             else:
                 path_local = this_path
                 if path_local.startswith('file://'):
