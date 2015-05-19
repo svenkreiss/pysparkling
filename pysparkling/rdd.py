@@ -7,10 +7,10 @@ import bz2
 import gzip
 import random
 import logging
-import StringIO
 import functools
 import itertools
 import subprocess
+from io import BytesIO
 from collections import defaultdict
 
 from . import utils
@@ -346,16 +346,16 @@ class RDD(object):
         def write_file(this_path, iter_content):
             if path.endswith('.gz'):
                 log.debug('Compressing with gzip for {0}.'.format(this_path))
-                content = StringIO.StringIO()
-                with gzip.GzipFile(fileobj=content, mode='w') as f:
+                content = BytesIO()
+                with gzip.GzipFile(fileobj=content, mode='wb') as f:
                     for x in iter_content:
-                        f.write(str(x)+'\n')
+                        f.write('{0}\n'.format(x))
                 contents = [content.getvalue()]
             elif path.endswith('.bz2'):
                 log.debug('Compressing with bz2 for {0}.'.format(this_path))
-                contents = [bz2.compress('\n'.join(str(x)+'\n' for x in iter_content))]
+                contents = [bz2.compress(''.join('{0}\n'.format(x) for x in iter_content))]
             else:
-                contents = (str(x)+'\n' for x in iter_content)
+                contents = ('{0}\n'.format(x) for x in iter_content)
 
             if path.startswith('s3://') or path.startswith('s3n://'):
                 t = utils.Tokenizer(this_path)
@@ -380,7 +380,7 @@ class RDD(object):
         self.context.runJob(
             self, 
             lambda tc, x: write_file(path+'/part-{0:05d}'.format(tc.partitionId()), x),
-            resultHandler=lambda l: write_file(path+'/_SUCCESS', list(l)),
+            resultHandler=lambda l: write_file(path+'/_SUCCESS', ['{0}'.format(ll) for ll in l]),
         )
         return self
 

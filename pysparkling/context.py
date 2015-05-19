@@ -9,8 +9,8 @@ import gzip
 import math
 import fnmatch
 import logging
-import StringIO
 import functools
+from io import BytesIO
 
 from .rdd import RDD
 from .broadcast import Broadcast
@@ -120,8 +120,8 @@ class Context(object):
 
             if f_name.endswith('.gz') or '.gz/part-' in f_name:
                 log.info('Using gzip decompression for {0}.'.format(f_name))
-                compressed = StringIO.StringIO(contents)
-                with gzip.GzipFile(fileobj=compressed, mode='r') as f:
+                compressed = BytesIO(contents)
+                with gzip.GzipFile(fileobj=compressed, mode='rb') as f:
                     contents = f.read()
             if f_name.endswith('.bz2') or '.bz2/part-' in f_name:
                 log.info('Using bz2 decompression for {0}.'.format(f_name))
