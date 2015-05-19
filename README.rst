@@ -64,22 +64,6 @@ Count the lines in the ``*.py`` files in the ``tests`` directory:
 API
 ===
 
-fileio
-------
-
-The functionality provided by this module is used in ``Context.textFile()``
-for reading and in ``RDD.saveAsTextFile()`` for writing. Normally, you should
-not have to use this submodule directly.
-
-Infers ``.gz`` and ``.bz2`` compressions from the file name.
-
-* ``File.resolve_filenames(expr)``: given a glob-like expression with ``*``
-  and ``?``, get a list of all matching filenames (either locally or on S3).
-* ``WholeFile(file_name)``: file_name is either local or S3 or ...
-    * ``open_read()``: return the contents either as file object or BytesIO
-    * ``open_write(stream)``: write the stream to the file
-
-
 Context
 -------
 
@@ -161,6 +145,22 @@ Broadcast
 ---------
 
 * ``value``: access the value it stores
+
+
+fileio
+------
+
+The functionality provided by this module is used in ``Context.textFile()``
+for reading and in ``RDD.saveAsTextFile()`` for writing. Normally, you should
+not have to use this submodule directly.
+
+Infers ``.gz`` and ``.bz2`` compressions from the file name.
+
+* ``File.resolve_filenames(expr)``: given a glob-like expression with ``*``
+  and ``?``, get a list of all matching filenames (either locally or on S3).
+* ``WholeFile(file_name)``: file_name is either local or S3 or ...
+    * ``open_read()``: return the contents either as file object or BytesIO
+    * ``open_write(stream)``: write the stream to the file
 
 
 Changelog
