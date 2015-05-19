@@ -166,7 +166,9 @@ Broadcast
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.3...master>`_
+* `v0.2.3 <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...v0.2.3>`_ (2015-05-19)
+    * factor file related operations into fileio submodule
 * `v0.2.2 <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...v0.2.2>`_ (2015-05-18)
     * compressions: ``.gz``, ``.bz2``
 * `v0.2.0 <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...v0.2.0>`_ (2015-05-17)
