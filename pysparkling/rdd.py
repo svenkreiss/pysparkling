@@ -61,12 +61,14 @@ class RDD(object):
             for k, v in i:
                 r[k] = seqFunc(r[k], v)
             return r
+
         def combFuncByKey(l):
             r = defaultdict(zeroValue)
             for p in l:
                 for k, v in p.items():
                     r[k] = combFunc(r[k], v)
             return r
+
         return self.context.runJob(self, seqFuncByKey,
                                    resultHandler=combFuncByKey)
 
@@ -87,8 +89,10 @@ class RDD(object):
 
     def collect(self):
         """[distributed]"""
-        return self.context.runJob(self, lambda tc, i: list(i),
-                                   resultHandler=lambda l: [x for p in l for x in p])
+        return self.context.runJob(
+            self, lambda tc, i: list(i),
+            resultHandler=lambda l: [x for p in l for x in p],
+        )
 
     def count(self):
         """[distributed]"""
@@ -119,7 +123,8 @@ class RDD(object):
                                    resultHandler=utils.sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
-        return self.context.parallelize(list(set(self.collect())), numPartitions)
+        return self.context.parallelize(list(set(self.collect())),
+                                        numPartitions)
 
     def filter(self, f):
         """[distributed]"""
@@ -253,7 +258,7 @@ class RDD(object):
     def lookup(self, key):
         """[distributed]"""
         return self.context.runJob(
-            self, 
+            self,
             lambda tc, x: (xx[1] for xx in x if xx[0] == key),
             resultHandler=lambda l: [e for ll in l for e in ll],
         )
@@ -269,8 +274,8 @@ class RDD(object):
     def mapPartitions(self, f, preservesPartitioning=False):
         """[distributed]"""
         return MapPartitionsRDD(
-            self, 
-            lambda tc, i, x: f(x), 
+            self,
+            lambda tc, i, x: f(x),
             preservesPartitioning=True,
         )
 
@@ -285,7 +290,7 @@ class RDD(object):
     def max(self):
         """[distributed]"""
         return self.context.runJob(
-            self, 
+            self,
             lambda tc, x: max(x),
             resultHandler=max,
         )
@@ -298,16 +303,18 @@ class RDD(object):
                 summed += xx
                 length += 1
             return (summed, length)
+
         def reduce_func(l):
             summed, length = zip(*l)
             return sum(summed)/sum(length)
+
         return self.context.runJob(self, map_func,
                                    resultHandler=reduce_func)
 
     def min(self):
         """[distributed]"""
         return self.context.runJob(
-            self, 
+            self,
             lambda tc, x: min(x),
             resultHandler=min,
         )
@@ -324,9 +331,10 @@ class RDD(object):
         ) for x in self.collect())
 
     def reduce(self, f):
-        """[distributed] f must be a commutative and associative binary operator"""
+        """[distributed] f must be a commutative and associative
+        binary operator"""
         return self.context.runJob(
-            self, 
+            self,
             lambda tc, x: functools.reduce(f, x),
             resultHandler=lambda x: functools.reduce(f, x),
         )
@@ -353,9 +361,13 @@ class RDD(object):
                 contents = [content.getvalue()]
             elif path.endswith('.bz2'):
                 log.debug('Compressing with bz2 for {0}.'.format(this_path))
-                contents = [bz2.compress(b''.join('{0}\n'.format(x).encode('utf-8') for x in iter_content))]
+                contents = [
+                    bz2.compress(b''.join('{0}\n'.format(x).encode('utf-8')
+                                          for x in iter_content))
+                ]
             else:
-                contents = ('{0}\n'.format(x).encode('utf-8') for x in iter_content)
+                contents = ('{0}\n'.format(x).encode('utf-8')
+                            for x in iter_content)
 
             if path.startswith('s3://') or path.startswith('s3n://'):
                 t = utils.Tokenizer(this_path)
@@ -378,9 +390,15 @@ class RDD(object):
                         f.write(c)
 
         self.context.runJob(
-            self, 
-            lambda tc, x: write_file(path+'/part-{0:05d}'.format(tc.partitionId()), x),
-            resultHandler=lambda l: write_file(path+'/_SUCCESS', ['{0}'.format(ll) for ll in l]),
+            self,
+            lambda tc, x: write_file(
+                path+'/part-{0:05d}'.format(tc.partitionId()),
+                x,
+            ),
+            resultHandler=lambda l: write_file(
+                path+'/_SUCCESS',
+                ['{0}'.format(ll) for ll in l],
+            ),
         )
         return self
 
@@ -395,7 +413,8 @@ class RDD(object):
 
     def sum(self):
         """[distributed]"""
-        return self.context.runJob(self, lambda tc, x: sum(x), resultHandler=sum)
+        return self.context.runJob(self, lambda tc, x: sum(x),
+                                   resultHandler=sum)
 
     def take(self, n):
         return self.collect()[:n]
@@ -412,15 +431,14 @@ class MapPartitionsRDD(RDD):
         (task_context, partition index, iterator over elements).
         """
         RDD.__init__(self, prev.partitions(), prev.context)
-        
+
         self.prev = prev
         self.f = f
         self.preservesPartitioning = preservesPartitioning
 
     def compute(self, split, task_context):
-        return self.f(task_context, split.index, self.prev.compute(split, task_context._create_child()))
+        return self.f(task_context, split.index,
+                      self.prev.compute(split, task_context._create_child()))
 
     def partitions(self):
         return self.prev.partitions()
-
-

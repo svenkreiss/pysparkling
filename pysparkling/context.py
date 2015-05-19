@@ -9,7 +9,6 @@ import gzip
 import math
 import fnmatch
 import logging
-import functools
 from io import BytesIO
 
 from .rdd import RDD
@@ -28,14 +27,17 @@ def unit_fn(arg):
 
 
 def runJob_map(i):
-    deserializer, data_serializer, data_deserializer, serialized, serialized_data = i
+    (deserializer, data_serializer, data_deserializer,
+     serialized, serialized_data) = i
     func, rdd = deserializer(serialized)
     partition = data_deserializer(serialized_data)
     log.debug('Worker function {0} is about to get executed with {1}'
               ''.format(func, partition))
 
     task_context = TaskContext(stage_id=0, partition_id=partition.index)
-    return data_serializer(func(task_context, rdd.compute(partition, task_context)))
+    return data_serializer(
+        func(task_context, rdd.compute(partition, task_context))
+    )
 
 
 class Context(object):
@@ -74,24 +76,28 @@ class Context(object):
             return RDD([Partition(x, 0)], self)
 
         stride_size = int(math.ceil(len(x)/numPartitions))
+
         def partitioned():
             for i in range(numPartitions):
                 yield Partition(x[i*stride_size:(i+1)*stride_size], i)
 
         return RDD(partitioned(), self)
 
-    def runJob(self, rdd, func, partitions=None, allowLocal=False, resultHandler=None):
+    def runJob(self, rdd, func, partitions=None, allowLocal=False,
+               resultHandler=None):
         """func is of the form func(TaskContext, Iterator over elements)"""
         # TODO: this is the place to insert proper schedulers
-        map_result = (self._data_deserializer(d) for d in self._pool.map(runJob_map, [
-            (self._deserializer,
-             self._data_serializer,
-             self._data_deserializer,
-             self._serializer((func, rdd)),
-             self._data_serializer(p),
-             )
-            for p in rdd.partitions()
-        ]))
+        map_result = (
+            self._data_deserializer(d) for d in self._pool.map(runJob_map, [
+                (self._deserializer,
+                 self._data_serializer,
+                 self._data_deserializer,
+                 self._serializer((func, rdd)),
+                 self._data_serializer(p),
+                 )
+                for p in rdd.partitions()
+            ])
+        )
         log.info('Map jobs generated.')
 
         if resultHandler is not None:
@@ -127,7 +133,8 @@ class Context(object):
                 log.info('Using bz2 decompression for {0}.'.format(f_name))
                 contents = bz2.decompress(contents)
 
-            lines += [l.rstrip('\n') for l in contents.decode('utf-8').splitlines()]
+            lines += [l.rstrip('\n')
+                      for l in contents.decode('utf-8').splitlines()]
 
         rdd = self.parallelize(lines)
         rdd._name = filename
@@ -174,8 +181,10 @@ class Context(object):
                 for root, dirnames, filenames in os.walk(prefix):
                     root_wo_slash = root[:-1] if root.endswith('/') else root
                     for filename in filenames:
-                        if fnmatch.fnmatch(root_wo_slash+'/'+filename, expr_local) or \
-                           fnmatch.fnmatch(root_wo_slash+'/'+filename, expr_local+'/part*'):
+                        if fnmatch.fnmatch(root_wo_slash+'/'+filename,
+                                           expr_local) or \
+                           fnmatch.fnmatch(root_wo_slash+'/'+filename,
+                                           expr_local+'/part*'):
                             files.append(root_wo_slash+'/'+filename)
                 # files += glob.glob(expr_local)+glob.glob(expr_local+'/part*')
         log.debug('Filenames: {0}'.format(files))
@@ -188,4 +197,3 @@ class DummyPool(object):
 
     def map(self, f, input_list):
         return (f(x) for x in input_list)
-
