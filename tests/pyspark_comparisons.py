@@ -24,6 +24,14 @@ def lazy_execution():
     print(r.collect())
 
 
+def count_lines():
+    r = SC.wholeTextFiles('tests/*.py').keys().collect()
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print(r)
+    print(SC.textFile('tests/*.py').count())
+
+
 if __name__ == '__main__':
-    simple_textFile()
+    # simple_textFile()
     # lazy_execution()
+    count_lines()

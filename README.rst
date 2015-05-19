@@ -44,7 +44,7 @@ Features
   ``AWS_ACCESS_KEY_ID`` for auth. Mixed local and S3 files are supported.
   Glob expressions (filenames with ``*`` and ``?``) are resolved.
 * Lazy execution is in development.
-* Seamless handling of compressed files is not supported yet.
+* Seamlessly handles ``.gz`` and ``.bz2`` compressed files.
 * only dependency: ``boto`` for AWS S3 access
 
 
@@ -150,7 +150,9 @@ Broadcast
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...master>`_
+* `v0.2.2 <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...v0.2.2>`_ (2015-05-18)
+    * compressions: ``.gz``, ``.bz2``
 * `v0.2.0 <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...v0.2.0>`_ (2015-05-17)
     * proper handling of partitions
     * custom serializers, deserializers (for functions and data separately)

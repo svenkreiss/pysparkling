@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import logging
-import tempfile
 from pysparkling import Context
 
 
@@ -203,16 +202,6 @@ def test_rightOuterJoin():
     rdd2 = Context().parallelize([(2, 1), (1, 3)])
     j = rdd1.rightOuterJoin(rdd2)
     assert dict(j.collect())[1][1] == 3
-
-
-def test_saveAsTextFile():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name)
-    with open(tempFile.name+'/part-00000', 'r') as f:
-        r = f.readlines()
-        print(r)
-        assert '5\n' in r
 
 
 def test_subtract():

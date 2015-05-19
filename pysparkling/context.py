@@ -2,11 +2,14 @@
 
 from __future__ import division, print_function
 
+import os
+import bz2
 import boto
-import glob
+import gzip
 import math
 import fnmatch
 import logging
+import StringIO
 import functools
 
 from .rdd import RDD
@@ -95,9 +98,10 @@ class Context(object):
             return resultHandler(map_result)
         return map_result
 
-    def textFile(self, filename):
+    def textFile(self, filename, minPartitions=None, use_unicode=True):
         lines = []
         for f_name in self._resolve_filenames(filename):
+            contents = None
             if f_name.startswith('s3://') or f_name.startswith('s3n://'):
                 t = Tokenizer(f_name)
                 t.next('//')  # skip scheme
@@ -106,14 +110,24 @@ class Context(object):
                 conn = self._get_s3_conn()
                 bucket = conn.get_bucket(bucket_name, validate=False)
                 key = bucket.get_key(key_name)
-                lines += [l.rstrip('\n')
-                          for l in key.get_contents_as_string().splitlines()]
+                contents = key.get_contents_as_string()
             else:
                 f_name_local = f_name
                 if f_name_local.startswith('file://'):
                     f_name_local = f_name_local[7:]
                 with open(f_name_local, 'r') as f:
-                    lines += [l.rstrip('\n') for l in f]
+                    contents = f.read()
+
+            if f_name.endswith('.gz') or '.gz/part-' in f_name:
+                log.info('Using gzip decompression for {0}.'.format(f_name))
+                compressed = StringIO.StringIO(contents)
+                with gzip.GzipFile(fileobj=compressed, mode='r') as f:
+                    contents = f.read()
+            if f_name.endswith('.bz2') or '.bz2/part-' in f_name:
+                log.info('Using bz2 decompression for {0}.'.format(f_name))
+                contents = bz2.decompress(contents)
+
+            lines += [l.rstrip('\n') for l in contents.splitlines()]
 
         rdd = self.parallelize(lines)
         rdd._name = filename
@@ -133,7 +147,7 @@ class Context(object):
         files = []
         for expr in all_expr.split(','):
             expr = expr.strip()
-            if expr.startswith('s3://') or expr.startswith('s3n://'):
+            if expr.startswith(('s3://', 's3n://')):
                 t = Tokenizer(expr)
                 scheme = t.next('://')
                 bucket_name = t.next('/')
@@ -152,7 +166,19 @@ class Context(object):
                 expr_local = expr
                 if expr_local.startswith('file://'):
                     expr_local = expr_local[7:]
-                files += glob.glob(expr_local)+glob.glob(expr_local+'/part*')
+                if os.path.isfile(expr_local):
+                    files.append(expr_local)
+                    continue
+                t = Tokenizer(expr_local)
+                prefix = t.next(['*', '?'])
+                for root, dirnames, filenames in os.walk(prefix):
+                    root_wo_slash = root[:-1] if root.endswith('/') else root
+                    for filename in filenames:
+                        if fnmatch.fnmatch(root_wo_slash+'/'+filename, expr_local) or \
+                           fnmatch.fnmatch(root_wo_slash+'/'+filename, expr_local+'/part*'):
+                            files.append(root_wo_slash+'/'+filename)
+                # files += glob.glob(expr_local)+glob.glob(expr_local+'/part*')
+        log.debug('Filenames: {0}'.format(files))
         return files
 
 

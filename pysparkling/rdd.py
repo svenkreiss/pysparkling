@@ -3,13 +3,19 @@
 from __future__ import division, absolute_import, print_function
 
 import os
+import bz2
+import gzip
 import random
+import logging
+import StringIO
 import functools
 import itertools
 import subprocess
 from collections import defaultdict
 
 from . import utils
+
+log = logging.getLogger(__name__)
 
 
 class RDD(object):
@@ -338,6 +344,19 @@ class RDD(object):
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
         def write_file(this_path, iter_content):
+            if path.endswith('.gz'):
+                log.debug('Compressing with gzip for {0}.'.format(this_path))
+                content = StringIO.StringIO()
+                with gzip.GzipFile(fileobj=content, mode='w') as f:
+                    for x in iter_content:
+                        f.write(str(x)+'\n')
+                contents = [content.getvalue()]
+            elif path.endswith('.bz2'):
+                log.debug('Compressing with bz2 for {0}.'.format(this_path))
+                contents = [bz2.compress('\n'.join(str(x)+'\n' for x in iter_content))]
+            else:
+                contents = (str(x)+'\n' for x in iter_content)
+
             if path.startswith('s3://') or path.startswith('s3n://'):
                 t = utils.Tokenizer(this_path)
                 t.next('//')  # skip scheme
@@ -346,18 +365,18 @@ class RDD(object):
                 conn = self.context._get_s3_conn()
                 bucket = conn.get_bucket(bucket_name, validate=False)
                 key = bucket.new_key(key_name)
-                key.set_contents_from_string(str(x)+'\n' for x in iter_content)
+                key.set_contents_from_string(''.join(contents))
             else:
                 path_local = this_path
                 if path_local.startswith('file://'):
                     path_local = path_local[7:]
-                print('creating dir {0}/'.format(path))
+                log.info('creating dir {0}/'.format(path))
                 os.system('mkdir -p '+path+'/')
-                print('writing file {0}/'.format(path_local))
+                log.info('writing file {0}/'.format(path_local))
                 with open(path_local, 'w') as f:
-                    for x in iter_content:
-                        f.write(str(x))
-                        f.write('\n')
+                    for c in contents:
+                        f.write(c)
+
         self.context.runJob(
             self, 
             lambda tc, x: write_file(path+'/part-{0:05d}'.format(tc.partitionId()), x),
