@@ -373,7 +373,7 @@ class RDD(object):
                 log.info('creating dir {0}/'.format(path))
                 os.system('mkdir -p '+path+'/')
                 log.info('writing file {0}/'.format(path_local))
-                with open(path_local, 'w') as f:
+                with open(path_local, 'wb') as f:
                     for c in contents:
                         f.write(c)
 

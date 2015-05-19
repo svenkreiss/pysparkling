@@ -115,7 +115,7 @@ class Context(object):
                 f_name_local = f_name
                 if f_name_local.startswith('file://'):
                     f_name_local = f_name_local[7:]
-                with open(f_name_local, 'r') as f:
+                with open(f_name_local, 'rb') as f:
                     contents = f.read()
 
             if f_name.endswith('.gz') or '.gz/part-' in f_name:
@@ -127,7 +127,7 @@ class Context(object):
                 log.info('Using bz2 decompression for {0}.'.format(f_name))
                 contents = bz2.decompress(contents)
 
-            lines += [l.rstrip('\n') for l in contents.splitlines()]
+            lines += [l.rstrip('\n') for l in contents.decode('utf-8').splitlines()]
 
         rdd = self.parallelize(lines)
         rdd._name = filename
