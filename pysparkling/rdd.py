@@ -3,17 +3,15 @@
 from __future__ import division, absolute_import, print_function
 
 import os
-import bz2
-import gzip
 import random
 import logging
 import functools
 import itertools
 import subprocess
-from io import BytesIO
 from collections import defaultdict
 
 from . import utils
+from .fileio import WholeFile
 
 log = logging.getLogger(__name__)
 
@@ -351,53 +349,19 @@ class RDD(object):
         ), numPartitions)
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
-        def write_file(this_path, iter_content):
-            if path.endswith('.gz'):
-                log.debug('Compressing with gzip for {0}.'.format(this_path))
-                content = BytesIO()
-                with gzip.GzipFile(fileobj=content, mode='wb') as f:
-                    for x in iter_content:
-                        f.write('{0}\n'.format(x).encode('utf-8'))
-                contents = [content.getvalue()]
-            elif path.endswith('.bz2'):
-                log.debug('Compressing with bz2 for {0}.'.format(this_path))
-                contents = [
-                    bz2.compress(b''.join('{0}\n'.format(x).encode('utf-8')
-                                          for x in iter_content))
-                ]
-            else:
-                contents = ('{0}\n'.format(x).encode('utf-8')
-                            for x in iter_content)
-
-            if path.startswith('s3://') or path.startswith('s3n://'):
-                t = utils.Tokenizer(this_path)
-                t.next('//')  # skip scheme
-                bucket_name = t.next('/')
-                key_name = t.next()
-                conn = self.context._get_s3_conn()
-                bucket = conn.get_bucket(bucket_name, validate=False)
-                key = bucket.new_key(key_name)
-                key.set_contents_from_string(b''.join(contents))
-            else:
-                path_local = this_path
-                if path_local.startswith('file://'):
-                    path_local = path_local[7:]
-                log.info('creating dir {0}/'.format(path))
-                os.system('mkdir -p '+path+'/')
-                log.info('writing file {0}/'.format(path_local))
-                with open(path_local, 'wb') as f:
-                    for c in contents:
-                        f.write(c)
-
+        log.info('creating dir {0}/'.format(path))
+        os.system('mkdir -p '+path+'/')
         self.context.runJob(
             self,
-            lambda tc, x: write_file(
-                path+'/part-{0:05d}'.format(tc.partitionId()),
-                x,
-            ),
-            resultHandler=lambda l: write_file(
-                path+'/_SUCCESS',
-                ['{0}'.format(ll) for ll in l],
+            lambda tc, x: WholeFile(
+                path+'/part-{0:05d}'.format(tc.partitionId())
+            ).open_write([
+                '{0}\n'.format(xx).encode('utf-8') for xx in x
+            ]),
+            resultHandler=lambda l: WholeFile(
+                path+'/_SUCCESS'
+            ).open_write(
+                ['{0}\n'.format(ll).encode('utf-8') for ll in l],
             ),
         )
         return self

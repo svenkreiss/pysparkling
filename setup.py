@@ -17,7 +17,7 @@ with open('pysparkling/__init__.py', 'r') as f:
 setup(
     name='pysparkling',
     version=VERSION,
-    packages=['pysparkling'],
+    packages=['pysparkling', 'pysparkling.fileio'],
     license='MIT',
     description='Python native implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),

@@ -2,20 +2,14 @@
 
 from __future__ import division, print_function
 
-import os
-import bz2
-import boto
-import gzip
 import math
-import fnmatch
 import logging
-from io import BytesIO
 
 from .rdd import RDD
 from .broadcast import Broadcast
-from .utils import Tokenizer
 from .partition import Partition
 from .task_context import TaskContext
+from .fileio import File, WholeFile
 from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
@@ -106,35 +100,9 @@ class Context(object):
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         lines = []
-        for f_name in self._resolve_filenames(filename):
-            contents = None
-            if f_name.startswith('s3://') or f_name.startswith('s3n://'):
-                t = Tokenizer(f_name)
-                t.next('//')  # skip scheme
-                bucket_name = t.next('/')
-                key_name = t.next()
-                conn = self._get_s3_conn()
-                bucket = conn.get_bucket(bucket_name, validate=False)
-                key = bucket.get_key(key_name)
-                contents = key.get_contents_as_string()
-            else:
-                f_name_local = f_name
-                if f_name_local.startswith('file://'):
-                    f_name_local = f_name_local[7:]
-                with open(f_name_local, 'rb') as f:
-                    contents = f.read()
-
-            if f_name.endswith('.gz') or '.gz/part-' in f_name:
-                log.info('Using gzip decompression for {0}.'.format(f_name))
-                compressed = BytesIO(contents)
-                with gzip.GzipFile(fileobj=compressed, mode='rb') as f:
-                    contents = f.read()
-            if f_name.endswith('.bz2') or '.bz2/part-' in f_name:
-                log.info('Using bz2 decompression for {0}.'.format(f_name))
-                contents = bz2.decompress(contents)
-
-            lines += [l.rstrip('\n')
-                      for l in contents.decode('utf-8').splitlines()]
+        for f_name in File.resolve_filenames(filename):
+            contents = WholeFile(f_name).open_read().read().decode('utf-8')
+            lines += [l.rstrip('\n') for l in contents.splitlines()]
 
         rdd = self.parallelize(lines)
         rdd._name = filename
@@ -144,51 +112,6 @@ class Context(object):
         return self.parallelize(
             (x for rdd in rdds for x in rdd.collect())
         )
-
-    def _get_s3_conn(self):
-        if not self._s3_conn:
-            self._s3_conn = boto.connect_s3()
-        return self._s3_conn
-
-    def _resolve_filenames(self, all_expr):
-        files = []
-        for expr in all_expr.split(','):
-            expr = expr.strip()
-            if expr.startswith(('s3://', 's3n://')):
-                t = Tokenizer(expr)
-                scheme = t.next('://')
-                bucket_name = t.next('/')
-                prefix = t.next(['*', '?'])
-
-                bucket = self._get_s3_conn().get_bucket(
-                    bucket_name,
-                    validate=False
-                )
-                expr_after_bucket = expr[len(scheme)+3+len(bucket_name)+1:]
-                for k in bucket.list(prefix=prefix):
-                    if fnmatch.fnmatch(k.name, expr_after_bucket) or \
-                       fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
-                        files.append(scheme+'://'+bucket_name+'/'+k.name)
-            else:
-                expr_local = expr
-                if expr_local.startswith('file://'):
-                    expr_local = expr_local[7:]
-                if os.path.isfile(expr_local):
-                    files.append(expr_local)
-                    continue
-                t = Tokenizer(expr_local)
-                prefix = t.next(['*', '?'])
-                for root, dirnames, filenames in os.walk(prefix):
-                    root_wo_slash = root[:-1] if root.endswith('/') else root
-                    for filename in filenames:
-                        if fnmatch.fnmatch(root_wo_slash+'/'+filename,
-                                           expr_local) or \
-                           fnmatch.fnmatch(root_wo_slash+'/'+filename,
-                                           expr_local+'/part*'):
-                            files.append(root_wo_slash+'/'+filename)
-                # files += glob.glob(expr_local)+glob.glob(expr_local+'/part*')
-        log.debug('Filenames: {0}'.format(files))
-        return files
 
 
 class DummyPool(object):
