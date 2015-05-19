@@ -159,16 +159,19 @@ Infers ``.gz`` and ``.bz2`` compressions from the file name.
 * ``File.resolve_filenames(expr)``: given a glob-like expression with ``*``
   and ``?``, get a list of all matching filenames (either locally or on S3).
 * ``WholeFile(file_name)``: file_name is either local or S3 or ...
-    * ``open_read()``: return the contents either as file object or BytesIO
-    * ``open_write(stream)``: write the stream to the file
+    * ``load()``: return the contents as BytesIO
+    * ``dump(stream)``: write the stream to the file
+    * ``make_public(recursive=False)``: only for files on S3
 
 
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.3...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.4...master>`_
+* `v0.2.4 <https://github.com/svenkreiss/pysparkling/compare/v0.2.3...v0.2.4>`_ (2015-05-19)
+    * ``fileio`` interface changed to ``dump()`` and ``load()`` methods. Added ``make_public()`` for S3.
 * `v0.2.3 <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...v0.2.3>`_ (2015-05-19)
-    * factor file related operations into fileio submodule
+    * factor file related operations into ``fileio`` submodule
 * `v0.2.2 <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...v0.2.2>`_ (2015-05-18)
     * compressions: ``.gz``, ``.bz2``
 * `v0.2.0 <https://github.com/svenkreiss/pysparkling/compare/v0.1.1...v0.2.0>`_ (2015-05-17)

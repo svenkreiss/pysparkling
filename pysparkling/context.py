@@ -101,7 +101,7 @@ class Context(object):
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         lines = []
         for f_name in File.resolve_filenames(filename):
-            contents = WholeFile(f_name).open_read().read().decode('utf-8')
+            contents = WholeFile(f_name).load().read().decode('utf-8')
             lines += [l.rstrip('\n') for l in contents.splitlines()]
 
         rdd = self.parallelize(lines)

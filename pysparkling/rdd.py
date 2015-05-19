@@ -355,12 +355,12 @@ class RDD(object):
             self,
             lambda tc, x: WholeFile(
                 path+'/part-{0:05d}'.format(tc.partitionId())
-            ).open_write([
+            ).dump([
                 '{0}\n'.format(xx).encode('utf-8') for xx in x
             ]),
             resultHandler=lambda l: WholeFile(
                 path+'/_SUCCESS'
-            ).open_write(
+            ).dump(
                 ['{0}\n'.format(ll).encode('utf-8') for ll in l],
             ),
         )

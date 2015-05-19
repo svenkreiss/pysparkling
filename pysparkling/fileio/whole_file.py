@@ -18,8 +18,8 @@ class WholeFile(File):
 
         self.file_name = file_name
 
-    def open_read(self):
-        file_obj = None
+    def load(self):
+        stream = None
 
         # read
         if self.file_name.startswith(('s3://', 's3n://')):
@@ -30,25 +30,26 @@ class WholeFile(File):
             conn = File._get_s3_conn()
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.get_key(key_name)
-            file_obj = BytesIO(key.get_contents_as_string())
+            stream = BytesIO(key.get_contents_as_string())
         else:
             f_name_local = self.file_name
             if f_name_local.startswith('file://'):
                 f_name_local = f_name_local[7:]
-            file_obj = open(f_name_local, 'rb')
+            with open(f_name_local, 'rb') as f:
+                stream = BytesIO(f.read())
 
         # decompress
         if self.file_name.endswith('.gz') or '.gz/part-' in self.file_name:
             log.info('Using gzip decompression: {0}'
                      ''.format(self.file_name))
-            file_obj = gzip.GzipFile(fileobj=file_obj, mode='rb')
+            stream = gzip.GzipFile(fileobj=stream, mode='rb')
         if self.file_name.endswith('.bz2') or '.bz2/part-' in self.file_name:
             log.info('Using bz2 decompression: {0}'.format(self.file_name))
-            file_obj = BytesIO(bz2.decompress(file_obj.read()))
+            stream = BytesIO(bz2.decompress(stream.read()))
 
-        return file_obj
+        return stream
 
-    def open_write(self, stream):
+    def dump(self, stream):
         """Stream could be a BytesIO instance."""
 
         # compress
@@ -69,7 +70,7 @@ class WholeFile(File):
             t.next('//')  # skip scheme
             bucket_name = t.next('/')
             key_name = t.next()
-            conn = self.context._get_s3_conn()
+            conn = File._get_s3_conn()
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.new_key(key_name)
             key.set_contents_from_string(b''.join(stream))
@@ -81,3 +82,20 @@ class WholeFile(File):
             with open(path_local, 'wb') as f:
                 for c in stream:
                     f.write(c)
+
+        return self
+
+    def make_public(self, recursive=False):
+        if self.file_name.startswith(('s3://', 's3n://')):
+            t = Tokenizer(self.file_name)
+            t.next('//')  # skip scheme
+            bucket_name = t.next('/')
+            key_name = t.next()
+            conn = File._get_s3_conn()
+            bucket = conn.get_bucket(bucket_name, validate=False)
+            key = bucket.get_key(key_name)
+            key.make_public(recursive)
+        else:
+            log.error('Cannot make this file public.')
+
+        return self
