@@ -17,12 +17,13 @@ class WholeFile(File):
         File.__init__(self)
 
         self.file_name = file_name
+        self.path_type = File.path_type(file_name)
 
     def load(self):
         stream = None
 
         # read
-        if self.file_name.startswith(('s3://', 's3n://')):
+        if self.path_type == 's3':
             t = Tokenizer(self.file_name)
             t.next('//')  # skip scheme
             bucket_name = t.next('/')
@@ -31,7 +32,7 @@ class WholeFile(File):
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.get_key(key_name)
             stream = BytesIO(key.get_contents_as_string())
-        else:
+        elif self.path_type == 'local':
             f_name_local = self.file_name
             if f_name_local.startswith('file://'):
                 f_name_local = f_name_local[7:]
@@ -65,7 +66,7 @@ class WholeFile(File):
             stream = BytesIO(bz2.compress(b''.join(stream)))
 
         # write
-        if self.file_name.startswith(('s3://', 's3n://')):
+        if self.path_type == 's3':
             t = Tokenizer(self.file_name)
             t.next('//')  # skip scheme
             bucket_name = t.next('/')
@@ -74,7 +75,7 @@ class WholeFile(File):
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.new_key(key_name)
             key.set_contents_from_string(b''.join(stream))
-        else:
+        elif self.path_type == 'local':
             path_local = self.file_name
             if path_local.startswith('file://'):
                 path_local = path_local[7:]
@@ -86,7 +87,7 @@ class WholeFile(File):
         return self
 
     def make_public(self, recursive=False):
-        if self.file_name.startswith(('s3://', 's3n://')):
+        if self.path_type == 's3':
             t = Tokenizer(self.file_name)
             t.next('//')  # skip scheme
             bucket_name = t.next('/')

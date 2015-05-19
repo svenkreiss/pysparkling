@@ -11,7 +11,7 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import WholeFile
+from .fileio import File, WholeFile
 
 log = logging.getLogger(__name__)
 
@@ -349,19 +349,23 @@ class RDD(object):
         ), numPartitions)
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
-        log.info('creating dir {0}/'.format(path))
-        os.system('mkdir -p '+path+'/')
+        if File.exists(path):
+            log.warning('There already is a file or folder '
+                        'at {0}'.format(path))
+        if File.path_type(path) == 'local':
+            log.info('creating local dir {0}/'.format(path))
+            os.system('mkdir -p '+path+'/')
         self.context.runJob(
             self,
             lambda tc, x: WholeFile(
                 path+'/part-{0:05d}'.format(tc.partitionId())
             ).dump([
-                '{0}\n'.format(xx).encode('utf-8') for xx in x
+                u'{0}\n'.format(xx).encode('utf-8') for xx in x
             ]),
             resultHandler=lambda l: WholeFile(
                 path+'/_SUCCESS'
             ).dump(
-                ['{0}\n'.format(ll).encode('utf-8') for ll in l],
+                [u'{0}\n'.format(ll).encode('utf-8') for ll in l],
             ),
         )
         return self

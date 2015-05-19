@@ -156,8 +156,11 @@ not have to use this submodule directly.
 
 Infers ``.gz`` and ``.bz2`` compressions from the file name.
 
-* ``File.resolve_filenames(expr)``: given a glob-like expression with ``*``
-  and ``?``, get a list of all matching filenames (either locally or on S3).
+* ``File``: abstract. Only contains static methods.
+    * ``exists(path)``: check for existance of path
+    * ``path_type(path)``: returns ``s3``, ``http`` or ``local``
+    * ``resolve_filenames(expr)``: given a glob-like expression with ``*``
+      and ``?``, get a list of all matching filenames (either locally or on S3).
 * ``WholeFile(file_name)``: file_name is either local or S3 or ...
     * ``load()``: return the contents as BytesIO
     * ``dump(stream)``: write the stream to the file
