@@ -30,6 +30,7 @@ def test_s3_textFile():
         's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/warc.paths.*'
     )
     print(myrdd.collect())
+    assert 'common-crawl/crawl-data/CC-MAIN-2015-11/segments/1424937481488.49/warc/CC-MAIN-20150226075801-00329-ip-10-28-5-156.ec2.internal.warc.gz' in myrdd.collect()
 
 
 def test_saveAsTextFile():
@@ -60,5 +61,6 @@ def test_saveAsTextFile_bz2():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_local_textFile_2()
+    # test_local_textFile_2()
     # test_saveAsTextFile_gz()
+    test_s3_textFile()
