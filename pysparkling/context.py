@@ -79,7 +79,11 @@ class Context(object):
 
     def runJob(self, rdd, func, partitions=None, allowLocal=False,
                resultHandler=None):
-        """func is of the form func(TaskContext, Iterator over elements)"""
+        """func is of the form func(TaskContext, Iterator over elements).
+
+        Note that the maps are only inside generators and the resultHandler
+        needs to take care of executing the ones that it needs.
+        """
         # TODO: this is the place to insert proper schedulers
         map_result = (
             self._data_deserializer(d) for d in self._pool.map(runJob_map, [
@@ -96,7 +100,7 @@ class Context(object):
 
         if resultHandler is not None:
             return resultHandler(map_result)
-        return map_result
+        return list(map_result)  # convert to list to execute on all partitions
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         lines = []

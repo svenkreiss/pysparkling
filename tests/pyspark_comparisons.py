@@ -31,7 +31,35 @@ def count_lines():
     print(SC.textFile('tests/*.py').count())
 
 
+def create_key_value_txt():
+    r = SC.parallelize([('a', 1), ('b', 2)], 1)
+    r.saveAsTextFile('tests/pyspark/key_value.txt')
+    r.saveAsHadoopFile(
+        "tests/pyspark/key_value.txt.bz2",
+        "org.apache.hadoop.mapred.TextOutputFormat",
+        compressionCodecClass="org.apache.hadoop.io.compress.BZip2Codec",
+    )
+    r.saveAsHadoopFile(
+        "tests/pyspark/key_value.txt.gz",
+        "org.apache.hadoop.mapred.TextOutputFormat",
+        compressionCodecClass="org.apache.hadoop.io.compress.GzipCodec",
+    )
+    # r.saveAsHadoopFile(
+    #     "tests/pyspark/key_value.txt.lzo",
+    #     "org.apache.hadoop.mapred.TextOutputFormat",
+    #     compressionCodecClass="com.hadoop.compression.lzo.LzopCodec",
+    # )
+
+    r_txt = SC.textFile('tests/pyspark/key_value.txt')
+    print(r_txt.collect())
+    r_gz = SC.textFile('tests/pyspark/key_value.txt.gz')
+    print(r_gz.collect())
+    r_bz2 = SC.textFile('tests/pyspark/key_value.txt.bz2')
+    print(r_bz2.collect())
+
+
 if __name__ == '__main__':
     # simple_textFile()
     # lazy_execution()
-    count_lines()
+    # count_lines()
+    create_key_value_txt()

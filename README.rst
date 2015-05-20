@@ -170,7 +170,9 @@ Infers ``.gz`` and ``.bz2`` compressions from the file name.
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.4...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.5...master>`_
+* `v0.2.5 <https://github.com/svenkreiss/pysparkling/compare/v0.2.4...v0.2.5>`_ (2015-05-20)
+    * improved handling of compressed files (backwards incompatible)
 * `v0.2.4 <https://github.com/svenkreiss/pysparkling/compare/v0.2.3...v0.2.4>`_ (2015-05-19)
     * ``fileio`` interface changed to ``dump()`` and ``load()`` methods. Added ``make_public()`` for S3.
 * `v0.2.3 <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...v0.2.3>`_ (2015-05-19)

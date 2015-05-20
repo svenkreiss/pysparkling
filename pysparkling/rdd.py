@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from . import utils
 from .fileio import File, WholeFile
+from .exceptions import FileAlreadyExistsException
 
 log = logging.getLogger(__name__)
 
@@ -350,22 +351,24 @@ class RDD(object):
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
         if File.exists(path):
-            log.warning('There already is a file or folder '
-                        'at {0}'.format(path))
+            raise FileAlreadyExistsException(
+                'Output {0} already exists.'.format(path)
+            )
         if File.path_type(path) == 'local':
             log.info('creating local dir {0}/'.format(path))
             os.system('mkdir -p '+path+'/')
+        codec_suffix = ''
+        if path.endswith(('.gz', '.bz2', '.lzo')):
+            codec_suffix = path[path.rfind('.'):]
         self.context.runJob(
             self,
             lambda tc, x: WholeFile(
-                path+'/part-{0:05d}'.format(tc.partitionId())
+                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
             ).dump([
                 u'{0}\n'.format(xx).encode('utf-8') for xx in x
             ]),
-            resultHandler=lambda l: WholeFile(
-                path+'/_SUCCESS'
-            ).dump(
-                [u'{0}\n'.format(ll).encode('utf-8') for ll in l],
+            resultHandler=lambda l: (
+                list(l) and WholeFile(path+'/_SUCCESS').dump()
             ),
         )
         return self
