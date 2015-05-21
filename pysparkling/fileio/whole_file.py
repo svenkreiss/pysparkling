@@ -50,7 +50,7 @@ class WholeFile(File):
 
         return stream
 
-    def dump(self, stream=None):
+    def dump(self, stream=None, make_public=False):
         """Stream could be a BytesIO instance."""
         if stream is None:
             stream = BytesIO()
@@ -77,6 +77,8 @@ class WholeFile(File):
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.new_key(key_name)
             key.set_contents_from_string(b''.join(stream))
+            if make_public:
+                key.make_public()
         elif self.path_type == 'local':
             path_local = self.file_name
             if path_local.startswith('file://'):
@@ -97,6 +99,10 @@ class WholeFile(File):
             conn = File._get_s3_conn()
             bucket = conn.get_bucket(bucket_name, validate=False)
             key = bucket.get_key(key_name)
+            if key is None:
+                log.warning('Cannot make public. Key for {0} not found.'
+                            ''.format(self.file_name))
+                return self
             key.make_public(recursive)
         else:
             log.error('Cannot make this file public.')

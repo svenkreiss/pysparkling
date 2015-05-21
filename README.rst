@@ -163,7 +163,7 @@ Infers ``.gz`` and ``.bz2`` compressions from the file name.
       and ``?``, get a list of all matching filenames (either locally or on S3).
 * ``WholeFile(file_name)``: file_name is either local or S3 or ...
     * ``load()``: return the contents as BytesIO
-    * ``dump(stream)``: write the stream to the file
+    * ``dump(stream, make_public=False)``: write the stream to the file
     * ``make_public(recursive=False)``: only for files on S3
 
 
