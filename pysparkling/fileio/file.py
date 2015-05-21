@@ -77,12 +77,16 @@ class File(object):
             key_name = t.next()
             conn = File._get_s3_conn()
             bucket = conn.get_bucket(bucket_name, validate=False)
-            return bucket.get_key(key_name) or bucket.get_key(key_name+'/')
+            return (bucket.get_key(key_name) or
+                    next(bucket.list(prefix=key_name+'/').__iter__()))
         elif pt == 'local':
             path_local = path
             if path_local.startswith('file://'):
                 path_local = path_local[7:]
             return os.path.exists(path_local) or os.path.exists(path_local+'/')
+        else:
+            log.warning('Could not determine whether {0} exists due to '
+                        'unhandled path type {1}.'.format(path, pt))
 
         return None
 
