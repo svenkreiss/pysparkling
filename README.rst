@@ -107,8 +107,8 @@ RDD
 * ``flatMapValues(func)``: return new RDD
 * ``fold(zeroValue, op)``: aggregate elements
 * ``foldByKey(zeroValue, op)``: aggregate elements by key
-* ``foreach(func)``: apply func to every element in place
-* ``foreachPartition(func)``: same as ``foreach()``
+* ``foreach(func)``: apply func to every element
+* ``foreachPartition(func)``: apply func to every partition
 * ``getNumPartitions()``: number of partitions
 * ``getPartitions()``: returns an iterator over the partitions
 * ``groupBy(func)``: group by the output of func
