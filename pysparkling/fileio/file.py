@@ -78,7 +78,7 @@ class File(object):
             conn = File._get_s3_conn()
             bucket = conn.get_bucket(bucket_name, validate=False)
             return (bucket.get_key(key_name) or
-                    next(bucket.list(prefix=key_name+'/').__iter__()))
+                    any(True for _ in bucket.list(prefix=key_name+'/')))
         elif pt == 'local':
             path_local = path
             if path_local.startswith('file://'):
