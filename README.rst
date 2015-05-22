@@ -47,7 +47,8 @@ Features
 Examples
 ========
 
-Count the lines in the ``*.py`` files in the ``tests`` directory:
+Count the lines in the ``*.py`` files in the ``tests`` directory and
+count only those lines that start with ``import``:
 
 .. code-block:: python
 
