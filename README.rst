@@ -168,14 +168,11 @@ Changelog
 =========
 
 * `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.6...master>`_
-* `v0.2.6 <https://github.com/svenkreiss/pysparkling/compare/v0.2.5...v0.2.6>`_ (2015-05-21)
+* `v0.2.6 <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...v0.2.6>`_ (2015-05-21)
     * factor out ``fileio.fs`` and ``fileio.codec`` modules
     * merge ``WholeFile`` into ``File``
-* `v0.2.5 <https://github.com/svenkreiss/pysparkling/compare/v0.2.4...v0.2.5>`_ (2015-05-20)
     * improved handling of compressed files (backwards incompatible)
-* `v0.2.4 <https://github.com/svenkreiss/pysparkling/compare/v0.2.3...v0.2.4>`_ (2015-05-19)
     * ``fileio`` interface changed to ``dump()`` and ``load()`` methods. Added ``make_public()`` for S3.
-* `v0.2.3 <https://github.com/svenkreiss/pysparkling/compare/v0.2.2...v0.2.3>`_ (2015-05-19)
     * factor file related operations into ``fileio`` submodule
 * `v0.2.2 <https://github.com/svenkreiss/pysparkling/compare/v0.2.0...v0.2.2>`_ (2015-05-18)
     * compressions: ``.gz``, ``.bz2``
