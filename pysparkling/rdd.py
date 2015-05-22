@@ -10,7 +10,7 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import File, WholeFile
+from .fileio import File
 from .exceptions import FileAlreadyExistsException
 
 log = logging.getLogger(__name__)
@@ -360,13 +360,13 @@ class RDD(object):
 
         self.context.runJob(
             self,
-            lambda tc, x: WholeFile(
+            lambda tc, x: File(
                 path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
             ).dump([
                 u'{0}\n'.format(xx).encode('utf-8') for xx in x
             ]),
             resultHandler=lambda l: (
-                list(l) and WholeFile(path+'/_SUCCESS').dump()
+                list(l) and File(path+'/_SUCCESS').dump()
             ),
         )
         return self

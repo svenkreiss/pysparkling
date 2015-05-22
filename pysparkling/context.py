@@ -9,7 +9,7 @@ from .rdd import RDD
 from .broadcast import Broadcast
 from .partition import Partition
 from .task_context import TaskContext
-from .fileio import File, WholeFile
+from .fileio import File
 from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class Context(object):
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         lines = []
         for f_name in File.resolve_filenames(filename):
-            contents = WholeFile(f_name).load().read().decode('utf-8')
+            contents = File(f_name).load().read().decode('utf-8')
             lines += [l.rstrip('\n') for l in contents.splitlines()]
 
         rdd = self.parallelize(lines)
