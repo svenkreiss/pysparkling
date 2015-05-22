@@ -60,7 +60,7 @@ Count the lines in the ``*.py`` files in the ``tests`` directory:
       my_rdd.filter(lambda l: l.startswith('import ')).count()
   ))
 
-which prints ``Lines in tests/*.py: 510``.
+which prints ``In tests/*.py: all lines=518, with import=11``.
 
 
 API
