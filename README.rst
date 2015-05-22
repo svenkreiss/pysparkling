@@ -47,6 +47,11 @@ Features
 Examples
 ========
 
+The example source codes are included in ``tests/readme_example*.py``.
+
+Line counts
+-----------
+
 Count the lines in the ``*.py`` files in the ``tests`` directory and
 count only those lines that start with ``import``:
 
@@ -62,6 +67,26 @@ count only those lines that start with ``import``:
   ))
 
 which prints ``In tests/*.py: all lines=518, with import=11``.
+
+
+Common Crawl
+------------
+
+More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015/05/march-2015-crawl-archive-available/>`_.
+
+.. code-block:: python
+
+  from pysparkling import Context
+
+  # read all the paths of warc and wat files of the latest Common Crawl
+  paths_rdd = Context().textFile(
+      's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/warc.paths.*,'
+      's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/wat.paths.gz'
+  )
+
+  print(paths_rdd.collect())
+
+which prints a long list of paths extracted from two gzip compressed files.
 
 
 API
