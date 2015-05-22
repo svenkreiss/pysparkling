@@ -55,7 +55,10 @@ Count the lines in the ``*.py`` files in the ``tests`` directory:
 
   context = pysparkling.Context()
   my_rdd = context.textFile('tests/*.py')
-  print('Lines in tests/*.py: {0}'.format(my_rdd.count()))
+  print('In tests/*.py: all lines={0}, with import={1}'.format(
+      my_rdd.count(),
+      my_rdd.filter(lambda l: l.startswith('import ')).count()
+  ))
 
 which prints ``Lines in tests/*.py: 510``.
 
