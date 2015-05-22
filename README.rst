@@ -170,7 +170,7 @@ Changelog
 
 * `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.6...master>`_
 * `v0.2.6 <https://github.com/svenkreiss/pysparkling/compare/v0.2.5...v0.2.6>`_ (2015-05-21)
-    * factor out ``fileio.fs`` module
+    * factor out ``fileio.fs`` and ``fileio.codec`` modules
     * merge ``WholeFile`` into ``File``
 * `v0.2.5 <https://github.com/svenkreiss/pysparkling/compare/v0.2.4...v0.2.5>`_ (2015-05-20)
     * improved handling of compressed files (backwards incompatible)
