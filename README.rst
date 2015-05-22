@@ -34,17 +34,13 @@ Install
 Features
 ========
 
+* Supports multiple URI schemes like ``s3n://`` and ``file://``.
+  Specify multiple files separated by comma. Mix local and S3 files.
+  Resolves ``glob`` expressions (filenames with ``*`` and ``?``).
+* Seamlessly handles ``.gz`` and ``.bz2`` compressed files.
 * Parallelization via ``multiprocessing.Pool``,
   ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
-* AWS S3 is supported. Use file paths of the form
-  ``s3n://bucket_name/filename.txt`` with ``Context.textFile()``.
-  Specify multiple files separated by comma.
-  Use environment variables ``AWS_SECRET_ACCESS_KEY`` and
-  ``AWS_ACCESS_KEY_ID`` for auth. Mixed local and S3 files are supported.
-  Glob expressions (filenames with ``*`` and ``?``) are resolved.
-* Lazy execution is in development.
-* Seamlessly handles ``.gz`` and ``.bz2`` compressed files.
 * only dependency: ``boto`` for AWS S3 access
 
 
@@ -153,6 +149,9 @@ fileio
 The functionality provided by this module is used in ``Context.textFile()``
 for reading and in ``RDD.saveAsTextFile()`` for writing. Normally, you should
 not have to use this submodule directly.
+
+Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
+for auth and Use file paths of the form ``s3n://bucket_name/filename.txt``.
 
 Infers ``.gz`` and ``.bz2`` compressions from the file name.
 
