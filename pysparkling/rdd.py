@@ -2,7 +2,6 @@
 
 from __future__ import division, absolute_import, print_function
 
-import os
 import random
 import logging
 import functools
@@ -354,12 +353,11 @@ class RDD(object):
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
-        if File.path_type(path) == 'local':
-            log.info('creating local dir {0}/'.format(path))
-            os.system('mkdir -p '+path+'/')
+
         codec_suffix = ''
         if path.endswith(('.gz', '.bz2', '.lzo')):
             codec_suffix = path[path.rfind('.'):]
+
         self.context.runJob(
             self,
             lambda tc, x: WholeFile(
