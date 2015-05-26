@@ -79,8 +79,8 @@ def test_pyspark_compatibility_gz():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_saveAsTextFile()
-    # test_local_textFile_2()
+    # test_saveAsTextFile()
+    test_local_textFile_2()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
     # test_pyspark_compatibility_txt()

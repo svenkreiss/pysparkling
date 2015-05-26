@@ -107,7 +107,10 @@ class Context(object):
         return list(map_result)  # convert to list to execute on all partitions
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
-        rdd_filenames = self.parallelize(File.resolve_filenames(filename))
+        resolved_names = File.resolve_filenames(filename)
+        log.info('textFile() resolved "{0}" to {1} files.'
+                 ''.format(filename, len(resolved_names)))
+        rdd_filenames = self.parallelize(resolved_names)
         rdd = rdd_filenames.flatMap(lambda f_name: [
             l.rstrip('\n')
             for l in File(f_name).load().read().decode('utf-8').splitlines()
