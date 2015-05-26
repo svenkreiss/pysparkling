@@ -50,10 +50,7 @@ Examples
 
 The example source codes are included in ``tests/readme_example*.py``.
 
-Line counts
------------
-
-Count the lines in the ``*.py`` files in the ``tests`` directory and
+**Line counts**: Count the lines in the ``*.py`` files in the ``tests`` directory and
 count only those lines that start with ``import``:
 
 .. code-block:: python
@@ -70,10 +67,7 @@ count only those lines that start with ``import``:
 which prints ``In tests/*.py: all lines=518, with import=11``.
 
 
-Common Crawl
-------------
-
-More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015/05/march-2015-crawl-archive-available/>`_.
+**Common Crawl**: More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015/05/march-2015-crawl-archive-available/>`_.
 
 .. code-block:: python
 
@@ -88,6 +82,21 @@ More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015
   print(paths_rdd.collect())
 
 which prints a long list of paths extracted from two gzip compressed files.
+
+
+**Human Microbiome Project**: Get a random line without loading the entire
+dataset.
+
+.. code-block:: python
+
+  from pysparkling import Context
+
+  by_subject_rdd = Context().textFile(
+      's3n://human-microbiome-project/DEMO/HM16STR/46333/by_subject/*'
+  )
+  print(by_subject_rdd.takeSample(1))
+
+which prints out a line like ``[u'CAACGCCGCGTGAGGGATGACGGCCTTCGGGTTGTAAACCTCTTTCAGTATCGACGAAGC']``.
 
 
 API

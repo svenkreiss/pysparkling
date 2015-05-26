@@ -110,7 +110,12 @@ class Context(object):
         resolved_names = File.resolve_filenames(filename)
         log.info('textFile() resolved "{0}" to {1} files.'
                  ''.format(filename, len(resolved_names)))
-        rdd_filenames = self.parallelize(resolved_names)
+
+        num_partitions = len(resolved_names)
+        if minPartitions and minPartitions > num_partitions:
+            num_partitions = minPartitions
+
+        rdd_filenames = self.parallelize(resolved_names, num_partitions)
         rdd = rdd_filenames.flatMap(lambda f_name: [
             l.rstrip('\n')
             for l in File(f_name).load().read().decode('utf-8').splitlines()

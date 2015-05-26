@@ -2,10 +2,13 @@ from __future__ import absolute_import
 
 import boto
 import fnmatch
+import logging
 from io import BytesIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
+
+log = logging.getLogger(__name__)
 
 
 class S3(FileSystem):
@@ -63,9 +66,12 @@ class S3(FileSystem):
         return files
 
     def load(self):
+        log.info('Loading {0} with size {1}.'
+                 ''.format(self.key.name, self.key.size))
         return BytesIO(self.key.get_contents_as_string())
 
     def dump(self, stream):
+        log.info('Dumping to {0}.'.format(self.key.name))
         self.key.set_contents_from_string(b''.join(stream))
         return self
 
