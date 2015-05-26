@@ -386,10 +386,63 @@ class RDD(object):
                                    resultHandler=sum)
 
     def take(self, n):
-        return self.collect()[:n]
+        """[distributed]
+        Due to lazy execution of maps in result handler, only the first
+        partitions that are necessary are evaluated."""
+
+        def res_handler(l):
+            r = []
+            for p in l:
+                for x in p:
+                    if len(r) >= n:
+                        break
+                    r.append(x)
+                if len(r) >= n:
+                    break
+            return r
+
+        return self.context.runJob(
+            self, lambda tc, i: list(i),
+            resultHandler=res_handler,
+        )
 
     def takeSample(self, n):
-        return random.sample(self.collect(), n)
+        """[distributed]
+
+        Assumes samples are evenly distributed between partitions.
+
+        Due to lazy execution of maps in result handler, only the needed
+        partitions are evaluated."""
+
+        rnd_entries = sorted([random.random() for _ in range(n)])
+        num_partitions = sum(1 for _ in self.partitions())
+
+        rnd_entries = [
+            (
+                int(e*num_partitions),  # partition number
+                e*num_partitions-int(e*num_partitions),  # element in partition
+            )
+            for e in rnd_entries
+        ]
+        partition_indices = [i for i, e in rnd_entries]
+        partitions = [p for i, p in enumerate(self.partitions())
+                      if i in partition_indices]
+
+        def res_handler(l):
+            map_results = list(l)
+            entries = itertools.groupby(rnd_entries, lambda e: e[0])
+            r = []
+            for i, e_list in enumerate(entries):
+                p_result = map_results[i]
+                for p_num, e in e_list[1]:
+                    e_num = int(e*len(p_result))
+                    r.append(p_result[e_num])
+            return r
+
+        return self.context.runJob(
+            self, lambda tc, i: list(i), partitions=partitions,
+            resultHandler=res_handler,
+        )
 
 
 class MapPartitionsRDD(RDD):

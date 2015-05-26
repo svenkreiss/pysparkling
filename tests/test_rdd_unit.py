@@ -70,7 +70,7 @@ def test_filter():
 def test_first():
     my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
     print(my_rdd.first())
-    assert my_rdd.first() == 1    
+    assert my_rdd.first() == 1
 
 
 def test_flatMap():
@@ -165,7 +165,10 @@ def test_map():
 
 def test_mapPartitions():
     rdd = Context().parallelize([1, 2, 3, 4], 2)
-    def f(iterator): yield sum(iterator)
+
+    def f(iterator):
+        yield sum(iterator)
+
     r = rdd.mapPartitions(f).collect()
     assert 3 in r and 7 in r
 
@@ -221,11 +224,25 @@ def test_take():
     assert my_rdd.take(2)[1] == 7
 
 
+def test_take_partitions():
+    """The real test here is that only the first two partitions should be
+    computed and not the third one. Shown in debug logs."""
+    my_rdd = Context().parallelize([4, 7, 2], 3)
+    assert my_rdd.take(2)[1] == 7
+
+
 def test_takeSample():
     my_rdd = Context().parallelize([4, 7, 2])
     assert my_rdd.takeSample(1)[0] in [4, 7, 2]
 
 
+def test_takeSample_partitions():
+    """The real test here is that only one partition should be
+    computed and not the other two. Shown in debug logs."""
+    my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+    assert my_rdd.takeSample(1)[0] in [4, 9, 7, 3, 2, 5]
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_filter()
+    test_takeSample_partitions()

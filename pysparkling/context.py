@@ -84,6 +84,10 @@ class Context(object):
         Note that the maps are only inside generators and the resultHandler
         needs to take care of executing the ones that it needs.
         """
+
+        if not partitions:
+            partitions = rdd.partitions()
+
         # TODO: this is the place to insert proper schedulers
         map_result = (
             self._data_deserializer(d) for d in self._pool.map(runJob_map, [
@@ -93,7 +97,7 @@ class Context(object):
                  self._serializer((func, rdd)),
                  self._data_serializer(p),
                  )
-                for p in rdd.partitions()
+                for p in partitions
             ])
         )
         log.info('Map jobs generated.')
@@ -103,12 +107,11 @@ class Context(object):
         return list(map_result)  # convert to list to execute on all partitions
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
-        lines = []
-        for f_name in File.resolve_filenames(filename):
-            contents = File(f_name).load().read().decode('utf-8')
-            lines += [l.rstrip('\n') for l in contents.splitlines()]
-
-        rdd = self.parallelize(lines)
+        rdd_filenames = self.parallelize(File.resolve_filenames(filename))
+        rdd = rdd_filenames.flatMap(lambda f_name: [
+            l.rstrip('\n')
+            for l in File(f_name).load().read().decode('utf-8').splitlines()
+        ])
         rdd._name = filename
         return rdd
 
