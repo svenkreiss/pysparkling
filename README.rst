@@ -17,10 +17,11 @@ pysparkling
 
 .. image:: https://travis-ci.org/svenkreiss/pysparkling.svg?branch=master
     :target: https://travis-ci.org/svenkreiss/pysparkling
-.. image:: https://pypip.in/v/pysparkling/badge.svg
+.. image:: https://badge.fury.io/py/pysparkling.svg
     :target: https://pypi.python.org/pypi/pysparkling/
-.. image:: https://pypip.in/d/pysparkling/badge.svg
-    :target: https://pypi.python.org/pypi/pysparkling/
+
+.. image: https://pypip.in/d/pysparkling/badge.svg
+..    :target: https://pypi.python.org/pypi/pysparkling/
 
 
 Install
