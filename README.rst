@@ -35,14 +35,14 @@ Install
 Features
 ========
 
-* Supports multiple URI schemes like ``s3n://`` and ``file://``.
-  Specify multiple files separated by comma. Mix local and S3 files.
-  Resolves ``glob`` expressions (filenames with ``*`` and ``?``).
-* Seamlessly handles ``.gz`` and ``.bz2`` compressed files.
+* Supports multiple URI schemes like ``s3n://``, ``http://`` and ``file://``.
+  Specify multiple files separated by comma.
+  Resolves ``*`` and ``?`` wildcards.
+* Handles ``.gz`` and ``.bz2`` compressed files.
 * Parallelization via ``multiprocessing.Pool``,
   ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
-* only dependency: ``boto`` for AWS S3 access
+* only dependencies: ``boto`` for AWS S3 and ``requests`` for http
 
 
 Examples
@@ -197,7 +197,7 @@ for auth and Use file paths of the form ``s3n://bucket_name/filename.txt``.
 
 Infers ``.gz`` and ``.bz2`` compressions from the file name.
 
-* ``File(file_name)``: file_name is either local, on S3 or ...
+* ``File(file_name)``: file_name is either local, http, on S3 or ...
     * ``[static] exists(path)``: check for existance of path
     * ``[static] resolve_filenames(expr)``: given a glob-like expression with ``*``
       and ``?``, get a list of all matching filenames (either locally or on S3).
