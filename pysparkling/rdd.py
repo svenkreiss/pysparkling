@@ -2,6 +2,7 @@
 
 from __future__ import division, absolute_import, print_function
 
+import sys
 import random
 import logging
 import functools
@@ -348,6 +349,12 @@ class RDD(object):
             for k in d2.keys()
         ), numPartitions)
 
+    def sample(self, fraction):
+        return PartitionwiseSampledRDD(
+            self, fraction,
+            preservesPartitioning=True,
+        )
+
     def saveAsTextFile(self, path, compressionCodecClass=None):
         if File.exists(path):
             raise FileAlreadyExistsException(
@@ -461,6 +468,34 @@ class MapPartitionsRDD(RDD):
     def compute(self, split, task_context):
         return self.f(task_context, split.index,
                       self.prev.compute(split, task_context._create_child()))
+
+    def partitions(self):
+        return self.prev.partitions()
+
+
+class PartitionwiseSampledRDD(RDD):
+    def __init__(self, prev, fraction, preservesPartitioning=False, seed=None):
+        """prev is the previous RDD.
+
+        f is a function with the signature
+        (task_context, partition index, iterator over elements).
+        """
+        RDD.__init__(self, prev.partitions(), prev.context)
+
+        if not seed:
+            seed = random.randint(0, sys.maxint)
+
+        self.prev = prev
+        self.fraction = fraction
+        self.preservesPartitioning = preservesPartitioning
+        self.seed = seed
+
+    def compute(self, split, task_context):
+        random.seed(self.seed+split.index)
+        return (
+            x for x in self.prev.compute(split, task_context._create_child())
+            if random.random() < self.fraction
+        )
 
     def partitions(self):
         return self.prev.partitions()

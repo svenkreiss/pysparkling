@@ -207,6 +207,14 @@ def test_rightOuterJoin():
     assert dict(j.collect())[1][1] == 3
 
 
+def test_sample():
+    rdd = Context().parallelize(range(100))
+    sampled = rdd.sample(0.1)
+    print(sampled.collect())
+    assert all(s1 == s2 for s1, s2 in zip(sampled.collect(),
+                                          sampled.collect()))
+
+
 def test_subtract():
     rdd1 = Context().parallelize([(0, 1), (1, 1)])
     rdd2 = Context().parallelize([(1, 1), (1, 3)])
@@ -245,4 +253,4 @@ def test_takeSample_partitions():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_takeSample_partitions()
+    test_sample()
