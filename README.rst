@@ -210,7 +210,10 @@ Infers ``.gz`` and ``.bz2`` compressions from the file name.
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.8...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.10...master>`_
+* `v0.2.10 <https://github.com/svenkreiss/pysparkling/compare/v0.2.8...v0.2.10>`_ (2015-05-27)
+    * fix ``fileio.codec`` import
+    * support ``http://``
 * `v0.2.8 <https://github.com/svenkreiss/pysparkling/compare/v0.2.6...v0.2.8>`_ (2015-05-26)
     * parallelized text file reading (and made it lazy)
     * parallelized take() and takeSample() that only computes required data partitions
