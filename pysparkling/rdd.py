@@ -349,10 +349,15 @@ class RDD(object):
             for k in d2.keys()
         ), numPartitions)
 
-    def sample(self, fraction):
+    def sample(self, withReplacement, fraction, seed=None):
+        """[distributed]
+
+        withReplacement is not implemented.
+        """
         return PartitionwiseSampledRDD(
             self, fraction,
             preservesPartitioning=True,
+            seed=seed,
         )
 
     def saveAsTextFile(self, path, compressionCodecClass=None):

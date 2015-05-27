@@ -209,7 +209,7 @@ def test_rightOuterJoin():
 
 def test_sample():
     rdd = Context().parallelize(range(100))
-    sampled = rdd.sample(0.1)
+    sampled = rdd.sample(False, 0.1, seed=5)
     print(sampled.collect())
     assert all(s1 == s2 for s1, s2 in zip(sampled.collect(),
                                           sampled.collect()))

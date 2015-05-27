@@ -172,7 +172,7 @@ RDD
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
 * ``rightOuterJoin(other)``: right outer join
-* ``sample(fraction)``: sample from the RDD
+* ``sample(withReplacement, fraction, seed=None)``: sample from the RDD
 * ``saveAsTextFile(path)``: save RDD as text file
 * ``subtract(other)``: return a new RDD without the elements in other
 * ``sum()``: sum
