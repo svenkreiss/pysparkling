@@ -29,8 +29,14 @@ def test_s3_textFile():
     myrdd = Context().textFile(
         's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/warc.paths.*'
     )
-    print(myrdd.collect())
     assert 'common-crawl/crawl-data/CC-MAIN-2015-11/segments/1424937481488.49/warc/CC-MAIN-20150226075801-00329-ip-10-28-5-156.ec2.internal.warc.gz' in myrdd.collect()
+
+
+def test_http_textFile():
+    myrdd = Context().textFile(
+        'https://s3-us-west-2.amazonaws.com/human-microbiome-project/DEMO/HM16STR/46333/by_subject/1139.fsa'
+    )
+    assert u'TGCTGCGGTGAATGCGTTCCCGGGTCT' in myrdd.collect()
 
 
 def test_saveAsTextFile():
@@ -80,9 +86,10 @@ def test_pyspark_compatibility_gz():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # test_saveAsTextFile()
-    test_local_textFile_2()
+    # test_local_textFile_2()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
+    test_http_textFile()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()

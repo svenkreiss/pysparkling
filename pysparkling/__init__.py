@@ -1,8 +1,9 @@
-"""pytld module."""
+"""pysparkling module."""
 
-__version__ = '0.2.8'
+__version__ = '0.2.9'
 
-from .exceptions import FileAlreadyExistsException
+from .exceptions import (FileAlreadyExistsException,
+                         ConnectionException)
 
 from .context import Context
 from .rdd import RDD
