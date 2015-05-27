@@ -34,7 +34,6 @@ def indent_line(l):
 def test_lazy_execution():
     r = Context().textFile('tests/test_multiprocessing.py')
     r = r.map(indent_line)
-    r.foreach(indent_line)
     exec_before_collect = INDENT_WAS_EXECUTED
     # at this point, no map() or foreach() should have been executed
     r.collect()

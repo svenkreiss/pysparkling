@@ -103,8 +103,9 @@ def test_foldByKey():
 
 def test_foreach():
     my_rdd = Context().parallelize([1, 2, 3])
-    my_rdd.foreach(lambda x: x+1)
-    assert my_rdd.collect()[0] == 1
+    a = []
+    my_rdd.foreach(lambda x: a.append(x))
+    assert len(a) == 3
 
 
 def test_groupBy():

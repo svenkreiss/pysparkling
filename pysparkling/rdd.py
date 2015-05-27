@@ -173,7 +173,7 @@ class RDD(object):
         )
 
     def foreach(self, f):
-        self.context.runJob(self, lambda tc, x: (f(xx) for xx in x),
+        self.context.runJob(self, lambda tc, x: [f(xx) for xx in x],
                             resultHandler=None)
 
     def foreachPartition(self, f):
