@@ -34,3 +34,11 @@ class PersistedPartition(Partition):
 
     def set_cache_x(self, x):
         self.cache_x = iter(list(x))
+
+    def __getstate__(self):
+        d = {
+            'cache_x': list(self.x()) if self.cache_x is not None else None,
+            'storageLevel': self.storageLevel,
+        }
+        d.update(Partition.__getstate__(self))
+        return d

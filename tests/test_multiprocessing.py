@@ -52,9 +52,22 @@ def test_lazy_execution_threadpool():
         assert '--- --- from pysparkling import Context' in r
 
 
+def test_lazy_execution_processpool():
+    with futures.ProcessPoolExecutor(4) as p:
+        r = Context(
+            pool=p,
+            serializer=dill.dumps,
+            deserializer=dill.loads,
+        ).textFile('tests/test_multiprocessing.py')
+        r = r.map(indent_line).cache()
+        r.collect()
+        r = r.map(indent_line)
+        r = r.collect()
+        # ProcessPool is not lazy although it returns generators.
+        print(r)
+        assert '--- --- from pysparkling import Context' in r
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    # test_multiprocessing()
-    # test_concurrent()
-    # test_lazy_execution()
-    test_lazy_execution_threadpool()
+    test_lazy_execution_processpool()
