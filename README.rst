@@ -1,3 +1,7 @@
+.. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/logo/logo.svg
+    :target: https://github.com/svenkreiss/pysparkling
+
+
 pysparkling
 ===========
 
