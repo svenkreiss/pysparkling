@@ -77,17 +77,29 @@ def main():
                                    size=("128px", "128px"))
     svg_document = svgwrite.Drawing(filename="logo.svg",
                                     size=("128px", "128px"))
+    svg_banner = svgwrite.Drawing(filename="banner.svg",
+                                  size=("600px", "128px"))
     for y, r in enumerate(DATA):
         for x, v in enumerate(r):
             simple(svg_favicon, x, y, v)
             smaller(svg_document, x, y, v)
-    print(svg_document.tostring())
+            smaller(svg_banner, x, y, v)
+    # add banner text
+    g = svg_banner.g(style='font-size:50px; font-family:Arial; font-weight: bold; font-style: italic;')
+    g.add(svg_banner.text(
+        'pysparkling',
+        insert=(160, 70), fill='#000000'),
+    )
+    svg_banner.add(g)
+    # print(svg_document.tostring())
     svg_favicon.save()
     svg_document.save()
+    svg_banner.save()
 
     # create pngs
     os.system('svg2png --width=100 --height=100 logo.svg logo-w100.png')
     os.system('svg2png --width=600 --height=600 logo.svg logo-w600.png')
+    os.system('svg2png --width=500 --height=100 banner.svg banner-w500.png')
     favicon_sizes = [16, 32, 48, 128, 256]
     for s in favicon_sizes:
         os.system('svg2png --width='+str(s)+' --height='+str(s)+' favicon.svg favicon-w'+str(s)+'.png')
