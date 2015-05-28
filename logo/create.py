@@ -100,6 +100,7 @@ def main():
     os.system('svg2png --width=100 --height=100 logo.svg logo-w100.png')
     os.system('svg2png --width=600 --height=600 logo.svg logo-w600.png')
     os.system('svg2png --width=500 --height=100 banner.svg banner-w500.png')
+    os.system('svg2png --width=1500 --height=300 banner.svg banner-w1500.png')
     favicon_sizes = [16, 32, 48, 128, 256]
     for s in favicon_sizes:
         os.system('svg2png --width='+str(s)+' --height='+str(s)+' favicon.svg favicon-w'+str(s)+'.png')
