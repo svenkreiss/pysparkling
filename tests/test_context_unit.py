@@ -16,6 +16,12 @@ def test_parallelize_matched_elements():
     assert my_rdd.collect()[2] == 3 and len(my_rdd.collect()) == 5
 
 
+def test_parallelize_empty_partitions_at_end():
+    my_rdd = Context().parallelize(range(3529), 500)
+    print(my_rdd.getNumPartitions())
+    assert my_rdd.getNumPartitions() == 442
+
+
 def test_union():
     sc = Context()
     rdd1 = sc.parallelize(['Hello'])
@@ -25,8 +31,8 @@ def test_union():
 
 
 def test_version():
-	assert isinstance(Context().version, str)
+    assert isinstance(Context().version, str)
 
 
 if __name__ == '__main__':
-	test_union()
+    test_parallelize_empty_partitions_at_end()
