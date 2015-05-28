@@ -52,7 +52,7 @@ def simple(svg_document, x, y, v):
                                            fill=color(x, y)))
 
 
-def smaller(svg_document, x, y, v):
+def smaller(svg_document, x, y, v, x_offset=0, y_offset=0):
     # from center
     distance2 = (x-3.5)**2 + (y-3.5)**2
     max_distance2 = 2 * 4**2
@@ -61,8 +61,8 @@ def smaller(svg_document, x, y, v):
         size = 16.0*(1.0 - distance2/max_distance2)
         number_of_cubes = int(16**2 / (size**2))
         for i in xrange(number_of_cubes):
-            xi = x*16 + 1 + random.random()*(14.0-size)
-            yi = y*16 + 1 + random.random()*(14.0-size)
+            xi = x*16 + 1 + random.random()*(14.0-size) + x_offset
+            yi = y*16 + 1 + random.random()*(14.0-size) + y_offset
             sizepx = str(size)+"px"
             svg_document.add(svg_document.rect(insert=(xi, yi),
                                                size=(sizepx, sizepx),
@@ -78,17 +78,17 @@ def main():
     svg_document = svgwrite.Drawing(filename="logo.svg",
                                     size=("128px", "128px"))
     svg_banner = svgwrite.Drawing(filename="banner.svg",
-                                  size=("600px", "128px"))
+                                  size=("600px", "200px"))
     for y, r in enumerate(DATA):
         for x, v in enumerate(r):
             simple(svg_favicon, x, y, v)
             smaller(svg_document, x, y, v)
-            smaller(svg_banner, x, y, v)
+            smaller(svg_banner, x, y, v, x_offset=20, y_offset=40)
     # add banner text
-    g = svg_banner.g(style='font-size:50px; font-family:Arial; font-weight: bold; font-style: italic;')
+    g = svg_banner.g(style='font-size:40px; font-family:Arial; font-weight: bold; font-style: italic;')
     g.add(svg_banner.text(
         'pysparkling',
-        insert=(160, 70), fill='#000000'),
+        insert=(180, 120), fill='#000000'),
     )
     svg_banner.add(g)
     # print(svg_document.tostring())
@@ -100,7 +100,7 @@ def main():
     os.system('svg2png --width=100 --height=100 logo.svg logo-w100.png')
     os.system('svg2png --width=600 --height=600 logo.svg logo-w600.png')
     os.system('svg2png --width=500 --height=100 banner.svg banner-w500.png')
-    os.system('svg2png --width=1500 --height=300 banner.svg banner-w1500.png')
+    os.system('svg2png --width=1500 --height=400 banner.svg banner-w1500.png')
     favicon_sizes = [16, 32, 48, 128, 256]
     for s in favicon_sizes:
         os.system('svg2png --width='+str(s)+' --height='+str(s)+' favicon.svg favicon-w'+str(s)+'.png')
