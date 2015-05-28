@@ -105,27 +105,6 @@ which prints out a line like ``[u'CAACGCCGCGTGAGGGATGACGGCCTTCGGGTTGTAAACCTCTTTC
 API
 ===
 
-Context
--------
-
-* ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
-  takes a pool object
-  (an object that has a ``map()`` method, e.g. a multiprocessing.Pool) to
-  parallelize methods. To support functions and lambda functions, specify custom
-  serializers and deserializers,
-  e.g. ``serializer=dill.dumps, deserializer=dill.loads``.
-* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
-  are accessed with ``value``.
-* ``newRddId()``: incrementing number
-* ``textFile(filename)``: load every line of a text file into a RDD.
-  ``filename`` can contain a comma separated list of many files, ``?`` and
-  ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
-  local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
-  or ``file:///absolute/file/path.txt``). If the filename points to a folder
-  containing ``part*`` files, those are resolved.
-* ``version``: the version of pysparkling
-
-
 RDD
 ---
 
@@ -181,6 +160,27 @@ RDD
 * ``sum()``: sum
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
+
+
+Context
+-------
+
+* ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
+  takes a pool object
+  (an object that has a ``map()`` method, e.g. a multiprocessing.Pool) to
+  parallelize methods. To support functions and lambda functions, specify custom
+  serializers and deserializers,
+  e.g. ``serializer=dill.dumps, deserializer=dill.loads``.
+* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
+  are accessed with ``value``.
+* ``newRddId()``: incrementing number
+* ``textFile(filename)``: load every line of a text file into a RDD.
+  ``filename`` can contain a comma separated list of many files, ``?`` and
+  ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
+  local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
+  or ``file:///absolute/file/path.txt``). If the filename points to a folder
+  containing ``part*`` files, those are resolved.
+* ``version``: the version of pysparkling
 
 
 Broadcast
