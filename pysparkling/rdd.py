@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from . import utils
 from .fileio import File
+from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
 
 log = logging.getLogger(__name__)
@@ -72,11 +73,7 @@ class RDD(object):
                                    resultHandler=combFuncByKey)
 
     def cache(self):
-        # This cache is not lazy, but it will guarantee that previous
-        # steps are only executed once.
-        for p in self.partitions():
-            p._x = list(p.x())
-        return self
+        return self.persist()
 
     def cartesian(self, other):
         v1 = self.collect()
@@ -275,7 +272,7 @@ class RDD(object):
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: f(x),
-            preservesPartitioning=True,
+            preservesPartitioning=preservesPartitioning,
         )
 
     def mapValues(self, f):
@@ -322,7 +319,8 @@ class RDD(object):
         return self._name
 
     def persist(self, storageLevel=None):
-        return self.cache()
+        """[distributed]"""
+        return PersistedRDD(self, storageLevel=storageLevel)
 
     def pipe(self, command, env={}):
         return self.context.parallelize(subprocess.check_output(
@@ -504,3 +502,30 @@ class PartitionwiseSampledRDD(RDD):
 
     def partitions(self):
         return self.prev.partitions()
+
+
+class PersistedRDD(RDD):
+    def __init__(self, prev, storageLevel=None):
+        """prev is the previous RDD.
+
+        """
+        RDD.__init__(
+            self,
+            (
+                PersistedPartition(
+                    p.x(),
+                    p.index,
+                    storageLevel,
+                ) for p in prev.partitions()
+            ),
+            prev.context,
+        )
+
+        self.prev = prev
+
+    def compute(self, split, task_context):
+        if split.cache_x is None:
+            split.set_cache_x(
+                self.prev.compute(split, task_context._create_child())
+            )
+        return split.x()

@@ -18,3 +18,19 @@ class Partition(object):
             'index': self.index,
             '_x': list(self.x())
         }
+
+
+class PersistedPartition(Partition):
+    def __init__(self, x, idx=None, storageLevel=None):
+        Partition.__init__(self, x, idx)
+        self.cache_x = None
+        self.storageLevel = storageLevel
+
+    def x(self):
+        if self.cache_x:
+            self.cache_x, r = itertools.tee(self.cache_x, 2)
+            return r
+        return Partition.x(self)
+
+    def set_cache_x(self, x):
+        self.cache_x = iter(list(x))

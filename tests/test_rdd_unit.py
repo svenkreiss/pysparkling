@@ -14,14 +14,31 @@ def test_aggregate():
 def test_aggregateByKey():
     seqOp = (lambda x, y: x + y)
     combOp = (lambda x, y: x + y)
-    r = Context().parallelize([('a', 1), ('b', 2), ('a', 3), ('c', 4)]).aggregateByKey(int, seqOp, combOp)
+    r = Context().parallelize(
+        [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
+    ).aggregateByKey(int, seqOp, combOp)
     assert r['a'] == 4 and r['b'] == 2
+
+
+def test_cache():
+    my_rdd = Context().parallelize([1, 2, 3, 4], 2)
+    my_rdd = my_rdd.map(lambda x: x*x).cache()
+    print('no exec until here')
+    print(my_rdd.first())
+    print('executed map on first partition only')
+    print(my_rdd.collect())
+    print('now map() was executed on all partitions and should '
+          'not be executed again')
+    print(my_rdd.collect())
+    assert len(my_rdd.collect()) == 4 and 16 in my_rdd.collect()
+
 
 def test_cartesian():
     rdd = Context().parallelize([1, 2])
     r = sorted(rdd.cartesian(rdd).collect())
     print(r)
     assert r[0][0] == 1 and r[2][0] == 2 and len(r) == 4 and len(r[0]) == 2
+
 
 def test_coalesce():
     my_rdd = Context().parallelize([1, 2, 3], 2).coalesce(1)
@@ -61,7 +78,10 @@ def test_distinct():
 
 
 def test_filter():
-    my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3).filter(lambda x: x % 2 == 0)
+    my_rdd = Context().parallelize(
+        [1, 2, 2, 4, 1, 3, 5, 9],
+        3,
+    ).filter(lambda x: x % 2 == 0)
     print(my_rdd.collect())
     print(my_rdd.count())
     assert my_rdd.count() == 3
@@ -254,4 +274,4 @@ def test_takeSample_partitions():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_sample()
+    test_cache()

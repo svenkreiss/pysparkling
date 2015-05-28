@@ -111,7 +111,7 @@ RDD
 * ``aggregate(zeroValue, seqOp, combOp)``: aggregate value in partition with
   seqOp and combine with combOp
 * ``aggregateByKey(zeroValue, seqFunc, combFunc)``: aggregate by key
-* ``cache()``: execute previous steps and cache result
+* ``cache()``: synonym for ``persist()``
 * ``cartesian(other)``: cartesian product
 * ``coalesce()``: do nothing
 * ``collect()``: return the underlying list
@@ -149,7 +149,7 @@ RDD
 * ``mean()``: mean
 * ``min()``: get the minimum element
 * ``name()``: RDD's name
-* ``persist()``: implemented as synonym for ``cache()``
+* ``persist()``: caches outputs of previous operations (previous steps are still executed lazily)
 * ``pipe(command)``: pipe the elements through an external command line tool
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
@@ -213,7 +213,11 @@ Infers ``.gz`` and ``.bz2`` compressions from the file name.
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.10...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.13...master>`_
+* `v0.2.13 <https://github.com/svenkreiss/pysparkling/compare/v0.2.10...v0.2.13>`_ (2015-05-28)
+    * make ``cache()`` and ``persist()`` do something useful
+    * logo
+    * fix ``foreach()``
 * `v0.2.10 <https://github.com/svenkreiss/pysparkling/compare/v0.2.8...v0.2.10>`_ (2015-05-27)
     * fix ``fileio.codec`` import
     * support ``http://``
