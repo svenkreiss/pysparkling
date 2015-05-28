@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/logo/logo.svg
+.. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/logo/logo-w100.png
     :target: https://github.com/svenkreiss/pysparkling
 
 
