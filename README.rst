@@ -54,20 +54,24 @@ Examples
 
 The example source codes are included in ``tests/readme_example*.py``.
 
-**Line counts**: Count the lines in the ``*.py`` files in the ``tests`` directory and
-count only those lines that start with ``import``:
+**Word count**: Count the words in a file:
 
 .. code-block:: python
 
-  from pysparkling import Context
+    from pysparkling import Context
 
-  my_rdd = Context().textFile('tests/*.py')
-  print('In tests/*.py: all lines={0}, with import={1}'.format(
-      my_rdd.count(),
-      my_rdd.filter(lambda l: l.startswith('import ')).count()
-  ))
+    counts = Context().textFile(
+        'README.rst'
+    ).flatMap(
+        lambda line: line.split(' ')
+    ).map(
+        lambda word: (word, 1)
+    ).reduceByKey(
+        lambda a, b: a + b
+    )
+    print(counts.collect())
 
-which prints ``In tests/*.py: all lines=518, with import=11``.
+which prints a long list of pairs of words and their counts.
 
 
 **Common Crawl**: More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015/05/march-2015-crawl-archive-available/>`_.
