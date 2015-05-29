@@ -68,7 +68,9 @@ def smaller(svg_document, x, y, v, x_offset=0, y_offset=0):
                                                size=(sizepx, sizepx),
                                                rx="2px",
                                                stroke_width="1",
-                                               stroke=color(x, y),
+                                               # stroke='#4E9954',
+                                               stroke='#FAE5A5',
+                                               # stroke=color(x, y),
                                                fill=color(x, y)))
 
 
