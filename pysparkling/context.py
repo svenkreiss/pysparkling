@@ -70,14 +70,14 @@ class Context(object):
             return RDD([Partition(x, 0)], self)
 
         len_x = len(x)
-        stride_size = int(math.ceil(len_x/numPartitions))
-
-        # overwrite num partitions to remove empty partitions at the end
-        numPartitions = int(math.ceil(len_x/stride_size))
 
         def partitioned():
             for i in range(numPartitions):
-                yield Partition(x[i*stride_size:(i+1)*stride_size], i)
+                start = int(i * len_x/numPartitions)
+                end = int((i+1) * len_x/numPartitions)
+                if i+1 == numPartitions:
+                    end += 1
+                yield Partition(x[start:end], i)
 
         return RDD(partitioned(), self)
 

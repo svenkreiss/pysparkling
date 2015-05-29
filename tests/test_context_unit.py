@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pysparkling import Context
 
 
@@ -19,7 +21,8 @@ def test_parallelize_matched_elements():
 def test_parallelize_empty_partitions_at_end():
     my_rdd = Context().parallelize(range(3529), 500)
     print(my_rdd.getNumPartitions())
-    assert my_rdd.getNumPartitions() == 442
+    my_rdd.foreachPartition(lambda p: print(sum(1 for _ in p)))
+    assert my_rdd.getNumPartitions() == 500 and my_rdd.count() == 3529
 
 
 def test_union():
