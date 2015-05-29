@@ -157,6 +157,7 @@ RDD
 * ``pipe(command)``: pipe the elements through an external command line tool
 * ``reduce()``: reduce
 * ``reduceByKey()``: reduce by key and return the new RDD
+* ``repartition(numPartitions)``: repartition
 * ``rightOuterJoin(other)``: right outer join
 * ``sample(withReplacement, fraction, seed=None)``: sample from the RDD
 * ``saveAsTextFile(path)``: save RDD as text file

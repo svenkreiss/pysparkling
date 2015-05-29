@@ -339,6 +339,9 @@ class RDD(object):
     def reduceByKey(self, f):
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
+    def repartition(self, numPartitions):
+        return self.context.parallelize(self.collect(), numPartitions)
+
     def rightOuterJoin(self, other, numPartitions=None):
         d1 = dict(self.collect())
         d2 = dict(other.collect())
