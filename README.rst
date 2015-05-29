@@ -54,7 +54,7 @@ Examples
 
 The example source codes are included in ``tests/readme_example*.py``.
 
-**Word count**: Count the words in a file:
+**Word count**: Count the words in a file.
 
 .. code-block:: python
 
