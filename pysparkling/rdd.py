@@ -3,6 +3,7 @@
 from __future__ import division, absolute_import, print_function
 
 import sys
+import copy
 import random
 import logging
 import functools
@@ -51,19 +52,23 @@ class RDD(object):
         """[distributed]"""
         return self.context.runJob(
             self,
-            lambda tc, i: functools.reduce(seqOp, i, zeroValue),
-            resultHandler=lambda l: functools.reduce(combOp, l, zeroValue)
+            lambda tc, i: functools.reduce(
+                seqOp, i, copy.deepcopy(zeroValue)
+            ),
+            resultHandler=lambda l: functools.reduce(
+                combOp, l, copy.deepcopy(zeroValue)
+            ),
         )
 
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
         def seqFuncByKey(tc, i):
-            r = defaultdict(zeroValue)
+            r = defaultdict(lambda: copy.deepcopy(zeroValue))
             for k, v in i:
                 r[k] = seqFunc(r[k], v)
             return r
 
         def combFuncByKey(l):
-            r = defaultdict(zeroValue)
+            r = defaultdict(lambda: copy.deepcopy(zeroValue))
             for p in l:
                 for k, v in p.items():
                     r[k] = combFunc(r[k], v)
@@ -153,21 +158,10 @@ class RDD(object):
         )
 
     def fold(self, zeroValue, op):
-        return functools.reduce(op, self.collect(), zeroValue)
+        return self.aggregate(zeroValue, op, op)
 
     def foldByKey(self, zeroValue, op):
-        keys = set(k for k, v in self.collect())
-        return dict(
-            (
-                k,
-                functools.reduce(
-                    op,
-                    (e[1] for e in self.collect() if e[0] == k),
-                    zeroValue
-                )
-            )
-            for k in keys
-        )
+        return self.aggregateByKey(zeroValue, op, op)
 
     def foreach(self, f):
         self.context.runJob(self, lambda tc, x: [f(xx) for xx in x],

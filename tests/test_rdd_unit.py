@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 import logging
 from pysparkling import Context
@@ -7,7 +7,7 @@ from pysparkling import Context
 def test_aggregate():
     seqOp = (lambda x, y: (x[0] + y, x[1] + 1))
     combOp = (lambda x, y: (x[0] + y[0], x[1] + y[1]))
-    r = Context().parallelize([1, 2, 3, 4]).aggregate((0, 0), seqOp, combOp)
+    r = Context().parallelize([1, 2, 3, 4], 2).aggregate((0, 0), seqOp, combOp)
     assert r[0] == 10 and r[1] == 4
 
 
@@ -16,7 +16,7 @@ def test_aggregateByKey():
     combOp = (lambda x, y: x + y)
     r = Context().parallelize(
         [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
-    ).aggregateByKey(int, seqOp, combOp)
+    ).aggregateByKey(0, seqOp, combOp)
     assert r['a'] == 4 and r['b'] == 2
 
 
