@@ -52,7 +52,7 @@ class Local(FileSystem):
         with open(f_name_local, 'rb') as f:
             return BytesIO(f.read())
 
-    def dump(self, stream, make_public=False):
+    def dump(self, stream):
         path_local = self.file_name
         if path_local.startswith('file://'):
             path_local = path_local[7:]
