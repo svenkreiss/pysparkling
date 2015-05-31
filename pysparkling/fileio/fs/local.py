@@ -70,7 +70,7 @@ class Local(FileSystem):
             log.debug(
                 'Reading file {0} of size {1} in range {2} with delimiter {3}.'
                 ''.format(f_name_local, str(f_size), str(f_range),
-                          str(delimiter).encode('string_escape'))
+                          str(delimiter).encode('unicode_escape'))
             )
 
             # seek to beginning of range
