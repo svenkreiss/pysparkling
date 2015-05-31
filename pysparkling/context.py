@@ -135,10 +135,10 @@ class Context(object):
                 num_partitions,
             )
 
-        rdd = rdd_filenames.flatMap(lambda (f_name, f_range): [
+        rdd = rdd_filenames.flatMap(lambda name_range: [
             l.rstrip('\n')
-            for l in File(f_name).load(
-                f_range, delimiter='\n'
+            for l in File(name_range[0]).load(
+                name_range[1], delimiter='\n'
             ).read().decode('utf-8').splitlines()
         ])
         rdd._name = filename
