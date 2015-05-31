@@ -27,14 +27,20 @@ def test_s3_textFile():
         return
 
     myrdd = Context().textFile(
-        's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/warc.paths.*'
+        's3n://aws-publicdatasets/common-crawl/crawl-data/'
+        'CC-MAIN-2015-11/warc.paths.*'
     )
-    assert 'common-crawl/crawl-data/CC-MAIN-2015-11/segments/1424937481488.49/warc/CC-MAIN-20150226075801-00329-ip-10-28-5-156.ec2.internal.warc.gz' in myrdd.collect()
+    assert (
+        'common-crawl/crawl-data/CC-MAIN-2015-11/segments/1424937481488.49/'
+        'warc/CC-MAIN-20150226075801-00329-ip-10-28-5-156.ec2.'
+        'internal.warc.gz' in myrdd.collect()
+    )
 
 
 def test_http_textFile():
     myrdd = Context().textFile(
-        'https://s3-us-west-2.amazonaws.com/human-microbiome-project/DEMO/HM16STR/46333/by_subject/1139.fsa'
+        'https://s3-us-west-2.amazonaws.com/human-microbiome-project/DEMO/'
+        'HM16STR/46333/by_subject/1139.fsa'
     )
     assert u'TGCTGCGGTGAATGCGTTCCCGGGTCT' in myrdd.collect()
 
