@@ -26,7 +26,10 @@ class Http(FileSystem):
             return [expr]
         return []
 
-    def load(self):
+    def load(self, f_range=None, delimiter=None):
+        if f_range and f_range[0] != 0.0:
+            log.warn('HTTP does not support partial file downloads. Skipping.')
+            return BytesIO()
         log.info('Http GET request for {0}.'.format(self.file_name))
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:

@@ -9,7 +9,7 @@ from .rdd import RDD
 from .broadcast import Broadcast
 from .partition import Partition
 from .task_context import TaskContext
-from .fileio import File
+from .fileio import File, codec
 from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
@@ -116,13 +116,30 @@ class Context(object):
                  ''.format(filename, len(resolved_names)))
 
         num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        file_partitions = 1
+        if minPartitions and minPartitions > num_partitions and \
+           codec.get_codec(resolved_names[0]) == codec.Codec:
+            file_partitions = int(math.ceil(minPartitions/len(resolved_names)))
+            num_partitions = file_partitions*len(resolved_names)
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
-        rdd = rdd_filenames.flatMap(lambda f_name: [
+        if file_partitions == 1:
+            rdd_filenames = self.parallelize(
+                [(n, None) for n in resolved_names],
+                num_partitions,
+            )
+        else:
+            rdd_filenames = self.parallelize(
+                [(n, (i/file_partitions, (i+1)/file_partitions))
+                 for n in resolved_names
+                 for i in range(file_partitions)],
+                num_partitions,
+            )
+
+        rdd = rdd_filenames.flatMap(lambda (f_name, f_range): [
             l.rstrip('\n')
-            for l in File(f_name).load().read().decode('utf-8').splitlines()
+            for l in File(f_name).load(
+                f_range, delimiter='\n'
+            ).read().decode('utf-8').splitlines()
         ])
         rdd._name = filename
         return rdd

@@ -29,8 +29,8 @@ class File(object):
         """Checks both for a file at this location or a directory."""
         return fs.get_fs(path).exists(path)
 
-    def load(self):
-        stream = self.fs.load()
+    def load(self, f_range=None, delimiter=None):
+        stream = self.fs.load(f_range, delimiter)
         stream = self.codec.decompress(stream)
         return stream
 

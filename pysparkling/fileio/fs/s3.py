@@ -65,7 +65,11 @@ class S3(FileSystem):
                 files.append(scheme+'://'+bucket_name+'/'+k.name)
         return files
 
-    def load(self):
+    def load(self, f_range=None, delimiter=None):
+        if f_range and f_range[0] != 0.0:
+            log.warn('S3 does not support partial file downloads. Skipping.')
+            return BytesIO()
+
         log.info('Loading {0} with size {1}.'
                  ''.format(self.key.name, self.key.size))
         return BytesIO(self.key.get_contents_as_string())

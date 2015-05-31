@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import logging
 import tempfile
@@ -20,6 +22,27 @@ def test_local_textFile_name():
     name = Context().textFile('tests/*.py').name()
     print(name)
     assert name == 'tests/*.py'
+
+
+def test_local_textFile_partition():
+    some_code = Context().textFile('pysparkling/rdd.py').cache()
+    some_code_p = Context().textFile('pysparkling/rdd.py', 100).cache()
+    some_code_p.foreachPartition(
+        lambda p: print('>>>>>>>'+str(list(p)))
+    )
+    s1 = some_code.collect()
+    s2 = some_code_p.collect()
+    assert (some_code_p.getNumPartitions() == 100 and
+            all(s11 == s21 for s11, s21 in zip(s1, s2)))
+
+
+def test_local_textFile_many_partitions():
+    some_code = Context().textFile('pysparkling/rdd.py')
+    some_code_p = Context().textFile('pysparkling/rdd.py', 10000)
+    s1 = some_code.collect()
+    s2 = some_code_p.collect()
+    assert (some_code_p.getNumPartitions() == 10000 and
+            all(s11 == s21 for s11, s21 in zip(s1, s2)))
 
 
 def test_s3_textFile():
@@ -86,10 +109,10 @@ def test_pyspark_compatibility_gz():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # test_saveAsTextFile()
-    # test_local_textFile_2()
+    test_local_textFile_many_partitions()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
-    test_http_textFile()
+    # test_http_textFile()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()

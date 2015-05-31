@@ -16,7 +16,7 @@ class FileSystem(object):
     def resolve_filenames(expr):
         log.error('Cannot resolve: {0}'.format(expr))
 
-    def load(self):
+    def load(self, f_range=None, delimiter=None):
         log.error('Cannot load: {0}'.format(self.file_name))
 
     def dump(self, stream):

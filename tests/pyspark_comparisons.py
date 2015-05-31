@@ -31,6 +31,11 @@ def count_lines():
     print(SC.textFile('tests/*.py').count())
 
 
+def count_lines_partitioned_files():
+    print('>>>>>>>>>>>'+str(SC.textFile('pysparkling/rdd.py').count()))
+    print('>>>>>>>>>>>'+str(SC.textFile('pysparkling/rdd.py', 100).count()))
+
+
 def create_key_value_txt():
     r = SC.parallelize([('a', 1), ('b', 2)], 1)
     r.saveAsTextFile('tests/pyspark/key_value.txt')
@@ -62,4 +67,5 @@ if __name__ == '__main__':
     # simple_textFile()
     # lazy_execution()
     # count_lines()
-    create_key_value_txt()
+    count_lines_partitioned_files()
+    # create_key_value_txt()
