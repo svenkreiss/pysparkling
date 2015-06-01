@@ -236,6 +236,26 @@ def test_sample():
                                           sampled.collect()))
 
 
+def test_sampleStdev():
+    assert Context().parallelize([1, 2, 3]).sampleStdev() == 1.0
+
+
+def test_sampleVariance():
+    assert Context().parallelize([1, 2, 3]).sampleVariance() == 1.0
+
+
+def test_stats():
+    d = [1, 4, 9, 16, 25, 36]
+    s = Context().parallelize(d, 3).stats()
+    print(s.mean())
+    print(sum(d)/len(d))
+    assert sum(d)/len(d) == s.mean()
+
+
+def test_stdev():
+    assert Context().parallelize([1.5, 2.5]).stdev() == 0.5
+
+
 def test_subtract():
     rdd1 = Context().parallelize([(0, 1), (1, 1)])
     rdd2 = Context().parallelize([(1, 1), (1, 3)])
@@ -272,6 +292,10 @@ def test_takeSample_partitions():
     assert my_rdd.takeSample(1)[0] in [4, 9, 7, 3, 2, 5]
 
 
+def test_variance():
+    assert Context().parallelize([1.5, 2.5]).variance() == 0.25
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_cache()
+    test_stats()

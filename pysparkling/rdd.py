@@ -13,6 +13,7 @@ from collections import defaultdict
 
 from . import utils
 from .fileio import File
+from .stat_counter import StatCounter
 from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
 
@@ -278,36 +279,13 @@ class RDD(object):
         )
 
     def max(self):
-        """[distributed]"""
-        return self.context.runJob(
-            self,
-            lambda tc, x: max(x),
-            resultHandler=max,
-        )
+        return self.stats().max()
 
     def mean(self):
-        """[distributed]"""
-        def map_func(tc, x):
-            summed, length = (0.0, 0)
-            for xx in x:
-                summed += xx
-                length += 1
-            return (summed, length)
-
-        def reduce_func(l):
-            summed, length = zip(*l)
-            return sum(summed)/sum(length)
-
-        return self.context.runJob(self, map_func,
-                                   resultHandler=reduce_func)
+        return self.stats().mean()
 
     def min(self):
-        """[distributed]"""
-        return self.context.runJob(
-            self,
-            lambda tc, x: min(x),
-            resultHandler=min,
-        )
+        return self.stats().min()
 
     def name(self):
         return self._name
@@ -377,6 +355,22 @@ class RDD(object):
             ),
         )
         return self
+
+    def sampleStdev(self):
+        return self.stats().sampleStdev()
+
+    def sampleVariance(self):
+        return self.stats().sampleVariance()
+
+    def stats(self):
+        return self.aggregate(
+            StatCounter(),
+            lambda a, b: a.merge(b),
+            lambda a, b: a.mergeStats(b),
+        )
+
+    def stdev(self):
+        return self.stats().stdev()
 
     def subtract(self, other, numPartitions=None):
         """[distributed]"""
@@ -452,6 +446,9 @@ class RDD(object):
             self, lambda tc, i: list(i), partitions=partitions,
             resultHandler=res_handler,
         )
+
+    def variance(self):
+        return self.stats().variance()
 
 
 class MapPartitionsRDD(RDD):

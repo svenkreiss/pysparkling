@@ -58,8 +58,17 @@ def create_key_value_txt():
     print(r_bz2.collect())
 
 
+def stat():
+    d = [1, 4, 9, 16, 25, 36]
+    s1 = SC.parallelize(d).stats()
+    s2 = SC.parallelize(d, 3).stats()
+    print(str(s1))
+    print(str(s2))
+
+
 if __name__ == '__main__':
     # simple_textFile()
     # lazy_execution()
     # count_lines()
-    create_key_value_txt()
+    # create_key_value_txt()
+    stat()

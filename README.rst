@@ -160,11 +160,16 @@ RDD
 * ``repartition(numPartitions)``: repartition
 * ``rightOuterJoin(other)``: right outer join
 * ``sample(withReplacement, fraction, seed=None)``: sample from the RDD
+* ``sampleStdev()``: sample standard deviation
+* ``sampleVariance()``: sample variance
 * ``saveAsTextFile(path)``: save RDD as text file
+* ``stats()``: return a StatCounter
+* ``stdev()``: standard deviation
 * ``subtract(other)``: return a new RDD without the elements in other
 * ``sum()``: sum
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
+* ``variance()``: variance
 
 
 Context
