@@ -169,7 +169,9 @@ RDD
 * ``sum()``: sum
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
+* ``union(other)``: form union
 * ``variance()``: variance
+* ``zip(other)``: other has to have the same length
 
 
 Context

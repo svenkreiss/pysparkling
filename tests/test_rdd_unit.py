@@ -292,8 +292,18 @@ def test_takeSample_partitions():
     assert my_rdd.takeSample(1)[0] in [4, 9, 7, 3, 2, 5]
 
 
+def test_union():
+    my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+    assert my_rdd.union(my_rdd).count() == 12
+
+
 def test_variance():
     assert Context().parallelize([1.5, 2.5]).variance() == 0.25
+
+
+def test_zip():
+    my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+    assert my_rdd.zip(my_rdd).collect()[1][0] == 9
 
 
 if __name__ == '__main__':

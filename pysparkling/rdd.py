@@ -447,8 +447,19 @@ class RDD(object):
             resultHandler=res_handler,
         )
 
+    def union(self, other):
+        return self.context.union((self, other))
+
+    def values(self):
+        return self.map(lambda e: e[1])
+
     def variance(self):
         return self.stats().variance()
+
+    def zip(self, other):
+        return self.context.parallelize(
+            zip(self.collect(), other.collect())
+        )
 
 
 class MapPartitionsRDD(RDD):
