@@ -228,7 +228,7 @@ Changelog
 =========
 
 * `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.16...master>`_
-* `v0.2.16 <https://github.com/svenkreiss/pysparkling/compare/v0.2.13...v0.2.16>`_ (2015-05-28)
+* `v0.2.16 <https://github.com/svenkreiss/pysparkling/compare/v0.2.13...v0.2.16>`_ (2015-05-31)
     * add ``values()``, ``union()``, ``zip()``, ``zipWithUniqueId()``, ``toLocalIterator()``
     * improve ``aggregate()`` and ``fold()``
     * add ``stats()``, ``sampleStdev()``, ``sampleVariance()``, ``stdev()``, ``variance()``
