@@ -447,6 +447,12 @@ class RDD(object):
             resultHandler=res_handler,
         )
 
+    def toLocalIterator(self):
+        return self.context.runJob(
+            self, lambda tc, i: list(i),
+            resultHandler=lambda l: (x for p in l for x in p),
+        )
+
     def union(self, other):
         return self.context.union((self, other))
 
@@ -458,7 +464,17 @@ class RDD(object):
 
     def zip(self, other):
         return self.context.parallelize(
-            zip(self.collect(), other.collect())
+            zip(self.toLocalIterator(), other.toLocalIterator())
+        )
+
+    def zipWithUniqueId(self):
+        num_p = self.getNumPartitions()
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: (
+                (xx, e*num_p+tc.partition_id) for e, xx in enumerate(x)
+            ),
+            preservesPartitioning=True,
         )
 
 

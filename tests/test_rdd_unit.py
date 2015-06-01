@@ -292,6 +292,13 @@ def test_takeSample_partitions():
     assert my_rdd.takeSample(1)[0] in [4, 9, 7, 3, 2, 5]
 
 
+def test_toLocalIterator():
+    my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+    for i, e in enumerate(my_rdd.toLocalIterator()):
+        print('{0}: {1}'.format(i, e))
+    assert sum(my_rdd.toLocalIterator()) == 30
+
+
 def test_union():
     my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
     assert my_rdd.union(my_rdd).count() == 12
@@ -306,6 +313,13 @@ def test_zip():
     assert my_rdd.zip(my_rdd).collect()[1][0] == 9
 
 
+def test_zipWithUniqueIndex():
+    my_rdd = Context().parallelize(["a", "b", "c", "d", "e"], 3)
+    zipped = dict(my_rdd.zipWithUniqueId().collect())
+    print(zipped)
+    assert zipped['a'] == 0 and zipped['c'] == 4
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_stats()
+    test_zipWithUniqueIndex()

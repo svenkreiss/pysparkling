@@ -169,9 +169,11 @@ RDD
 * ``sum()``: sum
 * ``take(n)``: get the first n elements
 * ``takeSample(n)``: get n random samples
+* ``toLocalIterator()``: get a local iterator
 * ``union(other)``: form union
 * ``variance()``: variance
 * ``zip(other)``: other has to have the same length
+* ``zipWithUniqueId()``: pairs each element with a unique index
 
 
 Context
