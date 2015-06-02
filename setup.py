@@ -17,7 +17,10 @@ with open('pysparkling/__init__.py', 'r') as f:
 setup(
     name='pysparkling',
     version=VERSION,
-    packages=['pysparkling', 'pysparkling.fileio', 'pysparkling.fileio.fs', 'pysparkling.fileio.codec'],
+    packages=['pysparkling',
+              'pysparkling.fileio',
+              'pysparkling.fileio.fs',
+              'pysparkling.fileio.codec'],
     license='MIT',
     description='Python native implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
@@ -25,7 +28,7 @@ setup(
     author_email='me@svenkreiss.com',
     url='https://github.com/svenkreiss/pysparkling',
 
-    install_requires=['boto>=2.38.0', 'requests>=2.7.0'],
+    install_requires=['boto>=2.36.0', 'requests>=2.6.0'],
     entry_points={
         'console_scripts': [],
     },

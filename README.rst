@@ -19,13 +19,12 @@ pysparkling
   should be only a small overhead in initialization and preferably no
   dependency on the JVM. This is what ``pysparkling`` is for.
 
-.. image:: https://travis-ci.org/svenkreiss/pysparkling.svg?branch=master
-    :target: https://travis-ci.org/svenkreiss/pysparkling
 .. image:: https://badge.fury.io/py/pysparkling.svg
     :target: https://pypi.python.org/pypi/pysparkling/
-
-.. image: https://pypip.in/d/pysparkling/badge.svg
-..    :target: https://pypi.python.org/pypi/pysparkling/
+.. image:: https://img.shields.io/pypi/dm/pysparkling.svg
+    :target: https://pypi.python.org/pypi/pysparkling/
+.. image:: https://travis-ci.org/svenkreiss/pysparkling.svg?branch=master
+    :target: https://travis-ci.org/svenkreiss/pysparkling
 
 
 Install
