@@ -8,7 +8,8 @@ from pysparkling import Context
 
 def test_multiprocessing():
     p = multiprocessing.Pool(4)
-    my_rdd = Context(pool=p, serializer=dill.dumps, deserializer=dill.loads).parallelize([1, 3, 4])
+    c = Context(pool=p, serializer=dill.dumps, deserializer=dill.loads)
+    my_rdd = c.parallelize([1, 3, 4])
     r = my_rdd.map(lambda x: x*x).collect()
     print(r)
     assert 16 in r
@@ -20,6 +21,14 @@ def test_concurrent():
         r = my_rdd.map(math.sqrt).collect()
         print(r)
         assert 2 in r
+
+
+def test_first_mp():
+    p = multiprocessing.Pool(4)
+    c = Context(pool=p, serializer=dill.dumps, deserializer=dill.loads)
+    my_rdd = c.parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
+    print(my_rdd.first())
+    assert my_rdd.first() == 1
 
 
 INDENT_WAS_EXECUTED = False

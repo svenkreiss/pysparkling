@@ -88,6 +88,12 @@ def test_filter():
 
 
 def test_first():
+    my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9])
+    print(my_rdd.first())
+    assert my_rdd.first() == 1
+
+
+def test_first_partitions():
     my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
     print(my_rdd.first())
     assert my_rdd.first() == 1
