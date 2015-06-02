@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 import math
 import logging
+import itertools
 
 from .rdd import RDD
 from .broadcast import Broadcast
@@ -69,7 +70,8 @@ class Context(object):
         if not numPartitions:
             return RDD([Partition(x, 0)], self)
 
-        len_x = len(x)
+        x_len_iter, x = itertools.tee(x, 2)
+        len_x = sum(1 for _ in x_len_iter)
 
         def partitioned():
             for i in range(numPartitions):
@@ -77,7 +79,7 @@ class Context(object):
                 end = int((i+1) * len_x/numPartitions)
                 if i+1 == numPartitions:
                     end += 1
-                yield Partition(x[start:end], i)
+                yield Partition(itertools.islice(x, end-start), i)
 
         return RDD(partitioned(), self)
 

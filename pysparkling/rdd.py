@@ -464,7 +464,7 @@ class RDD(object):
 
     def zip(self, other):
         return self.context.parallelize(
-            zip(self.toLocalIterator(), other.toLocalIterator())
+            itertools.izip(self.toLocalIterator(), other.toLocalIterator())
         )
 
     def zipWithUniqueId(self):
