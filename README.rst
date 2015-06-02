@@ -23,8 +23,6 @@ pysparkling
     :target: https://pypi.python.org/pypi/pysparkling/
 .. image:: https://img.shields.io/pypi/dm/pysparkling.svg
     :target: https://pypi.python.org/pypi/pysparkling/
-.. image:: https://travis-ci.org/svenkreiss/pysparkling.svg?branch=master
-    :target: https://travis-ci.org/svenkreiss/pysparkling
 
 
 Install

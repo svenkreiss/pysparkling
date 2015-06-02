@@ -18,9 +18,9 @@ from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
 
 try:
-    from itertools import izip  # Python 2
+    from itertools import izip as zip  # Python 2
 except ImportError:
-    import zip as izip          # Python 3
+    pass                               # Python 3
 
 log = logging.getLogger(__name__)
 
@@ -469,7 +469,7 @@ class RDD(object):
 
     def zip(self, other):
         return self.context.parallelize(
-            izip(self.toLocalIterator(), other.toLocalIterator())
+            zip(self.toLocalIterator(), other.toLocalIterator())
         )
 
     def zipWithUniqueId(self):
