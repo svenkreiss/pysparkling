@@ -17,6 +17,11 @@ from .stat_counter import StatCounter
 from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
 
+try:
+    from itertools import izip  # Python 2
+except ImportError:
+    import zip as izip          # Python 3
+
 log = logging.getLogger(__name__)
 
 
@@ -464,7 +469,7 @@ class RDD(object):
 
     def zip(self, other):
         return self.context.parallelize(
-            itertools.izip(self.toLocalIterator(), other.toLocalIterator())
+            izip(self.toLocalIterator(), other.toLocalIterator())
         )
 
     def zipWithUniqueId(self):
