@@ -27,13 +27,13 @@ class Http(FileSystem):
         return []
 
     def load(self):
-        log.info('Http GET request for {0}.'.format(self.file_name))
+        log.debug('Http GET request for {0}.'.format(self.file_name))
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:
             raise ConnectionException
         return BytesIO(r.content)
 
     def dump(self, stream):
-        log.info('Dump to {0} with http PUT.'.format(self.file_name))
+        log.debug('Dump to {0} with http PUT.'.format(self.file_name))
         requests.put(self.file_name, data=b''.join(stream))
         return self

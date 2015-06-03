@@ -60,10 +60,10 @@ class Local(FileSystem):
         # making sure directory exists
         dirname = os.path.dirname(path_local)
         if not os.path.exists(dirname):
-            log.info('creating local dir {0}/'.format(dirname))
+            log.debug('creating local directory {0}'.format(dirname))
             os.makedirs(dirname)
 
-        log.info('writing file {0}'.format(path_local))
+        log.debug('writing file {0}'.format(path_local))
         with open(path_local, 'wb') as f:
             for c in stream:
                 f.write(c)

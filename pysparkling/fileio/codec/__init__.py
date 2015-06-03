@@ -22,7 +22,7 @@ def get_codec(path):
 
     for endings, codec_class in FILE_ENDINGS:
         if ending in endings:
-            log.info('Using {0} codec: {1}'.format(ending, path))
+            log.debug('Using {0} codec: {1}'.format(ending, path))
             return codec_class
 
     return Codec

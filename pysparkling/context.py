@@ -106,7 +106,7 @@ class Context(object):
                 for p in partitions
             ])
         )
-        log.info('Map jobs generated.')
+        log.debug('Map jobs generated.')
 
         if resultHandler is not None:
             return resultHandler(map_result)
@@ -114,8 +114,8 @@ class Context(object):
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         resolved_names = File.resolve_filenames(filename)
-        log.info('textFile() resolved "{0}" to {1} files.'
-                 ''.format(filename, len(resolved_names)))
+        log.debug('textFile() resolved "{0}" to {1} files.'
+                  ''.format(filename, len(resolved_names)))
 
         num_partitions = len(resolved_names)
         if minPartitions and minPartitions > num_partitions:
