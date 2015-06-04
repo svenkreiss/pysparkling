@@ -46,7 +46,7 @@ Features
   objects that have a ``map(func, iterable)`` method.
 * only dependencies: ``boto`` for AWS S3 and ``requests`` for http
 
-The change log is in `HISTORY.rst <HISTORY.rst>`_.
+The change log is in `HISTORY.rst <https://github.com/svenkreiss/pysparkling/blob/master/HISTORY.rst>`_.
 
 
 Examples
