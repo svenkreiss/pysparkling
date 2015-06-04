@@ -62,3 +62,9 @@ target/
 
 # Spark data files
 *.crc
+
+# IPython
+*.ipynb.syncdoc
+.ipynb_checkpoints
+.ipython-daemon.json
+.cache

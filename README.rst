@@ -5,9 +5,10 @@
 pysparkling
 ===========
 
-  A native Python implementation of Spark's RDD interface, but instead of
-  being resilient and distributed it is just transient and local; but
-  fast (lower latency than PySpark). It is a drop in replacement
+  A native Python implementation of Spark's RDD interface. The primary objective
+  is not to have RDDs that are resilient and distributed, but to remove the dependency
+  on the JVM and Hadoop. The focus is on having a lightweight and fast
+  implementation for small datasets. It is a drop-in replacement
   for PySpark's SparkContext and RDD.
 
   Use case: you have a pipeline that processes 100k input documents
@@ -61,6 +62,8 @@ The example source codes are included in ``tests/readme_example*.py``.
 
     counts = Context().textFile(
         'README.rst'
+    ).map(
+        lambda line: ''.join(ch if ch.isalnum() else ' ' for ch in line)
     ).flatMap(
         lambda line: line.split(' ')
     ).map(

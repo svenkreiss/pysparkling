@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.16...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.19...master>`_
+* `v0.2.19 <https://github.com/svenkreiss/pysparkling/compare/v0.2.16...v0.2.19>`_ (2015-06-04)
+    * new IPython demo notebook at ``docs/demo.ipynb`` (`link <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb`_)
+    * ``parallelize()`` can take an iterator (used in ``zip()`` now for lazy loading)
 * `v0.2.16 <https://github.com/svenkreiss/pysparkling/compare/v0.2.13...v0.2.16>`_ (2015-05-31)
     * add ``values()``, ``union()``, ``zip()``, ``zipWithUniqueId()``, ``toLocalIterator()``
     * improve ``aggregate()`` and ``fold()``
