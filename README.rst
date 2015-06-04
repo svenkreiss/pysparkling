@@ -74,7 +74,7 @@ Examples
 which prints a long list of pairs of words and their counts.
 
 This and a few more advanced examples are demoed
-[here](https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb).
+`here <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_.
 
 
 API
