@@ -52,7 +52,7 @@ The change log is in `HISTORY.rst <https://github.com/svenkreiss/pysparkling/blo
 Examples
 ========
 
-**Word count**: Count the words in a file.
+**Word Count**
 
 .. code-block:: python
 
