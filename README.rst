@@ -52,8 +52,6 @@ The change log is in `HISTORY.rst <HISTORY.rst>`_.
 Examples
 ========
 
-The example source codes are included in ``tests/readme_example*.py``.
-
 **Word count**: Count the words in a file.
 
 .. code-block:: python
@@ -75,37 +73,8 @@ The example source codes are included in ``tests/readme_example*.py``.
 
 which prints a long list of pairs of words and their counts.
 
-
-**Common Crawl**: More info on the dataset is in this `blog post <http://blog.commoncrawl.org/2015/05/march-2015-crawl-archive-available/>`_.
-
-.. code-block:: python
-
-  from pysparkling import Context
-
-  # read all the paths of warc and wat files of the latest Common Crawl
-  paths_rdd = Context().textFile(
-      's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/warc.paths.*,'
-      's3n://aws-publicdatasets/common-crawl/crawl-data/CC-MAIN-2015-11/wat.paths.gz'
-  )
-
-  print(paths_rdd.collect())
-
-which prints a long list of paths extracted from two gzip compressed files.
-
-
-**Human Microbiome Project**: Get a random line without loading the entire
-dataset.
-
-.. code-block:: python
-
-  from pysparkling import Context
-
-  by_subject_rdd = Context().textFile(
-      's3n://human-microbiome-project/DEMO/HM16STR/46333/by_subject/*'
-  )
-  print(by_subject_rdd.takeSample(1))
-
-which prints out a line like ``[u'CAACGCCGCGTGAGGGATGACGGCCTTCGGGTTGTAAACCTCTTTCAGTATCGACGAAGC']``.
+This and a few more advanced examples are demoed
+[here](https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb).
 
 
 API
