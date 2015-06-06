@@ -205,7 +205,9 @@ and ``file://`` locations and compression/decompression of ``.gz`` and
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
-* ``File(file_name)``: file_name is a URI of a file (can include ``http://``, ``s3://`` and ``file://`` schemes)
+* ``File``:
+    * ``__init__(filename)``: filename is a URI of a file (can include
+      ``http://``, ``s3://`` and ``file://`` schemes)
     * ``load()``: return the contents as BytesIO
     * ``dump(stream)``: write the stream to the file
     * ``[static] exists(path)``: check for existance of path
