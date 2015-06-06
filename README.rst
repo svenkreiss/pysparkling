@@ -72,12 +72,18 @@ Examples
     print(counts.collect())
 
 which prints a long list of pairs of words and their counts.
-This and a few more advanced examples are demoed
-`here <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_.
+This and a few more advanced examples are demoed in
+`docs/demo.ipynb <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_.
 
 
 API
 ===
+
+A usual ``pysparkling`` session starts with either parallelizing a ``list`` or
+by reading data from a file using the methods ``Context.parallelize(my_list)``
+or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
+``RDD`` which can then be processed with the methods below.
+
 
 RDD
 ---
@@ -149,45 +155,60 @@ RDD
 Context
 -------
 
+A ``Context`` describes the setup. Instantiating a Context with the default
+arguments using ``Context()`` is the most lightweight setup. All data is just
+in the local thread and is never serialized or deserialized.
+
+If you want to process the data in parallel, you can use the ``multiprocessing``
+module. Given the limitations of the default ``pickle`` serializer, you can
+specify to serialize all methods with ``dill`` instead. For example, a common
+instantiation with ``multiprocessing`` looks like this:
+
+.. code-block:: python
+
+  c = Context(
+      multiprocessing.Pool(4),
+      serializer=dill.dumps,
+      deserializer=dill.loads,
+  )
+
+This assumes that your data is serializable with ``pickle`` which is generally
+faster than ``dill``. You can also specify a custom serializer/deserializer
+for data.
+
 * ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
-  takes a pool object
-  (an object that has a ``map()`` method, e.g. a multiprocessing.Pool) to
-  parallelize methods. To support functions and lambda functions, specify custom
-  serializers and deserializers,
-  e.g. ``serializer=dill.dumps, deserializer=dill.loads``.
+  takes a pool object (an object that has a ``map()`` method)
 * ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
   are accessed with ``value``.
 * ``newRddId()``: incrementing number
-* ``textFile(filename)``: load every line of a text file into a RDD.
+* ``parallelize(list_or_iterator, numPartitions)``: returns a new RDD
+* ``textFile(filename)``: load every line of a text file into an RDD
   ``filename`` can contain a comma separated list of many files, ``?`` and
-  ``*`` wildcards, file paths on S3 (``s3n://bucket_name/filename.txt``) and
+  ``*`` wildcards, file paths on S3 (``s3://bucket_name/filename.txt``) and
   local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
   or ``file:///absolute/file/path.txt``). If the filename points to a folder
   containing ``part*`` files, those are resolved.
 * ``version``: the version of pysparkling
 
 
-Broadcast
----------
-
-* ``value``: access the value it stores
-
-
 fileio
 ------
 
 The functionality provided by this module is used in ``Context.textFile()``
-for reading and in ``RDD.saveAsTextFile()`` for writing.
+for reading and in ``RDD.saveAsTextFile()`` for writing. You can use this
+submodule for writing files directly with ``File(filename).dump(some_data)``,
+``File(filename).load()`` and ``File.exists(path)`` to read, write and check
+for existance of a file with transparent handling of ``http://``, ``s3://``
+and ``file://`` locations and transparent compression/decompression of ``.gz``
+and ``.bz2`` files.
 
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
-for auth and use file paths of the form ``s3n://bucket_name/filename.txt``.
-
-Infers ``.gz`` and ``.bz2`` compressions from the file name.
+for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
 * ``File(file_name)``: file_name is either local, http, on S3 or ...
+    * ``load()``: return the contents as BytesIO
+    * ``dump(stream)``: write the stream to the file
     * ``[static] exists(path)``: check for existance of path
     * ``[static] resolve_filenames(expr)``: given a glob-like expression with ``*``
       and ``?``, get a list of all matching filenames (either locally or on S3).
-    * ``load()``: return the contents as BytesIO
-    * ``dump(stream)``: write the stream to the file
     * ``make_public(recursive=False)``: only for files on S3
