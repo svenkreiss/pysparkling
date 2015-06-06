@@ -217,3 +217,8 @@ for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
       Multiple expressions separated by ``,`` can also be specified.
       Spark-style partitioned datasets (folders containing ``part-*`` files)
       are resolved as well to a list of the individual files.
+
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/svenkreiss/pysparkling
+   :target: https://gitter.im/svenkreiss/pysparkling?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
