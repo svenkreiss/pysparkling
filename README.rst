@@ -177,10 +177,10 @@ faster than ``dill``. You can also specify a custom serializer/deserializer
 for data.
 
 * ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
-  takes a pool object (an object that has a ``map()`` method)
-* ``broadcast(var)``: returns an instance of  ``Broadcast()`` and it's values
-  are accessed with ``value``.
-* ``newRddId()``: incrementing number
+  pool is any instance with a ``map(func, iterator)`` method
+* ``broadcast(var)``: returns an instance of  ``Broadcast()``. Access its value
+  with ``value``.
+* ``newRddId()``: incrementing number [internal use]
 * ``parallelize(list_or_iterator, numPartitions)``: returns a new RDD
 * ``textFile(filename)``: load every line of a text file into an RDD
   ``filename`` can contain a comma separated list of many files, ``?`` and
@@ -198,9 +198,9 @@ The functionality provided by this module is used in ``Context.textFile()``
 for reading and in ``RDD.saveAsTextFile()`` for writing. You can use this
 submodule for writing files directly with ``File(filename).dump(some_data)``,
 ``File(filename).load()`` and ``File.exists(path)`` to read, write and check
-for existance of a file with transparent handling of ``http://``, ``s3://``
-and ``file://`` locations and transparent compression/decompression of ``.gz``
-and ``.bz2`` files.
+for existance of a file. All methods transparently handle ``http://``, ``s3://``
+and ``file://`` locations and compression/decompression of ``.gz`` and
+``.bz2`` files.
 
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
@@ -209,6 +209,9 @@ for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
     * ``load()``: return the contents as BytesIO
     * ``dump(stream)``: write the stream to the file
     * ``[static] exists(path)``: check for existance of path
-    * ``[static] resolve_filenames(expr)``: given a glob-like expression with ``*``
-      and ``?``, get a list of all matching filenames (either locally or on S3).
+    * ``[static] resolve_filenames(expr)``: given an expression with ``*``
+      and ``?`` wildcard characters, get a list of all matching filenames.
+      Multiple expressions separated by ``,`` can also be specified.
+      Spark-style partitioned datasets (folders containing ``part-*`` files)
+      are resolved as well to a list of the individual files.
     * ``make_public(recursive=False)``: only for files on S3
