@@ -37,7 +37,7 @@ Install
 Features
 ========
 
-* Supports multiple URI schemes like ``s3n://``, ``http://`` and ``file://``.
+* Supports multiple URI scheme: ``s3://``, ``http://`` and ``file://``.
   Specify multiple files separated by comma.
   Resolves ``*`` and ``?`` wildcards.
 * Handles ``.gz`` and ``.bz2`` compressed files.
