@@ -208,12 +208,12 @@ for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 * ``File``:
     * ``__init__(filename)``: filename is a URI of a file (can include
       ``http://``, ``s3://`` and ``file://`` schemes)
-    * ``load()``: return the contents as BytesIO
     * ``dump(stream)``: write the stream to the file
     * ``[static] exists(path)``: check for existance of path
+    * ``load()``: return the contents as BytesIO
+    * ``make_public(recursive=False)``: only for files on S3
     * ``[static] resolve_filenames(expr)``: given an expression with ``*``
       and ``?`` wildcard characters, get a list of all matching filenames.
       Multiple expressions separated by ``,`` can also be specified.
       Spark-style partitioned datasets (folders containing ``part-*`` files)
       are resolved as well to a list of the individual files.
-    * ``make_public(recursive=False)``: only for files on S3
