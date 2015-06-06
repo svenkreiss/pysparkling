@@ -87,12 +87,12 @@ class RDD(object):
         return self.persist()
 
     def cartesian(self, other):
-        v1 = self.collect()
+        v1 = self.toLocalIterator()
         v2 = self.collect()
         return self.context.parallelize([(a, b) for a in v1 for b in v2])
 
     def coalesce(self, numPartitions, shuffle=False):
-        return self.context.parallelize(self.collect(), numPartitions)
+        return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def collect(self):
         """[distributed]"""
@@ -130,7 +130,7 @@ class RDD(object):
                                    resultHandler=utils.sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
-        return self.context.parallelize(list(set(self.collect())),
+        return self.context.parallelize(list(set(self.toLocalIterator())),
                                         numPartitions)
 
     def filter(self, f):
@@ -207,7 +207,7 @@ class RDD(object):
             buckets = [min_v + float(i)*(max_v-min_v)/num_buckets
                        for i in range(num_buckets+1)]
         h = [0 for _ in buckets]
-        for x in self.collect():
+        for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
                 if x >= b[0] and x < b[1]:
                     h[i] += 1
@@ -222,7 +222,7 @@ class RDD(object):
 
     def intersection(self, other):
         return self.context.parallelize(
-            list(set(self.collect()) & set(other.collect()))
+            list(set(self.toLocalIterator()) & set(other.toLocalIterator()))
         )
 
     def isCheckpointed(self):
@@ -317,7 +317,7 @@ class RDD(object):
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
     def repartition(self, numPartitions):
-        return self.context.parallelize(self.collect(), numPartitions)
+        return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def rightOuterJoin(self, other, numPartitions=None):
         d1 = dict(self.collect())
