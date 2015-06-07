@@ -75,7 +75,7 @@ Examples
     print(counts.collect())
 
 which prints a long list of pairs of words and their counts.
-This and a few more advanced examples are demoed in
+This and more advanced examples are demoed in
 `docs/demo.ipynb <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_.
 
 
