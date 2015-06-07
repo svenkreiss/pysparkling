@@ -91,68 +91,7 @@ or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
 RDD
 ---
 
-* ``aggregate(zeroValue, seqOp, combOp)``: aggregate value in partition with
-  seqOp and combine with combOp
-* ``aggregateByKey(zeroValue, seqFunc, combFunc)``: aggregate by key
-* ``cache()``: synonym for ``persist()``
-* ``cartesian(other)``: cartesian product
-* ``coalesce()``: do nothing
-* ``collect()``: return the underlying list
-* ``count()``: get length of internal list
-* ``countApprox()``: same as ``count()``
-* ``countByKey``: input is list of pairs, returns a dictionary
-* ``countByValue``: input is a list, returns a dictionary
-* ``context()``: return the context
-* ``distinct()``: returns a new RDD containing the distinct elements
-* ``filter(func)``: return new RDD filtered with func
-* ``first()``: return first element
-* ``flatMap(func)``: return a new RDD of a flattened map
-* ``flatMapValues(func)``: return new RDD
-* ``fold(zeroValue, op)``: aggregate elements
-* ``foldByKey(zeroValue, op)``: aggregate elements by key
-* ``foreach(func)``: apply func to every element
-* ``foreachPartition(func)``: apply func to every partition
-* ``getNumPartitions()``: number of partitions
-* ``getPartitions()``: returns an iterator over the partitions
-* ``groupBy(func)``: group by the output of func
-* ``groupByKey()``: group by key where the RDD is of type [(key, value), ...]
-* ``histogram(buckets)``: buckets can be a list or an int
-* ``id()``: currently just returns None
-* ``intersection(other)``: return a new RDD with the intersection
-* ``isCheckpointed()``: returns False
-* ``join(other)``: join
-* ``keyBy(func)``: creates tuple in new RDD
-* ``keys()``: returns the keys of tuples in new RDD
-* ``leftOuterJoin(other)``: left outer join
-* ``lookup(key)``: return list of values for this key
-* ``map(func)``: apply func to every element and return a new RDD
-* ``mapPartitions(func)``: apply f to entire partitions
-* ``mapValues(func)``: apply func to value in (key, value) pairs and return a new RDD
-* ``max()``: get the maximum element
-* ``mean()``: mean
-* ``min()``: get the minimum element
-* ``name()``: RDD's name
-* ``persist()``: caches outputs of previous operations (previous steps are still executed lazily)
-* ``pipe(command)``: pipe the elements through an external command line tool
-* ``reduce()``: reduce
-* ``reduceByKey()``: reduce by key and return the new RDD
-* ``repartition(numPartitions)``: repartition
-* ``rightOuterJoin(other)``: right outer join
-* ``sample(withReplacement, fraction, seed=None)``: sample from the RDD
-* ``sampleStdev()``: sample standard deviation
-* ``sampleVariance()``: sample variance
-* ``saveAsTextFile(path)``: save RDD as text file
-* ``stats()``: return a StatCounter
-* ``stdev()``: standard deviation
-* ``subtract(other)``: return a new RDD without the elements in other
-* ``sum()``: sum
-* ``take(n)``: get the first n elements
-* ``takeSample(n)``: get n random samples
-* ``toLocalIterator()``: get a local iterator
-* ``union(other)``: form union
-* ``variance()``: variance
-* ``zip(other)``: other has to have the same length
-* ``zipWithUniqueId()``: pairs each element with a unique index
+*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.RDD
 
 
 Context
@@ -179,18 +118,7 @@ This assumes that your data is serializable with ``pickle`` which is generally
 faster than ``dill``. You can also specify a custom serializer/deserializer
 for data.
 
-* ``__init__(pool=None, serializer=None, deserializer=None, data_serializer=None, data_deserializer=None)``:
-  pool is any instance with a ``map(func, iterator)`` method
-* ``broadcast(var)``: returns an instance of  ``Broadcast()``. Access its value
-  with ``value``.
-* ``parallelize(list_or_iterator, numPartitions)``: returns a new RDD
-* ``textFile(filename)``: load every line of a text file into an RDD
-  ``filename`` can contain a comma separated list of many files, ``?`` and
-  ``*`` wildcards, file paths on S3 (``s3://bucket_name/filename.txt``) and
-  local file paths (``relative/path/my_text.txt``, ``/absolut/path/my_text.txt``
-  or ``file:///absolute/file/path.txt``). If the filename points to a folder
-  containing ``part*`` files, those are resolved.
-* ``version``: the version of pysparkling
+*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.Context
 
 
 fileio
@@ -207,15 +135,4 @@ and ``file://`` locations and compression/decompression of ``.gz`` and
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
-* ``File``:
-    * ``__init__(filename)``: filename is a URI of a file (can include
-      ``http://``, ``s3://`` and ``file://`` schemes)
-    * ``dump(stream)``: write the stream to the file
-    * ``[static] exists(path)``: check for existance of path
-    * ``load()``: return the contents as BytesIO
-    * ``make_public(recursive=False)``: only for files on S3
-    * ``[static] resolve_filenames(expr)``: given an expression with ``*``
-      and ``?`` wildcard characters, get a list of all matching filenames.
-      Multiple expressions separated by ``,`` can also be specified.
-      Spark-style partitioned datasets (folders containing ``part-*`` files)
-      are resolved as well to a list of the individual files.
+*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.fileio.File
