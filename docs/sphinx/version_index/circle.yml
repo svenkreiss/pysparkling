@@ -1,0 +1,6 @@
+dependencies:
+  pre:
+    - sudo pip install html5validator
+test:
+  override:
+    - html5validator
