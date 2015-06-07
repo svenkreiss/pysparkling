@@ -161,9 +161,25 @@ class Context(object):
         return rdd
 
     def union(self, rdds):
+        """
+        :param rdds:
+            Iterable of RDDs.
+
+        :returns:
+            New RDD.
+
+        """
         return self.parallelize(
             (x for rdd in rdds for x in rdd.collect())
         )
+
+    def version(self):
+        """
+        :returns:
+            Version of pysparkling.
+
+        """
+        return self.version
 
 
 class DummyPool(object):
