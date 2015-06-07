@@ -57,6 +57,7 @@ ghpages:
 	cp version_index/.nojekyll $(GHPAGESALL)/
 	@echo "Pushing to gh-pages branch now."
 	ghp-import -b gh-pages $(GHPAGESALL)
+	git push origin gh-pages
 
 git push origin gh-pagesclean:
 	rm -rf $(BUILDDIR)/*
@@ -65,6 +66,10 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	mkdir -p $(GHPAGES)
+	cp -r $(BUILDDIR)/html/ $(GHPAGES)
+	@echo
+	@echo "Copied also to $(GHPAGES) ."
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
