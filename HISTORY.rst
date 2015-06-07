@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.19...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.21...master>`_
+* `v0.2.21 <https://github.com/svenkreiss/pysparkling/compare/v0.2.19...v0.2.21>`_ (2015-06-07)
+    * added doc strings and created Sphinx documentation
+    * implemented allowLocal in ``Context.runJob()``
 * `v0.2.19 <https://github.com/svenkreiss/pysparkling/compare/v0.2.16...v0.2.19>`_ (2015-06-04)
     * new IPython demo notebook at ``docs/demo.ipynb`` at https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb
     * ``parallelize()`` can take an iterator (used in ``zip()`` now for lazy loading)
