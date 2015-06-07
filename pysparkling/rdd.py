@@ -1,4 +1,7 @@
-"""RDD implementation."""
+"""
+Provides a Python implementation of RDDs.
+
+"""
 
 from __future__ import division, absolute_import, print_function
 
@@ -26,7 +29,18 @@ log = logging.getLogger(__name__)
 
 
 class RDD(object):
-    """methods starting with underscore are not in the Spark interface"""
+    """
+    In Spark's original form, RDDs are Resilient, Distributed Datasets.
+    This class reimplements the same interface with the goal of being
+    fast on small data at the cost of being resilient and distributed.
+
+    :param partitions:
+        A list of instances of :class:`Partition`.
+
+    :param ctx:
+        An instance of the applicable :class:`Context`.
+
+    """
 
     def __init__(self, partitions, ctx):
         self._p = partitions
@@ -55,7 +69,26 @@ class RDD(object):
     """
 
     def aggregate(self, zeroValue, seqOp, combOp):
-        """[distributed]"""
+        """
+        [distributed]
+
+        :param zeroValue:
+            The initial value to an aggregation, for example ``0`` or ``0.0``
+            for aggregating ``int`` s and ``float`` s, but any Python object is
+            possible. Can be ``None``.
+
+        :param seqOp:
+            A reference to a function that combines the current state with a
+            new value. In the first iteration, the current state is zeroValue.
+
+        :param combOp:
+            A reference to a function that combines outputs of seqOp.
+            In the first iteration, the current state is zeroValue.
+
+        :returns:
+            Output of ``combOp`` operations.
+
+        """
         return self.context.runJob(
             self,
             lambda tc, i: functools.reduce(
@@ -67,6 +100,29 @@ class RDD(object):
         )
 
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
+        """
+        [distributed]
+
+        :param zeroValue:
+            The initial value to an aggregation, for example ``0`` or ``0.0``
+            for aggregating ``int`` s and ``float`` s, but any Python object is
+            possible. Can be ``None``.
+
+        :param seqFunc:
+            A reference to a function that combines the current state with a
+            new value. In the first iteration, the current state is zeroValue.
+
+        :param combFunc:
+            A reference to a function that combines outputs of seqFunc.
+            In the first iteration, the current state is zeroValue.
+
+        :param numPartitions: (optional)
+            Not used.
+
+        :returns:
+            Output of ``combOp`` operations.
+
+        """
         def seqFuncByKey(tc, i):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
             for k, v in i:
@@ -84,33 +140,81 @@ class RDD(object):
                                    resultHandler=combFuncByKey)
 
     def cache(self):
+        """
+        Whenever a partition is computed, cache the result.
+        Alias for :func:`RDD.persist`.
+
+        """
         return self.persist()
 
     def cartesian(self, other):
+        """
+        :param other:
+            Another RDD.
+
+        :returns:
+            A new RDD with the cartesian product of this RDD with ``other``.
+
+        .. note::
+            This is currently implemented as a local operation requiring
+            all data to be pulled on one machine.
+
+        """
         v1 = self.toLocalIterator()
         v2 = self.collect()
         return self.context.parallelize([(a, b) for a in v1 for b in v2])
 
     def coalesce(self, numPartitions, shuffle=False):
+        """
+        :param numPartitions:
+            Number of partitions in the resulting RDD.
+
+        :param shuffle: (optional)
+            Not used.
+
+        :returns:
+            A new RDD.
+
+        .. note::
+            This is currently implemented as a local operation requiring
+            all data to be pulled on one machine.
+
+        """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def collect(self):
-        """[distributed]"""
+        """
+        :returns:
+            The entire dataset as a list.
+
+        """
         return self.context.runJob(
             self, lambda tc, i: list(i),
             resultHandler=lambda l: [x for p in l for x in p],
         )
 
     def count(self):
-        """[distributed]"""
+        """
+        :returns:
+            Number of entries in this dataset.
+
+        """
         return self.context.runJob(self, lambda tc, i: sum(1 for _ in i),
                                    resultHandler=sum)
 
     def countApprox(self):
+        """
+        Same as :func:`RDD.count()`.
+
+        """
         return self.count()
 
     def countByKey(self):
-        """[distributed]"""
+        """
+        :returns:
+            A ``dict`` containing the count for every key.
+
+        """
         def map_func(tc, x):
             r = defaultdict(int)
             for k, v in x:
@@ -120,7 +224,11 @@ class RDD(object):
                                    resultHandler=utils.sum_counts_by_keys)
 
     def countByValue(self):
-        """[distributed]"""
+        """
+        :returns:
+            A ``dict`` containing the count for every value.
+
+        """
         def map_func(tc, x):
             r = defaultdict(int)
             for v in x:
@@ -130,33 +238,76 @@ class RDD(object):
                                    resultHandler=utils.sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
+        """
+        :param numPartitions:
+            The number of partitions of the newly created RDD.
+
+        :returns:
+            A new RDD containing only distict elements.
+
+        """
         return self.context.parallelize(list(set(self.toLocalIterator())),
                                         numPartitions)
 
     def filter(self, f):
-        """[distributed]"""
+        """
+        :param f:
+            A reference to a function that if it evaluates to true when applied
+            to an element in the dataset, the element is kept.
+
+        :returns:
+            A new dataset.
+
+        """
         def map_func(tc, i, x):
             return (xx for xx in x if f(xx))
         return MapPartitionsRDD(self, map_func, preservesPartitioning=True)
 
     def first(self):
-        """[distributed]"""
+        """
+        :returns:
+            The first element in the dataset.
+
+        """
         return self.context.runJob(
             self,
             lambda tc, i: next(i) if tc.partition_id == 0 else None,
+            partitions=[next(self.partitions())],
+            allowLocal=True,
             resultHandler=lambda l: next(l),
         )
 
-    def flatMap(self, f, preservesPartitioning=False):
-        """[distributed]"""
+    def flatMap(self, f, preservesPartitioning=True):
+        """
+        A map operation followed by flattening.
+
+        :param f:
+            The map function.
+
+        :param preservesPartitioning: (optional)
+            Preserve the partitioning of the original RDD. Default True.
+
+        :returns:
+            A new RDD.
+
+        """
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: (e for xx in x for e in f(xx)),
-            preservesPartitioning=True,
+            preservesPartitioning=preservesPartitioning,
         )
 
     def flatMapValues(self, f):
-        """[distributed]"""
+        """
+        A map operation on the values in a (key, value) pair followed by a map.
+
+        :param f:
+            The map function.
+
+        :returns:
+            A new RDD.
+
+        """
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: ((xx[0], e) for xx in x for e in f(xx[1])),
@@ -164,26 +315,85 @@ class RDD(object):
         )
 
     def fold(self, zeroValue, op):
+        """
+        :param zeroValue:
+            The inital value, for example ``0`` or ``0.0``.
+
+        :param op:
+            The reduce operation.
+
+        :returns:
+            The folded (or aggregated) value.
+
+        """
         return self.aggregate(zeroValue, op, op)
 
     def foldByKey(self, zeroValue, op):
+        """
+        :param zeroValue:
+            The inital value, for example ``0`` or ``0.0``.
+
+        :param op:
+            The reduce operation.
+
+        :returns:
+            The folded (or aggregated) value by key.
+
+        """
         return self.aggregateByKey(zeroValue, op, op)
 
     def foreach(self, f):
+        """
+        Applies ``f`` to every element, but does not return a new RDD like
+        :func:`RDD.map()`.
+
+        :param f:
+            Apply a function to every element.
+
+        """
         self.context.runJob(self, lambda tc, x: [f(xx) for xx in x],
                             resultHandler=None)
 
     def foreachPartition(self, f):
+        """
+        Applies ``f`` to every partition, but does not return a new RDD like
+        :func:`RDD.mapPartitions()`.
+
+        :param f:
+            Apply a function to every partition.
+
+        """
         self.context.runJob(self, lambda tc, x: f(x),
                             resultHandler=None)
 
     def getNumPartitions(self):
+        """
+        :returns:
+            Returns the number of partitions.
+
+        """
         return sum(1 for _ in self.partitions())
 
     def getPartitions(self):
+        """
+        :returns:
+            The partitions of this RDD.
+
+        """
         return self.partitions()
 
     def groupBy(self, f, numPartitions=None):
+        """
+        :param f:
+            Function returning a key given an element of the dataset.
+
+        :param numPartitions:
+            The number of partitions in the new grouped dataset.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
                 sorted(self.keyBy(f).collect()),
@@ -192,6 +402,14 @@ class RDD(object):
         ), numPartitions)
 
     def groupByKey(self, numPartitions=None):
+        """
+        :param numPartitions:
+            The number of partitions in the new grouped dataset.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
                 sorted(self.collect()),
@@ -200,10 +418,22 @@ class RDD(object):
         ), numPartitions)
 
     def histogram(self, buckets):
+        """
+        :param buckets:
+            A list of bucket boundaries or an int for the number of buckets.
+
+        :returns:
+            A tuple (bucket_boundaries, histogram_values) where
+            bucket_boundaries is a list of length n+1 boundaries and
+            histogram_values is a list of length n with the values of each
+            bucket.
+
+        """
         if isinstance(buckets, int):
             num_buckets = buckets
-            min_v = self.min()
-            max_v = self.max()
+            stats = self.stats()
+            min_v = stats.min()
+            max_v = stats.max()
             buckets = [min_v + float(i)*(max_v-min_v)/num_buckets
                        for i in range(num_buckets+1)]
         h = [0 for _ in buckets]
@@ -221,6 +451,17 @@ class RDD(object):
         return None
 
     def intersection(self, other):
+        """
+        :param other:
+            The other dataset to do the intersection with.
+
+        :returns:
+            A new RDD containing the intersection of this and the other RDD.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         return self.context.parallelize(
             list(set(self.toLocalIterator()) & set(other.toLocalIterator()))
         )
@@ -229,6 +470,20 @@ class RDD(object):
         return False
 
     def join(self, other, numPartitions=None):
+        """
+        :param other:
+            The other RDD.
+
+        :param numPartitions:
+            Number of partitions to create in the new RDD.
+
+        :returns:
+            A new RDD containing the join.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         keys = set(d1.keys()) & set(d2.keys())
@@ -238,12 +493,39 @@ class RDD(object):
         ), numPartitions)
 
     def keyBy(self, f):
+        """
+        :param f:
+            Function that returns a key from a dataset element.
+
+        :returns:
+            A new RDD containing the keyed data.
+
+        """
         return self.map(lambda e: (f(e), e))
 
     def keys(self):
+        """
+        :returns:
+            A new RDD containing the keys of the current RDD.
+
+        """
         return self.map(lambda e: e[0])
 
     def leftOuterJoin(self, other, numPartitions=None):
+        """
+        :param other:
+            The other RDD.
+
+        :param numPartitions: (optional)
+            Number of partitions of the resulting RDD.
+
+        :returns:
+            A new RDD with the result of the join.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         return self.context.parallelize((
@@ -252,7 +534,16 @@ class RDD(object):
         ), numPartitions)
 
     def lookup(self, key):
-        """[distributed]"""
+        """
+        Return all the (key, value) pairs where the given key matches.
+
+        :param key:
+            The key to lookup.
+
+        :returns:
+            A list of matched (key, value) pairs.
+
+        """
         return self.context.runJob(
             self,
             lambda tc, x: (xx[1] for xx in x if xx[0] == key),
@@ -260,7 +551,14 @@ class RDD(object):
         )
 
     def map(self, f):
-        """[distributed]"""
+        """
+        :param f:
+            Map function.
+
+        :returns:
+            A new RDD with mapped values.
+
+        """
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: (f(xx) for xx in x),
@@ -268,7 +566,14 @@ class RDD(object):
         )
 
     def mapPartitions(self, f, preservesPartitioning=False):
-        """[distributed]"""
+        """
+        :param f:
+            Map function.
+
+        :returns:
+            A new RDD with mapped partitions.
+
+        """
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: f(x),
@@ -276,7 +581,14 @@ class RDD(object):
         )
 
     def mapValues(self, f):
-        """[distributed]"""
+        """
+        :param f:
+            Map function.
+
+        :returns:
+            A new RDD with mapped values.
+
+        """
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: ((e[0], f(e[1])) for e in x),
@@ -284,29 +596,71 @@ class RDD(object):
         )
 
     def max(self):
+        """
+        :returns:
+            The maximum element.
+
+        """
         return self.stats().max()
 
     def mean(self):
+        """
+        :returns:
+            The mean of this dataset.
+
+        """
         return self.stats().mean()
 
     def min(self):
+        """
+        :returns:
+            The minimum element.
+
+        """
         return self.stats().min()
 
     def name(self):
+        """
+        :returns:
+            The name of the dataset.
+
+        """
         return self._name
 
     def persist(self, storageLevel=None):
-        """[distributed]"""
+        """
+        Cache the results of computed partitions.
+
+        :param storageLevel:
+            Not used.
+
+        """
         return PersistedRDD(self, storageLevel=storageLevel)
 
     def pipe(self, command, env={}):
+        """
+        Run a command with the elements in the dataset as argument.
+
+        :param command:
+            Command line command to run.
+
+        :param env:
+            ``dict`` of environment variables.
+
+        .. warning::
+            Unsafe for untrusted data.
+
+        """
         return self.context.parallelize(subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
         ) for x in self.collect())
 
     def reduce(self, f):
-        """[distributed] f must be a commutative and associative
-        binary operator"""
+        """
+        :param f:
+            A commutative and associative binary operator.
+
+        """
         return self.context.runJob(
             self,
             lambda tc, x: functools.reduce(f, x),
@@ -314,12 +668,46 @@ class RDD(object):
         )
 
     def reduceByKey(self, f):
+        """
+        :param f:
+            A commutative and associative binary operator.
+
+        .. note::
+            This operation includes a :func:`pysparkling.RDD.groupByKey()`
+            which is a local operation.
+
+        """
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
     def repartition(self, numPartitions):
+        """
+        :param numPartitions:
+            Number of partitions in new RDD.
+
+        :returns:
+            A new RDD.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def rightOuterJoin(self, other, numPartitions=None):
+        """
+        :param other:
+            The other RDD.
+
+        :param numPartitions: (optional)
+            Number of partitions of the resulting RDD.
+
+        :returns:
+            A new RDD with the result of the join.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         return self.context.parallelize((
@@ -328,9 +716,19 @@ class RDD(object):
         ), numPartitions)
 
     def sample(self, withReplacement, fraction, seed=None):
-        """[distributed]
+        """
+        :param withReplacement:
+            Not used.
 
-        withReplacement is not implemented.
+        :param fraction:
+            Specifies the probability that an element is sampled.
+
+        :param seed: (optional)
+            Seed for random number generator.
+
+        :returns:
+            Sampled RDD.
+
         """
         return PartitionwiseSampledRDD(
             self, fraction,
@@ -339,6 +737,17 @@ class RDD(object):
         )
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
+        """
+        :param path:
+            Destination of the text file.
+
+        :param compressionCodecClass:
+            Not used.
+
+        :returns:
+            ``self``
+
+        """
         if File.exists(path):
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
@@ -362,12 +771,27 @@ class RDD(object):
         return self
 
     def sampleStdev(self):
+        """
+        :returns:
+            sample standard deviation
+
+        """
         return self.stats().sampleStdev()
 
     def sampleVariance(self):
+        """
+        :returns:
+            sample variance
+
+        """
         return self.stats().sampleVariance()
 
     def stats(self):
+        """
+        :returns:
+            A :class:`pysparkling.StatCounter` instance.
+
+        """
         return self.aggregate(
             StatCounter(),
             lambda a, b: a.merge(b),
@@ -375,10 +799,25 @@ class RDD(object):
         )
 
     def stdev(self):
+        """
+        :returns:
+            standard deviation
+
+        """
         return self.stats().stdev()
 
     def subtract(self, other, numPartitions=None):
-        """[distributed]"""
+        """
+        :param other:
+            The RDD to be subtracted from the current RDD.
+
+        :param numPartitions:
+            Currently not used. Partitions are preserved.
+
+        :returns:
+            New RDD.
+
+        """
         list_other = other.collect()
         return MapPartitionsRDD(
             self,
@@ -387,14 +826,25 @@ class RDD(object):
         )
 
     def sum(self):
-        """[distributed]"""
+        """
+        :returns:
+            The sum of all the elements.
+
+        """
         return self.context.runJob(self, lambda tc, x: sum(x),
                                    resultHandler=sum)
 
     def take(self, n):
-        """[distributed]
-        Due to lazy execution of maps in result handler, only the first
-        partitions that are necessary are evaluated."""
+        """
+        Only evaluates the partitions that are necessary to return n elements.
+
+        :param n:
+            Number of elements to return.
+
+        :returns:
+            Elements of the dataset.
+
+        """
 
         def res_handler(l):
             r = []
@@ -413,12 +863,18 @@ class RDD(object):
         )
 
     def takeSample(self, n):
-        """[distributed]
-
+        """
         Assumes samples are evenly distributed between partitions.
 
-        Due to lazy execution of maps in result handler, only the needed
-        partitions are evaluated."""
+        Only evaluates the partitions that are necessary to return n elements.
+
+        :param n:
+            The number of elements to sample.
+
+        :returns:
+            Samples from the dataset.
+
+        """
 
         rnd_entries = sorted([random.random() for _ in range(n)])
         num_partitions = sum(1 for _ in self.partitions())
@@ -453,26 +909,67 @@ class RDD(object):
         )
 
     def toLocalIterator(self):
+        """
+        :returns:
+            An iterator over the dataset.
+
+        """
         return self.context.runJob(
             self, lambda tc, i: list(i),
             resultHandler=lambda l: (x for p in l for x in p),
         )
 
     def union(self, other):
+        """
+        :param other:
+            The other RDD for the union.
+
+        :returns:
+            A new RDD.
+
+        """
         return self.context.union((self, other))
 
     def values(self):
+        """
+        :returns:
+            Values of a (key, value) dataset.
+
+        """
         return self.map(lambda e: e[1])
 
     def variance(self):
+        """
+        :returns:
+            The variance of the dataset.
+
+        """
         return self.stats().variance()
 
     def zip(self, other):
+        """
+        :param other:
+            Other dataset to zip with.
+
+        :returns:
+            New RDD with zipped entries.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        """
         return self.context.parallelize(
             zip(self.toLocalIterator(), other.toLocalIterator())
         )
 
     def zipWithUniqueId(self):
+        """
+        This is a fast operation.
+
+        :returns:
+            New RDD where every entry is zipped with a unique index.
+
+        """
         num_p = self.getNumPartitions()
         return MapPartitionsRDD(
             self,

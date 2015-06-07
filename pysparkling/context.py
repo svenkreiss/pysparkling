@@ -36,6 +36,26 @@ def runJob_map(i):
 
 
 class Context(object):
+    """
+    :param pool:
+        An instance with a ``map(func, iterable)`` method.
+
+    :param serializer:
+        Serializer for functions. Examples are ``pickle.dumps`` and
+        ``dill.dumps``.
+
+    :param deserializer:
+        Deserializer for functions. Examples are ``pickle.loads`` and
+        ``dill.loads``.
+
+    :param data_serializer:
+        Serializer for the data.
+
+    :param data_deserializer:
+        Deserializer for the data.
+
+    """
+
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None):
         if not pool:
@@ -67,6 +87,19 @@ class Context(object):
         return self._last_rdd_id
 
     def parallelize(self, x, numPartitions=None):
+        """
+        :param x:
+            An iterable (e.g. a list) that represents the data.
+
+        :param numPartitions: (optional)
+            The number of partitions the data should be split into.
+            A partition is a unit of data that is processed at a time.
+            Can be ``None``.
+
+        :returns:
+            New RDD.
+
+        """
         if not numPartitions:
             return RDD([Partition(x, 0)], self)
 
@@ -144,6 +177,24 @@ class Context(object):
         return list(map_result)  # convert to list to execute on all partitions
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
+        """
+        Read a text file into an RDD.
+
+        :param filename:
+            Location of a file. Can include schemes like ``http://``,
+            ``s3://`` and ``file://``.
+
+        :param minPartitions: (optional)
+            By default, every file is a partition, but this option allows to
+            split these further.
+
+        :param use_unicode: (optional)
+            Not used.
+
+        :returns:
+            New RDD.
+
+        """
         resolved_names = File.resolve_filenames(filename)
         log.debug('textFile() resolved "{0}" to {1} files.'
                   ''.format(filename, len(resolved_names)))

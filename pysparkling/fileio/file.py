@@ -10,6 +10,13 @@ log = logging.getLogger(__name__)
 
 
 class File(object):
+    """
+    :param file_name:
+        Any file name. Supports the schemes ``http://``, ``s3://`` and
+        ``file://``.
+
+    """
+
     def __init__(self, file_name):
         self.file_name = file_name
         self.fs = fs.get_fs(file_name)(file_name)
@@ -17,6 +24,18 @@ class File(object):
 
     @staticmethod
     def resolve_filenames(all_expr):
+        """
+        :param all_expr:
+            A comma separated list of expressions. The expressions can contain
+            the wildcard characters ``*`` and ``?``. It also resolves Spark
+            datasets to the paths of the individual partitions
+            (i.e. ``my_data`` gets resolved to
+            ``[my_data/part-00000, my_data/part-00001]``).
+
+        :returns:
+            A list of file names.
+
+        """
         files = []
         for expr in all_expr.split(','):
             expr = expr.strip()
@@ -26,16 +45,41 @@ class File(object):
 
     @staticmethod
     def exists(path):
-        """Checks both for a file at this location or a directory."""
+        """
+        Checks both for a file or directory at this location.
+
+        :param path:
+            Path to check.
+
+        :returns:
+            True or false.
+
+        """
         return fs.get_fs(path).exists(path)
 
     def load(self):
+        """
+        Load the data from a file.
+
+        :returns:
+            A ``io.BytesIO`` instance. Use ``getvalue()`` to get a string.
+
+        """
         stream = self.fs.load()
         stream = self.codec.decompress(stream)
         return stream
 
     def dump(self, stream=None):
-        """stream could be a BytesIO instance."""
+        """
+        Writes a stream to a file.
+
+        :param stream:
+            A BytesIO instance.
+
+        :returns:
+            self
+
+        """
         if stream is None:
             stream = BytesIO()
 
@@ -45,5 +89,12 @@ class File(object):
         return self
 
     def make_public(self, recursive=False):
+        """
+        Makes the file public. Currently only supported on S3.
+
+        :param recursive:
+            Whether to apply this recursively.
+
+        """
         self.fs.make_public(recursive)
         return self

@@ -183,7 +183,6 @@ for data.
   pool is any instance with a ``map(func, iterator)`` method
 * ``broadcast(var)``: returns an instance of  ``Broadcast()``. Access its value
   with ``value``.
-* ``newRddId()``: incrementing number [internal use]
 * ``parallelize(list_or_iterator, numPartitions)``: returns a new RDD
 * ``textFile(filename)``: load every line of a text file into an RDD
   ``filename`` can contain a comma separated list of many files, ``?`` and
