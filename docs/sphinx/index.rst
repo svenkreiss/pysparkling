@@ -10,6 +10,8 @@
 Welcome to pysparkling's documentation!
 =======================================
 
+Please read the README at https://github.com/svenkreiss/pysparkling
+
 
 Contents:
 
