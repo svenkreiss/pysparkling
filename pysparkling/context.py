@@ -85,27 +85,58 @@ class Context(object):
 
     def runJob(self, rdd, func, partitions=None, allowLocal=False,
                resultHandler=None):
-        """func is of the form func(TaskContext, Iterator over elements).
+        """
+        This function is used by methods in the RDD.
 
         Note that the maps are only inside generators and the resultHandler
-        needs to take care of executing the ones that it needs.
+        needs to take care of executing the ones that it needs. In other words,
+        if you need everything to be executed, the resultHandler needs to be
+        at least ``lambda x: list(x)`` to trigger execution of the generators.
+
+        :param func:
+            Map function. The signature is
+            func(TaskContext, Iterator over elements).
+
+        :param partitions: (optional)
+            List of partitions that are involved. Default is ``None``, meaning
+            the map job is applied to all partitions.
+
+        :param allowLocal: (optional)
+            Allows for local execution. Default is False.
+
+        :param resultHandler: (optional)
+            Process the result from the maps.
+
+        :returns:
+            Result of resultHandler.
+
         """
 
         if not partitions:
             partitions = rdd.partitions()
 
         # TODO: this is the place to insert proper schedulers
-        map_result = (
-            self._data_deserializer(d) for d in self._pool.map(runJob_map, [
-                (self._deserializer,
-                 self._data_serializer,
-                 self._data_deserializer,
-                 self._serializer((func, rdd)),
-                 self._data_serializer(p),
-                 )
-                for p in partitions
-            ])
-        )
+        if allowLocal:
+            def local_map(partition):
+                task_context = TaskContext(
+                    stage_id=0,
+                    partition_id=partition.index,
+                )
+                return func(task_context, rdd.compute(partition, task_context))
+            map_result = (local_map(p) for p in partitions)
+        else:
+            map_result = (
+                self._data_deserializer(d)
+                for d in self._pool.map(runJob_map, [
+                    (self._deserializer,
+                     self._data_serializer,
+                     self._data_deserializer,
+                     self._serializer((func, rdd)),
+                     self._data_serializer(p),
+                     )
+                    for p in partitions
+                ])
+            )
         log.debug('Map jobs generated.')
 
         if resultHandler is not None:
