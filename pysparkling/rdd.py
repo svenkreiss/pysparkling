@@ -736,6 +736,22 @@ class RDD(object):
             seed=seed,
         )
 
+    def sampleStdev(self):
+        """
+        :returns:
+            sample standard deviation
+
+        """
+        return self.stats().sampleStdev()
+
+    def sampleVariance(self):
+        """
+        :returns:
+            sample variance
+
+        """
+        return self.stats().sampleVariance()
+
     def saveAsTextFile(self, path, compressionCodecClass=None):
         """
         :param path:
@@ -769,22 +785,6 @@ class RDD(object):
             ),
         )
         return self
-
-    def sampleStdev(self):
-        """
-        :returns:
-            sample standard deviation
-
-        """
-        return self.stats().sampleStdev()
-
-    def sampleVariance(self):
-        """
-        :returns:
-            sample variance
-
-        """
-        return self.stats().sampleVariance()
 
     def stats(self):
         """
