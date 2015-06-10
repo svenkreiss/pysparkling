@@ -780,7 +780,7 @@ class RDD(object):
             lambda tc, x: TextFile(
                 path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
             ).dump(io.StringIO(''.join([
-                '{0}\n'.format(xx) for xx in x
+                str(xx)+'\n' for xx in x
             ]))),
             resultHandler=lambda l: list(l),
         )
