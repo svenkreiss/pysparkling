@@ -1,9 +1,9 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
+import io
 import os
 import fnmatch
 import logging
-from io import BytesIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
@@ -49,8 +49,15 @@ class Local(FileSystem):
         f_name_local = self.file_name
         if f_name_local.startswith('file://'):
             f_name_local = f_name_local[7:]
-        with open(f_name_local, 'rb') as f:
-            return BytesIO(f.read())
+        with io.open(f_name_local, 'rb') as f:
+            return io.BytesIO(f.read())
+
+    def load_text(self):
+        f_name_local = self.file_name
+        if f_name_local.startswith('file://'):
+            f_name_local = f_name_local[7:]
+        with io.open(f_name_local, 'r') as f:
+            return io.StringIO(f.read())
 
     def dump(self, stream):
         path_local = self.file_name
@@ -64,7 +71,7 @@ class Local(FileSystem):
             os.makedirs(dirname)
 
         log.debug('writing file {0}'.format(path_local))
-        with open(path_local, 'wb') as f:
+        with io.open(path_local, 'wb') as f:
             for c in stream:
                 f.write(c)
         return self

@@ -3,8 +3,10 @@ Provides a Python implementation of RDDs.
 
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import (division, absolute_import, print_function,
+                        unicode_literals)
 
+import io
 import sys
 import copy
 import random
@@ -15,7 +17,7 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import File
+from .fileio import TextFile
 from .stat_counter import StatCounter
 from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
@@ -764,7 +766,7 @@ class RDD(object):
             ``self``
 
         """
-        if File.exists(path):
+        if TextFile.exists(path):
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
@@ -775,15 +777,14 @@ class RDD(object):
 
         self.context.runJob(
             self,
-            lambda tc, x: File(
+            lambda tc, x: TextFile(
                 path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
-            ).dump([
-                u'{0}\n'.format(xx).encode('utf-8') for xx in x
-            ]),
-            resultHandler=lambda l: (
-                list(l) and File(path+'/_SUCCESS').dump()
-            ),
+            ).dump(io.StringIO(''.join([
+                '{0}\n'.format(xx) for xx in x
+            ]))),
+            resultHandler=lambda l: list(l),
         )
+        TextFile(path+'/_SUCCESS').dump()
         return self
 
     def stats(self):

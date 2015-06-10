@@ -59,4 +59,7 @@ Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
 .. autoclass:: pysparkling.fileio.File
-	:members:
+    :members:
+
+.. autoclass:: pysparkling.fileio.TextFile
+    :members:

@@ -10,7 +10,7 @@ from .rdd import RDD
 from .broadcast import Broadcast
 from .partition import Partition
 from .task_context import TaskContext
-from .fileio import File
+from .fileio import TextFile
 from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
@@ -195,7 +195,7 @@ class Context(object):
             New RDD.
 
         """
-        resolved_names = File.resolve_filenames(filename)
+        resolved_names = TextFile.resolve_filenames(filename)
         log.debug('textFile() resolved "{0}" to {1} files.'
                   ''.format(filename, len(resolved_names)))
 
@@ -206,7 +206,7 @@ class Context(object):
         rdd_filenames = self.parallelize(resolved_names, num_partitions)
         rdd = rdd_filenames.flatMap(lambda f_name: [
             l.rstrip('\n')
-            for l in File(f_name).load().read().decode('utf-8').splitlines()
+            for l in TextFile(f_name).load().read().splitlines()
         ])
         rdd._name = filename
         return rdd

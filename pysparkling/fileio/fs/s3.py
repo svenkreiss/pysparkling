@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import boto
 import fnmatch
 import logging
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
@@ -69,6 +69,11 @@ class S3(FileSystem):
         log.debug('Loading {0} with size {1}.'
                   ''.format(self.key.name, self.key.size))
         return BytesIO(self.key.get_contents_as_string())
+
+    def load_text(self):
+        log.debug('Loading {0} with size {1}.'
+                  ''.format(self.key.name, self.key.size))
+        return StringIO(self.key.get_contents_as_string())
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.key.name))

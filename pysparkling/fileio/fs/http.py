@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import requests
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from .file_system import FileSystem
 from ...exceptions import ConnectionException
@@ -32,6 +32,13 @@ class Http(FileSystem):
         if r.status_code != 200:
             raise ConnectionException
         return BytesIO(r.content)
+
+    def load_text(self):
+        log.debug('Http GET request for {0}.'.format(self.file_name))
+        r = requests.get(self.file_name, headers=self.headers)
+        if r.status_code != 200:
+            raise ConnectionException
+        return StringIO(r.text)
 
     def dump(self, stream):
         log.debug('Dump to {0} with http PUT.'.format(self.file_name))
