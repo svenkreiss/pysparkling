@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import logging
-from io import StringIO
+from io import BytesIO, StringIO
 
 from . import codec
 from .file import File
@@ -61,7 +61,9 @@ class TextFile(File):
         if stream is None:
             stream = StringIO()
 
-        stream = self.codec.compress(stream.read().encode(encoding))
+        stream = self.codec.compress(
+            BytesIO(stream.read().encode(encoding))
+        )
         self.fs.dump(stream)
 
         return self
