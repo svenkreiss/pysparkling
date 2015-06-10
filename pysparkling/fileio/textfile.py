@@ -35,7 +35,6 @@ class TextFile(File):
         """
         if type(self.codec) == codec.Codec and \
            getattr(self.fs, 'load_text'):
-            print(self.codec)
             stream = self.fs.load_text()
         else:
             stream = self.fs.load()
