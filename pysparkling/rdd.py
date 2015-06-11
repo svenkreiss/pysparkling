@@ -273,10 +273,9 @@ class RDD(object):
         """
         return self.context.runJob(
             self,
-            lambda tc, i: next(i) if tc.partition_id == 0 else None,
-            partitions=[next(self.partitions())],
+            lambda tc, i: i,
             allowLocal=True,
-            resultHandler=lambda l: next(l),
+            resultHandler=lambda l: next(itertools.chain.from_iterable(l)),
         )
 
     def flatMap(self, f, preservesPartitioning=True):

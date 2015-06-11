@@ -93,6 +93,12 @@ def test_first():
     assert my_rdd.first() == 1
 
 
+def test_first_empty_partitions():
+    my_rdd = Context().parallelize([1, 2], 20)
+    print(my_rdd.foreachPartition(lambda i: print(list(i))))
+    assert my_rdd.first() == 1
+
+
 def test_first_partitions():
     my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
     print(my_rdd.first())
@@ -328,4 +334,4 @@ def test_zipWithUniqueIndex():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_zipWithUniqueIndex()
+    test_first_empty_partitions()
