@@ -842,24 +842,18 @@ class RDD(object):
             Number of elements to return.
 
         :returns:
-            Elements of the dataset.
+            Elements of the dataset in a list.
 
         """
 
-        def res_handler(l):
-            r = []
-            for p in l:
-                for x in p:
-                    if len(r) >= n:
-                        break
-                    r.append(x)
-                if len(r) >= n:
-                    break
-            return r
-
         return self.context.runJob(
-            self, lambda tc, i: list(i),
-            resultHandler=res_handler,
+            self,
+            lambda tc, i: i,
+            allowLocal=True,
+            resultHandler=lambda l: list(itertools.islice(
+                itertools.chain.from_iterable(l),
+                n,
+            )),
         )
 
     def takeSample(self, n):
