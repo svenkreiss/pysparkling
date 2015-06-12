@@ -17,8 +17,63 @@ Single machine parallelization either with
 ``multiprocessing.Pool`` is supported.
 
 
+ipcluster and IPython.parallel
+------------------------------
+
+Local test setup:
+
+.. code-block:: bash
+
+    ipcluster start --n=2
+
+.. code-block:: python
+
+    from IPython.parallel import Client
+
+    c = Client()
+    print(c[:].map(lambda _: 'hello world', range(2)).get())
+
+which should print ``['hello world', 'hello world']``.
+
+To run on a cluster, create a profile:
+
+.. code-block:: bash
+
+    ipython profile create --parallel --profile=smallcluster
+
+    # start controller:
+    # Creates ~/.ipython/profile_smallcluster/security/ipcontroller-engine.json
+    # which is used by the engines to identify the location of this controller.
+    # This is the local-only IP address. Substitute with the machines IP
+    # address so that the engines can find it.
+    ipcontroller --ip=127.0.0.1 --port=7123 --profile=smallcluster
+
+    # start engines (assuming they have access to the
+    # ipcontroller-engine.json file)
+    ipengine --profile=smallcluster
+
+Test it in Python:
+
+.. code-block:: python
+
+    from IPython.parallel import Client
+
+    c = Client(profile='smallcluster')
+    print(c[:].map(lambda _: 'hello world', range(2)).get())
+
+If you don't want to start the engines manually, ``ipcluster`` comes with
+"Launchers" that can start them for you:
+https://ipython.org/ipython-doc/dev/parallel/parallel_process.html#using-ipcluster-in-ssh-mode
+
+
 StarCluster
 -----------
+
+Setting up StarCluster was an experiment. However it does not integrate well
+with the rest of our EC2 infrastructure, so we switched to a Chef based setup
+where we use ``ipcluster`` directly. A blocker was that the number of engines
+per node is not configurable and we have many map jobs that wait on external
+responses.
 
 Setup
 
@@ -97,12 +152,12 @@ Install your own software that is not on pypi:
 
     pip install wheel
     python setup.py bdist_wheel  # add --universal for Python2 and 3 packages
-    starcluster put smallcluster dist/your_package_name.whl /opt/package_name
+    starcluster put smallcluster dist/your_package_name.whl /home/sgeadmin/your_package_name.whl
 
     # ssh into remote machine
     starcluster sshmaster smallcluster
     > pip install --upgrade pip
     > pip install wheel
-    > pip2.7 install /opt/package_name/your_package_name.whl
+    > pip2.7 install /home/sgeadmin/your_package_name.whl
 
 
