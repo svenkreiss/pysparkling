@@ -22,6 +22,12 @@ def test_local_textFile_name():
     assert name == 'tests/*.py'
 
 
+def test_wholeTextFiles():
+    t = Context().wholeTextFiles('tests/*.py').lookup('tests/test_textFile.py')
+    print(t)
+    assert 'test_wholeTextFiles' in t[0]
+
+
 def test_s3_textFile():
     if not os.getenv('AWS_ACCESS_KEY_ID'):
         return
@@ -93,9 +99,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # test_saveAsTextFile()
     # test_local_textFile_2()
+    test_wholeTextFiles()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
-    test_http_textFile()
+    # test_http_textFile()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()

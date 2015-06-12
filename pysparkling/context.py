@@ -182,7 +182,8 @@ class Context(object):
 
         :param filename:
             Location of a file. Can include schemes like ``http://``,
-            ``s3://`` and ``file://``.
+            ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
+            and multiple expressions separated by ``,``.
 
         :param minPartitions: (optional)
             By default, every file is a partition, but this option allows to
@@ -231,6 +232,42 @@ class Context(object):
 
         """
         return self.version
+
+    def wholeTextFiles(self, path, minPartitions=None, use_unicode=True):
+        """
+        Read text files into an RDD of pairs of file name and file content.
+
+        :param path:
+            Location of the files. Can include schemes like ``http://``,
+            ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
+            and multiple expressions separated by ``,``.
+
+        :param minPartitions: (optional)
+            By default, every file is a partition, but this option allows to
+            split these further.
+
+        :param use_unicode: (optional)
+            Not used.
+
+        :returns:
+            New RDD.
+
+        """
+        resolved_names = TextFile.resolve_filenames(path)
+        log.debug('textFile() resolved "{0}" to {1} files.'
+                  ''.format(path, len(resolved_names)))
+
+        num_partitions = len(resolved_names)
+        if minPartitions and minPartitions > num_partitions:
+            num_partitions = minPartitions
+
+        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd = rdd_filenames.map(lambda f_name: (
+            f_name,
+            TextFile(f_name).load().read(),
+        ))
+        rdd._name = path
+        return rdd
 
 
 class DummyPool(object):
