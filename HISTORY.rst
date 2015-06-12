@@ -2,7 +2,11 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.21...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.22...master>`_
+* `v0.2.22 <https://github.com/svenkreiss/pysparkling/compare/v0.2.21...v0.2.22>`_ (2015-06-12)
+    * added Context.wholeTextFiles()
+    * improved RDD.first() and RDD.take(n)
+    * added fileio.TextFile
 * `v0.2.21 <https://github.com/svenkreiss/pysparkling/compare/v0.2.19...v0.2.21>`_ (2015-06-07)
     * added doc strings and created Sphinx documentation
     * implemented allowLocal in ``Context.runJob()``
