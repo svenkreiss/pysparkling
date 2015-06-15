@@ -755,6 +755,12 @@ class RDD(object):
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
         """
+        If the RDD has many partitions, the contents will be stored directly
+        in the given path. If the RDD has more partitions, the data of the
+        partitions are stored in individual files under ``path/part-00000`` and
+        so on and once all partitions are written, the file ``path/_SUCCESS``
+        is written last.
+
         :param path:
             Destination of the text file.
 
@@ -773,6 +779,14 @@ class RDD(object):
         codec_suffix = ''
         if path.endswith(('.gz', '.bz2', '.lzo')):
             codec_suffix = path[path.rfind('.'):]
+
+        if self.getNumPartitions() == 1:
+            TextFile(
+                path
+            ).dump(io.StringIO(''.join([
+                str(xx)+'\n' for xx in self.toLocalIterator()
+            ])))
+            return self
 
         self.context.runJob(
             self,

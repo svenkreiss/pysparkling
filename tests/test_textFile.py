@@ -55,7 +55,7 @@ def test_saveAsTextFile():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
     Context().parallelize(range(10)).saveAsTextFile(tempFile.name)
-    with open(tempFile.name+'/part-00000', 'r') as f:
+    with open(tempFile.name, 'r') as f:
         r = f.readlines()
         print(r)
         assert '5\n' in r
