@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.22...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.23...master>`_
+* `v0.2.23 <https://github.com/svenkreiss/pysparkling/compare/v0.2.22...v0.2.23>`_ (2015-06-15)
+    * added RDD.randomSplit()
+    * saveAsTextFile() saves single file if there is only one partition (and does not break it out into partitions)
 * `v0.2.22 <https://github.com/svenkreiss/pysparkling/compare/v0.2.21...v0.2.22>`_ (2015-06-12)
     * added Context.wholeTextFiles()
     * improved RDD.first() and RDD.take(n)
