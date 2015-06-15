@@ -656,6 +656,39 @@ class RDD(object):
             [command]+x if isinstance(x, list) else [command, x]
         ) for x in self.collect())
 
+    def randomSplit(self, weights, seed=None):
+        """
+        Split the RDD into a few RDDs according to the given weights.
+
+        .. note::
+            Creating the new RDDs is currently implemented as a local
+            operation.
+
+        :param weights:
+            Determines the relative lengths of the resulting RDDs.
+
+        :param seed:
+            Seed for random number generator.
+
+        :returns:
+            A list of RDDs.
+
+        """
+        sum_weights = sum(weights)
+        boundaries = [0]
+        for w in weights:
+            boundaries.append(boundaries[-1] + w/sum_weights)
+        random.seed(seed)
+
+        lists = [[] for _ in weights]
+        for e in self.toLocalIterator():
+            r = random.random()
+            for i, lbub in enumerate(zip(boundaries[:-1], boundaries[1:])):
+                if r >= lbub[0] and r < lbub[1]:
+                    lists[i].append(e)
+
+        return [self.context.parallelize(l) for l in lists]
+
     def reduce(self, f):
         """
         :param f:
