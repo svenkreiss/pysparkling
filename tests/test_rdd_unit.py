@@ -223,6 +223,13 @@ def test_pipe():
     assert b'hello\n' in piped
 
 
+def test_randomSplit():
+    rdd = Context().parallelize(range(500))
+    rdd1, rdd2 = rdd.randomSplit([2, 3], seed=42)
+    print(rdd1.count(), rdd2.count())
+    assert rdd1.count() == 199 and rdd2.count() == 301
+
+
 def test_reduce():
     rdd = Context().parallelize([0, 4, 7, 4, 10])
     assert rdd.reduce(lambda a, b: a+b) == 25
@@ -334,4 +341,4 @@ def test_zipWithUniqueIndex():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_first_empty_partitions()
+    test_randomSplit()
