@@ -1,6 +1,7 @@
-import dill
 import math
+import pickle
 import logging
+import cloudpickle
 import multiprocessing
 from concurrent import futures
 from pysparkling import Context
@@ -8,7 +9,8 @@ from pysparkling import Context
 
 def test_multiprocessing():
     p = multiprocessing.Pool(4)
-    c = Context(pool=p, serializer=dill.dumps, deserializer=dill.loads)
+    c = Context(pool=p, serializer=cloudpickle.dumps,
+                deserializer=pickle.loads)
     my_rdd = c.parallelize([1, 3, 4])
     r = my_rdd.map(lambda x: x*x).collect()
     print(r)
@@ -25,7 +27,8 @@ def test_concurrent():
 
 def test_first_mp():
     p = multiprocessing.Pool(4)
-    c = Context(pool=p, serializer=dill.dumps, deserializer=dill.loads)
+    c = Context(pool=p, serializer=cloudpickle.dumps,
+                deserializer=pickle.loads)
     my_rdd = c.parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
     print(my_rdd.first())
     assert my_rdd.first() == 1
@@ -65,8 +68,8 @@ def test_lazy_execution_processpool():
     with futures.ProcessPoolExecutor(4) as p:
         r = Context(
             pool=p,
-            serializer=dill.dumps,
-            deserializer=dill.loads,
+            serializer=cloudpickle.dumps,
+            deserializer=pickle.loads,
         ).textFile('tests/test_multiprocessing.py')
         r = r.map(indent_line).cache()
         r.collect()
