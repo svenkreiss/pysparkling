@@ -25,20 +25,19 @@ in the local thread and is never serialized or deserialized.
 
 If you want to process the data in parallel, you can use the ``multiprocessing``
 module. Given the limitations of the default ``pickle`` serializer, you can
-specify to serialize all methods with ``dill`` instead. For example, a common
-instantiation with ``multiprocessing`` looks like this:
+specify to serialize all methods with ``cloudpickle`` instead. For example,
+a common instantiation with ``multiprocessing`` looks like this:
 
 .. code-block:: python
 
   c = Context(
       multiprocessing.Pool(4),
-      serializer=dill.dumps,
-      deserializer=dill.loads,
+      serializer=cloudpickle.dumps,
+      deserializer=pickle.loads,
   )
 
 This assumes that your data is serializable with ``pickle`` which is generally
-faster than ``dill``. You can also specify a custom serializer/deserializer
-for data.
+faster. You can also specify a custom serializer/deserializer for data.
 
 .. autoclass:: pysparkling.Context
    :members:
