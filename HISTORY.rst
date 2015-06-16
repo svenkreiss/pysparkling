@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.23...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.24...master>`_
+* `v0.2.24 <https://github.com/svenkreiss/pysparkling/compare/v0.2.23...v0.2.24>`_ (2015-06-16)
+    * replace dill with cloudpickle in docs and test
+    * add tests with pypy and pypy3
 * `v0.2.23 <https://github.com/svenkreiss/pysparkling/compare/v0.2.22...v0.2.23>`_ (2015-06-15)
     * added RDD.randomSplit()
     * saveAsTextFile() saves single file if there is only one partition (and does not break it out into partitions)
