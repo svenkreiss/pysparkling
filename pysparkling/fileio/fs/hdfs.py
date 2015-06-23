@@ -9,18 +9,18 @@ from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
+hdfs = None
 try:
     import hdfs
-    SUPPORTED = True
 except ImportError:
-    SUPPORTED = False
+    pass
 
 
 class Hdfs(FileSystem):
     _conn = None
 
     def __init__(self, file_name):
-        if not SUPPORTED:
+        if hdfs is None:
             raise FileSystemNotSupported(
                 'hdfs not supported. Install "snakebite".'
             )
@@ -48,9 +48,8 @@ class Hdfs(FileSystem):
             )
         return (Hdfs._conn[cache_id], path)
 
-    @staticmethod
-    def exists(path):
-        c, p = Hdfs.client_and_path(path)
+    def exists(self):
+        c, p = Hdfs.client_and_path(self.file_name)
         try:
             c.status(p)
         except hdfs.util.HdfsError:

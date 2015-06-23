@@ -10,18 +10,18 @@ from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
+boto = None
 try:
     import boto
-    SUPPORTED = True
 except ImportError:
-    SUPPORTED = False
+    pass
 
 
 class S3(FileSystem):
     _conn = None
 
     def __init__(self, file_name):
-        if not SUPPORTED:
+        if boto is None:
             raise FileSystemNotSupported(
                 'S3 not supported. Install "boto".'
             )
