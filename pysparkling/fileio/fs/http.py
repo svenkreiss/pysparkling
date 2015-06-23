@@ -8,16 +8,16 @@ from ...exceptions import ConnectionException, FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
+requests = None
 try:
     import requests
-    SUPPORTED = True
 except ImportError:
-    SUPPORTED = False
+    pass
 
 
 class Http(FileSystem):
     def __init__(self, file_name):
-        if not SUPPORTED:
+        if requests is None:
             raise FileSystemNotSupported(
                 'http not supported. Install "requests".'
             )
