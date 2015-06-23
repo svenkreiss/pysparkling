@@ -8,13 +8,12 @@ class FileSystem(object):
         self.file_name = file_name
 
     @staticmethod
-    def exists(path):
-        log.warning('Could not determine whether {0} exists due to '
-                    'unhandled scheme.'.format(path))
-
-    @staticmethod
     def resolve_filenames(expr):
         log.error('Cannot resolve: {0}'.format(expr))
+
+    def exists(self):
+        log.warning('Could not determine whether {0} exists due to '
+                    'unhandled scheme.'.format(self.file_name))
 
     def load(self):
         log.error('Cannot load: {0}'.format(self.file_name))

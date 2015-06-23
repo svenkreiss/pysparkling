@@ -46,17 +46,6 @@ class S3(FileSystem):
         return S3._conn
 
     @staticmethod
-    def exists(path):
-        t = Tokenizer(path)
-        t.next('//')  # skip scheme
-        bucket_name = t.next('/')
-        key_name = t.next()
-        conn = S3._get_conn()
-        bucket = conn.get_bucket(bucket_name, validate=False)
-        return (bucket.get_key(key_name) or
-                any(True for _ in bucket.list(prefix=key_name+'/')))
-
-    @staticmethod
     def resolve_filenames(expr):
         files = []
 
@@ -75,6 +64,16 @@ class S3(FileSystem):
                fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
                 files.append(scheme+'://'+bucket_name+'/'+k.name)
         return files
+
+    def exists(self):
+        t = Tokenizer(self.file_name)
+        t.next('//')  # skip scheme
+        bucket_name = t.next('/')
+        key_name = t.next()
+        conn = S3._get_conn()
+        bucket = conn.get_bucket(bucket_name, validate=False)
+        return (bucket.get_key(key_name) or
+                any(True for _ in bucket.list(prefix=key_name+'/')))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'

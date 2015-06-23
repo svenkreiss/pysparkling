@@ -26,15 +26,14 @@ class Http(FileSystem):
         self.headers = None
 
     @staticmethod
-    def exists(path):
-        r = requests.head(path, allow_redirects=True)
-        return r.status_code == 200
-
-    @staticmethod
     def resolve_filenames(expr):
-        if Http.exists(expr):
+        if Http(expr).exists():
             return [expr]
         return []
+
+    def exists(self):
+        r = requests.head(self.file_name, allow_redirects=True)
+        return r.status_code == 200
 
     def load(self):
         log.debug('Http GET request for {0}.'.format(self.file_name))

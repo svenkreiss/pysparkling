@@ -804,7 +804,7 @@ class RDD(object):
             ``self``
 
         """
-        if TextFile.exists(path):
+        if TextFile(path).exists():
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
