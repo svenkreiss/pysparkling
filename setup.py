@@ -28,7 +28,12 @@ setup(
     author_email='me@svenkreiss.com',
     url='https://github.com/svenkreiss/pysparkling',
 
-    install_requires=['boto>=2.36.0', 'requests>=2.6.0'],
+    install_requires=[],
+    extras_require={
+        'http': ['requests>=2.6.0'],
+        's3': ['boto>=2.36.0'],
+        'hdfs': ['hdfs>=1.0.0'],
+    },
     entry_points={
         'console_scripts': [],
     },

@@ -1,17 +1,27 @@
 from __future__ import absolute_import
 
 import logging
-import requests
 from io import BytesIO, StringIO
 
 from .file_system import FileSystem
-from ...exceptions import ConnectionException
+from ...exceptions import ConnectionException, FileSystemNotSupported
 
 log = logging.getLogger(__name__)
+
+try:
+    import requests
+    SUPPORTED = True
+except ImportError:
+    SUPPORTED = False
 
 
 class Http(FileSystem):
     def __init__(self, file_name):
+        if not SUPPORTED:
+            raise FileSystemNotSupported(
+                'http not supported. Install "requests".'
+            )
+
         FileSystem.__init__(self, file_name)
         self.headers = None
 

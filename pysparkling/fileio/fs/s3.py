@@ -1,25 +1,36 @@
 from __future__ import absolute_import
 
-import boto
 import fnmatch
 import logging
 from io import BytesIO, StringIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
+from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
+
+try:
+    import boto
+    SUPPORTED = True
+except ImportError:
+    SUPPORTED = False
 
 
 class S3(FileSystem):
     _conn = None
 
     def __init__(self, file_name):
+        if not SUPPORTED:
+            raise FileSystemNotSupported(
+                'S3 not supported. Install "boto".'
+            )
+
         FileSystem.__init__(self, file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)
-        t.next('//')  # skip scheme
+        t.next('://')  # skip scheme
         bucket_name = t.next('/')
         key_name = t.next()
         conn = S3._get_conn()
