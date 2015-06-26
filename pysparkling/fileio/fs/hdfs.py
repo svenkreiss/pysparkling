@@ -22,7 +22,7 @@ class Hdfs(FileSystem):
     def __init__(self, file_name):
         if hdfs is None:
             raise FileSystemNotSupported(
-                'hdfs not supported. Install "snakebite".'
+                'hdfs not supported. Install the python package "hdfs".'
             )
 
         FileSystem.__init__(self, file_name)
