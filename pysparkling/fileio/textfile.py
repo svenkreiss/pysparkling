@@ -8,6 +8,12 @@ from .file import File
 
 log = logging.getLogger(__name__)
 
+# there is no basestring in Python 3, so define string_types:
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
+
 
 class TextFile(File):
     """
@@ -61,7 +67,7 @@ class TextFile(File):
         if stream is None:
             stream = StringIO()
 
-        if isinstance(stream, basestring):
+        if isinstance(stream, string_types):
             stream = StringIO(stream)
 
         stream = self.codec.compress(
