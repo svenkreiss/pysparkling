@@ -74,7 +74,8 @@ class File(object):
         Writes a stream to a file.
 
         :param stream:
-            A BytesIO instance.
+            A BytesIO instance. ``bytes`` are also possible and are converted
+            to BytesIO.
 
         :returns:
             self
@@ -82,6 +83,9 @@ class File(object):
         """
         if stream is None:
             stream = BytesIO()
+
+        if isinstance(stream, bytes):
+            stream = BytesIO(stream)
 
         stream = self.codec.compress(stream)
         self.fs.dump(stream)

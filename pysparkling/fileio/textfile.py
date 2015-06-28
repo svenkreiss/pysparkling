@@ -48,7 +48,8 @@ class TextFile(File):
         Writes a stream to a file.
 
         :param stream:
-            An ``io.StringIO`` instance.
+            An ``io.StringIO`` instance. A ``basestring`` is also possible and
+            get converted to ``io.StringIO``.
 
         :param encoding: (optional)
             The character encoding of the file.
@@ -59,6 +60,9 @@ class TextFile(File):
         """
         if stream is None:
             stream = StringIO()
+
+        if isinstance(stream, basestring):
+            stream = StringIO(stream)
 
         stream = self.codec.compress(
             BytesIO(stream.read().encode(encoding))
