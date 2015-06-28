@@ -77,7 +77,7 @@ class S3(FileSystem):
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.key.name))
-        self.key.set_contents_from_string(b''.join(stream))
+        self.key.set_contents_from_file(stream)
         return self
 
     def make_public(self, recursive=False):
