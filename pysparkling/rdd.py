@@ -833,6 +833,56 @@ class RDD(object):
         TextFile(path+'/_SUCCESS').dump()
         return self
 
+    def sortBy(self, keyfunc, ascending=True, numPartitions=None):
+        """
+        :param keyfunc:
+            Returns the value that will be sorted.
+
+        :param ascending:
+            Default is True.
+
+        :param numPartitions:
+            Default is None. None means the output will have the same number of
+            partitions as the input.
+
+        :returns:
+            A new sorted RDD.
+
+        .. note::
+            Sorting is currently implemented as a local operation.
+
+        """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
+        return self.context.parallelize(
+            sorted(self.collect(), key=keyfunc, reverse=not ascending),
+            numPartitions,
+        )
+
+    def sortByKey(self, ascending=True, numPartitions=None,
+                  keyfunc=lambda x: x[0]):
+        """
+        :param ascending:
+            Default is True.
+
+        :param numPartitions:
+            Default is None. None means the output will have the same number of
+            partitions as the input.
+
+        :param keyfunc:
+            Returns the value that will be sorted.
+
+        :returns:
+            A new sorted RDD.
+
+        .. note::
+            Sorting is currently implemented as a local operation.
+
+        """
+        return self.sortBy(keyfunc, ascending, numPartitions)
+
     def stats(self):
         """
         :returns:
