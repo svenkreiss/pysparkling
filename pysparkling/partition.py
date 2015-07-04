@@ -1,9 +1,13 @@
+from __future__ import absolute_import
+
 import itertools
+from .cache_manager import CacheManager
 
 
 class Partition(object):
     def __init__(self, x, idx=None):
         self.index = idx
+        self.rdd_id = None
         self._x = x
 
     def x(self):
@@ -16,6 +20,7 @@ class Partition(object):
     def __getstate__(self):
         return {
             'index': self.index,
+            'rdd_id': self.rdd_id,
             '_x': list(self.x())
         }
 
@@ -23,21 +28,29 @@ class Partition(object):
 class PersistedPartition(Partition):
     def __init__(self, x, idx=None, storageLevel=None):
         Partition.__init__(self, x, idx)
-        self.cache_x = None
         self.storageLevel = storageLevel
 
     def x(self):
-        if self.cache_x:
-            self.cache_x, r = itertools.tee(self.cache_x, 2)
-            return r
+        c = CacheManager.singleton().get(self.cache_id())
+        if c:
+            return iter(c)
         return Partition.x(self)
 
+    def cache_id(self):
+        if self.rdd_id is None or self.index is None:
+            return None
+        return '{0}:{1}'.format(self.rdd_id, self.index)
+
+    def is_cached(self):
+        return CacheManager.singleton().has(self.cache_id())
+
     def set_cache_x(self, x):
-        self.cache_x = iter(list(x))
+        CacheManager.singleton().add(
+            self.cache_id(), list(x), self.storageLevel
+        )
 
     def __getstate__(self):
         d = {
-            'cache_x': list(self.x()) if self.cache_x is not None else None,
             'storageLevel': self.storageLevel,
         }
         d.update(Partition.__getstate__(self))

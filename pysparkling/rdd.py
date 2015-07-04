@@ -48,6 +48,7 @@ class RDD(object):
         self._p = partitions
         self.context = ctx
         self._name = None
+        self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
         r = dict((k, v) for k, v in self.__dict__.items())
@@ -1090,7 +1091,8 @@ class PersistedRDD(RDD):
         self.prev = prev
 
     def compute(self, split, task_context):
-        if split.cache_x is None:
+        if not split.is_cached():
+            split.rdd_id = self._rdd_id
             split.set_cache_x(
                 self.prev.compute(split, task_context._create_child())
             )
