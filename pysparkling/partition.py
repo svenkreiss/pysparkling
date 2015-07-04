@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 
+import logging
 import itertools
 from .cache_manager import CacheManager
+
+log = logging.getLogger(__name__)
 
 
 class Partition(object):
@@ -31,9 +34,11 @@ class PersistedPartition(Partition):
         self.storageLevel = storageLevel
 
     def x(self):
-        c = CacheManager.singleton().get(self.cache_id())
-        if c:
-            return iter(c)
+        cid = self.cache_id()
+        if cid:
+            c = CacheManager.singleton().get(self.cache_id())
+            if c:
+                return iter(c)
         return Partition.x(self)
 
     def cache_id(self):
@@ -42,9 +47,17 @@ class PersistedPartition(Partition):
         return '{0}:{1}'.format(self.rdd_id, self.index)
 
     def is_cached(self):
-        return CacheManager.singleton().has(self.cache_id())
+        cid = self.cache_id()
+        if not cid:
+            return False
+        return CacheManager.singleton().has(cid)
 
     def set_cache_x(self, x):
+        cid = self.cache_id()
+        if not cid:
+            log.warn('Could not set cache for RDD {0} and partition {1} '
+                     'without cache_id.'.format(self.rdd_id, self.index))
+            return
         CacheManager.singleton().add(
             self.cache_id(), list(x), self.storageLevel
         )
