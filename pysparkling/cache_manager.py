@@ -63,17 +63,24 @@ class CacheManager(object):
         return self.cache_cnt
 
     def add(self, ident, obj, storageLevel=None):
-        mem_size = sys.getsizeof(obj)
+        # pypy does not have a sys.getsizeof()
+        mem_size = sys.getsizeof(obj) if hasattr(sys, 'getsizeof') else None
+
         self.cache_obj[ident] = {
             'id': self.incr_cache_cnt(),
             'storageLevel': storageLevel,
             'mem_size': mem_size,
             'mem_obj': obj,
+            'mem_ser': None,
+            'mem_ser_size': None,
             'disk_size': None,
             'disk_location': None,
             'checksum': None,
         }
-        self.cache_mem_size += mem_size
+
+        if mem_size:
+            self.cache_mem_size += mem_size
+
         log.debug('Added {0} of size {1} to cache.'.format(ident, mem_size))
 
     def get(self, ident):
