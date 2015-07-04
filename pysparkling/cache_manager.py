@@ -6,7 +6,6 @@ Manages caches of calculated partitions.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-import sys
 import zlib
 import pickle
 import logging
