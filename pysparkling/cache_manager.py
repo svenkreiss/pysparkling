@@ -63,16 +63,10 @@ class CacheManager(object):
         return self.cache_cnt
 
     def add(self, ident, obj, storageLevel=None):
-        # pypy does not have a sys.getsizeof()
-        try:
-            mem_size = sys.getsizeof(obj)
-        except TypeError:
-            mem_size = None
-
         self.cache_obj[ident] = {
             'id': self.incr_cache_cnt(),
             'storageLevel': storageLevel,
-            'mem_size': mem_size,
+            'mem_size': None,
             'mem_obj': obj,
             'mem_ser': None,
             'mem_ser_size': None,
@@ -80,11 +74,7 @@ class CacheManager(object):
             'disk_location': None,
             'checksum': None,
         }
-
-        if mem_size:
-            self.cache_mem_size += mem_size
-
-        log.debug('Added {0} of size {1} to cache.'.format(ident, mem_size))
+        log.debug('Added {0} to cache.'.format(ident))
 
     def get(self, ident):
         if ident not in self.cache_obj:
