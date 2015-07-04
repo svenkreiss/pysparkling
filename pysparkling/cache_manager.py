@@ -64,7 +64,10 @@ class CacheManager(object):
 
     def add(self, ident, obj, storageLevel=None):
         # pypy does not have a sys.getsizeof()
-        mem_size = sys.getsizeof(obj) if hasattr(sys, 'getsizeof') else None
+        try:
+            mem_size = sys.getsizeof(obj)
+        except TypeError:
+            mem_size = None
 
         self.cache_obj[ident] = {
             'id': self.incr_cache_cnt(),
