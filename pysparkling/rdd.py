@@ -900,15 +900,15 @@ class RDD(object):
         >>> rdd = Context().parallelize(
         ...     [(5, 'a'), (1, 'b'), (2, 'c'), (3, 'd')]
         ... )
-        >>> rdd.sortByKey().collect()[0][1]
-        u'b'
+        >>> rdd.sortByKey().collect()[0][1] == 'b'
+        True
 
         >>> from pysparkling import Context
         >>> rdd = Context().parallelize(
         ...     [(1, 'b'), (5, 'a'), (2, 'c'), (3, 'd')]
         ... )
-        >>> rdd.sortByKey(ascending=False).collect()[0][1]
-        u'a'
+        >>> rdd.sortByKey(ascending=False).collect()[0][1] == 'a'
+        True
 
         """
         return self.sortBy(keyfunc, ascending, numPartitions)
