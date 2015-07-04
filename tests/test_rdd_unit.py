@@ -263,30 +263,6 @@ def test_sampleVariance():
     assert Context().parallelize([1, 2, 3]).sampleVariance() == 1.0
 
 
-def test_sortBy():
-    assert Context().parallelize(
-        [5, 1, 2, 3]
-    ).sortBy(lambda x: x).collect()[0] == 1
-
-
-def test_sortBy_reverse():
-    assert Context().parallelize(
-        [1, 5, 2, 3]
-    ).sortBy(lambda x: x, ascending=False).collect()[0] == 5
-
-
-def test_sortByKey():
-    assert Context().parallelize(
-        [(5, 'a'), (1, 'b'), (2, 'c'), (3, 'd')]
-    ).sortByKey().collect()[0][1] == 'b'
-
-
-def test_sortByKey_reverse():
-    assert Context().parallelize(
-        [(1, 'b'), (5, 'a'), (2, 'c'), (3, 'd')]
-    ).sortByKey(ascending=False).collect()[0][1] == 'a'
-
-
 def test_stats():
     d = [1, 4, 9, 16, 25, 36]
     s = Context().parallelize(d, 3).stats()

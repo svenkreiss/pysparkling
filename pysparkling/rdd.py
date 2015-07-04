@@ -851,6 +851,19 @@ class RDD(object):
         .. note::
             Sorting is currently implemented as a local operation.
 
+
+        Examples:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([5, 1, 2, 3])
+        >>> rdd.sortBy(lambda x: x).collect()[0]
+        1
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([1, 5, 2, 3])
+        >>> rdd.sortBy(lambda x: x, ascending=False).collect()[0]
+        5
+
         """
 
         if numPartitions is None:
@@ -879,6 +892,23 @@ class RDD(object):
 
         .. note::
             Sorting is currently implemented as a local operation.
+
+
+        Examples:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize(
+        ...     [(5, 'a'), (1, 'b'), (2, 'c'), (3, 'd')]
+        ... )
+        >>> rdd.sortByKey().collect()[0][1]
+        u'b'
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize(
+        ...     [(1, 'b'), (5, 'a'), (2, 'c'), (3, 'd')]
+        ... )
+        >>> rdd.sortByKey(ascending=False).collect()[0][1]
+        u'a'
 
         """
         return self.sortBy(keyfunc, ascending, numPartitions)
