@@ -83,11 +83,11 @@ class S3(FileSystem):
     def load_text(self):
         log.debug('Loading {0} with size {1}.'
                   ''.format(self.key.name, self.key.size))
-        return StringIO(self.key.get_contents_as_string())
+        return BytesIO(self.key.get_contents_as_string())
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.key.name))
-        self.key.set_contents_from_string(b''.join(stream))
+        self.key.set_contents_from_file(stream)
         return self
 
     def make_public(self, recursive=False):

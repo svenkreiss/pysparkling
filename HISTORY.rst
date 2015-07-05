@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.24...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.28...master>`_
+* `v0.2.28 <https://github.com/svenkreiss/pysparkling/compare/v0.2.24...v0.2.28>`_ (2015-07-03)
+    * implement ``RDD.sortBy()`` and ``RDD.sortByKey()``
+    * additional unit tests
 * `v0.2.24 <https://github.com/svenkreiss/pysparkling/compare/v0.2.23...v0.2.24>`_ (2015-06-16)
     * replace dill with cloudpickle in docs and test
     * add tests with pypy and pypy3

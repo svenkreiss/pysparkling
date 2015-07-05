@@ -8,6 +8,12 @@ from .file import File
 
 log = logging.getLogger(__name__)
 
+# there is no basestring in Python 3, so define string_types:
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
+
 
 class TextFile(File):
     """
@@ -48,7 +54,8 @@ class TextFile(File):
         Writes a stream to a file.
 
         :param stream:
-            An ``io.StringIO`` instance.
+            An ``io.StringIO`` instance. A ``basestring`` is also possible and
+            get converted to ``io.StringIO``.
 
         :param encoding: (optional)
             The character encoding of the file.
@@ -59,6 +66,9 @@ class TextFile(File):
         """
         if stream is None:
             stream = StringIO()
+
+        if isinstance(stream, string_types):
+            stream = StringIO(stream)
 
         stream = self.codec.compress(
             BytesIO(stream.read().encode(encoding))

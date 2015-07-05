@@ -1,7 +1,15 @@
 import os
+import pickle
+import random
 import logging
 import tempfile
 from pysparkling import Context
+from pysparkling.fileio import File
+
+random.seed()
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+S3_TEST_PATH = os.getenv('S3_TEST_PATH')
 
 
 def test_local_textFile_1():
@@ -41,6 +49,37 @@ def test_s3_textFile():
         'warc/CC-MAIN-20150226075801-00329-ip-10-28-5-156.ec2.'
         'internal.warc.gz' in myrdd.collect()
     )
+
+
+def test_s3_textFile_loop():
+    if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
+        return
+
+    fn = S3_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd_orig = Context().parallelize(range(200)).map(
+        lambda n: "This is line {0}".format(n)
+    )
+    rdd_orig.saveAsTextFile(fn)
+
+    rdd_check = Context().textFile(fn)
+
+    assert all(
+        e1 == e2
+        for e1, e2 in zip(rdd_orig.collect(), rdd_check.collect())
+    )
+
+
+def test_dumpToFile():
+    if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
+        return
+
+    fn = S3_TEST_PATH+'/pysparkling_test_{0}.pickle'.format(
+        int(random.random()*999999.0)
+    )
+    File(fn).dump(pickle.dumps({'hello': 'world'}))
 
 
 def test_http_textFile():
