@@ -103,6 +103,36 @@ class CacheManager(object):
                     for i, c in self.cache_obj.items()
                     if i not in idents)
 
+    def join(self, cache_objects):
+        """
+        :param cache_objects:
+            Objects obtained with :func:`CacheManager.get_not_in()`.
+
+        """
+        self.cache_obj.update(cache_objects)
+
+    def stored_idents(self):
+        return [k for k, v in self.cache_obj.items() if v['mem_obj']]
+
+    def clone_contains(self, partial_ident):
+        """
+        :param partial_ident:
+            Can be part of an identifier, like ':4' or '3:' to get the
+            4th partition or the 3rd RDD.
+
+        :returns:
+            A new CacheManager with the entries that contain partial_ident
+            in the ident.
+
+        """
+        cm = CacheManager(self.max_mem,
+                          self.serializer, self.deserializer,
+                          self.checksum)
+        cm.cache_obj = dict((i, c)
+                            for i, c in self.cache_obj.items()
+                            if partial_ident in i)
+        return cm
+
     def delete(self, ident):
         if ident not in self.cache_obj:
             return False

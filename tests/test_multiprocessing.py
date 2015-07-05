@@ -1,4 +1,5 @@
 import math
+import time
 import pickle
 import logging
 import cloudpickle
@@ -48,6 +49,9 @@ def test_lazy_execution():
     r = r.map(indent_line)
     exec_before_collect = INDENT_WAS_EXECUTED
     # at this point, no map() or foreach() should have been executed
+    r = r.map(indent_line).cache()
+    print(r.collect())
+    r = r.map(indent_line)
     r.collect()
     exec_after_collect = INDENT_WAS_EXECUTED
     assert not exec_before_collect and exec_after_collect
@@ -56,7 +60,8 @@ def test_lazy_execution():
 def test_lazy_execution_threadpool():
     with futures.ThreadPoolExecutor(4) as p:
         r = Context(pool=p).textFile('tests/test_multiprocessing.py')
-        r = r.map(indent_line)
+        r = r.map(indent_line).cache()
+        r.collect()
         r = r.map(indent_line)
         r = r.collect()
         # ThreadPool is not lazy although it returns generators.
@@ -80,6 +85,22 @@ def test_lazy_execution_processpool():
         assert '--- --- from pysparkling import Context' in r
 
 
+def test_processpool_distributed_cache():
+    with futures.ProcessPoolExecutor(4) as p:
+        r = Context(
+            pool=p,
+            serializer=cloudpickle.dumps,
+            deserializer=pickle.loads,
+        ).parallelize(range(3))
+        r = r.map(lambda _: time.sleep(0.1)).cache()
+        r.collect()
+
+        time_start = time.time()
+        print(r.collect())
+        time_end = time.time()
+        assert time_end - time_start < 0.3
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_lazy_execution_processpool()
+    test_processpool_distributed_cache()

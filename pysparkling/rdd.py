@@ -1091,9 +1091,9 @@ class PersistedRDD(RDD):
         self.prev = prev
 
     def compute(self, split, task_context):
-        if not split.is_cached():
-            split.rdd_id = self._rdd_id
+        if not split.is_cached(self._rdd_id):
             split.set_cache_x(
-                self.prev.compute(split, task_context._create_child())
+                self.prev.compute(split, task_context._create_child()),
+                self._rdd_id,
             )
-        return split.x()
+        return split.x(self._rdd_id)
