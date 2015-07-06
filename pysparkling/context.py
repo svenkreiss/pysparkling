@@ -2,6 +2,7 @@
 
 from __future__ import division, print_function
 
+import pickle
 import logging
 import itertools
 
@@ -9,7 +10,7 @@ from .rdd import RDD
 from .broadcast import Broadcast
 from .partition import Partition
 from .task_context import TaskContext
-from .fileio import TextFile
+from .fileio import File, TextFile
 from . import __version__ as PYSPARKLING_VERSION
 
 log = logging.getLogger(__name__)
@@ -114,6 +115,52 @@ class Context(object):
                 yield Partition(itertools.islice(x, end-start), i)
 
         return RDD(partitioned(), self)
+
+    def pickleFile(self, name, minPartitions=None):
+        """
+        Read a pickle file created with :func:`RDD.saveAsPickleFile()`
+        into an RDD.
+
+        :param name:
+            Location of a file. Can include schemes like ``http://``,
+            ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
+            and multiple expressions separated by ``,``.
+
+        :param minPartitions: (optional)
+            By default, every file is a partition, but this option allows to
+            split these further.
+
+        :returns:
+            New RDD.
+
+
+        Example with a serialized list:
+
+        >>> import pickle
+        >>> from pysparkling import Context
+        >>> from tempfile import NamedTemporaryFile
+        >>> tmpFile = NamedTemporaryFile(delete=True)
+        >>> tmpFile.close()
+        >>> with open(tmpFile.name, 'wb') as f:
+        ...     pickle.dump(['hello', 'world'], f)
+        >>> Context().pickleFile(tmpFile.name).collect()[0]
+        'hello'
+
+        """
+        resolved_names = File.resolve_filenames(name)
+        log.debug('pickleFile() resolved "{0}" to {1} files.'
+                  ''.format(name, len(resolved_names)))
+
+        num_partitions = len(resolved_names)
+        if minPartitions and minPartitions > num_partitions:
+            num_partitions = minPartitions
+
+        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd = rdd_filenames.flatMap(
+            lambda f_name: pickle.load(File(f_name).load())
+        )
+        rdd._name = name
+        return rdd
 
     def runJob(self, rdd, func, partitions=None, allowLocal=False,
                resultHandler=None):

@@ -9,6 +9,7 @@ from __future__ import (division, absolute_import, print_function,
 import io
 import sys
 import copy
+import pickle
 import random
 import logging
 import functools
@@ -17,7 +18,7 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import TextFile
+from .fileio import File, TextFile
 from .stat_counter import StatCounter
 from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
@@ -785,6 +786,55 @@ class RDD(object):
 
         """
         return self.stats().sampleVariance()
+
+    def saveAsPickleFile(self, path, batchSize=10):
+        """
+        .. warn::
+            The output of this function is incompatible with the PySpark
+            output as there is no pure Python way to write Sequence files.
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> from tempfile import NamedTemporaryFile
+        >>> tmpFile = NamedTemporaryFile(delete=True)
+        >>> tmpFile.close()
+        >>> d = ['hello', 'world', 1, 2]
+        >>> rdd = Context().parallelize(d).saveAsPickleFile(tmpFile.name)
+        >>> 'hello' in Context().pickleFile(tmpFile.name).collect()
+        True
+
+        """
+
+        if File.exists(path):
+            raise FileAlreadyExistsException(
+                'Output {0} already exists.'.format(path)
+            )
+
+        codec_suffix = ''
+        if path.endswith(('.gz', '.bz2', '.lzo')):
+            codec_suffix = path[path.rfind('.'):]
+
+        def _map(path, obj):
+            stream = io.BytesIO()
+            pickle.dump(self.collect(), stream)
+            stream.seek(0)
+            File(path).dump(stream)
+
+        if self.getNumPartitions() == 1:
+            _map(path, self.collect())
+            return self
+
+        self.context.runJob(
+            self,
+            lambda tc, x: _map(
+                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix),
+                list(x),
+            ),
+            resultHandler=lambda l: list(l),
+        )
+        TextFile(path+'/_SUCCESS').dump()
+        return self
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
         """

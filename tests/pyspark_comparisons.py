@@ -58,6 +58,12 @@ def create_key_value_txt():
     print(r_bz2.collect())
 
 
+def create_pickled_files():
+    rdd = SC.parallelize(['hello', 'world', 1, 2], 2)
+    rdd.saveAsPickleFile('tests/pyspark/mixed.pickle')
+    rdd.saveAsPickleFile('tests/pyspark/mixed_batched.pickle', 1)
+
+
 def stat():
     d = [1, 4, 9, 16, 25, 36]
     s1 = SC.parallelize(d).stats()
@@ -71,4 +77,5 @@ if __name__ == '__main__':
     # lazy_execution()
     # count_lines()
     # create_key_value_txt()
-    stat()
+    create_pickled_files()
+    # stat()
