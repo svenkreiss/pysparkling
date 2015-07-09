@@ -9,6 +9,7 @@ from __future__ import (division, absolute_import, print_function,
 import io
 import sys
 import copy
+import pickle
 import random
 import logging
 import functools
@@ -17,9 +18,9 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import TextFile
+from .fileio import File, TextFile
 from .stat_counter import StatCounter
-from .partition import PersistedPartition
+from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 
 try:
@@ -787,6 +788,55 @@ class RDD(object):
         """
         return self.stats().sampleVariance()
 
+    def saveAsPickleFile(self, path, batchSize=10):
+        """
+        .. warn::
+            The output of this function is incompatible with the PySpark
+            output as there is no pure Python way to write Sequence files.
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> from tempfile import NamedTemporaryFile
+        >>> tmpFile = NamedTemporaryFile(delete=True)
+        >>> tmpFile.close()
+        >>> d = ['hello', 'world', 1, 2]
+        >>> rdd = Context().parallelize(d).saveAsPickleFile(tmpFile.name)
+        >>> 'hello' in Context().pickleFile(tmpFile.name).collect()
+        True
+
+        """
+
+        if File(path).exists():
+            raise FileAlreadyExistsException(
+                'Output {0} already exists.'.format(path)
+            )
+
+        codec_suffix = ''
+        if path.endswith(('.gz', '.bz2', '.lzo')):
+            codec_suffix = path[path.rfind('.'):]
+
+        def _map(path, obj):
+            stream = io.BytesIO()
+            pickle.dump(self.collect(), stream)
+            stream.seek(0)
+            File(path).dump(stream)
+
+        if self.getNumPartitions() == 1:
+            _map(path, self.collect())
+            return self
+
+        self.context.runJob(
+            self,
+            lambda tc, x: _map(
+                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix),
+                list(x),
+            ),
+            resultHandler=lambda l: list(l),
+        )
+        TextFile(path+'/_SUCCESS').dump()
+        return self
+
     def saveAsTextFile(self, path, compressionCodecClass=None):
         """
         If the RDD has many partitions, the contents will be stored directly
@@ -1156,24 +1206,21 @@ class PersistedRDD(RDD):
         """prev is the previous RDD.
 
         """
-        RDD.__init__(
-            self,
-            (
-                PersistedPartition(
-                    p.x(),
-                    p.index,
-                    storageLevel,
-                ) for p in prev.partitions()
-            ),
-            prev.context,
-        )
-
+        RDD.__init__(self, prev.partitions(), prev.context)
         self.prev = prev
+        self.storageLevel = storageLevel
 
     def compute(self, split, task_context):
-        if not split.is_cached(self._rdd_id):
-            split.set_cache_x(
-                self.prev.compute(split, task_context._create_child()),
-                self._rdd_id,
+        if self._rdd_id is None or split.index is None:
+            cid = None
+        else:
+            cid = '{0}:{1}'.format(self._rdd_id, split.index)
+
+        if not CacheManager.singleton().has(cid):
+            CacheManager.singleton().add(
+                cid,
+                list(self.prev.compute(split, task_context._create_child())),
+                self.storageLevel
             )
-        return split.x(self._rdd_id)
+
+        return iter(CacheManager.singleton().get(cid))
