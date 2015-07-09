@@ -12,6 +12,18 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
 
 
+def test_cache():
+    # this crashes in version 0.2.28
+    lines = Context().textFile('tests/*textFil*.py')
+    lines = lines.map(lambda l: '-'+l).cache()
+    print(len(lines.collect()))
+    lines = lines.map(lambda l: '+'+l)
+    lines = lines.map(lambda l: '-'+l).cache()
+    lines = lines.collect()
+    print(lines)
+    assert '-+-from pysparkling import Context' in lines
+
+
 def test_local_textFile_1():
     lines = Context().textFile('tests/*textFil*.py').collect()
     print(lines)

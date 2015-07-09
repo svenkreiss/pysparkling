@@ -20,7 +20,6 @@ from collections import defaultdict
 from . import utils
 from .fileio import File, TextFile
 from .stat_counter import StatCounter
-from .partition import PersistedPartition
 from .exceptions import FileAlreadyExistsException
 
 try:
@@ -1205,23 +1204,13 @@ class PersistedRDD(RDD):
         """prev is the previous RDD.
 
         """
-        RDD.__init__(
-            self,
-            (
-                PersistedPartition(
-                    p.x(),
-                    p.index,
-                    storageLevel,
-                ) for p in prev.partitions()
-            ),
-            prev.context,
-        )
-
+        RDD.__init__(self, prev.partitions(), prev.context)
         self.prev = prev
+        self.cached_partitions = {}
 
     def compute(self, split, task_context):
-        if split.cache_x is None:
-            split.set_cache_x(
+        if split.index not in self.cached_partitions:
+            self.cached_partitions[split.index] = list(
                 self.prev.compute(split, task_context._create_child())
             )
-        return split.x()
+        return iter(self.cached_partitions[split.index])
