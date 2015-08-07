@@ -10,6 +10,7 @@ random.seed()
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
+HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
 
 
 def test_cache():
@@ -71,16 +72,30 @@ def test_s3_textFile_loop():
         int(random.random()*999999.0)
     )
 
-    rdd_orig = Context().parallelize(range(200)).map(
-        lambda n: "This is line {0}".format(n)
-    )
-    rdd_orig.saveAsTextFile(fn)
-
+    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
-    assert all(
-        e1 == e2
-        for e1, e2 in zip(rdd_orig.collect(), rdd_check.collect())
+    assert (
+        rdd.count() == rdd_check.count() and
+        all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
+    )
+
+
+def test_hdfs_textFile_loop():
+    if not HDFS_TEST_PATH:
+        return
+
+    fn = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd.saveAsTextFile(fn)
+    read_rdd = Context().textFile(fn)
+    assert (
+        rdd.count() == read_rdd.count() and
+        all(r1 == r2 for r1, r2 in zip(rdd.collect(), read_rdd.collect()))
     )
 
 
@@ -150,10 +165,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # test_saveAsTextFile()
     # test_local_textFile_2()
-    test_wholeTextFiles()
+    # test_wholeTextFiles()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
     # test_http_textFile()
+    test_hdfs_textFile_loop()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()

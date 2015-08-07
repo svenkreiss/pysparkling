@@ -1,5 +1,6 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
+import fnmatch
 import logging
 from io import BytesIO, StringIO
 
@@ -17,7 +18,7 @@ except ImportError:
 
 
 class Hdfs(FileSystem):
-    _conn = None
+    _conn = {}
 
     def __init__(self, file_name):
         if hdfs is None:
@@ -35,7 +36,7 @@ class Hdfs(FileSystem):
         domain = t.next('/')
         path = t.next()
 
-        if ':' in domain:
+        if ':' not in domain:
             port = 8020
         else:
             domain, port = domain.split(':')
@@ -43,10 +44,10 @@ class Hdfs(FileSystem):
         cache_id = domain+'__'+str(port)
 
         if cache_id not in Hdfs._conn:
-            Hdfs._conn[cache_id] = hdfs.KerberosClient(
+            Hdfs._conn[cache_id] = hdfs.InsecureClient(
                 'http://{0}:{1}'.format(domain, port)
             )
-        return (Hdfs._conn[cache_id], path)
+        return (Hdfs._conn[cache_id], '/'+path)
 
     def exists(self):
         c, p = Hdfs.client_and_path(self.file_name)
@@ -58,15 +59,44 @@ class Hdfs(FileSystem):
 
     @staticmethod
     def resolve_filenames(expr):
-        c, expr = Hdfs.client_and_path(expr)
-        return [f[0] for f in c.list(expr)]
+        files = []
+
+        c, expr_path = Hdfs.client_and_path(expr)
+
+        t = Tokenizer(expr)
+        scheme = t.next('://')
+        domain = t.next('/')
+        fixed_path = t.next(['*', '?'])
+        file_expr = t.next()
+
+        if '/' in fixed_path:
+            fixed_path = fixed_path[:fixed_path.rfind('/')]
+            file_expr = fixed_path[fixed_path.rfind('/')+1:]+file_expr
+
+        for fn, file_meta in c.list('/'+fixed_path):
+            print(fn)
+            print(type(fn))
+            if fnmatch.fnmatch(fn, expr_path) or \
+               fnmatch.fnmatch(fn, expr_path+'/part*'):
+                files.append(scheme+'://'+domain+fn)
+        return files
 
     def load(self):
         log.debug('Hdfs read for {0}.'.format(self.file_name))
         c, path = Hdfs.client_and_path(self.file_name)
 
         reader = c.read(path)
-        r = BytesIO(sum(reader))
+        r = BytesIO(b''.join(reader))
+        reader.close()
+
+        return r
+
+    def load_text(self):
+        log.debug('Hdfs text read for {0}.'.format(self.file_name))
+        c, path = Hdfs.client_and_path(self.file_name)
+
+        reader = c.read(path)
+        r = StringIO(''.join(reader))
         reader.close()
 
         return r
