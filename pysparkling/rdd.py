@@ -92,6 +92,17 @@ class RDD(object):
         :returns:
             Output of ``combOp`` operations.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> seqOp = (lambda x, y: (x[0] + y, x[1] + 1))
+        >>> combOp = (lambda x, y: (x[0] + y[0], x[1] + y[1]))
+        >>> Context().parallelize(
+        ...     [1, 2, 3, 4], 2
+        ... ).aggregate((0, 0), seqOp, combOp)
+        (10, 4)
+
         """
         return self.context.runJob(
             self,
@@ -125,6 +136,18 @@ class RDD(object):
 
         :returns:
             Output of ``combOp`` operations.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> seqOp = (lambda x, y: x + y)
+        >>> combOp = (lambda x, y: x + y)
+        >>> r = Context().parallelize(
+        ...     [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
+        ... ).aggregateByKey(0, seqOp, combOp)
+        >>> (r['a'], r['b'])
+        (4, 2)
 
         """
         def seqFuncByKey(tc, i):
