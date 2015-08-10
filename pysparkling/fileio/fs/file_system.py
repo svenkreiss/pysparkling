@@ -23,4 +23,4 @@ class FileSystem(object):
         log.error('Cannot dump: {0}'.format(self.file_name))
 
     def make_public(self, recursive=False):
-        log.error('Cannot make {0} public.'.format(self.file_name))
+        log.warning('Cannot make {0} public.'.format(self.file_name))
