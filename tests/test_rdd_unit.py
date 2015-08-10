@@ -17,64 +17,11 @@ def test_cache():
     assert len(my_rdd.collect()) == 4 and 16 in my_rdd.collect()
 
 
-def test_cartesian():
-    rdd = Context().parallelize([1, 2])
-    r = sorted(rdd.cartesian(rdd).collect())
-    print(r)
-    assert r[0][0] == 1 and r[2][0] == 2 and len(r) == 4 and len(r[0]) == 2
-
-
-def test_coalesce():
-    my_rdd = Context().parallelize([1, 2, 3], 2).coalesce(1)
-    assert my_rdd.getNumPartitions() == 1
-
-
-def test_collect():
-    my_rdd = Context().parallelize([1, 2, 3])
-    assert my_rdd.collect()[0] == 1
-
-
-def test_count():
-    my_rdd = Context().parallelize([1, 2, 3])
-    assert my_rdd.count() == 3
-
-
 def test_count_partitions():
     my_rdd = Context().parallelize([1, 2, 3], 2)
     print(my_rdd.collect())
     my_rdd.foreach(print)
     assert my_rdd.count() == 3
-
-
-def test_countByKey():
-    my_rdd = Context().parallelize([('a', 1), ('b', 2), ('b', 2)])
-    assert my_rdd.countByKey()['b'] == 4
-
-
-def test_countByValue():
-    my_rdd = Context().parallelize([1, 2, 2, 4, 1])
-    assert my_rdd.countByValue()[2] == 2
-
-
-def test_distinct():
-    my_rdd = Context().parallelize([1, 2, 2, 4, 1]).distinct()
-    assert my_rdd.count() == 3
-
-
-def test_filter():
-    my_rdd = Context().parallelize(
-        [1, 2, 2, 4, 1, 3, 5, 9],
-        3,
-    ).filter(lambda x: x % 2 == 0)
-    print(my_rdd.collect())
-    print(my_rdd.count())
-    assert my_rdd.count() == 3
-
-
-def test_first():
-    my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9])
-    print(my_rdd.first())
-    assert my_rdd.first() == 1
 
 
 def test_first_empty_partitions():
@@ -87,22 +34,6 @@ def test_first_partitions():
     my_rdd = Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
     print(my_rdd.first())
     assert my_rdd.first() == 1
-
-
-def test_flatMap():
-    my_rdd = Context().parallelize([
-        ('hello', 'world')
-    ])
-    mapped = my_rdd.flatMap(lambda x: [['a']+list(x)]).collect()
-    assert mapped[0][0] == 'a'
-
-
-def test_flatMapValues():
-    my_rdd = Context().parallelize([
-        ('message', ('hello', 'world'))
-    ])
-    mapped = my_rdd.flatMapValues(lambda x: ['a']+list(x)).collect()
-    assert mapped[0][1][0] == 'a'
 
 
 def test_fold():

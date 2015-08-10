@@ -186,6 +186,14 @@ class RDD(object):
             This is currently implemented as a local operation requiring
             all data to be pulled on one machine.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([1, 2])
+        >>> sorted(rdd.cartesian(rdd).collect())
+        [(1, 1), (1, 2), (2, 1), (2, 2)]
+
         """
         v1 = self.toLocalIterator()
         v2 = self.collect()
@@ -206,6 +214,13 @@ class RDD(object):
             This is currently implemented as a local operation requiring
             all data to be pulled on one machine.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).coalesce(1).getNumPartitions()
+        1
+
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
@@ -213,6 +228,13 @@ class RDD(object):
         """
         :returns:
             The entire dataset as a list.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).collect()
+        [1, 2, 3]
 
         """
         return self.context.runJob(
@@ -224,6 +246,13 @@ class RDD(object):
         """
         :returns:
             Number of entries in this dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).count()
+        3
 
         """
         return self.context.runJob(self, lambda tc, i: sum(1 for _ in i),
@@ -241,6 +270,15 @@ class RDD(object):
         :returns:
             A ``dict`` containing the count for every key.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize(
+        ...     [('a', 1), ('b', 2), ('b', 2)]
+        ... ).countByKey()['b']
+        4
+
         """
         def map_func(tc, x):
             r = defaultdict(int)
@@ -254,6 +292,13 @@ class RDD(object):
         """
         :returns:
             A ``dict`` containing the count for every value.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
+        2
 
         """
         def map_func(tc, x):
@@ -272,6 +317,13 @@ class RDD(object):
         :returns:
             A new RDD containing only distict elements.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1]).distinct().count()
+        3
+
         """
         return self.context.parallelize(list(set(self.toLocalIterator())),
                                         numPartitions)
@@ -285,6 +337,14 @@ class RDD(object):
         :returns:
             A new dataset.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize(
+        ...     [1, 2, 2, 4, 1, 3, 5, 9], 3,
+        ... ).filter(lambda x: x % 2 == 0)
+
         """
         def map_func(tc, i, x):
             return (xx for xx in x if f(xx))
@@ -294,6 +354,13 @@ class RDD(object):
         """
         :returns:
             The first element in the dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3).first()
+        1
 
         """
         return self.context.runJob(
@@ -316,6 +383,15 @@ class RDD(object):
         :returns:
             A new RDD.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize(['hello', 'world']).flatMap(
+        ...     lambda x: [ord(ch) for ch in x]
+        ... ).collect()
+        [104, 101, 108, 108, 111, 119, 111, 114, 108, 100]
+
         """
         return MapPartitionsRDD(
             self,
@@ -332,6 +408,15 @@ class RDD(object):
 
         :returns:
             A new RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([(1, 'hi'), (2, 'world')]).flatMapValues(
+        ...     lambda x: [ord(ch) for ch in x]
+        ... ).collect()
+        [(1, 104), (1, 105), (2, 119), (2, 111), (2, 114), (2, 108), (2, 100)]
 
         """
         return MapPartitionsRDD(
@@ -813,7 +898,7 @@ class RDD(object):
 
     def saveAsPickleFile(self, path, batchSize=10):
         """
-        .. warn::
+        .. warning::
             The output of this function is incompatible with the PySpark
             output as there is no pure Python way to write Sequence files.
 
@@ -930,13 +1015,13 @@ class RDD(object):
 
         >>> from pysparkling import Context
         >>> rdd = Context().parallelize([5, 1, 2, 3])
-        >>> rdd.sortBy(lambda x: x).collect()[0]
-        1
+        >>> rdd.sortBy(lambda x: x).collect()
+        [1, 2, 3, 5]
 
         >>> from pysparkling import Context
         >>> rdd = Context().parallelize([1, 5, 2, 3])
-        >>> rdd.sortBy(lambda x: x, ascending=False).collect()[0]
-        5
+        >>> rdd.sortBy(lambda x: x, ascending=False).collect()
+        [5, 3, 2, 1]
 
         """
 
