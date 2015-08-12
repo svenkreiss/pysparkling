@@ -100,6 +100,23 @@ def test_hdfs_textFile_loop():
     )
 
 
+def test_hdfs_file_exists():
+    if not HDFS_TEST_PATH:
+        raise SkipTest
+
+    fn1 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+    fn2 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd.saveAsTextFile(fn1)
+
+    assert File(fn1).exists() and not File(fn2).exists()
+
+
 def test_dumpToFile():
     if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
         raise SkipTest
@@ -170,7 +187,8 @@ if __name__ == '__main__':
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
     # test_http_textFile()
-    test_hdfs_textFile_loop()
+    # test_hdfs_textFile_loop()
+    test_hdfs_file_exists()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()
