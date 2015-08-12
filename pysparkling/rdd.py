@@ -788,7 +788,7 @@ class RDD(object):
 
     def saveAsPickleFile(self, path, batchSize=10):
         """
-        .. warn::
+        .. warning::
             The output of this function is incompatible with the PySpark
             output as there is no pure Python way to write Sequence files.
 
