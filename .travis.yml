@@ -6,6 +6,6 @@ python:
  - "pypy"
  - "pypy3"
 install:
- - "pip install cloudpickle futures"
- - "pip install .[s3,http]"
+ - "pip install boto requests cloudpickle futures"
+ - "pip install ."
 script: "nosetests"
