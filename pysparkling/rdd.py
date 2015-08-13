@@ -856,8 +856,8 @@ class RDD(object):
         Example:
 
         >>> from pysparkling import Context
-        >>> Context().parallelize([1, 2, 3, 4, 3, 2], 2).max()
-        4
+        >>> Context().parallelize([1, 2, 3, 4, 3, 2], 2).max() == 4
+        True
 
         """
         return self.stats().max()
