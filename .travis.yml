@@ -8,4 +8,4 @@ python:
 install:
  - "pip install boto requests cloudpickle futures"
  - "pip install ."
-script: "nosetests"
+script: "nosetests -vv"
