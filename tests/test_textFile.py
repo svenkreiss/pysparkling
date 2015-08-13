@@ -7,8 +7,6 @@ from pysparkling import Context
 from pysparkling.fileio import File
 from nose.plugins.skip import SkipTest
 
-random.seed()
-
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
 HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
@@ -69,6 +67,8 @@ def test_s3_textFile_loop():
     if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
         raise SkipTest
 
+    random.seed()
+
     fn = S3_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
         int(random.random()*999999.0)
     )
@@ -87,6 +87,8 @@ def test_hdfs_textFile_loop():
     if not HDFS_TEST_PATH:
         raise SkipTest
 
+    random.seed()
+
     fn = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
         int(random.random()*999999.0)
     )
@@ -104,6 +106,8 @@ def test_hdfs_file_exists():
     if not HDFS_TEST_PATH:
         raise SkipTest
 
+    random.seed()
+
     fn1 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
         int(random.random()*999999.0)
     )
@@ -120,6 +124,8 @@ def test_hdfs_file_exists():
 def test_dumpToFile():
     if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
         raise SkipTest
+
+    random.seed()
 
     fn = S3_TEST_PATH+'/pysparkling_test_{0}.pickle'.format(
         int(random.random()*999999.0)
