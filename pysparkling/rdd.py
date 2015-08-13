@@ -367,9 +367,10 @@ class RDD(object):
         Example:
 
         >>> from pysparkling import Context
-        >>> my_rdd = Context().parallelize(
+        >>> Context().parallelize(
         ...     [1, 2, 2, 4, 1, 3, 5, 9], 3,
-        ... ).filter(lambda x: x % 2 == 0)
+        ... ).filter(lambda x: x % 2 == 0).collect()
+        [2, 2, 4]
 
         """
         def map_func(tc, i, x):
