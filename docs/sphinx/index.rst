@@ -10,6 +10,8 @@
 Welcome to pysparkling's documentation!
 =======================================
 
+Version 0.2 docs: http://pysparkling.trivial.io/v0.2/
+
 Please read the README at https://github.com/svenkreiss/pysparkling and
 checkout the examples in this notebook:
 https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb
