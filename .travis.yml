@@ -5,6 +5,7 @@ python:
  - "3.4"
  - "pypy"
  - "pypy3"
-before_install:
- - "pip install requests boto cloudpickle futures"
+install:
+ - "pip install cloudpickle futures"
+ - "pip install .[s3,http]"
 script: "nosetests"
