@@ -921,7 +921,7 @@ class RDD(object):
 
         >>> from pysparkling import Context
         >>> piped = Context().parallelize(['0', 'hello', 'world']).pipe('echo')
-        >>> 'hello\\n' in piped.collect()
+        >>> b'hello\\n' in piped.collect()
         True
 
         """
