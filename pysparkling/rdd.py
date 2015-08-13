@@ -1044,7 +1044,7 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
         >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
-        >>> rdd1.rightOuterJoin(rdd2).collect()
+        >>> sorted(rdd1.rightOuterJoin(rdd2).collect())
         [(1, (1, 3)), (2, (None, 1))]
 
         """
