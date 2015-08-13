@@ -7,4 +7,4 @@ python:
  - "pypy3"
 before_install:
  - "pip install requests boto"
-script: "python setup.py nosetests"
+script: "nosetests"
