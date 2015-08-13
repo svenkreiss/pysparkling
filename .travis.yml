@@ -6,5 +6,5 @@ python:
  - "pypy"
  - "pypy3"
 before_install:
- - "pip install requests boto cloudpickle"
+ - "pip install requests boto cloudpickle futures"
 script: "nosetests"
