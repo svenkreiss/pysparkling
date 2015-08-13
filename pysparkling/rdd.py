@@ -59,7 +59,7 @@ class RDD(object):
 
     def compute(self, split, task_context):
         """split is a partition. This function is used in derived RDD
-        classes. To add smarter behavior for specific cases."""
+        classes to add smarter behavior for specific cases."""
         return split.x()
 
     def partitions(self):
