@@ -1,25 +1,36 @@
 from __future__ import absolute_import
 
-import boto
 import fnmatch
 import logging
 from io import BytesIO, StringIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
+from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
+
+boto = None
+try:
+    import boto
+except ImportError:
+    pass
 
 
 class S3(FileSystem):
     _conn = None
 
     def __init__(self, file_name):
+        if boto is None:
+            raise FileSystemNotSupported(
+                'S3 not supported. Install "boto".'
+            )
+
         FileSystem.__init__(self, file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)
-        t.next('//')  # skip scheme
+        t.next('://')  # skip scheme
         bucket_name = t.next('/')
         key_name = t.next()
         conn = S3._get_conn()
@@ -33,17 +44,6 @@ class S3(FileSystem):
         if not S3._conn:
             S3._conn = boto.connect_s3()
         return S3._conn
-
-    @staticmethod
-    def exists(path):
-        t = Tokenizer(path)
-        t.next('//')  # skip scheme
-        bucket_name = t.next('/')
-        key_name = t.next()
-        conn = S3._get_conn()
-        bucket = conn.get_bucket(bucket_name, validate=False)
-        return (bucket.get_key(key_name) or
-                any(True for _ in bucket.list(prefix=key_name+'/')))
 
     @staticmethod
     def resolve_filenames(expr):
@@ -64,6 +64,16 @@ class S3(FileSystem):
                fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
                 files.append(scheme+'://'+bucket_name+'/'+k.name)
         return files
+
+    def exists(self):
+        t = Tokenizer(self.file_name)
+        t.next('//')  # skip scheme
+        bucket_name = t.next('/')
+        key_name = t.next()
+        conn = S3._get_conn()
+        bucket = conn.get_bucket(bucket_name, validate=False)
+        return (bucket.get_key(key_name) or
+                any(True for _ in bucket.list(prefix=key_name+'/')))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'

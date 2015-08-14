@@ -4,12 +4,14 @@ from .file_system import FileSystem
 from .local import Local
 from .s3 import S3
 from .http import Http
+from .hdfs import Hdfs
 
 
 FILE_EXTENSIONS = [
     (('file', ''), Local),
     (('s3', 's3n'), S3),
     (('http', 'https'), Http),
+    (('hdfs'), Hdfs),
 ]
 
 

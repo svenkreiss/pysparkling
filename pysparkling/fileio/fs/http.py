@@ -1,30 +1,39 @@
 from __future__ import absolute_import
 
 import logging
-import requests
 from io import BytesIO, StringIO
 
 from .file_system import FileSystem
-from ...exceptions import ConnectionException
+from ...exceptions import ConnectionException, FileSystemNotSupported
 
 log = logging.getLogger(__name__)
+
+requests = None
+try:
+    import requests
+except ImportError:
+    pass
 
 
 class Http(FileSystem):
     def __init__(self, file_name):
+        if requests is None:
+            raise FileSystemNotSupported(
+                'http not supported. Install "requests".'
+            )
+
         FileSystem.__init__(self, file_name)
         self.headers = None
 
     @staticmethod
-    def exists(path):
-        r = requests.head(path, allow_redirects=True)
-        return r.status_code == 200
-
-    @staticmethod
     def resolve_filenames(expr):
-        if Http.exists(expr):
+        if Http(expr).exists():
             return [expr]
         return []
+
+    def exists(self):
+        r = requests.head(self.file_name, allow_redirects=True)
+        return r.status_code == 200
 
     def load(self):
         log.debug('Http GET request for {0}.'.format(self.file_name))

@@ -6,16 +6,16 @@ pysparkling
 ===========
 
   A native Python implementation of Spark's RDD interface. The primary objective
-  is not to have RDDs that are resilient and distributed, but to remove the dependency
-  on the JVM and Hadoop. The focus is on having a lightweight and fast
-  implementation for small datasets. It is a drop-in replacement
-  for PySpark's SparkContext and RDD.
+  to remove the dependency on the JVM and Hadoop. The focus is on having a
+  lightweight and fast implementation for small datasets at the expense of
+  some data resilience features and some parallel processing features.
+  It is a drop-in replacement for PySpark's SparkContext and RDD.
 
   Use case: you have a pipeline that processes 100k input documents
   and converts them to normalized features. They are used to train a local
   scikit-learn classifier. The preprocessing is perfect for a full Spark
   task. Now, you want to use this trained classifier in an API
-  endpoint. You need the same pre-processing pipeline for a single
+  endpoint. Assume you need the same pre-processing pipeline for a single
   document per API call. This does not have to be done in parallel, but there
   should be only a small overhead in initialization and preferably no
   dependency on the JVM. This is what ``pysparkling`` is for.
@@ -34,20 +34,23 @@ Install
 
 .. code-block:: bash
 
-  pip install pysparkling
+  pip install pysparkling[s3,hdfs,http]
 
 
 Features
 ========
 
-* Supports multiple URI scheme: ``s3://``, ``http://`` and ``file://``.
+* Supports multiple URI scheme: ``s3://``, ``hdfs://``, ``http://`` and ``file://``.
   Specify multiple files separated by comma.
   Resolves ``*`` and ``?`` wildcards.
 * Handles ``.gz`` and ``.bz2`` compressed files.
 * Parallelization via ``multiprocessing.Pool``,
   ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
-* only dependencies: ``boto`` for AWS S3 and ``requests`` for http
+
+* Plain pysparkling does not have any dependencies (use ``pip install pysparkling``).
+  Some file access methods have optional dependencies:
+  ``boto`` for AWS S3, ``requests`` for http, ``hdfs`` for hdfs
 
 The change log is in `HISTORY.rst <https://github.com/svenkreiss/pysparkling/blob/master/HISTORY.rst>`_.
 
@@ -91,7 +94,7 @@ or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
 RDD
 ---
 
-*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.RDD
+*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.RDD
 
 
 Context
@@ -117,7 +120,7 @@ a common instantiation with ``multiprocessing`` looks like this:
 This assumes that your data is serializable with ``pickle`` which is generally
 faster. You can also specify a custom serializer/deserializer for data.
 
-*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.Context
+*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.Context
 
 
 fileio
@@ -134,4 +137,4 @@ and ``file://`` locations and compression/decompression of ``.gz`` and
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
-*API doc*: http://pysparkling.trivial.io/v0.2/api.html#pysparkling.fileio.File
+*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.fileio.File

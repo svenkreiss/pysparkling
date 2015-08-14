@@ -5,11 +5,11 @@ import logging
 import tempfile
 from pysparkling import Context
 from pysparkling.fileio import File
-
-random.seed()
+from nose.plugins.skip import SkipTest
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
+HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
 
 
 def test_cache():
@@ -50,7 +50,7 @@ def test_wholeTextFiles():
 
 def test_s3_textFile():
     if not os.getenv('AWS_ACCESS_KEY_ID'):
-        return
+        raise SkipTest
 
     myrdd = Context().textFile(
         's3n://aws-publicdatasets/common-crawl/crawl-data/'
@@ -65,28 +65,67 @@ def test_s3_textFile():
 
 def test_s3_textFile_loop():
     if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
-        return
+        raise SkipTest
+
+    random.seed()
 
     fn = S3_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
         int(random.random()*999999.0)
     )
 
-    rdd_orig = Context().parallelize(range(200)).map(
-        lambda n: "This is line {0}".format(n)
-    )
-    rdd_orig.saveAsTextFile(fn)
-
+    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
-    assert all(
-        e1 == e2
-        for e1, e2 in zip(rdd_orig.collect(), rdd_check.collect())
+    assert (
+        rdd.count() == rdd_check.count() and
+        all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
     )
+
+
+def test_hdfs_textFile_loop():
+    if not HDFS_TEST_PATH:
+        raise SkipTest
+
+    random.seed()
+
+    fn = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd.saveAsTextFile(fn)
+    read_rdd = Context().textFile(fn)
+    assert (
+        rdd.count() == read_rdd.count() and
+        all(r1 == r2 for r1, r2 in zip(rdd.collect(), read_rdd.collect()))
+    )
+
+
+def test_hdfs_file_exists():
+    if not HDFS_TEST_PATH:
+        raise SkipTest
+
+    random.seed()
+
+    fn1 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+    fn2 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd.saveAsTextFile(fn1)
+
+    assert File(fn1).exists() and not File(fn2).exists()
 
 
 def test_dumpToFile():
     if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
-        return
+        raise SkipTest
+
+    random.seed()
 
     fn = S3_TEST_PATH+'/pysparkling_test_{0}.pickle'.format(
         int(random.random()*999999.0)
@@ -150,10 +189,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # test_saveAsTextFile()
     # test_local_textFile_2()
-    test_wholeTextFiles()
+    # test_wholeTextFiles()
     # test_saveAsTextFile_gz()
     # test_s3_textFile()
     # test_http_textFile()
+    # test_hdfs_textFile_loop()
+    test_hdfs_file_exists()
     # test_pyspark_compatibility_txt()
     # test_pyspark_compatibility_gz()
     # test_pyspark_compatibility_bz2()

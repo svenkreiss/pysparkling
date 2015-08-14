@@ -43,19 +43,15 @@ class File(object):
         log.debug('Filenames: {0}'.format(files))
         return files
 
-    @staticmethod
-    def exists(path):
+    def exists(self):
         """
         Checks both for a file or directory at this location.
-
-        :param path:
-            Path to check.
 
         :returns:
             True or false.
 
         """
-        return fs.get_fs(path).exists(path)
+        return self.fs.exists()
 
     def load(self):
         """

@@ -5,3 +5,7 @@ class FileAlreadyExistsException(Exception):
 
 class ConnectionException(Exception):
     pass
+
+
+class FileSystemNotSupported(Exception):
+    pass

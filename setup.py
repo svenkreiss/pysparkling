@@ -22,13 +22,18 @@ setup(
               'pysparkling.fileio.fs',
               'pysparkling.fileio.codec'],
     license='MIT',
-    description='Python native implementation of the Spark RDD interface.',
+    description='Pure Python implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
     author='Sven Kreiss',
     author_email='me@svenkreiss.com',
     url='https://github.com/svenkreiss/pysparkling',
 
-    install_requires=['boto>=2.36.0', 'requests>=2.6.0'],
+    install_requires=[],
+    extras_require={
+        'http': ['requests>=2.6.0'],
+        's3': ['boto>=2.36.0'],
+        'hdfs': ['hdfs>=1.0.0'],
+    },
     entry_points={
         'console_scripts': [],
     },

@@ -20,6 +20,7 @@ from collections import defaultdict
 from . import utils
 from .fileio import File, TextFile
 from .stat_counter import StatCounter
+from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 
 try:
@@ -48,6 +49,7 @@ class RDD(object):
         self._p = partitions
         self.context = ctx
         self._name = None
+        self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
         r = dict((k, v) for k, v in self.__dict__.items())
@@ -57,7 +59,7 @@ class RDD(object):
 
     def compute(self, split, task_context):
         """split is a partition. This function is used in derived RDD
-        classes. To add smarter behavior for specific cases."""
+        classes to add smarter behavior for specific cases."""
         return split.x()
 
     def partitions(self):
@@ -89,6 +91,17 @@ class RDD(object):
 
         :returns:
             Output of ``combOp`` operations.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> seqOp = (lambda x, y: (x[0] + y, x[1] + 1))
+        >>> combOp = (lambda x, y: (x[0] + y[0], x[1] + y[1]))
+        >>> Context().parallelize(
+        ...     [1, 2, 3, 4], 2
+        ... ).aggregate((0, 0), seqOp, combOp)
+        (10, 4)
 
         """
         return self.context.runJob(
@@ -124,6 +137,18 @@ class RDD(object):
         :returns:
             Output of ``combOp`` operations.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> seqOp = (lambda x, y: x + y)
+        >>> combOp = (lambda x, y: x + y)
+        >>> r = Context().parallelize(
+        ...     [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
+        ... ).aggregateByKey(0, seqOp, combOp)
+        >>> (r['a'], r['b'])
+        (4, 2)
+
         """
         def seqFuncByKey(tc, i):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
@@ -146,6 +171,32 @@ class RDD(object):
         Whenever a partition is computed, cache the result.
         Alias for :func:`RDD.persist`.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>>
+        >>> n_exec = 0
+        >>>
+        >>> def _map(e):
+        ...     global n_exec
+        ...     n_exec += 1
+        ...     return e*e
+        >>>
+        >>> my_rdd = Context().parallelize([1, 2, 3, 4], 2)
+        >>> my_rdd = my_rdd.map(_map).cache()
+        >>>
+        >>> # no exec until here
+        >>> f = my_rdd.first()
+        >>>
+        >>> # executed map on first partition only so far
+        >>> a = my_rdd.collect()
+        >>>
+        >>> # now _map() was executed on all partitions and should
+        >>> # not be executed again
+        >>> (my_rdd.collect(), n_exec)
+        ([1, 4, 9, 16], 6)
+
         """
         return self.persist()
 
@@ -160,6 +211,14 @@ class RDD(object):
         .. note::
             This is currently implemented as a local operation requiring
             all data to be pulled on one machine.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([1, 2])
+        >>> sorted(rdd.cartesian(rdd).collect())
+        [(1, 1), (1, 2), (2, 1), (2, 2)]
 
         """
         v1 = self.toLocalIterator()
@@ -181,6 +240,13 @@ class RDD(object):
             This is currently implemented as a local operation requiring
             all data to be pulled on one machine.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).coalesce(1).getNumPartitions()
+        1
+
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
@@ -188,6 +254,13 @@ class RDD(object):
         """
         :returns:
             The entire dataset as a list.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).collect()
+        [1, 2, 3]
 
         """
         return self.context.runJob(
@@ -199,6 +272,13 @@ class RDD(object):
         """
         :returns:
             Number of entries in this dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).count()
+        3
 
         """
         return self.context.runJob(self, lambda tc, i: sum(1 for _ in i),
@@ -216,6 +296,15 @@ class RDD(object):
         :returns:
             A ``dict`` containing the count for every key.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize(
+        ...     [('a', 1), ('b', 2), ('b', 2)]
+        ... ).countByKey()['b']
+        4
+
         """
         def map_func(tc, x):
             r = defaultdict(int)
@@ -229,6 +318,13 @@ class RDD(object):
         """
         :returns:
             A ``dict`` containing the count for every value.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
+        2
 
         """
         def map_func(tc, x):
@@ -247,6 +343,13 @@ class RDD(object):
         :returns:
             A new RDD containing only distict elements.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1]).distinct().count()
+        3
+
         """
         return self.context.parallelize(list(set(self.toLocalIterator())),
                                         numPartitions)
@@ -260,6 +363,15 @@ class RDD(object):
         :returns:
             A new dataset.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize(
+        ...     [1, 2, 2, 4, 1, 3, 5, 9], 3,
+        ... ).filter(lambda x: x % 2 == 0).collect()
+        [2, 2, 4]
+
         """
         def map_func(tc, i, x):
             return (xx for xx in x if f(xx))
@@ -270,10 +382,23 @@ class RDD(object):
         :returns:
             The first element in the dataset.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3).first()
+        1
+
+        Works also with empty partitions:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2], 20).first()
+        1
+
         """
         return self.context.runJob(
             self,
-            lambda tc, i: i,
+            lambda tc, iterable: iterable,
             allowLocal=True,
             resultHandler=lambda l: next(itertools.chain.from_iterable(l)),
         )
@@ -291,6 +416,15 @@ class RDD(object):
         :returns:
             A new RDD.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize(['hello', 'world']).flatMap(
+        ...     lambda x: [ord(ch) for ch in x]
+        ... ).collect()
+        [104, 101, 108, 108, 111, 119, 111, 114, 108, 100]
+
         """
         return MapPartitionsRDD(
             self,
@@ -307,6 +441,15 @@ class RDD(object):
 
         :returns:
             A new RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([(1, 'hi'), (2, 'world')]).flatMapValues(
+        ...     lambda x: [ord(ch) for ch in x]
+        ... ).collect()
+        [(1, 104), (1, 105), (2, 119), (2, 111), (2, 114), (2, 108), (2, 100)]
 
         """
         return MapPartitionsRDD(
@@ -326,6 +469,14 @@ class RDD(object):
         :returns:
             The folded (or aggregated) value.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([4, 7, 2])
+        >>> my_rdd.fold(0, lambda a, b: a+b)
+        13
+
         """
         return self.aggregate(zeroValue, op, op)
 
@@ -340,6 +491,14 @@ class RDD(object):
         :returns:
             The folded (or aggregated) value by key.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([('a', 4), ('b', 7), ('a', 2)])
+        >>> my_rdd.foldByKey(0, lambda a, b: a+b)['a']
+        6
+
         """
         return self.aggregateByKey(zeroValue, op, op)
 
@@ -350,6 +509,16 @@ class RDD(object):
 
         :param f:
             Apply a function to every element.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([1, 2, 3])
+        >>> a = []
+        >>> my_rdd.foreach(lambda x: a.append(x))
+        >>> len(a)
+        3
 
         """
         self.context.runJob(self, lambda tc, x: [f(xx) for xx in x],
@@ -394,6 +563,14 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([4, 7, 2])
+        >>> my_rdd.groupBy(lambda x: x % 2).collect()
+        [(0, [2, 4]), (1, [7])]
+
         """
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
@@ -429,6 +606,15 @@ class RDD(object):
             histogram_values is a list of length n with the values of each
             bucket.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([0, 4, 7, 4, 10])
+        >>> b, h = my_rdd.histogram(10)
+        >>> h
+        [1, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]
+
         """
         if isinstance(buckets, int):
             num_buckets = buckets
@@ -462,6 +648,15 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([0, 4, 7, 4, 10])
+        >>> rdd2 = Context().parallelize([3, 4, 7, 4, 5])
+        >>> rdd1.intersection(rdd2).collect()
+        [4, 7]
+
         """
         return self.context.parallelize(
             list(set(self.toLocalIterator()) & set(other.toLocalIterator()))
@@ -484,6 +679,15 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1.join(rdd2).collect()
+        [(1, (1, 3))]
+
         """
         d1 = dict(self.collect())
         d2 = dict(other.collect())
@@ -501,6 +705,14 @@ class RDD(object):
         :returns:
             A new RDD containing the keyed data.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([0, 4, 7, 4, 10])
+        >>> rdd.keyBy(lambda x: x % 2).collect()
+        [(0, 0), (0, 4), (1, 7), (0, 4), (0, 10)]
+
         """
         return self.map(lambda e: (f(e), e))
 
@@ -508,6 +720,13 @@ class RDD(object):
         """
         :returns:
             A new RDD containing the keys of the current RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([(0, 1), (1, 1)]).keys().collect()
+        [0, 1]
 
         """
         return self.map(lambda e: e[0])
@@ -525,6 +744,15 @@ class RDD(object):
 
         .. note::
             Creating the new RDD is currently implemented as a local operation.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1.leftOuterJoin(rdd2).collect()
+        [(0, (1, None)), (1, (1, 3))]
 
         """
         d1 = dict(self.collect())
@@ -544,6 +772,13 @@ class RDD(object):
         :returns:
             A list of matched (key, value) pairs.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([(0, 1), (1, 1), (1, 3)]).lookup(1)
+        [1, 3]
+
         """
         return self.context.runJob(
             self,
@@ -559,6 +794,13 @@ class RDD(object):
         :returns:
             A new RDD with mapped values.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).map(lambda x: x+1).collect()
+        [2, 3, 4]
+
         """
         return MapPartitionsRDD(
             self,
@@ -573,6 +815,16 @@ class RDD(object):
 
         :returns:
             A new RDD with mapped partitions.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([1, 2, 3, 4], 2)
+        >>> def f(iterator):
+        ...     yield sum(iterator)
+        >>> rdd.mapPartitions(f).collect()
+        [3, 7]
 
         """
         return MapPartitionsRDD(
@@ -601,6 +853,13 @@ class RDD(object):
         :returns:
             The maximum element.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3, 4, 3, 2], 2).max() == 4
+        True
+
         """
         return self.stats().max()
 
@@ -608,6 +867,13 @@ class RDD(object):
         """
         :returns:
             The mean of this dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([0, 4, 7, 4, 10]).mean()
+        5.0
 
         """
         return self.stats().mean()
@@ -651,6 +917,14 @@ class RDD(object):
         .. warning::
             Unsafe for untrusted data.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> piped = Context().parallelize(['0', 'hello', 'world']).pipe('echo')
+        >>> b'hello\\n' in piped.collect()
+        True
+
         """
         return self.context.parallelize(subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
@@ -673,6 +947,15 @@ class RDD(object):
         :returns:
             A list of RDDs.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize(range(500))
+        >>> rdd1, rdd2 = rdd.randomSplit([2, 3], seed=42)
+        >>> (rdd1.count(), rdd2.count())
+        (199, 301)
+
         """
         sum_weights = sum(weights)
         boundaries = [0]
@@ -694,6 +977,13 @@ class RDD(object):
         :param f:
             A commutative and associative binary operator.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([0, 4, 7, 4, 10]).reduce(lambda a, b: a+b)
+        25
+
         """
         return self.context.runJob(
             self,
@@ -709,6 +999,14 @@ class RDD(object):
         .. note::
             This operation includes a :func:`pysparkling.RDD.groupByKey()`
             which is a local operation.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([(0, 1), (1, 1), (1, 3)])
+        >>> rdd.reduceByKey(lambda a, b: a+b).collect()
+        [(0, 1), (1, 4)]
 
         """
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
@@ -741,6 +1039,15 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> sorted(rdd1.rightOuterJoin(rdd2).collect())
+        [(1, (1, 3)), (2, (None, 1))]
+
         """
         d1 = dict(self.collect())
         d2 = dict(other.collect())
@@ -763,6 +1070,16 @@ class RDD(object):
         :returns:
             Sampled RDD.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize(range(100))
+        >>> sampled = rdd.sample(False, 0.1, seed=5)
+        >>> all(s1 == s2 for s1, s2 in zip(sampled.collect(),
+        ...                                sampled.collect()))
+        True
+
         """
         return PartitionwiseSampledRDD(
             self, fraction,
@@ -775,6 +1092,13 @@ class RDD(object):
         :returns:
             sample standard deviation
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).sampleStdev()
+        1.0
+
         """
         return self.stats().sampleStdev()
 
@@ -782,6 +1106,13 @@ class RDD(object):
         """
         :returns:
             sample variance
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3]).sampleVariance()
+        1.0
 
         """
         return self.stats().sampleVariance()
@@ -805,7 +1136,7 @@ class RDD(object):
 
         """
 
-        if File.exists(path):
+        if File(path).exists():
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
@@ -853,7 +1184,7 @@ class RDD(object):
             ``self``
 
         """
-        if TextFile.exists(path):
+        if TextFile(path).exists():
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
@@ -905,13 +1236,13 @@ class RDD(object):
 
         >>> from pysparkling import Context
         >>> rdd = Context().parallelize([5, 1, 2, 3])
-        >>> rdd.sortBy(lambda x: x).collect()[0]
-        1
+        >>> rdd.sortBy(lambda x: x).collect()
+        [1, 2, 3, 5]
 
         >>> from pysparkling import Context
         >>> rdd = Context().parallelize([1, 5, 2, 3])
-        >>> rdd.sortBy(lambda x: x, ascending=False).collect()[0]
-        5
+        >>> rdd.sortBy(lambda x: x, ascending=False).collect()
+        [5, 3, 2, 1]
 
         """
 
@@ -967,6 +1298,15 @@ class RDD(object):
         :returns:
             A :class:`pysparkling.StatCounter` instance.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> d = [1, 4, 9, 16, 25, 36]
+        >>> s = Context().parallelize(d, 3).stats()
+        >>> sum(d)/len(d) == s.mean()
+        True
+
         """
         return self.aggregate(
             StatCounter(),
@@ -978,6 +1318,13 @@ class RDD(object):
         """
         :returns:
             standard deviation
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1.5, 2.5]).stdev()
+        0.5
 
         """
         return self.stats().stdev()
@@ -993,6 +1340,15 @@ class RDD(object):
         :returns:
             New RDD.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(1, 1), (1, 3)])
+        >>> rdd1.subtract(rdd2).collect()
+        [(0, 1)]
+
         """
         list_other = other.collect()
         return MapPartitionsRDD(
@@ -1005,6 +1361,13 @@ class RDD(object):
         """
         :returns:
             The sum of all the elements.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([0, 4, 7, 4, 10]).sum()
+        25
 
         """
         return self.context.runJob(self, lambda tc, x: sum(x),
@@ -1019,6 +1382,21 @@ class RDD(object):
 
         :returns:
             Elements of the dataset in a list.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([4, 7, 2]).take(2)
+        [4, 7]
+
+
+        Another example where only the first two partitions only are computed
+        (check the debug logs):
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([4, 7, 2], 3).take(2)
+        [4, 7]
 
         """
 
@@ -1043,6 +1421,22 @@ class RDD(object):
 
         :returns:
             Samples from the dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([4, 7, 2]).takeSample(1)[0] in [4, 7, 2]
+        True
+
+
+        Another example where only one partition is computed
+        (check the debug logs):
+
+        >>> from pysparkling import Context
+        >>> d = [4, 9, 7, 3, 2, 5]
+        >>> Context().parallelize(d, 3).takeSample(1)[0] in d
+        True
 
         """
 
@@ -1083,6 +1477,13 @@ class RDD(object):
         :returns:
             An iterator over the dataset.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> sum(Context().parallelize([4, 9, 7, 3, 2, 5], 3).toLocalIterator())
+        30
+
         """
         return self.context.runJob(
             self, lambda tc, i: list(i),
@@ -1096,6 +1497,14 @@ class RDD(object):
 
         :returns:
             A new RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+        >>> my_rdd.union(my_rdd).count()
+        12
 
         """
         return self.context.union((self, other))
@@ -1113,6 +1522,13 @@ class RDD(object):
         :returns:
             The variance of the dataset.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1.5, 2.5]).variance()
+        0.25
+
         """
         return self.stats().variance()
 
@@ -1127,6 +1543,14 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+        >>> my_rdd.zip(my_rdd).collect()
+        [(4, 4), (9, 9), (7, 7), (3, 3), (2, 2), (5, 5)]
+
         """
         return self.context.parallelize(
             zip(self.toLocalIterator(), other.toLocalIterator())
@@ -1138,6 +1562,14 @@ class RDD(object):
 
         :returns:
             New RDD where every entry is zipped with a unique index.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([423, 234, 986, 5, 345], 3)
+        >>> my_rdd.zipWithUniqueId().collect()
+        [(423, 0), (234, 1), (986, 4), (5, 2), (345, 5)]
 
         """
         num_p = self.getNumPartitions()
@@ -1206,11 +1638,19 @@ class PersistedRDD(RDD):
         """
         RDD.__init__(self, prev.partitions(), prev.context)
         self.prev = prev
-        self.cached_partitions = {}
+        self.storageLevel = storageLevel
 
     def compute(self, split, task_context):
-        if split.index not in self.cached_partitions:
-            self.cached_partitions[split.index] = list(
-                self.prev.compute(split, task_context._create_child())
+        if self._rdd_id is None or split.index is None:
+            cid = None
+        else:
+            cid = '{0}:{1}'.format(self._rdd_id, split.index)
+
+        if not CacheManager.singleton().has(cid):
+            CacheManager.singleton().add(
+                cid,
+                list(self.prev.compute(split, task_context._create_child())),
+                self.storageLevel
             )
-        return iter(self.cached_partitions[split.index])
+
+        return iter(CacheManager.singleton().get(cid))

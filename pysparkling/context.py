@@ -1,6 +1,7 @@
 """Context."""
 
-from __future__ import division, print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import pickle
 import logging
@@ -10,6 +11,7 @@ from .rdd import RDD
 from .broadcast import Broadcast
 from .partition import Partition
 from .task_context import TaskContext
+from .cache_manager import CacheManager
 from .fileio import File, TextFile
 from . import __version__ as PYSPARKLING_VERSION
 
@@ -23,16 +25,24 @@ def unit_fn(arg):
 
 def runJob_map(i):
     (deserializer, data_serializer, data_deserializer,
-     serialized, serialized_data) = i
+     serialized, serialized_data, cache_manager) = i
+
+    if cache_manager:
+        CacheManager._singleton = data_deserializer(cache_manager)
+    cm_state = CacheManager.singleton().stored_idents()
+
     func, rdd = deserializer(serialized)
     partition = data_deserializer(serialized_data)
     log.debug('Worker function {0} is about to get executed with {1}'
               ''.format(func, partition))
 
     task_context = TaskContext(stage_id=0, partition_id=partition.index)
-    return data_serializer(
-        func(task_context, rdd.compute(partition, task_context))
-    )
+    result = func(task_context, rdd.compute(partition, task_context))
+
+    return data_serializer((
+        result,
+        CacheManager.singleton().get_not_in(cm_state),
+    ))
 
 
 class Context(object):
@@ -143,8 +153,8 @@ class Context(object):
         >>> tmpFile.close()
         >>> with open(tmpFile.name, 'wb') as f:
         ...     pickle.dump(['hello', 'world'], f)
-        >>> Context().pickleFile(tmpFile.name).collect()[0]
-        'hello'
+        >>> Context().pickleFile(tmpFile.name).collect()[0] == 'hello'
+        True
 
         """
         resolved_names = File.resolve_filenames(name)
@@ -204,18 +214,24 @@ class Context(object):
                 return func(task_context, rdd.compute(partition, task_context))
             map_result = (local_map(p) for p in partitions)
         else:
-            map_result = (
-                self._data_deserializer(d)
+            def map_and_cache():
+                cm = CacheManager.singleton()
                 for d in self._pool.map(runJob_map, [
                     (self._deserializer,
                      self._data_serializer,
                      self._data_deserializer,
                      self._serializer((func, rdd)),
                      self._data_serializer(p),
+                     self._data_serializer(
+                        cm.clone_contains(':{0}'.format(p.index))
+                     ),
                      )
                     for p in partitions
-                ])
-            )
+                ]):
+                    map_result, cache_result = self._data_deserializer(d)
+                    cm.join(cache_result)
+                    yield map_result
+            map_result = map_and_cache()
         log.debug('Map jobs generated.')
 
         if resultHandler is not None:

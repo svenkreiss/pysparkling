@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
-GHPAGES       = _build/ghpages/v0.2
+GHPAGES       = _build/ghpages/v0.3
 GHPAGESALL    = _build/ghpages
 
 # User-friendly check for sphinx-build

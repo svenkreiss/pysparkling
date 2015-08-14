@@ -16,13 +16,6 @@ class Local(FileSystem):
         FileSystem.__init__(self, file_name)
 
     @staticmethod
-    def exists(path):
-        path_local = path
-        if path_local.startswith('file://'):
-            path_local = path_local[7:]
-        return os.path.exists(path_local) or os.path.exists(path_local+'/')
-
-    @staticmethod
     def resolve_filenames(expr):
         if expr.startswith('file://'):
             expr = expr[7:]
@@ -44,6 +37,12 @@ class Local(FileSystem):
         # files += glob.glob(expr)+glob.glob(expr+'/part*')
 
         return files
+
+    def exists(self):
+        path_local = self.file_name
+        if path_local.startswith('file://'):
+            path_local = path_local[7:]
+        return os.path.exists(path_local) or os.path.exists(path_local+'/')
 
     def load(self):
         f_name_local = self.file_name

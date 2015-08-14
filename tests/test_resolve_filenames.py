@@ -1,5 +1,6 @@
 import os
 from pysparkling.fileio import File
+from nose.plugins.skip import SkipTest
 
 
 def test_local_1():
@@ -19,7 +20,7 @@ def test_local_2():
 
 def test_s3_1():
     if not os.getenv('AWS_ACCESS_KEY_ID'):
-        return
+        raise SkipTest
 
     filenames = File.resolve_filenames(
         's3n://aws-publicdatasets/common-crawl/'

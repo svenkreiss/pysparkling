@@ -1,4 +1,9 @@
+from __future__ import absolute_import
+
+import logging
 import itertools
+
+log = logging.getLogger(__name__)
 
 
 class Partition(object):
