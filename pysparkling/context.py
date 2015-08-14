@@ -28,8 +28,14 @@ def runJob_map(i):
      serialized, serialized_data, cache_manager) = i
 
     if cache_manager:
-        CacheManager._singleton = data_deserializer(cache_manager)
+        if not CacheManager.singleton__:
+            CacheManager.singleton__ = data_deserializer(cache_manager)
+        else:
+            CacheManager.singleton().join(
+                data_deserializer(cache_manager).cache_obj
+            )
     cm_state = CacheManager.singleton().stored_idents()
+    log.debug('Cache indices available in map: {0}'.format(cm_state))
 
     func, rdd = deserializer(serialized)
     partition = data_deserializer(serialized_data)

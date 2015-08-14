@@ -175,6 +175,7 @@ class RDD(object):
         Example:
 
         >>> from pysparkling import Context
+        >>> from pysparkling import CacheManager
         >>>
         >>> n_exec = 0
         >>>
@@ -186,14 +187,26 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([1, 2, 3, 4], 2)
         >>> my_rdd = my_rdd.map(_map).cache()
         >>>
-        >>> # no exec until here
+        >>> logging.info('no exec until here')
         >>> f = my_rdd.first()
+        >>> logging.info('available caches in {1}: {0}'.format(
+        ...     CacheManager.singleton().stored_idents(),
+        ...     CacheManager.singleton(),
+        ... ))
         >>>
-        >>> # executed map on first partition only so far
+        >>> logging.info('executed map on first partition only so far')
         >>> a = my_rdd.collect()
+        >>> logging.info('available caches in {1}: {0}'.format(
+        ...     CacheManager.singleton().stored_idents(),
+        ...     CacheManager.singleton(),
+        ... ))
         >>>
-        >>> # now _map() was executed on all partitions and should
-        >>> # not be executed again
+        >>> logging.info('now _map() was executed on all partitions and should'
+        ...              'not be executed again')
+        >>> logging.info('available caches in {1}: {0}'.format(
+        ...     CacheManager.singleton().stored_idents(),
+        ...     CacheManager.singleton(),
+        ... ))
         >>> (my_rdd.collect(), n_exec)
         ([1, 4, 9, 16], 4)
 

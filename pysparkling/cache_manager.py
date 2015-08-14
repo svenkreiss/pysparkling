@@ -31,17 +31,17 @@ class CacheManager(object):
         Function returning a checksum.
 
     """
-    __singleton = None
+    singleton__ = None
 
     @staticmethod
     def singleton(max_mem=1.0,
                   serializer=None, deserializer=None,
                   checksum=None):
-        if CacheManager.__singleton is None:
-            CacheManager.__singleton = CacheManager(max_mem,
+        if CacheManager.singleton__ is None:
+            CacheManager.singleton__ = CacheManager(max_mem,
                                                     serializer, deserializer,
                                                     checksum)
-        return CacheManager.__singleton
+        return CacheManager.singleton__
 
     def __init__(self,
                  max_mem=1.0,
