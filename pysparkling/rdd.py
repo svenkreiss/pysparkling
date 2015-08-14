@@ -195,7 +195,7 @@ class RDD(object):
         >>> # now _map() was executed on all partitions and should
         >>> # not be executed again
         >>> (my_rdd.collect(), n_exec)
-        ([1, 4, 9, 16], 6)
+        ([1, 4, 9, 16], 4)
 
         """
         return self.persist()

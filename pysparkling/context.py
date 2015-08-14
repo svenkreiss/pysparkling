@@ -66,6 +66,8 @@ class Context(object):
 
     """
 
+    __last_rdd_id = 0
+
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None):
         if not pool:
@@ -85,7 +87,6 @@ class Context(object):
         self._data_serializer = data_serializer
         self._data_deserializer = data_deserializer
         self._s3_conn = None
-        self._last_rdd_id = 0
 
         self.version = PYSPARKLING_VERSION
 
@@ -93,8 +94,8 @@ class Context(object):
         return Broadcast(x)
 
     def newRddId(self):
-        self._last_rdd_id += 1
-        return self._last_rdd_id
+        Context.__last_rdd_id += 1
+        return Context.__last_rdd_id
 
     def parallelize(self, x, numPartitions=None):
         """

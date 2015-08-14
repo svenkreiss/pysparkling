@@ -35,29 +35,36 @@ def test_first_mp():
     assert my_rdd.first() == 1
 
 
-INDENT_WAS_EXECUTED = False
-
-
-def indent_line(l):
-    global INDENT_WAS_EXECUTED
-    INDENT_WAS_EXECUTED = True
-    return '--- '+l
-
-
 def test_lazy_execution():
+
+    class I(object):
+        def __init__(self):
+            self.executed = False
+
+        def indent_line(self, l):
+            # global indent_was_executed
+            self.executed = True
+            return '--- '+l
+
     r = Context().textFile('tests/test_multiprocessing.py')
-    r = r.map(indent_line)
-    exec_before_collect = INDENT_WAS_EXECUTED
+    i = I()
+
+    r = r.map(i.indent_line)
+    exec_before_collect = i.executed
     # at this point, no map() or foreach() should have been executed
-    r = r.map(indent_line).cache()
+    r = r.map(i.indent_line).cache()
     print(r.collect())
-    r = r.map(indent_line)
+    r = r.map(i.indent_line)
     r.collect()
-    exec_after_collect = INDENT_WAS_EXECUTED
+    exec_after_collect = i.executed
+    print((exec_before_collect, exec_after_collect))
     assert not exec_before_collect and exec_after_collect
 
 
 def test_lazy_execution_threadpool():
+    def indent_line(l):
+        return '--- '+l
+
     with futures.ThreadPoolExecutor(4) as p:
         r = Context(pool=p).textFile('tests/test_multiprocessing.py')
         r = r.map(indent_line).cache()
@@ -70,14 +77,20 @@ def test_lazy_execution_threadpool():
 
 
 def test_lazy_execution_processpool():
+    def indent_line(l):
+        return '--- '+l
+
     with futures.ProcessPoolExecutor(4) as p:
         r = Context(
             pool=p,
             serializer=cloudpickle.dumps,
             deserializer=pickle.loads,
-        ).textFile('tests/test_multiprocessing.py')
-        r = r.map(indent_line).cache()
-        r.collect()
+        ).textFile('tests/test_multiprocessing.py')  # .take(10)
+        print(r.collect())
+        r = r.map(indent_line)
+        print(r.collect())
+        r = r.cache()
+        print(r.collect())
         r = r.map(indent_line)
         r = r.collect()
         # ProcessPool is not lazy although it returns generators.
@@ -91,7 +104,7 @@ def test_processpool_distributed_cache():
             pool=p,
             serializer=cloudpickle.dumps,
             deserializer=pickle.loads,
-        ).parallelize(range(3))
+        ).parallelize(range(3), 3)
         r = r.map(lambda _: time.sleep(0.1)).cache()
         r.collect()
 
