@@ -1646,11 +1646,12 @@ class PersistedRDD(RDD):
         else:
             cid = '{0}:{1}'.format(self._rdd_id, split.index)
 
-        if not CacheManager.singleton().has(cid):
-            CacheManager.singleton().add(
+        cm = CacheManager.singleton()
+        if not cm.has(cid):
+            cm.add(
                 cid,
                 list(self.prev.compute(split, task_context._create_child())),
                 self.storageLevel
             )
 
-        return iter(CacheManager.singleton().get(cid))
+        return iter(cm.get(cid))
