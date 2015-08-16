@@ -37,7 +37,7 @@ class Hdfs(FileSystem):
         path = t.next()
 
         if ':' not in domain:
-            port = 8020
+            port = 50070
         else:
             domain, port = domain.split(':')
             port = int(port)
