@@ -316,16 +316,10 @@ class RDD(object):
         >>> Context().parallelize(
         ...     [('a', 1), ('b', 2), ('b', 2)]
         ... ).countByKey()['b']
-        4
+        2
 
         """
-        def map_func(tc, x):
-            r = defaultdict(int)
-            for k, v in x:
-                r[k] += v
-            return r
-        return self.context.runJob(self, map_func,
-                                   resultHandler=utils.sum_counts_by_keys)
+        return self.map(lambda r: r[0]).countByValue()
 
     def countByValue(self):
         """
