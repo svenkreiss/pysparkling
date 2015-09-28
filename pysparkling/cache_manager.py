@@ -52,10 +52,7 @@ class CacheManager(object):
         self.deserializer = deserializer if deserializer else pickle.loads
         self.checksum = checksum if checksum else zlib.crc32
 
-        self.cache_obj = {}
-        self.cache_cnt = 0
-        self.cache_mem_size = 0.0
-        self.cache_disk_size = 0.0
+        self.clear()
 
     def incr_cache_cnt(self):
         self.cache_cnt += 1
@@ -139,3 +136,10 @@ class CacheManager(object):
 
         del self.cache_obj[ident]
         return True
+
+    def clear(self):
+        """Empties the entire cache."""
+        self.cache_obj = {}
+        self.cache_cnt = 0
+        self.cache_mem_size = 0.0
+        self.cache_disk_size = 0.0
