@@ -545,6 +545,39 @@ class RDD(object):
         self.context.runJob(self, lambda tc, x: f(x),
                             resultHandler=None)
 
+    def fullOuterJoin(self, other, numPartitions=None):
+        """
+        Returns the full outer join of two RDDs.
+
+        :param other:
+            The RDD to join to this one.
+
+        :param numPartitions: (optional)
+            Number of partitions of the resulting join.
+
+        :returns:
+            A new RDD with all keys from both input RDDs, with missing
+            keys replaced with None.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        Example:
+        >>> from pysparkling import Context
+        >>> sc = Context()
+        >>> rdd1 = sc.parallelize([('a', 0), ('b', 1)])
+        >>> rdd2 = sc.parallelize([('b', 2), ('c', 3)])
+        >>> sorted(rdd1.fullOuterJoin(rdd2).collect())
+        [('a', (0, None), ('b', (1, 2)), ('c', (None, 3))]
+        """
+        d1 = dict(self.collect())
+        d2 = dict(other.collect())
+        keys = set(d1.keys()).union(d2.keys())
+
+        return self.context.parallelize((
+            (k, (d1.get(k, None), d2.get(k, None)))
+            for k in keys), numPartitions)
+
     def getNumPartitions(self):
         """
         :returns:
