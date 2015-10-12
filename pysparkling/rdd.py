@@ -317,16 +317,10 @@ class RDD(object):
         >>> Context().parallelize(
         ...     [('a', 1), ('b', 2), ('b', 2)]
         ... ).countByKey()['b']
-        4
+        2
 
         """
-        def map_func(tc, x):
-            r = defaultdict(int)
-            for k, v in x:
-                r[k] += v
-            return r
-        return self.context.runJob(self, map_func,
-                                   resultHandler=utils.sum_counts_by_keys)
+        return self.map(lambda r: r[0]).countByValue()
 
     def countByValue(self):
         """
@@ -387,9 +381,11 @@ class RDD(object):
         [2, 2, 4]
 
         """
-        def map_func(tc, i, x):
-            return (xx for xx in x if f(xx))
-        return MapPartitionsRDD(self, map_func, preservesPartitioning=True)
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: (xx for xx in x if f(xx)),
+            preservesPartitioning=True,
+        )
 
     def first(self):
         """
@@ -794,11 +790,7 @@ class RDD(object):
         [1, 3]
 
         """
-        return self.context.runJob(
-            self,
-            lambda tc, x: (xx[1] for xx in x if xx[0] == key),
-            resultHandler=lambda l: [e for ll in l for e in ll],
-        )
+        return self.filter(lambda x: x[0] == key).values().collect()
 
     def map(self, f):
         """
