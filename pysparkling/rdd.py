@@ -143,12 +143,11 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> seqOp = (lambda x, y: x + y)
         >>> combOp = (lambda x, y: x + y)
-        >>> dict(
-        ...     Context().parallelize(
-        ...         [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
-        ...     ).aggregateByKey(0, seqOp, combOp)
-        ... )  # doctest: +IGNORE_UNICODE
-        {'a': 4, 'c': 4, 'b': 2}
+        >>> r = Context().parallelize(
+        ...     [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
+        ... ).aggregateByKey(0, seqOp, combOp)
+        ... (r['a'], r['b'])
+        (4, 2)
 
         """
         def seqFuncByKey(tc, i):
