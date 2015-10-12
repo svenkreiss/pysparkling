@@ -146,7 +146,7 @@ class RDD(object):
         >>> r = Context().parallelize(
         ...     [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
         ... ).aggregateByKey(0, seqOp, combOp)
-        ... (r['a'], r['b'])
+        >>> (r['a'], r['b'])
         (4, 2)
 
         """
