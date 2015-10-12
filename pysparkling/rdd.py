@@ -565,11 +565,12 @@ class RDD(object):
         Example:
         >>> from pysparkling import Context
         >>> sc = Context()
-        >>> rdd1 = sc.parallelize([('a', 0), ('b', 1)])
-        >>> rdd2 = sc.parallelize([('b', 2), ('c', 3)])
+        >>> rdd1 = sc.parallelize([(u'a', 0), (u'b', 1)])
+        >>> rdd2 = sc.parallelize([(u'b', 2), (u'c', 3)])
         >>> sorted(rdd1.fullOuterJoin(rdd2).collect())
-        [('a', (0, None), ('b', (1, 2)), ('c', (None, 3))]
+        [(u'a', (0, None)), (u'b', (1, 2)), (u'c', (None, 3))]
         """
+
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         keys = set(d1.keys()).union(d2.keys())
