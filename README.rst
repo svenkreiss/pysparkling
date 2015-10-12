@@ -138,3 +138,11 @@ Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
 *API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.fileio.File
+
+
+Development
+===========
+
+Fork the Github repository, apply your changes in a feature branch and create
+a Pull Request. Please run `nosetests` to run the unit test suite including
+doctests.

@@ -42,6 +42,7 @@ setup(
         'nose>=1.3.4',
         'futures>=3.0.1',
         'cloudpickle>=0.1.0',
+        'doctest-ignore-unicode>=0.1.2',
     ],
     test_suite='nose.collector',
 
