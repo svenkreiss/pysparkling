@@ -159,6 +159,15 @@ def test_saveAsTextFile_gz():
     assert '5' in read_rdd.collect()
 
 
+def test_saveAsTextFile_zip():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.zip')
+    read_rdd = Context().textFile(tempFile.name+'.zip')
+    print(read_rdd.collect())
+    assert '5' in read_rdd.collect()
+
+
 def test_saveAsTextFile_bz2():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()

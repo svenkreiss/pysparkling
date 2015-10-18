@@ -4,12 +4,14 @@ import logging
 
 from .codec import Codec
 from .gz import Gz
+from .zip import Zip
 from .bz2 import Bz2
 
 log = logging.getLogger(__name__)
 
 FILE_ENDINGS = [
     (('gz'), Gz),
+    (('zip'), Zip),
     (('bz2'), Bz2),
 ]
 
