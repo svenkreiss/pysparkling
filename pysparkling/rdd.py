@@ -1215,7 +1215,7 @@ class RDD(object):
 
         def _map(path, obj):
             stream = io.BytesIO()
-            pickle.dump(self.collect(), stream)
+            pickle.dump(obj, stream)
             stream.seek(0)
             File(path).dump(stream)
 
