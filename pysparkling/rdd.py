@@ -18,7 +18,7 @@ import subprocess
 from collections import defaultdict
 
 from . import utils
-from .fileio import File, TextFile
+from . import fileio
 from .stat_counter import StatCounter
 from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
@@ -1177,20 +1177,22 @@ class RDD(object):
 
         """
 
-        if File(path).exists():
+        if fileio.File(path).exists():
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
 
         codec_suffix = ''
-        if path.endswith(('.gz', '.bz2', '.lzo')):
+        if path.endswith(tuple('.'+ending
+                               for endings, _ in fileio.codec.FILE_ENDINGS
+                               for ending in endings)):
             codec_suffix = path[path.rfind('.'):]
 
         def _map(path, obj):
             stream = io.BytesIO()
             pickle.dump(self.collect(), stream)
             stream.seek(0)
-            File(path).dump(stream)
+            fileio.File(path).dump(stream)
 
         if self.getNumPartitions() == 1:
             _map(path, self.collect())
@@ -1204,7 +1206,7 @@ class RDD(object):
             ),
             resultHandler=lambda l: list(l),
         )
-        TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(path+'/_SUCCESS').dump()
         return self
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
@@ -1225,17 +1227,19 @@ class RDD(object):
             ``self``
 
         """
-        if TextFile(path).exists():
+        if fileio.TextFile(path).exists():
             raise FileAlreadyExistsException(
                 'Output {0} already exists.'.format(path)
             )
 
         codec_suffix = ''
-        if path.endswith(('.gz', '.bz2', '.lzo')):
+        if path.endswith(tuple('.'+ending
+                               for endings, _ in fileio.codec.FILE_ENDINGS
+                               for ending in endings)):
             codec_suffix = path[path.rfind('.'):]
 
         if self.getNumPartitions() == 1:
-            TextFile(
+            fileio.TextFile(
                 path
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in self.toLocalIterator()
@@ -1244,14 +1248,14 @@ class RDD(object):
 
         self.context.runJob(
             self,
-            lambda tc, x: TextFile(
+            lambda tc, x: fileio.TextFile(
                 path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in x
             ]))),
             resultHandler=lambda l: list(l),
         )
-        TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(path+'/_SUCCESS').dump()
         return self
 
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
