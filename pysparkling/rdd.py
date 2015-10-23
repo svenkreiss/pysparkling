@@ -358,6 +358,10 @@ class RDD(object):
         3
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         return self.context.parallelize(list(set(self.toLocalIterator())),
                                         numPartitions)
 
@@ -573,6 +577,9 @@ class RDD(object):
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
         """
 
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         keys = set(d1.keys()).union(d2.keys())
@@ -617,6 +624,10 @@ class RDD(object):
         [(0, [2, 4]), (1, [7])]
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
                 sorted(self.keyBy(f).collect()),
@@ -633,6 +644,10 @@ class RDD(object):
             Creating the new RDD is currently implemented as a local operation.
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
                 sorted(self.collect()),
@@ -734,6 +749,10 @@ class RDD(object):
         [(1, (1, 3))]
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         keys = set(d1.keys()) & set(d2.keys())
@@ -800,6 +819,10 @@ class RDD(object):
         [(0, (1, None)), (1, (1, 3))]
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         return self.context.parallelize((
@@ -1090,6 +1113,10 @@ class RDD(object):
         [(1, (1, 3)), (2, (None, 1))]
 
         """
+
+        if numPartitions is None:
+            numPartitions = self.getNumPartitions()
+
         d1 = dict(self.collect())
         d2 = dict(other.collect())
         return self.context.parallelize((
@@ -1188,7 +1215,7 @@ class RDD(object):
 
         def _map(path, obj):
             stream = io.BytesIO()
-            pickle.dump(self.collect(), stream)
+            pickle.dump(obj, stream)
             stream.seek(0)
             File(path).dump(stream)
 
