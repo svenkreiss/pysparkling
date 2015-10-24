@@ -15,14 +15,14 @@ class Zip(Codec):
 
     def compress(self, stream):
         compressed = BytesIO()
-        with zipfile.ZipFile(file=compressed, mode='w') as f:
+        with zipfile.ZipFile(file=compressed, mode='w', allowZip64=True) as f:
             f.writestr('data', stream.read())
         return BytesIO(compressed.getvalue())
 
     def decompress(self, stream):
         uncompressed = BytesIO()
 
-        with zipfile.ZipFile(file=stream, mode='r') as f:
+        with zipfile.ZipFile(file=stream, mode='r', allowZip64=True) as f:
             for f_name in f.namelist():
                 uncompressed.write(f.read(f_name))
 
