@@ -1,6 +1,10 @@
 from __future__ import absolute_import
 
-import py7zlib
+try:
+    import py7zlib
+except ImportError:
+    pass
+
 import logging
 from io import BytesIO
 
@@ -11,13 +15,18 @@ LOGGER = logging.getLogger(__name__)
 
 class SevenZ(Codec):
     def __init__(self):
-        pass
+        if 'py7zlib' not in globals():
+            LOGGER.warn('py7zlib could not be imported. To read 7z files, '
+                        'install the library with "pip install py7zlib".')
 
     def compress(self, stream):
         LOGGER.warn('Writing of 7z compressed archives is not supported.')
         return stream
 
     def decompress(self, stream):
+        if 'py7zlib' not in globals():
+            return Codec.decompress(self, stream)
+
         uncompressed = BytesIO()
 
         f = py7zlib.Archive7z(file=stream)
