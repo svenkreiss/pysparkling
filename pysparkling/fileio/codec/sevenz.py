@@ -17,7 +17,7 @@ class SevenZ(Codec):
     def __init__(self):
         if 'py7zlib' not in globals():
             LOGGER.warn('py7zlib could not be imported. To read 7z files, '
-                        'install the library with "pip install py7zlib".')
+                        'install the library with "pip install pylzma".')
 
     def compress(self, stream):
         LOGGER.warn('Writing of 7z compressed archives is not supported.')

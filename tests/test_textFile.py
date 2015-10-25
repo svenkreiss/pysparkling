@@ -3,9 +3,15 @@ import pickle
 import random
 import logging
 import tempfile
+import unittest
 from pysparkling import Context
 from pysparkling.fileio import File
 from nose.plugins.skip import SkipTest
+
+try:
+    import py7zlib
+except ImportError:
+    pass
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
@@ -187,6 +193,7 @@ def test_saveAsTextFile_lzma():
     assert '5' in read_rdd.collect()
 
 
+@unittest.skipIf('py7zlib' not in globals(), "py7zlib not installed")
 def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py
