@@ -6,6 +6,8 @@ from .codec import Codec
 from .gz import Gz
 from .zip import Zip
 from .bz2 import Bz2
+from .lzma import Lzma
+from .sevenz import SevenZ
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +15,8 @@ FILE_ENDINGS = [
     (('gz'), Gz),
     (('zip'), Zip),
     (('bz2'), Bz2),
+    (('lzma', 'xz'), Lzma),
+    (('7z', SevenZ)),
 ]
 
 

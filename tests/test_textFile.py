@@ -92,10 +92,13 @@ def test_hdfs_textFile_loop():
     fn = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
         int(random.random()*999999.0)
     )
+    print('HDFS test file: {0}'.format(fn))
 
     rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
     rdd.saveAsTextFile(fn)
     read_rdd = Context().textFile(fn)
+    print(rdd.collect())
+    print(read_rdd.collect())
     assert (
         rdd.count() == read_rdd.count() and
         all(r1 == r2 for r1, r2 in zip(rdd.collect(), read_rdd.collect()))
@@ -176,6 +179,23 @@ def test_saveAsTextFile_bz2():
     assert '5' in read_rdd.collect()
 
 
+def test_saveAsTextFile_lzma():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.lzma')
+    read_rdd = Context().textFile(tempFile.name+'.lzma')
+    assert '5' in read_rdd.collect()
+
+
+def test_read_7z():
+    # file was created with:
+    # 7z a tests/data.7z tests/readme_example.py
+    # (brew install p7zip)
+    rdd = Context().textFile('tests/data.7z')
+    print(rdd.collect())
+    assert 'from pysparkling import Context' in rdd.collect()
+
+
 def test_pyspark_compatibility_txt():
     kv = Context().textFile('tests/pyspark/key_value.txt').collect()
     print(kv)
@@ -196,14 +216,4 @@ def test_pyspark_compatibility_gz():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    # test_saveAsTextFile()
-    # test_local_textFile_2()
-    # test_wholeTextFiles()
-    # test_saveAsTextFile_gz()
-    # test_s3_textFile()
-    # test_http_textFile()
-    # test_hdfs_textFile_loop()
-    test_hdfs_file_exists()
-    # test_pyspark_compatibility_txt()
-    # test_pyspark_compatibility_gz()
-    # test_pyspark_compatibility_bz2()
+    test_read_7z()
