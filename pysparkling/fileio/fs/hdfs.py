@@ -59,8 +59,6 @@ class Hdfs(FileSystem):
 
     @staticmethod
     def resolve_filenames(expr):
-        files = []
-
         c, expr_path = Hdfs.client_and_path(expr)
 
         t = Tokenizer(expr)
@@ -69,25 +67,33 @@ class Hdfs(FileSystem):
         fixed_path = t.next(['*', '?'])
         file_expr = t.next()
 
-        if '/' in fixed_path:
-            fixed_path = fixed_path[:fixed_path.rfind('/')]
+        if file_expr and '/' in fixed_path:
             file_expr = fixed_path[fixed_path.rfind('/')+1:]+file_expr
+            fixed_path = fixed_path[:fixed_path.rfind('/')]
+        # file_expr is only the actual file expression if there was a * or ?.
+        # Handle this case.
+        if not file_expr:
+            if '/' in fixed_path:
+                file_expr = fixed_path[fixed_path.rfind('/')+1:]
+                fixed_path = fixed_path[:fixed_path.rfind('/')]
+            else:
+                file_expr = fixed_path
+                fixed_path = ''
 
-        for fn, file_meta in c.list('/'+fixed_path):
-            print(fn)
-            print(type(fn))
-            if fnmatch.fnmatch(fn, expr_path) or \
-               fnmatch.fnmatch(fn, expr_path+'/part*'):
-                files.append(scheme+'://'+domain+fn)
+        files = []
+        for fn in c.list('/'+fixed_path, status=False):
+            if fnmatch.fnmatch(fn, file_expr) or \
+               fnmatch.fnmatch(fn, file_expr+'/part*'):
+                files.append(scheme+'://'+domain+'/'+fixed_path+'/'+fn)
+
         return files
 
     def load(self):
         log.debug('Hdfs read for {0}.'.format(self.file_name))
         c, path = Hdfs.client_and_path(self.file_name)
 
-        reader = c.read(path)
-        r = BytesIO(b''.join(reader))
-        reader.close()
+        with c.read(path) as reader:
+            r = BytesIO(reader.read())
 
         return r
 
@@ -95,9 +101,8 @@ class Hdfs(FileSystem):
         log.debug('Hdfs text read for {0}.'.format(self.file_name))
         c, path = Hdfs.client_and_path(self.file_name)
 
-        reader = c.read(path)
-        r = StringIO(''.join(reader))
-        reader.close()
+        with c.read(path) as reader:
+            r = StringIO(reader.read().decode('utf8'))
 
         return r
 
