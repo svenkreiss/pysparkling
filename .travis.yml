@@ -7,6 +7,6 @@ python:
  - "pypy"
  - "pypy3"
 install:
- - "pip install boto requests cloudpickle futures doctest-ignore-unicode"
+ - "pip install boto requests cloudpickle futures doctest-ignore-unicode pylzma"
  - "pip install ."
 script: "nosetests -vv"
