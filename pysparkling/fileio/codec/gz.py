@@ -15,10 +15,18 @@ class Gz(Codec):
 
     def compress(self, stream):
         compressed = BytesIO()
+
         with gzip.GzipFile(fileobj=compressed, mode='wb') as f:
-            for x in stream:
-                f.write(x)
-        return BytesIO(compressed.getvalue())
+            f.write(stream.read())
+
+        compressed.seek(0)
+        return compressed
 
     def decompress(self, stream):
-        return gzip.GzipFile(fileobj=stream, mode='rb')
+        uncompressed = BytesIO()
+
+        with gzip.GzipFile(fileobj=stream, mode='rb') as f:
+            uncompressed.write(f.read())
+
+        uncompressed.seek(0)
+        return uncompressed

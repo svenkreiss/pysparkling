@@ -32,7 +32,7 @@ setup(
     extras_require={
         'http': ['requests>=2.6.0'],
         's3': ['boto>=2.36.0'],
-        'hdfs': ['hdfs>=1.0.0'],
+        'hdfs': ['hdfs>=2.0.0'],
     },
     entry_points={
         'console_scripts': [],
