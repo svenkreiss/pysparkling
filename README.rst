@@ -43,7 +43,8 @@ Features
 * Supports multiple URI scheme: ``s3://``, ``hdfs://``, ``http://`` and ``file://``.
   Specify multiple files separated by comma.
   Resolves ``*`` and ``?`` wildcards.
-* Handles ``.gz`` and ``.bz2`` compressed files.
+* Handles ``.gz``, ``.zip``, ``.lzma``, ``.xz`` and ``.bz2`` compressed files.
+  Supports reading of ``.7z`` files.
 * Parallelization via ``multiprocessing.Pool``,
   ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
