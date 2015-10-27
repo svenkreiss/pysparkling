@@ -281,6 +281,22 @@ class RDD(object):
             resultHandler=lambda l: [x for p in l for x in p],
         )
 
+    def collectAsMap(self):
+        """
+        :returns:
+            A dictionary of a pair dataset.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> d = Context().parallelize([('a', 1), ('b', 2)]).collectAsMap()
+        >>> (d['a'], d['b'])
+        (1, 2)
+
+        """
+        return dict(self.collect())
+
     def count(self):
         """
         :returns:
