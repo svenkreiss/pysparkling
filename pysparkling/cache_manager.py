@@ -83,8 +83,8 @@ class CacheManager(object):
     def has(self, ident):
         return (
             ident in self.cache_obj and (
-                self.cache_obj[ident]['mem_obj'] or
-                self.cache_obj[ident]['disk_location']
+                self.cache_obj[ident]['mem_obj'] is not None or
+                self.cache_obj[ident]['disk_location'] is not None
             )
         )
 
