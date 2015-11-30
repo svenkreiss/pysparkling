@@ -52,9 +52,9 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = dict((k, v) for k, v in self.__dict__.items())
-        r['_p'] = list(self.partitions())
-        r['context'] = None
+        r = {k: v
+             for k, v in self.__dict__.iteritems()
+             if k not in ('_p', 'context')}
         return r
 
     def compute(self, split, task_context):
@@ -277,8 +277,9 @@ class RDD(object):
 
         """
         return self.context.runJob(
-            self, lambda tc, i: list(i),
-            resultHandler=lambda l: [x for p in l for x in p],
+            self,
+            unit_map,
+            resultHandler=unit_collect,
         )
 
     def collectAsMap(self):
@@ -884,7 +885,8 @@ class RDD(object):
         """
         return MapPartitionsRDD(
             self,
-            lambda tc, i, x: (f(xx) for xx in x),
+            MapF(f),
+            # lambda tc, i, x: (f(xx) for xx in x),
             preservesPartitioning=True,
         )
 
@@ -1743,3 +1745,21 @@ class PersistedRDD(RDD):
             )
 
         return iter(cm.get(cid))
+
+
+# pickle-able Helpers
+
+def unit_map(task_context, elements):
+    return list(elements)
+
+
+def unit_collect(l):
+    return [x for p in l for x in p]
+
+
+class MapF(object):
+    def __init__(self, f):
+        self.f = f
+
+    def __call__(self, tc, i, x):
+        return (self.f(xx) for xx in x)
