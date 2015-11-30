@@ -53,7 +53,7 @@ class RDD(object):
 
     def __getstate__(self):
         r = {k: v
-             for k, v in self.__dict__.iteritems()
+             for k, v in self.__dict__.items()
              if k not in ('_p', 'context')}
         return r
 
