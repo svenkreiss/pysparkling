@@ -1,11 +1,14 @@
 import math
 import time
 import pickle
+import timeit
 import logging
 import cloudpickle
 import multiprocessing
 from concurrent import futures
 from pysparkling import Context
+
+import pysparkling
 
 
 def test_multiprocessing():
@@ -114,6 +117,51 @@ def test_processpool_distributed_cache():
         assert time_end - time_start < 0.3
 
 
+def map1(ft):
+    return {
+        'first line': ft[1].lower().split('\n')[0],
+        'count import': ft[1].lower().count('import'),
+        'count print': ft[1].lower().count('print'),
+        'reversed': str(reversed([ft[1]])),
+        'number of lines': len(ft[1].split('\n')),
+    }
+
+
+def test_performance():
+    def map2(ft):
+        return {
+            'first line': ft[1].lower().split('\n')[0],
+            'count import': ft[1].lower().count('import'),
+            'count print': ft[1].lower().count('print'),
+            'reversed': str(reversed([ft[1]])),
+            'number of lines': len(ft[1].split('\n')),
+        }
+
+    def create_context(n_processes=0):
+        if not n_processes:
+            return Context()
+
+        p = futures.ProcessPoolExecutor(n_processes)
+        return Context(
+            pool=p,
+            serializer=cloudpickle.dumps,
+            # serializer=pickle.dumps,
+            deserializer=pickle.loads,
+        )
+
+    def test(n_processes):
+        c = create_context(n_processes)
+        t = timeit.Timer(
+            lambda: c.wholeTextFiles('tests/*.py').map(map2).collect()
+        ).timeit(number=100)
+        print(dict(c._stats))
+        return t
+
+    print('starting processing')
+    for n in range(8):
+        print(n, test(n))
+
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    test_processpool_distributed_cache()
+    logging.basicConfig(level=logging.INFO)
+    test_performance()
