@@ -124,7 +124,7 @@ def map1(ft):
     return [random.choice(ft[1].split()) for _ in range(1000)]
 
 
-@unittest.skipIf(os.getenv('TRAVIS', False) is True,
+@unittest.skipIf(os.getenv('TRAVIS', False) is not False,
                  "skip performance test on Travis")
 def test_performance():
     # not pickle-able map function
