@@ -1,3 +1,4 @@
+import os
 import math
 import time
 import pickle
@@ -5,12 +6,11 @@ import pprint
 import random
 import timeit
 import logging
+import unittest
 import cloudpickle
 import multiprocessing
 from concurrent import futures
 from pysparkling import Context
-
-import pysparkling
 
 
 def test_multiprocessing():
@@ -124,6 +124,8 @@ def map1(ft):
     return [random.choice(ft[1].split()) for _ in range(1000)]
 
 
+@unittest.skipIf(os.getenv('TRAVIS', False) is True,
+                 "skip performance test on Travis")
 def test_performance():
     # not pickle-able map function
     def map2(ft):
