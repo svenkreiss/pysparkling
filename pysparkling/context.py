@@ -63,6 +63,11 @@ def runJob_map(i):
 
 class Context(object):
     """
+    Context object similar to a Spark Context.
+
+    The variable `_stats` contains measured timing information about data and
+    function (de)serialization and workload execution to benchmark your jobs.
+
     :param pool:
         An instance with a ``map(func, iterable)`` method.
 
@@ -256,7 +261,7 @@ class Context(object):
                     # collect stats
                     for k, v in s.items():
                         self._stats[k] += v
-                    self._stats['driver_deserialized_data'] += t_deserialized
+                    self._stats['driver_deserialize_data'] += t_deserialized
 
                     yield map_result
             map_result = map_and_cache()

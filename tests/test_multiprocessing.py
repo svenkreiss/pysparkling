@@ -1,6 +1,8 @@
 import math
 import time
 import pickle
+import pprint
+import random
 import timeit
 import logging
 import cloudpickle
@@ -117,25 +119,15 @@ def test_processpool_distributed_cache():
         assert time_end - time_start < 0.3
 
 
+# pickle-able map function
 def map1(ft):
-    return {
-        'first line': ft[1].lower().split('\n')[0],
-        'count import': ft[1].lower().count('import'),
-        'count print': ft[1].lower().count('print'),
-        'reversed': str(reversed([ft[1]])),
-        'number of lines': len(ft[1].split('\n')),
-    }
+    return [random.choice(ft[1].split()) for _ in range(1000)]
 
 
 def test_performance():
+    # not pickle-able map function
     def map2(ft):
-        return {
-            'first line': ft[1].lower().split('\n')[0],
-            'count import': ft[1].lower().count('import'),
-            'count print': ft[1].lower().count('print'),
-            'reversed': str(reversed([ft[1]])),
-            'number of lines': len(ft[1].split('\n')),
-        }
+        return [random.choice(ft[1].split()) for _ in range(1000)]
 
     def create_context(n_processes=0):
         if not n_processes:
@@ -152,14 +144,23 @@ def test_performance():
     def test(n_processes):
         c = create_context(n_processes)
         t = timeit.Timer(
-            lambda: c.wholeTextFiles('tests/*.py').map(map2).collect()
-        ).timeit(number=100)
+            lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
+        ).timeit(number=30)
         print(dict(c._stats))
         return t
 
     print('starting processing')
+    test_results = {}
     for n in range(8):
-        print(n, test(n))
+        test_results[n] = test(n)
+        print(n, test_results[n])
+    print('results where running on one core with full serialization is 1.0:')
+    pprint.pprint({
+        n: v/test_results[1] for n, v in test_results.items()
+    })
+
+    # running on two cores takes less than 70% of the time running on one
+    assert test_results[2]/test_results[1] < 0.7
 
 
 if __name__ == '__main__':
