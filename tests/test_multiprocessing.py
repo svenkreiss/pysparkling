@@ -153,16 +153,18 @@ def test_performance():
 
     print('starting processing')
     test_results = {}
-    for n in range(8):
+    for n in range(8+1):
         test_results[n] = test(n)
         print(n, test_results[n])
     print('results where running on one core with full serialization is 1.0:')
     pprint.pprint({
-        n: v/test_results[1] for n, v in test_results.items()
+        n: 1.0 / (v/test_results[1]) for n, v in test_results.items()
     })
 
     # running on two cores takes less than 70% of the time running on one
     assert test_results[2]/test_results[1] < 0.7
+
+    return test_results
 
 
 if __name__ == '__main__':
