@@ -17,7 +17,6 @@ import itertools
 import subprocess
 from collections import defaultdict
 
-from . import utils
 from . import fileio
 from .stat_counter import StatCounter
 from .cache_manager import CacheManager
@@ -357,7 +356,7 @@ class RDD(object):
                 r[v] += 1
             return r
         return self.context.runJob(self, map_func,
-                                   resultHandler=utils.sum_counts_by_keys)
+                                   resultHandler=sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
         """
@@ -1747,7 +1746,15 @@ class PersistedRDD(RDD):
         return iter(cm.get(cid))
 
 
-# pickle-able Helpers
+# pickle-able helpers
+
+class MapF(object):
+    def __init__(self, f):
+        self.f = f
+
+    def __call__(self, tc, i, x):
+        return (self.f(xx) for xx in x)
+
 
 def unit_map(task_context, elements):
     return list(elements)
@@ -1757,9 +1764,9 @@ def unit_collect(l):
     return [x for p in l for x in p]
 
 
-class MapF(object):
-    def __init__(self, f):
-        self.f = f
-
-    def __call__(self, tc, i, x):
-        return (self.f(xx) for xx in x)
+def sum_counts_by_keys(list_of_pairlists):
+    r = defaultdict(int)  # calling int results in a zero
+    for l in list_of_pairlists:
+        for key, count in l.items():
+            r[key] += count
+    return r

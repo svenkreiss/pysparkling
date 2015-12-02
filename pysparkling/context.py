@@ -357,16 +357,9 @@ class Context(object):
             num_partitions = minPartitions
 
         rdd_filenames = self.parallelize(resolved_names, num_partitions)
-        rdd = rdd_filenames.map(whole_text_file)
+        rdd = rdd_filenames.map(map_whole_text_file)
         rdd._name = path
         return rdd
-
-
-def whole_text_file(f_name):
-    return (
-        f_name,
-        TextFile(f_name).load().read(),
-    )
 
 
 class DummyPool(object):
@@ -375,3 +368,12 @@ class DummyPool(object):
 
     def map(self, f, input_list):
         return (f(x) for x in input_list)
+
+
+# pickle-able helpers
+
+def map_whole_text_file(f_name):
+    return (
+        f_name,
+        TextFile(f_name).load().read(),
+    )
