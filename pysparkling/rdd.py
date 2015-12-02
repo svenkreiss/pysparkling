@@ -885,7 +885,6 @@ class RDD(object):
         return MapPartitionsRDD(
             self,
             MapF(f),
-            # lambda tc, i, x: (f(xx) for xx in x),
             preservesPartitioning=True,
         )
 
