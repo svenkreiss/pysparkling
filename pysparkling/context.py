@@ -369,6 +369,12 @@ class DummyPool(object):
     def map(self, f, input_list):
         return (f(x) for x in input_list)
 
+    def close(self):
+        pass
+
+    def shutdown(self):
+        pass
+
 
 # pickle-able helpers
 
