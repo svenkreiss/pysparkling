@@ -34,6 +34,12 @@ def plot():
     ax.set_xlim(-0.5, 8.5)
     ax.legend((bars[0], line[0]), ('measured', 'ideal'), loc='upper left')
 
+    for rect in bars:
+        height = rect.get_height()
+        ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
+                '{:.2f}'.format(height),
+                ha='center', va='bottom')
+
     fig.tight_layout()
     plt.show()
     fig.savefig('tests/multiprocessing_performance_plot.pdf')
