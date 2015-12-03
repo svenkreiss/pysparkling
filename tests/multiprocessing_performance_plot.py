@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import test_multiprocessing
 
 
-def plot(has_hyperthreading=False):
+def plot(has_hyperthreading=True):
     n_cpu, r = test_multiprocessing.test_performance()
     r = {n: 1.0 / (v[0]/r[1][0]) for n, v in r.items()}
 
@@ -20,8 +20,9 @@ def plot(has_hyperthreading=False):
     #                linewidth=2, linestyle='dashed', color='grey')
     # ax.plot((n_cpu, max(x)+0.5), (n_cpu, n_cpu),
     #         linewidth=2, linestyle='dashed', color='grey')
+    n_threads = n_cpu*2 if has_hyperthreading else n_cpu
     bars_ideal = ax.bar(
-        x_left, range(n_cpu)+[n_cpu for _ in range(len(x)-n_cpu)],
+        x_left, range(n_threads)+[n_threads for _ in range(len(x)-n_threads)],
         1.0, color='lightgrey', linewidth=0,
     )
 
@@ -29,17 +30,17 @@ def plot(has_hyperthreading=False):
     bars = ax.bar(x_left, y, 1.0, color='y')
 
     # divide with cpu cores
-    ax.plot((n_cpu+0.5, n_cpu+0.5), (0, n_cpu+1),
+    ax.plot((n_cpu+0.5, n_cpu+0.5), (0, n_threads+1),
             linewidth=2, linestyle='solid', color='black')
-    ax.text(n_cpu+0.4, n_cpu+1,
+    ax.text(n_cpu+0.4, n_threads+1,
             '{} CPU cores'.format(n_cpu),
             ha='right', va='top')
 
     # divide with cpu threads
     if has_hyperthreading:
-        ax.plot((n_cpu*2+0.5, n_cpu*2+0.5), (0, n_cpu+1),
+        ax.plot((n_cpu*2+0.5, n_cpu*2+0.5), (0, n_threads+1),
                 linewidth=2, linestyle='solid', color='black')
-        ax.text(n_cpu*2+0.4, n_cpu+1,
+        ax.text(n_cpu*2+0.4, n_threads+1,
                 '{} CPU threads'.format(n_cpu*2),
                 ha='right', va='top')
 
