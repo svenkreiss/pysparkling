@@ -158,7 +158,7 @@ def test_performance():
                 [10000 for _ in range(100)],
                 100,
             ).map(map_pi).collect()
-        ).timeit(number=100)
+        ).timeit(number=10)
         return (t, c._stats)
 
     print('starting processing')
@@ -173,7 +173,7 @@ def test_performance():
     })
     print('time spent where:')
     pprint.pprint({
-        n: {k: t/v[1]['map_exec'] for k, t in v[1].items()}
+        n: {k: '{:.1%}'.format(t/v[1]['map_exec']) for k, t in v[1].items()}
         for n, v in test_results.items()
     })
 
