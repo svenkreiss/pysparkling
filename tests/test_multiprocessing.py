@@ -148,22 +148,26 @@ def test_performance():
         t = timeit.Timer(
             lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
         ).timeit(number=30)
-        print(dict(c._stats))
-        return t
+        return (t, c._stats)
 
     print('starting processing')
     n_cpu = multiprocessing.cpu_count()
     test_results = {}
     for n in range(n_cpu*2 + 1):
         test_results[n] = test(n)
-        print(n, test_results[n])
+        print(n, test_results[n][0])
     print('results where running on one core with full serialization is 1.0:')
     pprint.pprint({
-        n: 1.0 / (v/test_results[1]) for n, v in test_results.items()
+        n: 1.0 / (v[0]/test_results[1][0]) for n, v in test_results.items()
+    })
+    print('time spent where:')
+    pprint.pprint({
+        n: {k: t/v[1]['map_exec'] for k, t in v[1].items()}
+        for n, v in test_results.items()
     })
 
     # running on two cores takes less than 70% of the time running on one
-    assert test_results[2]/test_results[1] < 0.7
+    assert test_results[2][0]/test_results[1][0] < 0.7
 
     return (n_cpu, test_results)
 

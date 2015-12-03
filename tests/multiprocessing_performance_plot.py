@@ -5,7 +5,7 @@ import test_multiprocessing
 
 def plot():
     n_cpu, r = test_multiprocessing.test_performance()
-    r = {n: 1.0 / (v/r[1]) for n, v in r.items()}
+    r = {n: 1.0 / (v[0]/r[1][0]) for n, v in r.items()}
 
     x, y = zip(*sorted(r.items()))
     x_left = np.array(x) - 0.5
