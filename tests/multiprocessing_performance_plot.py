@@ -40,7 +40,7 @@ def plot(cpu_threads=2):
     ax.set_xlabel('n processes')
     ax.set_ylabel('speedup')
     ax.set_xticks(x)
-    ax.set_xticklabels(['no\nserialization\n(single core)'] +
+    ax.set_xticklabels(['no\nserialization\n(single process)'] +
                        [str(s) for s in x[1:]])
     ax.set_xlim(-0.5, max(x)+0.5)
     ax.set_ylim(0, max(x))
