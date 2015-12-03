@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import test_multiprocessing
 
 
-def plot():
+def plot(cpu_threads=2):
     n_cpu, r = test_multiprocessing.test_performance()
     r = {n: 1.0 / (v[0]/r[1][0]) for n, v in r.items()}
 
@@ -21,18 +21,26 @@ def plot():
     ax.plot((n_cpu, max(x)+0.5), (n_cpu, n_cpu),
             linewidth=2, linestyle='dashed', color='grey')
 
-    # divide with number of cores
-    ax.plot((n_cpu+0.5, n_cpu+0.5), (0, max(x)-1),
+    # divide with cpu cores
+    if cpu_threads:
+        ax.plot((n_cpu/2+0.5, n_cpu/2+0.5), (0, n_cpu+1),
+                linewidth=2, linestyle='solid', color='black')
+        ax.text(n_cpu/2+0.4, n_cpu+1,
+                '{} CPU cores'.format(n_cpu/2),
+                ha='right', va='top')
+
+    # divide with cpu threads
+    ax.plot((n_cpu+0.5, n_cpu+0.5), (0, n_cpu+1),
             linewidth=2, linestyle='solid', color='black')
-    ax.text(n_cpu+0.4, 7,
-            '{} CPU cores'.format(n_cpu),
+    ax.text(n_cpu+0.4, n_cpu+1,
+            '{} CPU threads'.format(n_cpu),
             ha='right', va='top')
 
     # add some text for labels, title and axes ticks
     ax.set_xlabel('n processes')
     ax.set_ylabel('speedup')
     ax.set_xticks(x)
-    ax.set_xticklabels(['no\nserialization\n(single core)'] +
+    ax.set_xticklabels(['no\nserialization\n(single process)'] +
                        [str(s) for s in x[1:]])
     ax.set_xlim(-0.5, max(x)+0.5)
     ax.set_ylim(0, max(x))

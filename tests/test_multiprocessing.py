@@ -124,6 +124,13 @@ def map1(ft):
     return [random.choice(ft[1].split()) for _ in range(1000)]
 
 
+def map_pi(n):
+    return len(filter(
+        lambda x: x < 1.0,
+        [random.random()**2 + random.random()**2 for _ in range(n)]
+    ))
+
+
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
                  "skip performance test on Travis")
 def test_performance():
@@ -146,14 +153,18 @@ def test_performance():
     def test(n_processes):
         c = create_context(n_processes)
         t = timeit.Timer(
-            lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
-        ).timeit(number=30)
+            # lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
+            lambda: c.parallelize(
+                [10000 for _ in range(100)],
+                100,
+            ).map(map_pi).collect()
+        ).timeit(number=100)
         return (t, c._stats)
 
     print('starting processing')
     n_cpu = multiprocessing.cpu_count()
     test_results = {}
-    for n in range(n_cpu*2 + 1):
+    for n in range(int(n_cpu*1.5 + 1)):
         test_results[n] = test(n)
         print(n, test_results[n][0])
     print('results where running on one core with full serialization is 1.0:')
