@@ -53,11 +53,15 @@ Features
   Some file access methods have optional dependencies:
   ``boto`` for AWS S3, ``requests`` for http, ``hdfs`` for hdfs
 
-The change log is in `HISTORY.rst <https://github.com/svenkreiss/pysparkling/blob/master/HISTORY.rst>`_.
-
 
 Examples
 ========
+
+Some demos are in the notebooks
+`docs/demo.ipynb <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_
+and
+`docs/iris.ipynb <https://github.com/svenkreiss/pysparkling/blob/master/docs/iris.ipynb>`_
+.
 
 **Word Count**
 
@@ -79,8 +83,6 @@ Examples
     print(counts.collect())
 
 which prints a long list of pairs of words and their counts.
-This and more advanced examples are demoed in
-`docs/demo.ipynb <https://github.com/svenkreiss/pysparkling/blob/master/docs/demo.ipynb>`_.
 
 
 API
