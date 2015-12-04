@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 
 class Tokenizer(object):
     def __init__(self, expression):
@@ -26,11 +24,3 @@ class Tokenizer(object):
         value = self.expression[:sep_pos]
         self.expression = self.expression[sep_pos+len(separator):]
         return value
-
-
-def sum_counts_by_keys(list_of_pairlists):
-    r = defaultdict(int)  # calling int results in a zero
-    for l in list_of_pairlists:
-        for key, count in l.items():
-            r[key] += count
-    return r

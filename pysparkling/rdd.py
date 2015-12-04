@@ -17,7 +17,6 @@ import itertools
 import subprocess
 from collections import defaultdict
 
-from . import utils
 from . import fileio
 from .stat_counter import StatCounter
 from .cache_manager import CacheManager
@@ -52,9 +51,9 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = dict((k, v) for k, v in self.__dict__.items())
-        r['_p'] = list(self.partitions())
-        r['context'] = None
+        r = {k: v
+             for k, v in self.__dict__.items()
+             if k not in ('_p', 'context')}
         return r
 
     def compute(self, split, task_context):
@@ -277,8 +276,9 @@ class RDD(object):
 
         """
         return self.context.runJob(
-            self, lambda tc, i: list(i),
-            resultHandler=lambda l: [x for p in l for x in p],
+            self,
+            unit_map,
+            resultHandler=unit_collect,
         )
 
     def collectAsMap(self):
@@ -356,7 +356,7 @@ class RDD(object):
                 r[v] += 1
             return r
         return self.context.runJob(self, map_func,
-                                   resultHandler=utils.sum_counts_by_keys)
+                                   resultHandler=sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
         """
@@ -884,7 +884,7 @@ class RDD(object):
         """
         return MapPartitionsRDD(
             self,
-            lambda tc, i, x: (f(xx) for xx in x),
+            MapF(f),
             preservesPartitioning=True,
         )
 
@@ -1743,3 +1743,29 @@ class PersistedRDD(RDD):
             )
 
         return iter(cm.get(cid))
+
+
+# pickle-able helpers
+
+class MapF(object):
+    def __init__(self, f):
+        self.f = f
+
+    def __call__(self, tc, i, x):
+        return (self.f(xx) for xx in x)
+
+
+def unit_map(task_context, elements):
+    return list(elements)
+
+
+def unit_collect(l):
+    return [x for p in l for x in p]
+
+
+def sum_counts_by_keys(list_of_pairlists):
+    r = defaultdict(int)  # calling int results in a zero
+    for l in list_of_pairlists:
+        for key, count in l.items():
+            r[key] += count
+    return r

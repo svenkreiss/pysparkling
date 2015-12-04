@@ -1,7 +1,12 @@
+import os
 import math
 import time
 import pickle
+import pprint
+import random
+import timeit
 import logging
+import unittest
 import cloudpickle
 import multiprocessing
 from concurrent import futures
@@ -114,6 +119,70 @@ def test_processpool_distributed_cache():
         assert time_end - time_start < 0.3
 
 
+# pickle-able map function
+def map1(ft):
+    return [random.choice(ft[1].split()) for _ in range(1000)]
+
+
+def map_pi(n):
+    return len(filter(
+        lambda x: x < 1.0,
+        [random.random()**2 + random.random()**2 for _ in range(n)]
+    ))
+
+
+@unittest.skipIf(os.getenv('TRAVIS', False) is not False,
+                 "skip performance test on Travis")
+def test_performance():
+    # not pickle-able map function
+    def map2(ft):
+        return [random.choice(ft[1].split()) for _ in range(1000)]
+
+    def create_context(n_processes=0):
+        if not n_processes:
+            return Context()
+
+        p = futures.ProcessPoolExecutor(n_processes)
+        return Context(
+            pool=p,
+            serializer=cloudpickle.dumps,
+            # serializer=pickle.dumps,
+            deserializer=pickle.loads,
+        )
+
+    def test(n_processes):
+        c = create_context(n_processes)
+        t = timeit.Timer(
+            # lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
+            lambda: c.parallelize(
+                [10000 for _ in range(100)],
+                100,
+            ).map(map_pi).collect()
+        ).timeit(number=10)
+        return (t, c._stats)
+
+    print('starting processing')
+    n_cpu = multiprocessing.cpu_count()
+    test_results = {}
+    for n in range(int(n_cpu*1.5 + 1)):
+        test_results[n] = test(n)
+        print(n, test_results[n][0])
+    print('results where running on one core with full serialization is 1.0:')
+    pprint.pprint({
+        n: 1.0 / (v[0]/test_results[1][0]) for n, v in test_results.items()
+    })
+    print('time spent where:')
+    pprint.pprint({
+        n: {k: '{:.1%}'.format(t/v[1]['map_exec']) for k, t in v[1].items()}
+        for n, v in test_results.items()
+    })
+
+    # running on two cores takes less than 70% of the time running on one
+    assert test_results[2][0]/test_results[1][0] < 0.7
+
+    return (n_cpu, test_results)
+
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    test_processpool_distributed_cache()
+    logging.basicConfig(level=logging.INFO)
+    test_performance()

@@ -3,9 +3,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import time
 import pickle
 import logging
 import itertools
+from collections import defaultdict
 
 from .rdd import RDD
 from .broadcast import Broadcast
@@ -24,6 +26,7 @@ def unit_fn(arg):
 
 
 def runJob_map(i):
+    t_start = time.clock()
     (deserializer, data_serializer, data_deserializer,
      serialized, serialized_data, cache_manager) = i
 
@@ -35,24 +38,36 @@ def runJob_map(i):
                 data_deserializer(cache_manager).cache_obj
             )
     cm_state = CacheManager.singleton().stored_idents()
-    log.debug('Cache indices available in map: {0}'.format(cm_state))
+    t_cache_init = time.clock()
 
     func, rdd = deserializer(serialized)
+    t_deserialize_func = time.clock()
     partition = data_deserializer(serialized_data)
-    log.debug('Worker function {0} is about to get executed with {1}'
-              ''.format(func, partition))
+    t_deserialize_data = time.clock()
 
     task_context = TaskContext(stage_id=0, partition_id=partition.index)
     result = func(task_context, rdd.compute(partition, task_context))
+    t_exec = time.clock()
 
     return data_serializer((
         result,
         CacheManager.singleton().get_not_in(cm_state),
+        {
+            'map_cache_init': t_cache_init - t_start,
+            'map_deserialize_func': t_deserialize_func - t_cache_init,
+            'map_deserialize_data': t_deserialize_data - t_deserialize_func,
+            'map_exec': t_exec - t_deserialize_data,
+        }
     ))
 
 
 class Context(object):
     """
+    Context object similar to a Spark Context.
+
+    The variable `_stats` contains measured timing information about data and
+    function (de)serialization and workload execution to benchmark your jobs.
+
     :param pool:
         An instance with a ``map(func, iterable)`` method.
 
@@ -93,6 +108,7 @@ class Context(object):
         self._data_serializer = data_serializer
         self._data_deserializer = data_deserializer
         self._s3_conn = None
+        self._stats = defaultdict(float)
 
         self.version = PYSPARKLING_VERSION
 
@@ -223,20 +239,30 @@ class Context(object):
         else:
             def map_and_cache():
                 cm = CacheManager.singleton()
-                for d in self._pool.map(runJob_map, [
+                serialized_func_rdd = self._serializer((func, rdd))
+                for d in self._pool.map(runJob_map, (
                     (self._deserializer,
                      self._data_serializer,
                      self._data_deserializer,
-                     self._serializer((func, rdd)),
+                     serialized_func_rdd,
                      self._data_serializer(p),
                      self._data_serializer(
                         cm.clone_contains(':{0}'.format(p.index))
                      ),
                      )
                     for p in partitions
-                ]):
-                    map_result, cache_result = self._data_deserializer(d)
+                )):
+                    t_start = time.clock()
+                    map_result, cache_result, s = self._data_deserializer(d)
+                    t_deserialized = time.clock() - t_start
+
+                    # join cache
                     cm.join(cache_result)
+                    # collect stats
+                    for k, v in s.items():
+                        self._stats[k] += v
+                    self._stats['driver_deserialize_data'] += t_deserialized
+
                     yield map_result
             map_result = map_and_cache()
         log.debug('Map jobs generated.')
@@ -331,10 +357,7 @@ class Context(object):
             num_partitions = minPartitions
 
         rdd_filenames = self.parallelize(resolved_names, num_partitions)
-        rdd = rdd_filenames.map(lambda f_name: (
-            f_name,
-            TextFile(f_name).load().read(),
-        ))
+        rdd = rdd_filenames.map(map_whole_text_file)
         rdd._name = path
         return rdd
 
@@ -345,3 +368,18 @@ class DummyPool(object):
 
     def map(self, f, input_list):
         return (f(x) for x in input_list)
+
+    def close(self):
+        pass
+
+    def shutdown(self):
+        pass
+
+
+# pickle-able helpers
+
+def map_whole_text_file(f_name):
+    return (
+        f_name,
+        TextFile(f_name).load().read(),
+    )
