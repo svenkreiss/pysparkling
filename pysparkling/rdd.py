@@ -1644,6 +1644,27 @@ class RDD(object):
             zip(self.toLocalIterator(), other.toLocalIterator())
         )
 
+    def zipWithIndex(self):
+        """
+        :returns:
+            New RDD with pairs of an original element and its index.
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+        >>> my_rdd.zipWithIndex().collect()
+        [(4, 0), (9, 1), (7, 2), (3, 3), (2, 4), (5, 5)]
+
+        """
+        return self.context.parallelize(
+            (d, i) for i, d in enumerate(self.toLocalIterator())
+        )
+
     def zipWithUniqueId(self):
         """
         This is a fast operation.
