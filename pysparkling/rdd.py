@@ -1578,6 +1578,29 @@ class RDD(object):
             resultHandler=lambda l: (x for p in l for x in p),
         )
 
+    def top(self, num, key=None):
+        """
+        :returns:
+            Top N elements in descending order.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> r = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
+        >>> r.top(2)
+        [9, 7]
+
+        """
+
+        def unit(x):
+            return x
+
+        if key is None:
+            key = unit
+
+        return self.sortBy(key, ascending=False).take(num)
+
     def union(self, other):
         """
         :param other:
