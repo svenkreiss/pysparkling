@@ -234,7 +234,7 @@ class RDD(object):
 
         """
         v1 = self.toLocalIterator()
-        v2 = self.collect()
+        v2 = other.collect()
         return self.context.parallelize([(a, b) for a in v1 for b in v2])
 
     def coalesce(self, numPartitions, shuffle=False):
@@ -1165,8 +1165,50 @@ class RDD(object):
         True
 
         """
+        def fraction_predicate(rnd, item):
+            return rnd < fraction
+
         return PartitionwiseSampledRDD(
-            self, fraction,
+            self, fraction_predicate,
+            preservesPartitioning=True,
+            seed=seed,
+        )
+
+    def sampleByKey(self, withReplacement, fractions, seed=None):
+        """
+        :param withReplacement:
+            Not used.
+
+        :param fractions:
+            Specifies the probability that an element is sampled per Key.
+
+        :param seed: (optional)
+            Seed for random number generator.
+
+        :returns:
+            Sampled RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> sc = Context()
+        >>> fractions = {"a": 0.2, "b": 0.1}
+        >>> rdd = sc.parallelize(fractions.keys()).cartesian(sc.parallelize(range(0, 1000)))
+        >>> sample = dict(rdd.sampleByKey(False, fractions, 2).groupByKey().collect())
+        >>> 100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150
+        True
+        >>> max(sample["a"]) <= 999 and min(sample["a"]) >= 0
+        True
+        >>> max(sample["b"]) <= 999 and min(sample["b"]) >= 0
+        True
+
+        """
+        def key_fractions_predicate(rnd, item):
+            return rnd < fractions[item[0]]
+
+        return PartitionwiseSampledRDD(
+            self, key_fractions_predicate,
             preservesPartitioning=True,
             seed=seed,
         )
@@ -1736,7 +1778,7 @@ class MapPartitionsRDD(RDD):
 
 
 class PartitionwiseSampledRDD(RDD):
-    def __init__(self, prev, fraction, preservesPartitioning=False, seed=None):
+    def __init__(self, prev, predicate, preservesPartitioning=False, seed=None):
         """prev is the previous RDD.
 
         f is a function with the signature
@@ -1748,7 +1790,7 @@ class PartitionwiseSampledRDD(RDD):
             seed = random.randint(0, sys.maxint)
 
         self.prev = prev
-        self.fraction = fraction
+        self.predicate = predicate
         self.preservesPartitioning = preservesPartitioning
         self.seed = seed
 
@@ -1756,7 +1798,7 @@ class PartitionwiseSampledRDD(RDD):
         random.seed(self.seed+split.index)
         return (
             x for x in self.prev.compute(split, task_context._create_child())
-            if random.random() < self.fraction
+            if self.predicate(random.random(), x)
         )
 
     def partitions(self):

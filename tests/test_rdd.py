@@ -139,6 +139,27 @@ class RDDTest(unittest.TestCase):
                               ('c', ('xc2', 'zc2')),
                               ('d', (None, 'zd'))])
 
+    def test_cartesian(self):
+        x = self.context.parallelize(range(0, 2))
+        y = self.context.parallelize(range(3, 6))
+        c = x.cartesian(y)
+        result = sorted(c.collect())
+        expected = sorted([(0, 3), (0, 4), (0, 5), (1, 3), (1, 4), (1, 5)])
+        self.assertListEqual(result, expected)
+
+    def test_sample(self):
+        rdd = self.context.parallelize(range(100), 4)
+        self.assertTrue(6 <= rdd.sample(False, 0.1, 81).count() <= 14)
+
+    def test_sampleByKey(self):
+        fractions = {"a": 0.2, "b": 0.1}
+        range_rdd = self.context.parallelize(range(0, 1000))
+        rdd = self.context.parallelize(fractions.keys()).cartesian(range_rdd)
+        sample = dict(rdd.sampleByKey(False, fractions, 2).groupByKey().collect())
+        self.assertTrue(100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150)
+        self.assertTrue(max(sample["a"]) <= 999 and min(sample["a"]) >= 0)
+        self.assertTrue(max(sample["b"]) <= 999 and min(sample["b"]) >= 0)
+
 test_cases = (RDDTest, )
 
 
