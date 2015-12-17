@@ -290,7 +290,7 @@ class RDD(object):
         d_other = defaultdict(list, other.groupByKey().collect())
         return self.context.parallelize([
             (k, [list(d_self[k]), list(d_other[k])])
-            for k in set(d_self.keys() + d_other.keys())
+            for k in set(d_self.keys()) | set(d_other.keys())
         ])
 
     def collect(self):
