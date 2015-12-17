@@ -30,7 +30,6 @@ class RDDTest(unittest.TestCase):
         self.assertEqual(zx, [('c', ('zc', 'xc')),
                               ('d', ('zd', None))])
 
-    @unittest.skip("Known failure")
     def testLeftOuterJoinDuplicate(self):
         """ Test the left outer join with duplicate keys """
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
@@ -71,7 +70,6 @@ class RDDTest(unittest.TestCase):
                               ('b', (None, 'xb')),
                               ('c', ('zc', 'xc'))])
 
-    @unittest.skip("Known failure")
     def testRightOuterJoinDuplicate(self):
         """ Test the right outer join with duplicate keys """
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
@@ -116,15 +114,14 @@ class RDDTest(unittest.TestCase):
                               ('c', ('zc', 'xc')),
                               ('d', ('zd', None))])
 
-    @unittest.skip("Known failure")
     def testFullOuterJoinDuplicate(self):
         """ Test the full outer join with duplicate keys """
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc1'), ('c', 'zc2'), ('d', 'zd')])
 
-        xy = sorted(x.rightOuterJoin(y).collect())
-        xz = sorted(x.rightOuterJoin(z).collect())
+        xy = sorted(x.fullOuterJoin(y).collect())
+        xz = sorted(x.fullOuterJoin(z).collect())
 
         self.assertEqual(xy, [('a', ('xa', None)),
                               ('b', (None, 'yb')),
@@ -155,22 +152,14 @@ class RDDTest(unittest.TestCase):
         fractions = {"a": 0.2, "b": 0.1}
         range_rdd = self.context.parallelize(range(0, 1000))
         rdd = self.context.parallelize(fractions.keys()).cartesian(range_rdd)
-        sample = dict(rdd.sampleByKey(False, fractions, 2).groupByKey().collect())
-        self.assertTrue(100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150)
+        sample = dict(
+            rdd.sampleByKey(False, fractions, 2).groupByKey().collect()
+        )
+        self.assertTrue(100 < len(sample["a"]) < 300 and
+                        50 < len(sample["b"]) < 150)
         self.assertTrue(max(sample["a"]) <= 999 and min(sample["a"]) >= 0)
         self.assertTrue(max(sample["b"]) <= 999 and min(sample["b"]) >= 0)
 
-test_cases = (RDDTest, )
-
-
-def load_tests(loader=unittest.TestLoader(), tests=test_cases, pattern=None):
-    """ Called by :func:`unittest.loadTestsFromModule()`, for test discovery """
-    suite = unittest.TestSuite()
-    for test_case in test_cases:
-        suite.addTest(loader.loadTestsFromTestCase(test_case))
-
-    return suite
-
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(load_tests())
+    unittest.main()

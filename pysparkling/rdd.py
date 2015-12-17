@@ -624,16 +624,13 @@ class RDD(object):
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
         """
 
-        if numPartitions is None:
-            numPartitions = self.getNumPartitions()
+        grouped = self.cogroup(other, numPartitions)
 
-        d1 = dict(self.collect())
-        d2 = dict(other.collect())
-        keys = set(d1.keys()).union(d2.keys())
-
-        return self.context.parallelize((
-            (k, (d1.get(k, None), d2.get(k, None)))
-            for k in keys), numPartitions)
+        return grouped.flatMap(lambda kv: [
+            (kv[0], (v_self, v_other))
+            for v_self in (kv[1][0] if kv[1][0] else [None])
+            for v_other in (kv[1][1] if kv[1][1] else [None])
+        ])
 
     def getNumPartitions(self):
         """
@@ -672,15 +669,7 @@ class RDD(object):
 
         """
 
-        if numPartitions is None:
-            numPartitions = self.getNumPartitions()
-
-        return self.context.parallelize((
-            (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
-                sorted(self.keyBy(f).collect()),
-                lambda e: e[0],
-            )
-        ), numPartitions)
+        return self.keyBy(f).groupByKey(numPartitions)
 
     def groupByKey(self, numPartitions=None):
         """
@@ -867,15 +856,13 @@ class RDD(object):
 
         """
 
-        if numPartitions is None:
-            numPartitions = self.getNumPartitions()
+        d_other = other.groupByKey().collectAsMap()
 
-        d1 = dict(self.collect())
-        d2 = dict(other.collect())
-        return self.context.parallelize((
-            (k, (d1[k], d2[k] if k in d2 else None))
-            for k in d1.keys()
-        ), numPartitions)
+        return self.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, v_other))
+            for v_self in kv[1]
+            for v_other in (d_other[kv[0]] if kv[0] in d_other else [None])
+        ])
 
     def lookup(self, key):
         """
@@ -1161,15 +1148,13 @@ class RDD(object):
 
         """
 
-        if numPartitions is None:
-            numPartitions = self.getNumPartitions()
+        d_self = self.groupByKey().collectAsMap()
 
-        d1 = dict(self.collect())
-        d2 = dict(other.collect())
-        return self.context.parallelize((
-            (k, (d1[k] if k in d1 else None, d2[k]))
-            for k in d2.keys()
-        ), numPartitions)
+        return other.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, v_other))
+            for v_other in kv[1]
+            for v_self in (d_self[kv[0]] if kv[0] in d_self else [None])
+        ])
 
     def sample(self, withReplacement, fraction, seed=None):
         """
