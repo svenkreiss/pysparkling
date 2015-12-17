@@ -281,8 +281,9 @@ class RDD(object):
         >>> b = c.parallelize([('house', 3)])
         >>>
         >>> [(k, sorted(list([list(vv) for vv in v])))
-        ...  for k, v in sorted(a.cogroup(b).collect())]
-        [(u'house', [[1], [3]]), (u'tree', [[], [2]])]
+        ...  for k, v in sorted(a.cogroup(b).collect())
+        ... ]  # doctest: +IGNORE_UNICODE
+        [('house', [[1], [3]]), ('tree', [[], [2]])]
 
         """
 
