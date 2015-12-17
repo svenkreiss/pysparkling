@@ -262,6 +262,37 @@ class RDD(object):
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
+    def cogroup(self, other, numPartitions=None):
+        """
+        Groups keys from both RDDs together. Values are nested iterators.
+
+        :param other:
+            The other RDD.
+
+        :param numPartitions:
+            Number of partitions in the resulting RDD.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> c = Context()
+        >>> a = c.parallelize([('house', 1), ('tree', 2)])
+        >>> b = c.parallelize([('house', 3)])
+        >>>
+        >>> [(k, sorted(list([list(vv) for vv in v])))
+        ...  for k, v in sorted(a.cogroup(b).collect())]
+        [(u'house', [[1], [3]]), (u'tree', [[], [2]])]
+
+        """
+
+        d_self = defaultdict(list, self.groupByKey().collect())
+        d_other = defaultdict(list, other.groupByKey().collect())
+        return self.context.parallelize([
+            (k, [list(d_self[k]), list(d_other[k])])
+            for k in set(d_self.keys() + d_other.keys())
+        ])
+
     def collect(self):
         """
         :returns:
