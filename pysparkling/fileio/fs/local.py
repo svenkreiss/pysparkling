@@ -65,7 +65,7 @@ class Local(FileSystem):
 
         # making sure directory exists
         dirname = os.path.dirname(path_local)
-        if not os.path.exists(dirname):
+        if dirname and not os.path.exists(dirname):
             log.debug('creating local directory {0}'.format(dirname))
             os.makedirs(dirname)
 
