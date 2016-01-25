@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import random
 import logging
@@ -169,6 +170,7 @@ def test_saveAsTextFile_tar():
     assert '5' in read_rdd.collect()
 
 
+@unittest.skipIf(hasattr(sys, 'pypy_version_info'), "skip on pypy")
 def test_saveAsTextFile_targz():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
