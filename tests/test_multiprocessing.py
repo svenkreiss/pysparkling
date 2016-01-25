@@ -125,10 +125,10 @@ def map1(ft):
 
 
 def map_pi(n):
-    return len(filter(
+    return len(list(filter(
         lambda x: x < 1.0,
         [random.random()**2 + random.random()**2 for _ in range(n)]
-    ))
+    )))
 
 
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
