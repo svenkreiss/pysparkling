@@ -32,6 +32,8 @@ class Tar(Codec):
 
         with tarfile.open(fileobj=stream, mode='r') as f:
             for tar_info in f.getmembers():
+                if not tar_info.isfile():
+                    continue
                 uncompressed.write(f.extractfile(tar_info).read())
 
         uncompressed.seek(0)
@@ -61,6 +63,8 @@ class TarGz(Codec):
 
         with tarfile.open(fileobj=stream, mode='r:gz') as f:
             for tar_info in f.getmembers():
+                if not tar_info.isfile():
+                    continue
                 uncompressed.write(f.extractfile(tar_info).read())
 
         uncompressed.seek(0)
@@ -90,6 +94,8 @@ class TarBz2(Codec):
 
         with tarfile.open(fileobj=stream, mode='r:bz2') as f:
             for tar_info in f.getmembers():
+                if not tar_info.isfile():
+                    continue
                 uncompressed.write(f.extractfile(tar_info).read())
 
         uncompressed.seek(0)
