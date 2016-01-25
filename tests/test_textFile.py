@@ -165,6 +165,7 @@ def test_saveAsTextFile_tar():
     tempFile.close()
     Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar')
     read_rdd = Context().textFile(tempFile.name+'.tar')
+    print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
@@ -173,6 +174,7 @@ def test_saveAsTextFile_targz():
     tempFile.close()
     Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.gz')
     read_rdd = Context().textFile(tempFile.name+'.tar.gz')
+    print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
@@ -181,6 +183,7 @@ def test_saveAsTextFile_tarbz2():
     tempFile.close()
     Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.bz2')
     read_rdd = Context().textFile(tempFile.name+'.tar.bz2')
+    print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
