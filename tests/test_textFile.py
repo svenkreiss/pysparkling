@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import random
 import logging
@@ -160,6 +161,34 @@ def test_saveAsTextFile():
         assert '5\n' in r
 
 
+def test_saveAsTextFile_tar():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar')
+    read_rdd = Context().textFile(tempFile.name+'.tar')
+    print(read_rdd.collect())
+    assert '5' in read_rdd.collect()
+
+
+@unittest.skipIf(hasattr(sys, 'pypy_version_info'), "skip on pypy")
+def test_saveAsTextFile_targz():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.gz')
+    read_rdd = Context().textFile(tempFile.name+'.tar.gz')
+    print(read_rdd.collect())
+    assert '5' in read_rdd.collect()
+
+
+def test_saveAsTextFile_tarbz2():
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.bz2')
+    read_rdd = Context().textFile(tempFile.name+'.tar.bz2')
+    print(read_rdd.collect())
+    assert '5' in read_rdd.collect()
+
+
 def test_saveAsTextFile_gz():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
@@ -203,6 +232,14 @@ def test_read_7z():
     assert 'from pysparkling import Context' in rdd.collect()
 
 
+def test_read_tar_gz():
+    # file was created with:
+    # tar -cvzf data.tar.gz hello.txt
+    rdd = Context().textFile('tests/data.tar.gz')
+    print(rdd.collect())
+    assert 'Hello pysparkling!' in rdd.collect()
+
+
 def test_pyspark_compatibility_txt():
     kv = Context().textFile('tests/pyspark/key_value.txt').collect()
     print(kv)
@@ -223,4 +260,5 @@ def test_pyspark_compatibility_gz():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_read_7z()
+    test_saveAsTextFile_targz()
+    test_read_tar_gz()
