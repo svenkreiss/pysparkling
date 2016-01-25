@@ -932,6 +932,31 @@ class RDD(object):
             preservesPartitioning=preservesPartitioning,
         )
 
+    def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
+        """
+        :param f:
+            Map function.
+
+        :returns:
+            A new RDD with mapped partitions.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([9, 8, 7, 6, 5, 4], 3)
+        >>> def f(splitIndex, iterator):
+        ...     yield splitIndex
+        >>> rdd.mapPartitionsWithIndex(f).sum()
+        3
+
+        """
+        return MapPartitionsRDD(
+            self,
+            lambda tc, i, x: f(i, x),
+            preservesPartitioning=preservesPartitioning,
+        )
+
     def mapValues(self, f):
         """
         :param f:
