@@ -28,7 +28,7 @@ class TextFile(File):
     def __init__(self, file_name):
         File.__init__(self, file_name)
 
-    def load(self, encoding='utf8'):
+    def load(self, encoding='utf8', encoding_errors='ignore'):
         """
         Load the data from a file.
 
@@ -36,20 +36,19 @@ class TextFile(File):
             The character encoding of the file.
 
         :returns:
-            An ``io.StringIO`` instance. Use ``getvalue()`` to get a string.
+            An ``io.StringIO`` instance. Use ``read()`` to get a string.
 
         """
         if type(self.codec) == codec.Codec and \
-           getattr(self.fs, 'load_text'):
+           hasattr(self.fs, 'load_text'):
             stream = self.fs.load_text()
         else:
             stream = self.fs.load()
-            stream = StringIO(
-                self.codec.decompress(stream).read().decode(encoding)
-            )
+            stream = self.codec.decompress(stream)
+            stream = StringIO(stream.read().decode(encoding, encoding_errors))
         return stream
 
-    def dump(self, stream=None, encoding='utf8'):
+    def dump(self, stream=None, encoding='utf8', encoding_errors='ignore'):
         """
         Writes a stream to a file.
 
@@ -71,7 +70,7 @@ class TextFile(File):
             stream = StringIO(stream)
 
         stream = self.codec.compress(
-            BytesIO(stream.read().encode(encoding))
+            BytesIO(stream.read().encode(encoding, encoding_errors))
         )
         self.fs.dump(stream)
 

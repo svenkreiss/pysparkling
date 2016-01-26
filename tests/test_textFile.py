@@ -240,6 +240,16 @@ def test_read_tar_gz():
     assert 'Hello pysparkling!' in rdd.collect()
 
 
+@unittest.skipIf(os.getenv('TRAVIS', False) is not False,
+                 "skip 20news test on Travis")
+def test_read_tar_gz_20news():
+    # 20 news dataset has some '0xff' characters that lead to encoding
+    # errors before. Adding this as a test case.
+    src = 'http://qwone.com/~jason/20Newsgroups/20news-19997.tar.gz'
+    rdd = Context().textFile(src, use_unicode=False)
+    assert '}|> 1. Mechanical driven odometer:' in rdd.top(500)
+
+
 def test_pyspark_compatibility_txt():
     kv = Context().textFile('tests/pyspark/key_value.txt').collect()
     print(kv)
@@ -260,5 +270,4 @@ def test_pyspark_compatibility_gz():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_saveAsTextFile_targz()
-    test_read_tar_gz()
+    test_read_tar_gz_20news()
