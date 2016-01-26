@@ -97,12 +97,12 @@ class Hdfs(FileSystem):
 
         return r
 
-    def load_text(self):
+    def load_text(self, encoding='utf8', encoding_errors='ignore'):
         log.debug('Hdfs text read for {0}.'.format(self.file_name))
         c, path = Hdfs.client_and_path(self.file_name)
 
         with c.read(path) as reader:
-            r = StringIO(reader.read().decode('utf8'))
+            r = StringIO(reader.read().decode(encoding, encoding_errors))
 
         return r
 

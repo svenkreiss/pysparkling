@@ -51,11 +51,12 @@ class Local(FileSystem):
         with io.open(f_name_local, 'rb') as f:
             return io.BytesIO(f.read())
 
-    def load_text(self):
+    def load_text(self, encoding='utf8', encoding_errors='ignore'):
         f_name_local = self.file_name
         if f_name_local.startswith('file://'):
             f_name_local = f_name_local[7:]
-        with io.open(f_name_local, 'r') as f:
+        with io.open(f_name_local, 'r',
+                     encoding=encoding, errors=encoding_errors) as f:
             return io.StringIO(f.read())
 
     def dump(self, stream):

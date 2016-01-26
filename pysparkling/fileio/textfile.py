@@ -41,7 +41,7 @@ class TextFile(File):
         """
         if type(self.codec) == codec.Codec and \
            hasattr(self.fs, 'load_text'):
-            stream = self.fs.load_text()
+            stream = self.fs.load_text(encoding, encoding_errors)
         else:
             stream = self.fs.load()
             stream = self.codec.decompress(stream)

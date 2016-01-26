@@ -80,10 +80,12 @@ class S3(FileSystem):
                   ''.format(self.key.name, self.key.size))
         return BytesIO(self.key.get_contents_as_string())
 
-    def load_text(self):
+    def load_text(self, encoding='utf8', encoding_errors='ignore'):
         log.debug('Loading {0} with size {1}.'
                   ''.format(self.key.name, self.key.size))
-        return BytesIO(self.key.get_contents_as_string())
+        return StringIO(
+            self.key.get_contents_as_string().decode(encoding, encoding_errors)
+        )
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.key.name))
