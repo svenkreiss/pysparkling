@@ -18,9 +18,8 @@ FILE_EXTENSIONS = [
 def get_fs(path):
     """Find the file system implementation for this path."""
     scheme = ''
-
     if '://' in path:
-        scheme = path[:path.find('://')]
+        scheme = path.partition('://')[0]
 
     for schemes, fs_class in FILE_EXTENSIONS:
         if scheme in schemes:
