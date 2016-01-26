@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from fnmatch import fnmatch
 import logging
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
@@ -58,7 +58,11 @@ class S3(FileSystem):
         expr = expr[len(scheme)+3+len(bucket_name)+1:]
         for k in bucket.list(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
-                files.append('{0}://{1}/{2}'.format(scheme, bucket_name, k.name))
+                files.append('{0}://{1}/{2}'.format(
+                    scheme,
+                    bucket_name,
+                    k.name,
+                ))
         return files
 
     def exists(self):
