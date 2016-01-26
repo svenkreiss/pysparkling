@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
-import fnmatch
+from fnmatch import fnmatch
 import logging
 from io import BytesIO, StringIO
 
@@ -10,11 +10,10 @@ from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
-hdfs = None
 try:
     import hdfs
 except ImportError:
-    pass
+    hdfs = None
 
 
 class Hdfs(FileSystem):
@@ -26,7 +25,7 @@ class Hdfs(FileSystem):
                 'hdfs not supported. Install the python package "hdfs".'
             )
 
-        FileSystem.__init__(self, file_name)
+        super(Hdfs, self).__init__(file_name)
 
     @staticmethod
     def client_and_path(path):
@@ -41,13 +40,13 @@ class Hdfs(FileSystem):
         else:
             domain, port = domain.split(':')
             port = int(port)
-        cache_id = domain+'__'+str(port)
+        cache_id = domain + '__' + str(port)
 
         if cache_id not in Hdfs._conn:
             Hdfs._conn[cache_id] = hdfs.InsecureClient(
                 'http://{0}:{1}'.format(domain, port)
             )
-        return (Hdfs._conn[cache_id], '/'+path)
+        return Hdfs._conn[cache_id], '/' + path
 
     def exists(self):
         c, p = Hdfs.client_and_path(self.file_name)
@@ -59,7 +58,7 @@ class Hdfs(FileSystem):
 
     @staticmethod
     def resolve_filenames(expr):
-        c, expr_path = Hdfs.client_and_path(expr)
+        c, _ = Hdfs.client_and_path(expr)
 
         t = Tokenizer(expr)
         scheme = t.next('://')
@@ -82,10 +81,8 @@ class Hdfs(FileSystem):
 
         files = []
         for fn in c.list('/'+fixed_path, status=False):
-            if fnmatch.fnmatch(fn, file_expr) or \
-               fnmatch.fnmatch(fn, file_expr+'/part*'):
-                files.append(scheme+'://'+domain+'/'+fixed_path+'/'+fn)
-
+            if fnmatch(fn, file_expr) or fnmatch(fn, file_expr + '/part*'):
+                files.append('{0}://{1}/{2}/{3}'.format(scheme, domain, fixed_path, fn))
         return files
 
     def load(self):

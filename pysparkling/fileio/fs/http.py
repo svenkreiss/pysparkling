@@ -8,11 +8,10 @@ from ...exceptions import ConnectionException, FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
-requests = None
 try:
     import requests
 except ImportError:
-    pass
+    requests = None
 
 
 class Http(FileSystem):
@@ -22,7 +21,7 @@ class Http(FileSystem):
                 'http not supported. Install "requests".'
             )
 
-        FileSystem.__init__(self, file_name)
+        super(Http, self).__init__(file_name)
         self.headers = None
 
     @staticmethod
@@ -39,7 +38,7 @@ class Http(FileSystem):
         log.debug('Http GET request for {0}.'.format(self.file_name))
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:
-            raise ConnectionException
+            raise ConnectionException()
         return BytesIO(r.content)
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
@@ -47,7 +46,7 @@ class Http(FileSystem):
         log.debug('Http GET request for {0}.'.format(self.file_name))
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:
-            raise ConnectionException
+            raise ConnectionException()
         return StringIO(r.text)
 
     def dump(self, stream):

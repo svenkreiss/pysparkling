@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
-import fnmatch
+from fnmatch import fnmatch
 import logging
-from io import BytesIO, StringIO
+from io import BytesIO
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
@@ -10,11 +10,10 @@ from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
-boto = None
 try:
     import boto
 except ImportError:
-    pass
+    boto = None
 
 
 class S3(FileSystem):
@@ -22,11 +21,9 @@ class S3(FileSystem):
 
     def __init__(self, file_name):
         if boto is None:
-            raise FileSystemNotSupported(
-                'S3 not supported. Install "boto".'
-            )
+            raise FileSystemNotSupported('S3 not supported. Install "boto".')
 
-        FileSystem.__init__(self, file_name)
+        super(S3, self).__init__(file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)
@@ -58,11 +55,10 @@ class S3(FileSystem):
             bucket_name,
             validate=False
         )
-        expr_after_bucket = expr[len(scheme)+3+len(bucket_name)+1:]
+        expr = expr[len(scheme)+3+len(bucket_name)+1:]
         for k in bucket.list(prefix=prefix):
-            if fnmatch.fnmatch(k.name, expr_after_bucket) or \
-               fnmatch.fnmatch(k.name, expr_after_bucket+'/part*'):
-                files.append(scheme+'://'+bucket_name+'/'+k.name)
+            if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
+                files.append('{0}://{1}/{2}'.format(scheme, bucket_name, k.name))
         return files
 
     def exists(self):
@@ -72,8 +68,7 @@ class S3(FileSystem):
         key_name = t.next()
         conn = S3._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
-        return (bucket.get_key(key_name) or
-                any(True for _ in bucket.list(prefix=key_name+'/')))
+        return bucket.get_key(key_name) or bucket.list(prefix=key_name+'/')
 
     def load(self):
         log.debug('Loading {0} with size {1}.'
