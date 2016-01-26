@@ -284,8 +284,8 @@ class Context(object):
             By default, every file is a partition, but this option allows to
             split these further.
 
-        :param use_unicode: (optional)
-            Not used.
+        :param use_unicode: (optional, default=True)
+            Use ``utf8`` if ``True`` and ``ascii`` if ``False``.
 
         :returns:
             New RDD.
@@ -302,7 +302,9 @@ class Context(object):
         rdd_filenames = self.parallelize(resolved_names, num_partitions)
         rdd = rdd_filenames.flatMap(lambda f_name: [
             l.rstrip('\n')
-            for l in TextFile(f_name).load().read().splitlines()
+            for l in TextFile(f_name).load(
+                encoding='utf8' if use_unicode else 'ascii'
+            ).read().splitlines()
         ])
         rdd._name = filename
         return rdd
@@ -341,8 +343,8 @@ class Context(object):
             By default, every file is a partition, but this option allows to
             split these further.
 
-        :param use_unicode: (optional)
-            Not used.
+        :param use_unicode: (optional, default=True)
+            Use ``utf8`` if ``True`` and ``ascii`` if ``False``.
 
         :returns:
             New RDD.
@@ -356,7 +358,11 @@ class Context(object):
         if minPartitions and minPartitions > num_partitions:
             num_partitions = minPartitions
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        encoding = 'utf8' if use_unicode else 'ascii'
+        rdd_filenames = self.parallelize(
+            [(f_name, encoding) for f_name in resolved_names],
+            num_partitions,
+        )
         rdd = rdd_filenames.map(map_whole_text_file)
         rdd._name = path
         return rdd
@@ -378,8 +384,9 @@ class DummyPool(object):
 
 # pickle-able helpers
 
-def map_whole_text_file(f_name):
+def map_whole_text_file(f_name__encoding):
+    f_name, encoding = f_name__encoding
     return (
         f_name,
-        TextFile(f_name).load().read(),
+        TextFile(f_name).load(encoding=encoding).read(),
     )
