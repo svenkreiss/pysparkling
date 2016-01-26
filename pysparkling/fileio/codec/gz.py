@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 class Gz(Codec):
     def __init__(self):
-        pass
+        super(Gz, self).__init__()
 
     def compress(self, stream):
         compressed = BytesIO()

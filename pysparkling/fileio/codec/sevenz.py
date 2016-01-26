@@ -3,28 +3,29 @@ from __future__ import absolute_import
 try:
     import py7zlib
 except ImportError:
-    pass
+    py7zlib = None
 
 import logging
 from io import BytesIO
 
 from .codec import Codec
 
-LOGGER = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class SevenZ(Codec):
     def __init__(self):
-        if 'py7zlib' not in globals():
-            LOGGER.warn('py7zlib could not be imported. To read 7z files, '
-                        'install the library with "pip install pylzma".')
+        if py7zlib is None:
+            log.warn('py7zlib could not be imported. To read 7z files, '
+                     'install the library with "pip install pylzma".')
+        super(SevenZ, self).__init__()
 
     def compress(self, stream):
-        LOGGER.warn('Writing of 7z compressed archives is not supported.')
+        log.warn('Writing of 7z compressed archives is not supported.')
         return stream
 
     def decompress(self, stream):
-        if 'py7zlib' not in globals():
+        if py7zlib is None:
             return Codec.decompress(self, stream)
 
         uncompressed = BytesIO()

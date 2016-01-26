@@ -26,7 +26,7 @@ class TextFile(File):
     """
 
     def __init__(self, file_name):
-        File.__init__(self, file_name)
+        super(TextFile, self).__init__(file_name)
 
     def load(self, encoding='utf8', encoding_errors='ignore'):
         """

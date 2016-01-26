@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 class Bz2(Codec):
     def __init__(self):
-        pass
+        super(Bz2, self).__init__()
 
     def compress(self, stream):
         return BytesIO(bz2.compress(b''.join(stream)))
