@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 from pysparkling.fileio import File
 from nose.plugins.skip import SkipTest

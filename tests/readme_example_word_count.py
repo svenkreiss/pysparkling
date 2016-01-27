@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pysparkling import Context
 
 counts = Context().textFile(
