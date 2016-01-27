@@ -17,15 +17,15 @@ import itertools
 import subprocess
 from collections import defaultdict
 
-from . import fileio
-from .stat_counter import StatCounter
-from .cache_manager import CacheManager
-from .exceptions import FileAlreadyExistsException
-
 try:
     from itertools import izip as zip  # Python 2
 except ImportError:
     pass                               # Python 3
+
+from . import fileio
+from .stat_counter import StatCounter
+from .cache_manager import CacheManager
+from .exceptions import FileAlreadyExistsException
 
 log = logging.getLogger(__name__)
 
