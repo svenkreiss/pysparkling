@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 class Tar(Codec):
     def __init__(self):
-        pass
+        super(Tar, self).__init__()
 
     def compress(self, stream):
         compressed = BytesIO()
@@ -42,7 +42,7 @@ class Tar(Codec):
 
 class TarGz(Codec):
     def __init__(self):
-        pass
+        super(TarGz, self).__init__()
 
     def compress(self, stream):
         compressed = BytesIO()
@@ -73,7 +73,7 @@ class TarGz(Codec):
 
 class TarBz2(Codec):
     def __init__(self):
-        pass
+        super(TarBz2, self).__init__()
 
     def compress(self, stream):
         compressed = BytesIO()
