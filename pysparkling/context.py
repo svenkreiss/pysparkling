@@ -322,14 +322,6 @@ class Context(object):
             (x for rdd in rdds for x in rdd.collect())
         )
 
-    def version(self):
-        """
-        :returns:
-            Version of pysparkling.
-
-        """
-        return self.version
-
     def wholeTextFiles(self, path, minPartitions=None, use_unicode=True):
         """
         Read text files into an RDD of pairs of file name and file content.
