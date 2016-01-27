@@ -56,9 +56,6 @@ Install
 
   pip install pysparkling[s3,hdfs,http]
 
-| *Unit tests*: To run pysparkling's unit tests locally, clone this repository, install the package and all
-| dependencies with ``pip install -e .[s3,hdfs,http,tests]`` and run the tests with ``nosetests``.
-
 
 Features
 ========
@@ -170,6 +167,8 @@ for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 Development
 ===========
 
-Fork the Github repository, apply your changes in a feature branch and create
-a Pull Request. Please run `nosetests` to run the unit test suite including
-doctests.
+Fork the Github repository and apply your changes in a feature branch.
+To run pysparkling's unit tests locally, install the package and all
+dependencies with ``pip install -e .[s3,hdfs,http,tests]`` and run the
+tests with ``nosetests``. Don't run ``python setup.py test`` as this will
+not execute the doctests. When all tests pass, create a Pull Request.
