@@ -137,8 +137,8 @@ def map_pi(n):
                  "skip performance test on Travis")
 def test_performance():
     # not pickle-able map function
-    def map2(ft):
-        return [random.choice(ft[1].split()) for _ in range(1000)]
+    #def map2(ft):
+    #    return [random.choice(ft[1].split()) for _ in range(1000)]
 
     def create_context(n_processes=0):
         if not n_processes:
