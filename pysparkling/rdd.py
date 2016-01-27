@@ -17,6 +17,7 @@ import functools
 import itertools
 import subprocess
 from collections import defaultdict
+from operator import itemgetter
 
 try:
     from itertools import izip as zip  # Python 2
@@ -1431,7 +1432,7 @@ class RDD(object):
         )
 
     def sortByKey(self, ascending=True, numPartitions=None,
-                  keyfunc=lambda x: x[0]):
+                  keyfunc=itemgetter(0)):
         """
         :param ascending:
             Default is True.
