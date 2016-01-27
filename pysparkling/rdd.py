@@ -7,6 +7,7 @@ from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
 import io
+import os
 import sys
 import copy
 import pickle
@@ -1331,12 +1332,12 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: _map(
-                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix),
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)),
                 list(x),
             ),
             resultHandler=list,
         )
-        fileio.TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
@@ -1379,13 +1380,13 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: fileio.TextFile(
-                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix))
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in x
             ]))),
             resultHandler=list,
         )
-        fileio.TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
