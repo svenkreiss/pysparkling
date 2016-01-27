@@ -1028,7 +1028,7 @@ class RDD(object):
         """
         return PersistedRDD(self, storageLevel=storageLevel)
 
-    def pipe(self, command, env={}):
+    def pipe(self, command, env=None):
         """
         Run a command with the elements in the dataset as argument.
 
@@ -1050,6 +1050,9 @@ class RDD(object):
         True
 
         """
+        if env is None:
+            env = {}
+
         return self.context.parallelize(subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
         ) for x in self.collect())
