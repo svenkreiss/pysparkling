@@ -58,7 +58,7 @@ Install
 
 *Unit tests*: To run pysparkling's unit tests locally, clone this repository,
 install the package and all dependencies with
-  ``pip install -e .[s3,hdfs,http,tests]`` and run the tests
+``pip install -e .[s3,hdfs,http,tests]`` and run the tests
 with ``nosetests``.
 
 
