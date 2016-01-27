@@ -8,7 +8,7 @@ passing data through the JVM and Hadoop. The focus is on having a lightweight
 and fast implementation for small datasets at the expense of some data 
 resilience features and some parallel processing features.
 
-**How does it work?** To switch execution of a code from PySpark to pysparkling,
+**How does it work?** To switch execution of a script from PySpark to pysparkling,
 have the code initialize a pysparkling Context instead of a SparkContext, and 
 use the pysparkling Context to set up your RDDs. The beauty is you don't have
 to change a single line of code after the Context initialization, because 
