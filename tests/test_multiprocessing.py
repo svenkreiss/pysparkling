@@ -1,9 +1,11 @@
+from __future__ import print_function
+
 import os
 import math
 import time
 import pickle
 import pprint
-import random
+from random import random, choice
 import timeit
 import logging
 import unittest
@@ -121,22 +123,22 @@ def test_processpool_distributed_cache():
 
 # pickle-able map function
 def map1(ft):
-    return [random.choice(ft[1].split()) for _ in range(1000)]
+    return [choice(ft[1].split()) for _ in range(1000)]
 
 
 def map_pi(n):
-    return len(list(filter(
-        lambda x: x < 1.0,
-        [random.random()**2 + random.random()**2 for _ in range(n)]
-    )))
+    return sum((
+        1 for x in (random()**2 + random()**2 for _ in range(n))
+        if x < 1.0
+    ))
 
 
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
                  "skip performance test on Travis")
 def test_performance():
     # not pickle-able map function
-    def map2(ft):
-        return [random.choice(ft[1].split()) for _ in range(1000)]
+    #def map2(ft):
+    #    return [random.choice(ft[1].split()) for _ in range(1000)]
 
     def create_context(n_processes=0):
         if not n_processes:

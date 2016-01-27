@@ -7,6 +7,7 @@ from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
 import io
+import os
 import sys
 import copy
 import pickle
@@ -16,16 +17,17 @@ import functools
 import itertools
 import subprocess
 from collections import defaultdict
-
-from . import fileio
-from .stat_counter import StatCounter
-from .cache_manager import CacheManager
-from .exceptions import FileAlreadyExistsException
+from operator import itemgetter
 
 try:
     from itertools import izip as zip  # Python 2
 except ImportError:
     pass                               # Python 3
+
+from . import fileio
+from .stat_counter import StatCounter
+from .cache_manager import CacheManager
+from .exceptions import FileAlreadyExistsException
 
 log = logging.getLogger(__name__)
 
@@ -1028,7 +1030,7 @@ class RDD(object):
         """
         return PersistedRDD(self, storageLevel=storageLevel)
 
-    def pipe(self, command, env={}):
+    def pipe(self, command, env=None):
         """
         Run a command with the elements in the dataset as argument.
 
@@ -1050,6 +1052,9 @@ class RDD(object):
         True
 
         """
+        if env is None:
+            env = {}
+
         return self.context.parallelize(subprocess.check_output(
             [command]+x if isinstance(x, list) else [command, x]
         ) for x in self.collect())
@@ -1328,12 +1333,12 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: _map(
-                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix),
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)),
                 list(x),
             ),
-            resultHandler=lambda l: list(l),
+            resultHandler=list,
         )
-        fileio.TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
@@ -1376,13 +1381,13 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: fileio.TextFile(
-                path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix))
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in x
             ]))),
-            resultHandler=lambda l: list(l),
+            resultHandler=list,
         )
-        fileio.TextFile(path+'/_SUCCESS').dump()
+        fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
@@ -1427,7 +1432,7 @@ class RDD(object):
         )
 
     def sortByKey(self, ascending=True, numPartitions=None,
-                  keyfunc=lambda x: x[0]):
+                  keyfunc=itemgetter(0)):
         """
         :param ascending:
             Default is True.
@@ -1634,7 +1639,7 @@ class RDD(object):
                 p_result = map_results[i]
                 if not p_result:
                     continue
-                for p_num, e in e_list[1]:
+                for _, e in e_list[1]:
                     e_num = int(e*len(p_result))
                     r.append(p_result[e_num])
             return r
