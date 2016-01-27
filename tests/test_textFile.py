@@ -222,7 +222,7 @@ def test_saveAsTextFile_lzma():
     assert '5' in read_rdd.collect()
 
 
-@unittest.skipIf(py7zlib is None, "py7zlib not installed")
+@unittest.skipIf(py7zlib is None, "py7zlib import failed, is pylzma installed?")
 def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py
