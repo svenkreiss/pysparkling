@@ -1,11 +1,7 @@
 .. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/logo/logo-w100.png
     :target: https://github.com/svenkreiss/pysparkling
 
-
-pysparkling
-===========
-
-Pysparkling provides a faster, more responsive way to develop programs
+**Pysparkling** provides a faster, more responsive way to develop programs
 for PySpark. It enables code intended for Spark applications to execute
 entirely in Python, without incurring the overhead of initializing and
 passing data through the JVM and Hadoop. Pysparkling implements Spark's 
