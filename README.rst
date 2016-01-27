@@ -5,20 +5,24 @@
 pysparkling
 ===========
 
-  A native Python implementation of Spark's RDD interface. The primary objective
-  to remove the dependency on the JVM and Hadoop. The focus is on having a
-  lightweight and fast implementation for small datasets at the expense of
-  some data resilience features and some parallel processing features.
-  It is a drop-in replacement for PySpark's SparkContext and RDD.
+Pysparkling provides a faster, more responsive way to develop programs
+for PySpark. It enables code intended for Spark applications to execute
+entirely in Python, without incurring the overhead of initializing and
+passing data through the JVM and Hadoop. Pysparkling implements Spark's 
+RDD interface in pure Python, so that pysparkling's Context and RDD objects
+function as drop-in replacements for SparkContext and RDDs in PySpark.
+The focus is on having a lightweight and fast implementation for small 
+datasets at the expense of some data resilience features and some parallel
+processing features.
 
-  Use case: you have a pipeline that processes 100k input documents
-  and converts them to normalized features. They are used to train a local
-  scikit-learn classifier. The preprocessing is perfect for a full Spark
-  task. Now, you want to use this trained classifier in an API
-  endpoint. Assume you need the same pre-processing pipeline for a single
-  document per API call. This does not have to be done in parallel, but there
-  should be only a small overhead in initialization and preferably no
-  dependency on the JVM. This is what ``pysparkling`` is for.
+Use case: you have a pipeline that processes 100k input documents
+and converts them to normalized features. They are used to train a local
+scikit-learn classifier. The preprocessing is perfect for a full Spark
+task. Now, you want to use this trained classifier in an API
+endpoint. Assume you need the same pre-processing pipeline for a single
+document per API call. This does not have to be done in parallel, but there
+should be only a small overhead in initialization and preferably no
+dependency on the JVM. This is what ``pysparkling`` is for.
 
 .. image:: https://badge.fury.io/py/pysparkling.svg
     :target: https://pypi.python.org/pypi/pysparkling/
