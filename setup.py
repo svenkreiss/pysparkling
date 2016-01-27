@@ -33,6 +33,12 @@ setup(
         'http': ['requests>=2.6.0'],
         's3': ['boto>=2.36.0'],
         'hdfs': ['hdfs>=2.0.0'],
+        'tests': [
+            'nose>=1.3.4',
+            'futures>=3.0.1',
+            'cloudpickle>=0.1.0',
+            'doctest-ignore-unicode>=0.1.2',
+        ]
     },
     entry_points={
         'console_scripts': [],
@@ -40,9 +46,6 @@ setup(
 
     tests_require=[
         'nose>=1.3.4',
-        'futures>=3.0.1',
-        'cloudpickle>=0.1.0',
-        'doctest-ignore-unicode>=0.1.2',
     ],
     test_suite='nose.collector',
 

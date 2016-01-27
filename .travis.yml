@@ -7,7 +7,6 @@ python:
  - "pypy"
  - "pypy3"
 install:
- - "pip install boto requests cloudpickle futures doctest-ignore-unicode"
  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi
- - "pip install ."
+ - "pip install .[http,s3,tests]"
 script: "nosetests -vv"
