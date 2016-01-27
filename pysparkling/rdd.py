@@ -1639,7 +1639,7 @@ class RDD(object):
                 p_result = map_results[i]
                 if not p_result:
                     continue
-                for p_num, e in e_list[1]:
+                for _, e in e_list[1]:
                     e_num = int(e*len(p_result))
                     r.append(p_result[e_num])
             return r
