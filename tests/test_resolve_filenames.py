@@ -16,8 +16,7 @@ def test_local_2():
     filenames = File.resolve_filenames(
         'tests/test_resolve_filenames.py'
     )
-    assert (len(filenames) == 1 and
-            'tests/test_resolve_filenames.py' == filenames[0])
+    assert filenames == ['tests/test_resolve_filenames.py']
 
 
 def test_s3_1():
