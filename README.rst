@@ -4,14 +4,33 @@
 **Pysparkling** provides a faster, more responsive way to develop programs
 for PySpark. It enables code intended for Spark applications to execute
 entirely in Python, without incurring the overhead of initializing and
-passing data through the JVM and Hadoop. Pysparkling implements Spark's 
-RDD interface in pure Python, so that pysparkling's Context and RDD objects
-function as drop-in replacements for SparkContext and RDDs in PySpark.
-The focus is on having a lightweight and fast implementation for small 
-datasets at the expense of some data resilience features and some parallel
-processing features.
+passing data through the JVM and Hadoop. The focus is on having a lightweight
+and fast implementation for small datasets at the expense of some data 
+resilience features and some parallel processing features.
 
-Use case: you have a pipeline that processes 100k input documents
+**How does it work?** To switch execution of a code from PySpark to pysparkling,
+have the code initialize a pysparkling Context instead of a SparkContext, and 
+use the pysparkling Context to set up your RDDs. The beauty is that you don't have
+to change anything else, because pysparkling's API is (almost) exactly the same
+as PySpark's. Since it's so easy to switch between PySpark and pysparkling,
+you can choose the right tool for your use case. 
+
+**When would I use it?** Say you are writing a Spark application because you
+need robust computation on huge datasets, but you also want the same application
+to provide fast answers on a small dataset. You're finding Spark is not responsive
+enough for your needs, but you don't want to rewrite an entire separate application
+for the *small-answers-fast* problem. You'd rather reuse your Spark code but somehow
+get it to run fast. Pysparkling bypasses the stuff that causes Spark's long startup
+times and less responsive feel. 
+
+Here are a few areas where pysparkling excels:
+
+- Small to medium-scale exploratory data analysis
+- Application prototyping
+- Low-latency web deployments
+- Unit tests
+
+*Example:* you have a pipeline that processes 100k input documents
 and converts them to normalized features. They are used to train a local
 scikit-learn classifier. The preprocessing is perfect for a full Spark
 task. Now, you want to use this trained classifier in an API
