@@ -1334,7 +1334,7 @@ class RDD(object):
                 path+'/part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix),
                 list(x),
             ),
-            resultHandler=lambda l: list(l),
+            resultHandler=list,
         )
         fileio.TextFile(path+'/_SUCCESS').dump()
         return self
@@ -1383,7 +1383,7 @@ class RDD(object):
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in x
             ]))),
-            resultHandler=lambda l: list(l),
+            resultHandler=list,
         )
         fileio.TextFile(path+'/_SUCCESS').dump()
         return self
