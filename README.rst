@@ -5,14 +5,14 @@
 for PySpark. It enables code intended for Spark applications to execute
 entirely in Python, without incurring the overhead of initializing and
 passing data through the JVM and Hadoop. The focus is on having a lightweight
-and fast implementation for small datasets at the expense of some data 
+and fast implementation for small datasets at the expense of some data
 resilience features and some parallel processing features.
 
 **How does it work?** To switch execution of a script from PySpark to pysparkling,
-have the code initialize a pysparkling Context instead of a SparkContext, and 
+have the code initialize a pysparkling Context instead of a SparkContext, and
 use the pysparkling Context to set up your RDDs. The beauty is you don't have
-to change a single line of code after the Context initialization, because 
-pysparkling's API is (almost) exactly the same as PySpark's. Since it's so easy 
+to change a single line of code after the Context initialization, because
+pysparkling's API is (almost) exactly the same as PySpark's. Since it's so easy
 to switch between PySpark and pysparkling, you can choose the right tool for your
 use case.
 
@@ -22,7 +22,7 @@ to provide fast answers on a small dataset. You're finding Spark is not responsi
 enough for your needs, but you don't want to rewrite an entire separate application
 for the *small-answers-fast* problem. You'd rather reuse your Spark code but somehow
 get it to run fast. Pysparkling bypasses the stuff that causes Spark's long startup
-times and less responsive feel. 
+times and less responsive feel.
 
 Here are a few areas where pysparkling excels:
 
@@ -167,6 +167,8 @@ for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 Development
 ===========
 
-Fork the Github repository, apply your changes in a feature branch and create
-a Pull Request. Please run `nosetests` to run the unit test suite including
-doctests.
+Fork the Github repository and apply your changes in a feature branch.
+To run pysparkling's unit tests locally, install the package and all
+dependencies with ``pip install -e .[s3,hdfs,http,tests]`` and run the
+tests with ``nosetests``. Don't run ``python setup.py test`` as this will
+not execute the doctests. When all tests pass, create a Pull Request.
