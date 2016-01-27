@@ -145,9 +145,24 @@ class Context(object):
                 end = int((i+1) * len_x/numPartitions)
                 if i+1 == numPartitions:
                     end += 1
-                yield Partition(itertools.islice(x, end-start), i)
+                yield itertools.islice(x, end-start)
 
-        return RDD(partitioned(), self)
+        return self._parallelize_partitions(partitioned())
+
+    def _parallelize_partitions(self, partitions):
+        """
+        :param partitions:
+            An iterable over the partitioned data.
+
+        :returns:
+            New RDD.
+
+        """
+
+        return RDD(
+            (Partition(p_data, i) for i, p_data in enumerate(partitions)),
+            self,
+        )
 
     def pickleFile(self, name, minPartitions=None):
         """
