@@ -10,10 +10,11 @@ resilience features and some parallel processing features.
 
 **How does it work?** To switch execution of a code from PySpark to pysparkling,
 have the code initialize a pysparkling Context instead of a SparkContext, and 
-use the pysparkling Context to set up your RDDs. The beauty is that you don't have
-to change anything else, because pysparkling's API is (almost) exactly the same
-as PySpark's. Since it's so easy to switch between PySpark and pysparkling,
-you can choose the right tool for your use case. 
+use the pysparkling Context to set up your RDDs. The beauty is you don't have
+to change a single line of code after the Context initialization, because 
+pysparkling's API is (almost) exactly the same as PySpark's. Since it's so easy 
+to switch between PySpark and pysparkling, you can choose the right tool for your
+use case.
 
 **When would I use it?** Say you are writing a Spark application because you
 need robust computation on huge datasets, but you also want the same application
