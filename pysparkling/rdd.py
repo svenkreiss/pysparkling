@@ -1241,8 +1241,14 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> sc = Context()
         >>> fractions = {"a": 0.2, "b": 0.1}
-        >>> rdd = sc.parallelize(fractions.keys()).cartesian(sc.parallelize(range(0, 1000)))
-        >>> sample = dict(rdd.sampleByKey(False, fractions, 2).groupByKey().collect())
+        >>> rdd = sc.parallelize(
+        ...     fractions.keys()
+        ... ).cartesian(
+        ...     sc.parallelize(range(0, 1000))
+        ... )
+        >>> sample = dict(
+        ...     rdd.sampleByKey(False, fractions, 2).groupByKey().collect()
+        ... )
         >>> 100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150
         True
         >>> max(sample["a"]) <= 999 and min(sample["a"]) >= 0
@@ -1333,7 +1339,8 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: _map(
-                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix)),
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
+                                                            codec_suffix)),
                 list(x),
             ),
             resultHandler=list,
@@ -1381,7 +1388,8 @@ class RDD(object):
         self.context.runJob(
             self,
             lambda tc, x: fileio.TextFile(
-                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(), codec_suffix))
+                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
+                                                            codec_suffix))
             ).dump(io.StringIO(''.join([
                 str(xx)+'\n' for xx in x
             ]))),
@@ -1825,7 +1833,8 @@ class MapPartitionsRDD(RDD):
 
 
 class PartitionwiseSampledRDD(RDD):
-    def __init__(self, prev, predicate, preservesPartitioning=False, seed=None):
+    def __init__(self, prev, predicate, preservesPartitioning=False,
+                 seed=None):
         """prev is the previous RDD.
 
         f is a function with the signature
@@ -1833,7 +1842,7 @@ class PartitionwiseSampledRDD(RDD):
         """
         RDD.__init__(self, prev.partitions(), prev.context)
 
-        if not seed:
+        if seed is None:
             seed = random.randint(0, sys.maxint)
 
         self.prev = prev
@@ -1842,7 +1851,7 @@ class PartitionwiseSampledRDD(RDD):
         self.seed = seed
 
     def compute(self, split, task_context):
-        random.seed(self.seed+split.index)
+        random.seed(self.seed + split.index)
         return (
             x for x in self.prev.compute(split, task_context._create_child())
             if self.predicate(random.random(), x)

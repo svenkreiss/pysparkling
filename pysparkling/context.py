@@ -343,7 +343,7 @@ class Context(object):
 
         """
         resolved_names = TextFile.resolve_filenames(path)
-        log.debug('textFile() resolved "{0}" to {1} files.'
+        log.debug('wholeTextFiles() resolved "{0}" to {1} files.'
                   ''.format(path, len(resolved_names)))
 
         num_partitions = len(resolved_names)
