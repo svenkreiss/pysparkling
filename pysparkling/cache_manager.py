@@ -96,9 +96,9 @@ class CacheManager(object):
         :returns:
             All cache entries that are not in the given list.
         """
-        return dict((i, c)
-                    for i, c in self.cache_obj.items()
-                    if i not in idents)
+        return {i: c
+                for i, c in self.cache_obj.items()
+                if i not in idents}
 
     def join(self, cache_objects):
         """
@@ -124,9 +124,9 @@ class CacheManager(object):
         cm = CacheManager(self.max_mem,
                           self.serializer, self.deserializer,
                           self.checksum)
-        cm.cache_obj = dict((i, c)
-                            for i, c in self.cache_obj.items()
-                            if filter_id(i))
+        cm.cache_obj = {i: c
+                        for i, c in self.cache_obj.items()
+                        if filter_id(i)}
         return cm
 
     def delete(self, ident):
