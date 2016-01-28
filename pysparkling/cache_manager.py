@@ -96,9 +96,9 @@ class CacheManager(object):
         :returns:
             All cache entries that are not in the given list.
         """
-        return dict((i, c)
-                    for i, c in self.cache_obj.items()
-                    if i not in idents)
+        return {i: c
+                for i, c in self.cache_obj.items()
+                if i not in idents}
 
     def join(self, cache_objects):
         """
@@ -109,7 +109,10 @@ class CacheManager(object):
         self.cache_obj.update(cache_objects)
 
     def stored_idents(self):
-        return [k for k, v in self.cache_obj.items() if v['mem_obj']]
+        return [k
+                for k, v in self.cache_obj.items()
+                if (v['mem_obj'] is not None or
+                    v['disk_location'] is not None)]
 
     def clone_contains(self, filter_id):
         """
@@ -124,9 +127,9 @@ class CacheManager(object):
         cm = CacheManager(self.max_mem,
                           self.serializer, self.deserializer,
                           self.checksum)
-        cm.cache_obj = dict((i, c)
-                            for i, c in self.cache_obj.items()
-                            if filter_id(i))
+        cm.cache_obj = {i: c
+                        for i, c in self.cache_obj.items()
+                        if filter_id(i)}
         return cm
 
     def delete(self, ident):

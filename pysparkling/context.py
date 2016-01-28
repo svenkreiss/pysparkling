@@ -228,7 +228,7 @@ class Context(object):
             partitions = rdd.partitions()
 
         # TODO: this is the place to insert proper schedulers
-        if allowLocal:
+        if allowLocal or isinstance(self._pool, DummyPool):
             def local_map(partition):
                 task_context = TaskContext(
                     stage_id=0,
@@ -243,8 +243,7 @@ class Context(object):
 
                 def prepare(p):
                     t_start = time.clock()
-                    filter_string = ':{0}'.format(p.index)
-                    cm_clone = cm.clone_contains(lambda i: filter_string in i)
+                    cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
                     self._stats['driver_cache_clone'] += (time.clock() -
                                                           t_start)
 
