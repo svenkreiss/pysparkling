@@ -111,11 +111,10 @@ class CacheManager(object):
     def stored_idents(self):
         return [k for k, v in self.cache_obj.items() if v['mem_obj']]
 
-    def clone_contains(self, partial_ident):
+    def clone_contains(self, filter_id):
         """
-        :param partial_ident:
-            Can be part of an identifier, like ':4' or '3:' to get the
-            4th partition or the 3rd RDD.
+        :param filter_id:
+            A function returning true for ids that should be returned.
 
         :returns:
             A new CacheManager with the entries that contain partial_ident
@@ -127,7 +126,7 @@ class CacheManager(object):
                           self.checksum)
         cm.cache_obj = dict((i, c)
                             for i, c in self.cache_obj.items()
-                            if partial_ident in i)
+                            if filter_id(i))
         return cm
 
     def delete(self, ident):
