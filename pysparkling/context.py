@@ -228,7 +228,7 @@ class Context(object):
             partitions = rdd.partitions()
 
         # TODO: this is the place to insert proper schedulers
-        if allowLocal:
+        if allowLocal or isinstance(self._pool, DummyPool):
             def local_map(partition):
                 task_context = TaskContext(
                     stage_id=0,
