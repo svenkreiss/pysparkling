@@ -109,7 +109,10 @@ class CacheManager(object):
         self.cache_obj.update(cache_objects)
 
     def stored_idents(self):
-        return [k for k, v in self.cache_obj.items() if v['mem_obj']]
+        return [k
+                for k, v in self.cache_obj.items()
+                if (v['mem_obj'] is not None or
+                    v['disk_location'] is not None)]
 
     def clone_contains(self, filter_id):
         """
