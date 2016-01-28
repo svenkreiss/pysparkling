@@ -240,28 +240,47 @@ class Context(object):
             def map_and_cache():
                 cm = CacheManager.singleton()
                 serialized_func_rdd = self._serializer((func, rdd))
-                for d in self._pool.map(runJob_map, (
-                    (self._deserializer,
-                     self._data_serializer,
-                     self._data_deserializer,
-                     serialized_func_rdd,
-                     self._data_serializer(p),
-                     self._data_serializer(
-                        cm.clone_contains(':{0}'.format(p.index))
-                     ),
-                     )
-                    for p in partitions
-                )):
+
+                def prepare(p):
+                    t_start = time.clock()
+                    cm_clone = cm.clone_contains(':{0}'.format(p.index))
+                    self._stats['driver_cache_clone'] += (time.clock() -
+                                                          t_start)
+
+                    t_start = time.clock()
+                    cm_serialized = self._data_deserializer(cm_clone)
+                    self._stats['driver_cache_serialize'] += (time.clock() -
+                                                              t_start)
+
+                    t_start = time.clock()
+                    serialized_p = self._data_deserializer(p)
+                    self._stats['driver_serialize_data'] += (time.clock() -
+                                                             t_start)
+
+                    return (
+                        self._deserializer,
+                        self._data_serializer,
+                        self._data_deserializer,
+                        serialized_func_rdd,
+                        serialized_p,
+                        cm_serialized,
+                    )
+
+                for d in self._pool.map(runJob_map,
+                                        (prepare(p) for p in partitions)):
                     t_start = time.clock()
                     map_result, cache_result, s = self._data_deserializer(d)
-                    t_deserialized = time.clock() - t_start
+                    self._stats['driver_deserialize_data'] += (time.clock() -
+                                                               t_start)
 
                     # join cache
+                    t_start = time.clock()
                     cm.join(cache_result)
+                    self._stats['driver_cache_join'] += time.clock() - t_start
+
                     # collect stats
                     for k, v in s.items():
                         self._stats[k] += v
-                    self._stats['driver_deserialize_data'] += t_deserialized
 
                     yield map_result
             map_result = map_and_cache()
