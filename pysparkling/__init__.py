@@ -1,6 +1,6 @@
 """pysparkling module."""
 
-__version__ = '0.3.16'
+__version__ = '0.3.17'
 
 from .exceptions import (FileAlreadyExistsException,
                          ConnectionException)
