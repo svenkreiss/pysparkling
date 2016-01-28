@@ -1874,17 +1874,16 @@ class PersistedRDD(RDD):
         if self._rdd_id is None or split.index is None:
             cid = None
         else:
-            cid = '{0}:{1}'.format(self._rdd_id, split.index)
+            cid = (self._rdd_id, split.index)
 
         cm = CacheManager.singleton()
         if not cm.has(cid):
-            cm.add(
-                cid,
-                list(self.prev.compute(split, task_context._create_child())),
-                self.storageLevel
-            )
+            data = list(self.prev.compute(split, task_context._create_child()))
+            cm.add(cid, data, self.storageLevel)
+        else:
+            data = cm.get(cid)
 
-        return iter(cm.get(cid))
+        return iter(data)
 
 
 # pickle-able helpers

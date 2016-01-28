@@ -243,8 +243,7 @@ class Context(object):
 
                 def prepare(p):
                     t_start = time.clock()
-                    filter_string = ':{0}'.format(p.index)
-                    cm_clone = cm.clone_contains(lambda i: filter_string in i)
+                    cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
                     self._stats['driver_cache_clone'] += (time.clock() -
                                                           t_start)
 
