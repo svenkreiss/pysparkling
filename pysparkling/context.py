@@ -112,7 +112,7 @@ class Context(object):
         self.version = PYSPARKLING_VERSION
 
     def broadcast(self, x):
-        return Broadcast(x)
+        return Broadcast(self, x)
 
     def newRddId(self):
         Context.__last_rdd_id += 1
