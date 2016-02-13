@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.2.28...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.18...master>`_
+* `v0.3.18 <https://github.com/svenkreiss/pysparkling/compare/v0.2.28...v0.3.18>`_ (2016-02-13)
+    * bring docs and Github releases back in sync
+    * ... many updates.
 * `v0.2.28 <https://github.com/svenkreiss/pysparkling/compare/v0.2.24...v0.2.28>`_ (2015-07-03)
     * implement ``RDD.sortBy()`` and ``RDD.sortByKey()``
     * additional unit tests
