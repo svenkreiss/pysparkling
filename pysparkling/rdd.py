@@ -616,7 +616,9 @@ class RDD(object):
         .. note::
             Creating the new RDD is currently implemented as a local operation.
 
+
         Example:
+
         >>> from pysparkling import Context
         >>> sc = Context()
         >>> rdd1 = sc.parallelize([('a', 0), ('b', 1)])
@@ -625,6 +627,7 @@ class RDD(object):
         ...     rdd1.fullOuterJoin(rdd2).collect()
         ... )  # doctest: +IGNORE_UNICODE
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
+
         """
 
         grouped = self.cogroup(other, numPartitions)
