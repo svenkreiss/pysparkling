@@ -123,6 +123,8 @@ class Context(object):
         and floating-point numbers if you do not provide one. For other types,
         a custom AccumulatorParam can be used.
         """
+        if not isinstance(self._pool, DummyPool):
+            raise NotImplementedError('Accumulators are not yet compatible with multiprocessing')
         if accum_param is None:
             if isinstance(value, int):
                 accum_param = accumulators.INT_ACCUMULATOR_PARAM
