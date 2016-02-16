@@ -162,13 +162,3 @@ Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
 *API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.fileio.File
-
-
-Development
-===========
-
-Fork the Github repository and apply your changes in a feature branch.
-To run pysparkling's unit tests locally, install the package and all
-dependencies with ``pip install -e .[s3,hdfs,http,tests]`` and run the
-tests with ``nosetests``. Don't run ``python setup.py test`` as this will
-not execute the doctests. When all tests pass, create a Pull Request.
