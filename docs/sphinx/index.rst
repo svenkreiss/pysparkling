@@ -115,7 +115,8 @@ and
 which prints a long list of pairs of words and their counts.
 
 
-Contents:
+Contents
+========
 
 .. toctree::
    :maxdepth: 2
