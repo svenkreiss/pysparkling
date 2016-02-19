@@ -11,3 +11,5 @@ install:
  - "if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi"
  - "pip install .[http,s3,tests]"
 script: "nosetests -vv"
+after_success:
+  - curl -X POST https://readthedocs.org/build/pysparkling
