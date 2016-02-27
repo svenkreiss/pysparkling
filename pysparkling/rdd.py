@@ -47,7 +47,7 @@ class RDD(object):
     """
 
     def __init__(self, partitions, ctx):
-        self._p = partitions
+        self._p = list(partitions)
         self.context = ctx
         self._name = None
         self._rdd_id = ctx.newRddId()
@@ -64,8 +64,7 @@ class RDD(object):
         return split.x()
 
     def partitions(self):
-        self._p, r = itertools.tee(self._p, 2)
-        return r
+        return self._p
 
     """
 
@@ -644,7 +643,7 @@ class RDD(object):
             Returns the number of partitions.
 
         """
-        return sum(1 for _ in self.partitions())
+        return len(self.partitions())
 
     def getPartitions(self):
         """
@@ -1629,7 +1628,7 @@ class RDD(object):
         """
 
         rnd_entries = sorted([random.random() for _ in range(n)])
-        num_partitions = sum(1 for _ in self.partitions())
+        num_partitions = self.getNumPartitions()
 
         rnd_entries = [
             (

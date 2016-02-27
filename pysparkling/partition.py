@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import logging
-import itertools
 
 log = logging.getLogger(__name__)
 
@@ -12,8 +11,9 @@ class Partition(object):
         self._x = x
 
     def x(self):
-        self._x, r = itertools.tee(self._x)
-        return r
+        if not isinstance(self._x, list):
+            self._x = list(self._x)
+        return self._x
 
     def hashCode(self):
         return self.index
@@ -21,5 +21,5 @@ class Partition(object):
     def __getstate__(self):
         return {
             'index': self.index,
-            '_x': list(self.x())
+            '_x': self.x(),
         }
