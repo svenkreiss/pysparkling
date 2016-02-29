@@ -54,7 +54,7 @@ class StreamingContext(object):
         """
 
         if timeout is not None:
-            IOLoop.current().call_later(timeout, IOLoop.current().stop)
+            IOLoop.current().call_later(timeout, self.stop)
 
         IOLoop.current().start()
 
@@ -111,6 +111,8 @@ class StreamingContext(object):
         :param stopGracefully:
             stop gracefully (NOT IMPLEMENTED)
         """
+        if self._pcb is not None and self._pcb.is_running():
+            self._pcb.stop()
         IOLoop.current().stop()
         StreamingContext._activeContext = None
 
