@@ -31,12 +31,11 @@ class TCPTextStream(TCPServer):
 
     @coroutine
     def handle_stream(self, stream, address):
-        while True:
-            try:
-                data = yield stream.read_until(self.delimiter)
-            except StreamClosedError:
-                return
-            self.buffer.append(data[:-1].decode('utf8'))
+        try:
+            data = yield stream.read_until(self.delimiter)
+        except StreamClosedError:
+            return
+        self.buffer.append(data[:-1].decode('utf8'))
 
 
 class TCPBinaryStream(TCPServer):
@@ -58,6 +57,10 @@ class TCPBinaryStream(TCPServer):
         self.length = length
         self.buffer = []
 
+        self.prefix_length = None
+        if not isinstance(self.length, int):
+            self.prefix_length = struct.calcsize(self.length)
+
     def get(self):
         r = self.buffer
         self.buffer = []
@@ -65,19 +68,13 @@ class TCPBinaryStream(TCPServer):
 
     @coroutine
     def handle_stream(self, stream, address):
-        self.prefix_length = None
-        if not isinstance(self.length, int):
-            self.prefix_length = struct.calcsize(self.length)
-
-        while True:
-            try:
-                if self.prefix_length:
-                    prefix = yield stream.read_bytes(self.prefix_length)
-                    message_length = struct.unpack(self.length, prefix)[0]
-                else:
-                    message_length = self.length
-                data = yield stream.read_bytes(message_length)
-
-            except StreamClosedError:
-                return
-            self.buffer.append(data)
+        try:
+            if self.prefix_length:
+                prefix = yield stream.read_bytes(self.prefix_length)
+                message_length = struct.unpack(self.length, prefix)[0]
+            else:
+                message_length = self.length
+            data = yield stream.read_bytes(message_length)
+        except StreamClosedError:
+            return
+        self.buffer.append(data)

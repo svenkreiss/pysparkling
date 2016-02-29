@@ -38,15 +38,13 @@ class TCPTextTest(AsyncTestCase, StreamingTestCase):
     def test_connect(self):
         t = self.stream_c.socketTextStream('localhost', 8123)
 
-        stream = yield self.client.connect('localhost', 8123)
-        with closing(stream):
-            for v in range(20):
+        for v in range(20):
+            stream = yield self.client.connect('localhost', 8123)
+            with closing(stream):
                 stream.write('{}\n'.format(v).encode('utf8'))
-            stream.write(b'a\nb\n')
-            stream.write(b'c\n')
 
         self.r = t.count()
-        self.expect = [[23]]
+        self.expect = [[20]]
 
 
 class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
