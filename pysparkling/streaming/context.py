@@ -6,7 +6,7 @@ import logging
 from ..rdd import RDD
 from .dstream import DStream
 from .queuestream import QueueStream
-from .tcpstream import TCPStream
+from .tcpstream import TCPTextStream
 
 try:
     import tornado
@@ -119,12 +119,15 @@ class StreamingContext(object):
         starting with ``.`` are ignored."""
 
     def socketTextStream(self, hostname, port):
-        """Create a socket server.
+        """Create a TCP socket server.
 
         :param hostname:
-            hostname of TCP server.
+            Hostname of TCP server.
 
         :param port:
             Port of TCP server.
         """
-        return DStream(TCPStream(hostname, port), self)
+        stream = TCPTextStream()
+        stream.listen(port, hostname)
+        stream.start()
+        return DStream(stream, self)

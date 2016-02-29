@@ -14,34 +14,25 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-class TCPStream(object):
-    def __init__(self, hostname, port):
-        self.hostname = hostname
-        self.port = port
-
+class TCPTextStream(TCPServer):
+    def __init__(self, delimiter=b'\n'):
         if TCPServer is False:
             log.error('Run \'pip install tornado\' to use TCPStream.')
 
-        self.server = TCPListener()
-        self.server.listen(self.port, self.hostname)
-        self.server.start()
+        super(TCPTextStream, self).__init__()
+        self.delimiter = delimiter
+        self.buffer = []
 
     def get(self):
-        r = self.server.buffer
-        self.server.buffer = []
-        return [r] if r else []
-
-
-class TCPListener(TCPServer):
-    def __init__(self):
-        super(TCPListener, self).__init__()
+        r = self.buffer
         self.buffer = []
+        return [r] if r else []
 
     @coroutine
     def handle_stream(self, stream, address):
         while True:
             try:
-                data = yield stream.read_until(b'\n')
+                data = yield stream.read_until(self.delimiter)
             except StreamClosedError:
                 return
             self.buffer.append(data[:-1].decode('utf8'))
