@@ -1,3 +1,4 @@
+import struct
 import logging
 import unittest
 import pysparkling
@@ -24,15 +25,14 @@ class StreamingTestCase(unittest.TestCase):
         assert result == self.expect
 
 
-class TCPClientTest(AsyncTestCase, StreamingTestCase):
+class TCPTextTest(AsyncTestCase, StreamingTestCase):
     def setUp(self):
-        super(TCPClientTest, self).setUp()
+        super(TCPTextTest, self).setUp()
         self.client = TCPClient()
 
     def tearDown(self):
         self.client.close()
-        # self.stop_server()
-        super(TCPClientTest, self).tearDown()
+        super(TCPTextTest, self).tearDown()
 
     @gen_test
     def test_connect(self):
@@ -47,6 +47,48 @@ class TCPClientTest(AsyncTestCase, StreamingTestCase):
 
         self.r = t.count()
         self.expect = [[23]]
+
+
+class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
+    def setUp(self):
+        super(TCPBinaryFixedLengthTest, self).setUp()
+        self.client = TCPClient()
+
+    def tearDown(self):
+        self.client.close()
+        super(TCPBinaryFixedLengthTest, self).tearDown()
+
+    @gen_test
+    def test_main(self):
+        t = self.stream_c.socketBinaryStream_('localhost', 8123, length=5)
+
+        stream = yield self.client.connect('localhost', 8123)
+        with closing(stream):
+            stream.write(b'hello')
+
+        self.r = t
+        self.expect = [[b'hello']]
+
+
+class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
+    def setUp(self):
+        super(TCPBinaryUIntLengthTest, self).setUp()
+        self.client = TCPClient()
+
+    def tearDown(self):
+        self.client.close()
+        super(TCPBinaryUIntLengthTest, self).tearDown()
+
+    @gen_test
+    def test_main(self):
+        t = self.stream_c.socketBinaryStream_('localhost', 8123, length='<I')
+
+        stream = yield self.client.connect('localhost', 8123)
+        with closing(stream):
+            stream.write(struct.pack('<I', 10)+b'hellohello')
+
+        self.r = t
+        self.expect = [[b'hellohello']]
 
 
 if __name__ == '__main__':

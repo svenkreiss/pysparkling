@@ -6,7 +6,7 @@ import logging
 from ..rdd import RDD
 from .dstream import DStream
 from .queuestream import QueueStream
-from .tcpstream import TCPTextStream
+from .tcpstream import TCPTextStream, TCPBinaryStream
 
 try:
     import tornado
@@ -117,6 +117,25 @@ class StreamingContext(object):
     def textFileStream(self, directory):
         """Creates an input stream that monitors this directory. File names
         starting with ``.`` are ignored."""
+
+    def socketBinaryStream_(self, hostname, port, length):
+        """Create a TCP socket server for binary input.
+        This is not part of the PySpark API.
+
+        :param hostname:
+            Hostname of TCP server.
+
+        :param port:
+            Port of TCP server.
+
+        :param length:
+            Message length. Length in bytes or a format string for
+            ``struct.unpack()``. See :class:`TCPBinaryStream`s doc.
+        """
+        stream = TCPBinaryStream(length)
+        stream.listen(port, hostname)
+        stream.start()
+        return DStream(stream, self)
 
     def socketTextStream(self, hostname, port):
         """Create a TCP socket server.
