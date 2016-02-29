@@ -10,6 +10,7 @@ from contextlib import closing
 from tornado import gen
 from tornado.tcpclient import TCPClient
 from tornado.ioloop import IOLoop, PeriodicCallback
+from tornado.iostream import StreamClosedError
 
 
 class Emitter(object):
@@ -45,10 +46,13 @@ class Emitter(object):
             self.pcb.stop()
             return
 
-        stream = yield self.client.connect('127.0.0.1', self.port)
-        with closing(stream):
-            stream.write('{}\n'.format(random.random()).encode('utf8'))
-            self.i += 1
+        try:
+            stream = yield self.client.connect('127.0.0.1', self.port)
+            with closing(stream):
+                stream.write('{}\n'.format(random.random()).encode('utf8'))
+                self.i += 1
+        except StreamClosedError:
+            return
 
 
 def main():

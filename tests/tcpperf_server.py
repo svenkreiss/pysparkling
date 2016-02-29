@@ -17,4 +17,5 @@ def main():
 
 if __name__ == '__main__':
     os.system('python tests/tcpperf_client.py -n 2000 &')
+    os.system('python tests/tcpperf_client.py -n 2000 &')
     main()
