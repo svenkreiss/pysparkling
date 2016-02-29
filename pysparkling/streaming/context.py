@@ -6,15 +6,17 @@ import logging
 from ..rdd import RDD
 from .dstream import DStream
 from .queuestream import QueueStream
+from .tcpstream import TCPStream
 
 try:
     import tornado
-    from tornado.ioloop import IOLoop
+    from tornado.ioloop import IOLoop, PeriodicCallback
     from tornado.queues import Queue
 except ImportError:
     tornado = False
     IOLoop = False
     Queue = False
+    PeriodicCallback = False
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +36,7 @@ class StreamingContext(object):
         self._context = sparkContext
         self.batch_duration = batchDuration if batchDuration is not None else 1
         self._dstreams = []
+        self._pcb = None
 
     @property
     def sparkContext(self):
@@ -84,22 +87,20 @@ class StreamingContext(object):
     def start(self):
         """Start processing streams."""
 
-        @tornado.gen.coroutine
         def cb():
-            while True:
-                time_ = time.time()
+            time_ = time.time()
+            log.debug('Step {}'.format(time_))
 
-                # run a step on all streams
-                for d in self._dstreams:
-                    d._step(time_)
+            # run a step on all streams
+            for d in self._dstreams:
+                d._step(time_)
 
-                # run function of all streams
-                for d in self._dstreams:
-                    d._apply(time_)
+            # run function of all streams
+            for d in self._dstreams:
+                d._apply(time_)
 
-                yield tornado.gen.sleep(self.batch_duration)
-
-        IOLoop.current().spawn_callback(cb)
+        self._pcb = PeriodicCallback(cb, self.batch_duration*1000.0)
+        self._pcb.start()
         StreamingContext._activeContext = self
 
     def stop(self, stopSparkContext=True, stopGraceFully=False):
@@ -116,3 +117,14 @@ class StreamingContext(object):
     def textFileStream(self, directory):
         """Creates an input stream that monitors this directory. File names
         starting with ``.`` are ignored."""
+
+    def socketTextStream(self, hostname, port):
+        """Create a socket server.
+
+        :param hostname:
+            hostname of TCP server.
+
+        :param port:
+            Port of TCP server.
+        """
+        return DStream(TCPStream(hostname, port), self)

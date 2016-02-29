@@ -1,6 +1,8 @@
 import logging
 import operator
 
+from ..rdd import RDD
+
 log = logging.getLogger(__name__)
 
 
@@ -19,7 +21,13 @@ class DStream(object):
         if time_ <= self._current_time:
             return
         self._current_time = time_
-        self._current_rdds = self._stream.get()
+        self._current_rdds = [
+            i
+            if isinstance(i, RDD)
+            else self._context._context.parallelize(i)
+            for i in self._stream.get()
+            if i is not None
+        ]
 
     def _apply(self, time_):
         if self._fn is None:
