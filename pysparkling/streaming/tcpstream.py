@@ -3,14 +3,9 @@ from __future__ import absolute_import
 import struct
 import logging
 
-try:
-    from tornado.gen import coroutine
-    from tornado.tcpserver import TCPServer
-    from tornado.iostream import StreamClosedError
-except ImportError:
-    coroutine = False
-    TCPServer = False
-    StreamClosedError = False
+from tornado.gen import coroutine
+from tornado.tcpserver import TCPServer
+from tornado.iostream import StreamClosedError
 
 log = logging.getLogger(__name__)
 

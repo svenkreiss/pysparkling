@@ -6,7 +6,12 @@ import logging
 from ..rdd import RDD
 from .dstream import DStream
 from .queuestream import QueueStream
-from .tcpstream import TCPTextStream, TCPBinaryStream
+
+try:
+    from .tcpstream import TCPTextStream, TCPBinaryStream
+except:
+    TCPTextStream = False
+    TCPBinaryStream = False
 
 try:
     import tornado
