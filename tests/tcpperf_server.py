@@ -12,7 +12,7 @@ def main():
     t.count().foreachRDD(lambda _, rdd: print(rdd.collect()))
 
     stream_c.start()
-    stream_c.awaitTermination(timeout=10.0)
+    stream_c.awaitTermination(timeout=5.0)
 
 
 if __name__ == '__main__':

@@ -3,8 +3,10 @@
 from __future__ import absolute_import, division
 
 import sys
+import json
 import time
 import random
+import struct
 import argparse
 from contextlib import closing
 from tornado import gen
@@ -18,7 +20,7 @@ class Emitter(object):
         self.port = port
         self.n = n
         self.duration = duration
-        self.cb = self.text
+        self.message = self.hello
         self.i = 0
 
         self.pcb = None
@@ -27,7 +29,7 @@ class Emitter(object):
     def start(self):
         self.client = TCPClient()
 
-        self.pcb = PeriodicCallback(self.cb, 1000.0/self.n)
+        self.pcb = PeriodicCallback(self.send, 1000.0/self.n)
         self.pcb.start()
 
         IOLoop.current().call_later(self.duration+0.5, self.stop)
@@ -41,7 +43,7 @@ class Emitter(object):
         IOLoop.current().stop()
 
     @gen.coroutine
-    def text(self):
+    def send(self):
         if self.i >= self.duration*self.n:
             self.pcb.stop()
             return
@@ -49,10 +51,33 @@ class Emitter(object):
         try:
             stream = yield self.client.connect('127.0.0.1', self.port)
             with closing(stream):
-                stream.write('{}\n'.format(random.random()).encode('utf8'))
+                stream.write(self.message())
                 self.i += 1
         except StreamClosedError:
             return
+
+    def hello(self):
+        return b'hello\n'
+
+    def text(self):
+        return 'sensor{}|{}\n'.format(
+            random.randint(1, 10),
+            random.random(),
+        ).encode('utf8')
+
+    def json(self):
+        return json.dumps([
+            'sensor{}'.format(random.randint(1, 10)),
+            random.random(),
+        ]).encode('utf8')
+
+    def bello(self):
+        # 5 bytes
+        return b'bello'
+
+    def struct(self):
+        # 8 bytes
+        return struct.pack('If', random.randint(1, 10), random.random())
 
 
 def main():
@@ -61,14 +86,17 @@ def main():
                         help='messages per second')
     parser.add_argument('--port', type=int, default=8123,
                         help='target port number')
-    parser.add_argument('--format', default='text',
-                        help='format of the messages')
+    parser.add_argument('--format', default='hello',
+                        help='format of the messages: hello (default), '
+                             'text, json, bello (binary hello), '
+                             'struct (binary)')
     parser.add_argument('--delay', type=float, default=0.5,
                         help='wait before start sending messages')
     args = parser.parse_args()
 
     time.sleep(args.delay)
     e = Emitter(args.port, args.n)
+    e.message = getattr(e, args.format)
     e.start()
     print('{} sent {} messages'.format(sys.argv[0], e.i))
 
