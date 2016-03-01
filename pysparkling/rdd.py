@@ -691,7 +691,7 @@ class RDD(object):
 
         return self.context.parallelize((
             (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
-                sorted(self.collect()),
+                sorted(self.collect(), key=itemgetter(0)),
                 lambda e: e[0],
             )
         ), numPartitions)
