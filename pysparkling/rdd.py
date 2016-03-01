@@ -1383,7 +1383,7 @@ class RDD(object):
             fileio.TextFile(
                 path
             ).dump(io.StringIO(''.join([
-                str(xx)+'\n' for xx in self.toLocalIterator()
+                '{}\n'.format(xx) for xx in self.toLocalIterator()
             ])))
             return self
 
@@ -1393,7 +1393,7 @@ class RDD(object):
                 os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
                                                             codec_suffix))
             ).dump(io.StringIO(''.join([
-                str(xx)+'\n' for xx in x
+                '{}\n'.format(xx) for xx in x
             ]))),
             resultHandler=list,
         )
