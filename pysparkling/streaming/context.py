@@ -42,6 +42,7 @@ class StreamingContext(object):
         self.batch_duration = batchDuration if batchDuration is not None else 1
         self._dstreams = []
         self._pcb = None
+        self._on_stop_cb = []
 
     @property
     def sparkContext(self):
@@ -118,7 +119,13 @@ class StreamingContext(object):
         """
         if self._pcb is not None and self._pcb.is_running():
             self._pcb.stop()
-        IOLoop.current().stop()
+
+        for cb in self._on_stop_cb:
+            cb()
+
+        # stop after giving above commands time to finish
+        IOLoop.current().call_later(0.1, IOLoop.current().stop)
+
         StreamingContext._activeContext = None
 
     def textFileStream(self, directory):
@@ -142,6 +149,7 @@ class StreamingContext(object):
         stream = TCPBinaryStream(length)
         stream.listen(port, hostname)
         stream.start()
+        self._on_stop_cb.append(stream.stop)
         return DStream(stream, self)
 
     def socketTextStream(self, hostname, port):
@@ -156,4 +164,5 @@ class StreamingContext(object):
         stream = TCPTextStream()
         stream.listen(port, hostname)
         stream.start()
+        self._on_stop_cb.append(stream.stop)
         return DStream(stream, self)
