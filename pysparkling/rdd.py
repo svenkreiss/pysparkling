@@ -669,9 +669,8 @@ class RDD(object):
 
         >>> from pysparkling import Context
         >>> my_rdd = Context().parallelize([4, 7, 2])
-        >>> my_rdd.groupBy(lambda x: x % 2).collect()
+        >>> my_rdd.groupBy(lambda x: x % 2).mapValues(sorted).collect()
         [(0, [2, 4]), (1, [7])]
-
         """
 
         return self.keyBy(f).groupByKey(numPartitions)
