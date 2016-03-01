@@ -1,7 +1,7 @@
 from pysparkling import Context
+from operator import add
 
 import unittest
-
 
 class RDDTest(unittest.TestCase):
     """ Tests for the resilient distributed databases """
@@ -159,6 +159,67 @@ class RDDTest(unittest.TestCase):
                         50 < len(sample["b"]) < 150)
         self.assertTrue(max(sample["a"]) <= 999 and min(sample["a"]) >= 0)
         self.assertTrue(max(sample["b"]) <= 999 and min(sample["b"]) >= 0)
+
+    def test_groupByKey(self):
+        # This will fail if the values of the RDD need to be compared
+        class IncomparableValue(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __eq__(self, other):
+                return self.value == other.value
+
+            def __lt__(self, other):
+                raise NotImplementedError("This object cannot be compared")
+        
+        keys = (0, 1, 2, 0, 1, 2)
+        r = [IncomparableValue(i) for i in range(len(keys))]
+
+        k_rdd = self.context.parallelize(zip(keys, r))
+        actual_group = k_rdd.groupByKey().collect()
+
+        expected_group = ((0, r[0::3]),
+                  (1, r[1::3]),
+                  (2, r[2::3]))
+
+        grouped_dict = {k: v for k, v in actual_group}
+
+        for k, v in expected_group:
+            self.assertIn(k, grouped_dict)
+
+            for vv in v:
+                self.assertIn(vv, grouped_dict[k])
+
+    def test_reduceByKey(self):
+        # This will fail if the values of the RDD need to be compared
+        class IncomparableValueAddable(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __eq__(self, other):
+                return self.value == other.value
+
+            def __add__(self, other):
+                return self.__class__(self.value + other.value)
+
+            def __lt__(self, other):
+                raise NotImplementedError("This object cannot be compared")
+        
+        keys = (0, 1, 2, 0, 1, 2)
+        r = [IncomparableValueAddable(i) for i in range(len(keys))]
+
+        k_rdd = self.context.parallelize(zip(keys, r))
+        actual_group = k_rdd.reduceByKey(add).collect()
+
+        expected_group = ((0, IncomparableValueAddable(3)),
+                  (1, IncomparableValueAddable(5)),
+                  (2, IncomparableValueAddable(7)))
+
+        grouped_dict = {k: v for k, v in actual_group}
+
+        # Keep this order-agnostic
+        for k, v in expected_group:
+            self.assertEqual(grouped_dict[k], v)
 
 
 if __name__ == "__main__":
