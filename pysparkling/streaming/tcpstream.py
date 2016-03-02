@@ -30,6 +30,7 @@ class TCPTextStream(TCPServer):
             data = yield stream.read_until(self.delimiter)
         except StreamClosedError:
             return
+        stream.close()
         self.buffer.append(data[:-1].decode('utf8'))
 
 
@@ -72,4 +73,5 @@ class TCPBinaryStream(TCPServer):
             data = yield stream.read_bytes(message_length)
         except StreamClosedError:
             return
+        stream.close()
         self.buffer.append(data)

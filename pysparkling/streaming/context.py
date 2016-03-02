@@ -107,6 +107,7 @@ class StreamingContext(object):
 
         self._pcb = PeriodicCallback(cb, self.batch_duration*1000.0)
         self._pcb.start()
+        self._on_stop_cb.append(self._pcb.stop)
         StreamingContext._activeContext = self
 
     def stop(self, stopSparkContext=True, stopGraceFully=False):
@@ -117,14 +118,12 @@ class StreamingContext(object):
         :param stopGracefully:
             stop gracefully (NOT IMPLEMENTED)
         """
-        if self._pcb is not None and self._pcb.is_running():
-            self._pcb.stop()
-
-        for cb in self._on_stop_cb:
+        while self._on_stop_cb:
+            cb = self._on_stop_cb.pop()
+            log.debug('calling on_stop_cb {}'.format(cb))
             cb()
 
-        # stop after giving above commands time to finish
-        IOLoop.current().call_later(0.1, IOLoop.current().stop)
+        IOLoop.current().stop()
 
         StreamingContext._activeContext = None
 
@@ -163,6 +162,5 @@ class StreamingContext(object):
         """
         stream = TCPTextStream()
         stream.listen(port, hostname)
-        stream.start()
         self._on_stop_cb.append(stream.stop)
         return DStream(stream, self)
