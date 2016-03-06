@@ -2,7 +2,12 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.18...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.19...master>`_
+* `v0.3.19 <https://github.com/svenkreiss/pysparkling/compare/v0.3.18...v0.3.19>`_ (2016-03-06)
+    * removed use of ``itertools.tee()`` and replaced with clear ownership of partitions and partition data
+    * replace some remaining use of ``str()`` with ``format()``
+    * bugfix for ``RDD.groupByKey()`` and ``RDD.reduceByKey()`` for non-hashable values by @pganssle
+    * small updates to docs and their build process
 * `v0.3.18 <https://github.com/svenkreiss/pysparkling/compare/v0.2.28...v0.3.18>`_ (2016-02-13)
     * bring docs and Github releases back in sync
     * ... many updates.
