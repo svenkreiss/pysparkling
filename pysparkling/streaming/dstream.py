@@ -67,6 +67,12 @@ class DStream(object):
         """
         self._fn = lambda time_, rdds: [func(time_, i) for i in rdds]
 
+    def groupByKey(self):
+        """group by key"""
+        return self.transform(
+            lambda rdd: rdd.groupByKey()
+        )
+
     def map(self, f, preservesPartitioning=False):
         """Apply function f
 
@@ -96,6 +102,12 @@ class DStream(object):
         """
         return self.transform(
             lambda rdd: rdd.mapPartitionsWithIndex(f, preservesPartitioning)
+        )
+
+    def mapValues(self, f):
+        """Apply f to every element"""
+        return self.transform(
+            lambda rdd: rdd.mapValues(f)
         )
 
     def reduce(self, func):
