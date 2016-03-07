@@ -59,17 +59,16 @@ class Emitter(object):
     def hello(self):
         return b'hello\n'
 
+    def r(self):
+        s = random.randint(1, 10)
+        v = s/10.0 + (1.5 - s/10.0)*random.random()
+        return (s, v)
+
     def text(self):
-        return 'sensor{}|{}\n'.format(
-            random.randint(1, 10),
-            random.random(),
-        ).encode('utf8')
+        return 'sensor{}|{}\n'.format(*self.r()).encode('utf8')
 
     def json(self):
-        return json.dumps([
-            'sensor{}'.format(random.randint(1, 10)),
-            random.random(),
-        ]).encode('utf8')
+        return json.dumps(['sensor{}'.format(*self.r())]).encode('utf8')
 
     def bello(self):
         # 5 bytes
@@ -77,7 +76,7 @@ class Emitter(object):
 
     def struct(self):
         # 8 bytes
-        return struct.pack('If', random.randint(1, 10), random.random())
+        return struct.pack('If', *self.r())
 
 
 def main():
