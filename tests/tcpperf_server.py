@@ -82,7 +82,7 @@ if __name__ == '__main__':
         s, v = struct.unpack('If', b)
         return ('sensor{}'.format(s), v)
 
-    with open('tests/tcpperf.csv', 'w') as f:
+    with open('tests/tcpperf_connections.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
         for n, p in MEASUREMENT_POINTS:
             data = (
