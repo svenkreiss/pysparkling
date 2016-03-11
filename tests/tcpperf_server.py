@@ -1,8 +1,10 @@
 from __future__ import print_function, division
 
 import os
+import json
 import math
 import time
+import struct
 import logging
 import pysparkling
 from collections import defaultdict
@@ -30,7 +32,11 @@ def run(n=2000, port=8123, to_kv=None, format_='hello'):
     sensor_sums = defaultdict(float)
     sensor_squares = defaultdict(float)
     sensor_counts = defaultdict(int)
-    t = stream_c.socketTextStream('localhost', port)
+    if format_ not in ('bello', 'struct'):
+        t = stream_c.socketTextStream('localhost', port)
+    else:
+        l = {'bello': 5, 'struct': 8}[format_]
+        t = stream_c.socketBinaryStream_('localhost', port, l)
     t.count().foreachRDD(lambda _, rdd: counts.append(rdd.collect()[0]))
     if to_kv is not None:
         def update(rdd):
@@ -64,17 +70,27 @@ def run(n=2000, port=8123, to_kv=None, format_='hello'):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING)
 
-    def to_kv_from_text(text):
+    def kv_from_text(text):
         k, _, v = text.partition('|')
         return (k, float(v))
-    text_data = [
-        (n, run(n, p, to_kv_from_text, 'text'))
-        for n, p in reversed(MEASUREMENT_POINTS)
-    ]
-    print(text_data)
 
-    hello_data = [
-        (n, run(n, p))
-        for n, p in reversed(MEASUREMENT_POINTS)
-    ]
-    print(hello_data)
+    def kv_from_json(text):
+        j = json.loads(text)
+        return list(j.items())[0]
+
+    def kv_from_struct(b):
+        s, v = struct.unpack('If', b)
+        return ('sensor{}'.format(s), v)
+
+    with open('tests/tcpperf.csv', 'w') as f:
+        f.write('# messages, hello, text, json, bello, struct\n')
+        for n, p in MEASUREMENT_POINTS:
+            data = (
+                n,
+                run(n, p),
+                run(n, p, None, 'bello'),
+                run(n, p, kv_from_text, 'text'),
+                run(n, p, kv_from_json, 'json'),
+                run(n, p, kv_from_struct, 'struct'),
+            )
+            f.write(', '.join('{}'.format(d) for d in data)+'\n')

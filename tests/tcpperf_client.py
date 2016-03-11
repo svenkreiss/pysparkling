@@ -68,7 +68,10 @@ class Emitter(object):
         return 'sensor{}|{}\n'.format(*self.r()).encode('utf8')
 
     def json(self):
-        return json.dumps(['sensor{}'.format(*self.r())]).encode('utf8')
+        s, v = self.r()
+        return (json.dumps({
+            'sensor{}'.format(s): v,
+        })+'\n').encode('utf8')
 
     def bello(self):
         # 5 bytes
