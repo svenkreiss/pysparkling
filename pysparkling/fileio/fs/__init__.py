@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from .file_system import FileSystem
 from .local import Local
 from .s3 import S3
+from .gs import GS
 from .http import Http
 from .hdfs import Hdfs
 
@@ -10,6 +11,7 @@ from .hdfs import Hdfs
 FILE_EXTENSIONS = [
     (('file', ''), Local),
     (('s3', 's3n'), S3),
+    (('gs'), GS),
     (('http', 'https'), Http),
     (('hdfs'), Hdfs),
 ]
