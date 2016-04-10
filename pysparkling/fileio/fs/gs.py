@@ -30,7 +30,7 @@ class GS(FileSystem):
         # obtain key
         t = Tokenizer(self.file_name)
         t.next('://')  # skip scheme
-        project_name = t.next('--')
+        project_name = t.next(':')
         bucket_name = t.next('/')
         blob_name = t.next()
 
@@ -52,7 +52,7 @@ class GS(FileSystem):
 
         t = Tokenizer(expr)
         scheme = t.next('://')
-        project_name = t.next('--')
+        project_name = t.next(':')
         bucket_name = t.next('/')
         prefix = t.next(['*', '?'])
 
@@ -71,7 +71,7 @@ class GS(FileSystem):
     def exists(self):
         t = Tokenizer(self.file_name)
         t.next('//')  # skip scheme
-        project_name = t.next('--')
+        project_name = t.next(':')
         bucket_name = t.next('/')
         blob_name = t.next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
