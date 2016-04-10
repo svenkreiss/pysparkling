@@ -57,10 +57,10 @@ class GS(FileSystem):
         prefix = t.next(['*', '?'])
 
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
-        expr = expr[len(scheme)+3+len(project_name)+2+len(bucket_name)+1:]
+        expr = expr[len(scheme)+3+len(project_name)+1+len(bucket_name)+1:]
         for k in bucket.list_blobs(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
-                files.append('{0}://{1}--{2}/{3}'.format(
+                files.append('{0}://{1}:{2}/{3}'.format(
                     scheme,
                     project_name,
                     bucket_name,
