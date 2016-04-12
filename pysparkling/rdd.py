@@ -29,6 +29,8 @@ from .stat_counter import StatCounter
 from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 
+maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize
+
 log = logging.getLogger(__name__)
 
 
@@ -1844,7 +1846,7 @@ class PartitionwiseSampledRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         if seed is None:
-            seed = random.randint(0, sys.maxint)
+            seed = random.randint(0, maxint)
 
         self.prev = prev
         self.predicate = predicate
