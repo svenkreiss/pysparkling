@@ -18,6 +18,8 @@ except ImportError:
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 S3_TEST_PATH = os.getenv('S3_TEST_PATH')
+OAUTH2_CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
+GS_TEST_PATH = os.getenv('GS_TEST_PATH')
 HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
 
 
@@ -131,6 +133,26 @@ def test_hdfs_file_exists():
     rdd.saveAsTextFile(fn1)
 
     assert File(fn1).exists() and not File(fn2).exists()
+
+
+def test_gs_textFile_loop():
+    if not OAUTH2_CLIENT_ID or not GS_TEST_PATH:
+        raise SkipTest
+
+    random.seed()
+
+    fn = GS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
+        int(random.random()*999999.0)
+    )
+
+    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd.saveAsTextFile(fn)
+    rdd_check = Context().textFile(fn)
+
+    assert (
+        rdd.count() == rdd_check.count() and
+        all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
+    )
 
 
 def test_dumpToFile():
@@ -272,4 +294,5 @@ def test_pyspark_compatibility_gz():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_read_tar_gz_20news()
+    # test_read_tar_gz_20news()
+    test_gs_textFile_loop()

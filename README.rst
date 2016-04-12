@@ -60,7 +60,8 @@ Install
 Features
 ========
 
-* Supports multiple URI scheme: ``s3://``, ``hdfs://``, ``http://`` and ``file://``.
+* Supports URI schemes ``s3://``, ``hdfs://``, ``gs://``, ``http://`` and ``file://``
+  for Amazon S3, HDFS, Google Storage, web and local file access.
   Specify multiple files separated by comma.
   Resolves ``*`` and ``?`` wildcards.
 * Handles ``.gz``, ``.zip``, ``.lzma``, ``.xz``, ``.bz2``, ``.tar``,
@@ -69,7 +70,6 @@ Features
 * Parallelization via ``multiprocessing.Pool``,
   ``concurrent.futures.ThreadPoolExecutor`` or any other Pool-like
   objects that have a ``map(func, iterable)`` method.
-
 * Plain pysparkling does not have any dependencies (use ``pip install pysparkling``).
   Some file access methods have optional dependencies:
   ``boto`` for AWS S3, ``requests`` for http, ``hdfs`` for hdfs
