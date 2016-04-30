@@ -118,8 +118,6 @@ class RDD(object):
 
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
         """
-        [distributed]
-
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
             for aggregating ``int`` s and ``float`` s, but any Python object is
@@ -137,7 +135,7 @@ class RDD(object):
             Not used.
 
         :returns:
-            Output of ``combOp`` operations.
+            An RDD with the output of ``combOp`` operations.
 
 
         Example:
@@ -147,7 +145,7 @@ class RDD(object):
         >>> combOp = (lambda x, y: x + y)
         >>> r = Context().parallelize(
         ...     [('a', 1), ('b', 2), ('a', 3), ('c', 4)]
-        ... ).aggregateByKey(0, seqOp, combOp)
+        ... ).aggregateByKey(0, seqOp, combOp).collectAsMap()
         >>> (r['a'], r['b'])
         (4, 2)
 
@@ -165,8 +163,10 @@ class RDD(object):
                     r[k] = combFunc(r[k], v)
             return r
 
-        return self.context.runJob(self, seqFuncByKey,
-                                   resultHandler=combFuncByKey)
+        local_result = self.context.runJob(self, seqFuncByKey,
+                                           resultHandler=combFuncByKey)
+
+        return self.context.parallelize(local_result.items())
 
     def cache(self):
         """
@@ -560,7 +560,7 @@ class RDD(object):
 
         >>> from pysparkling import Context
         >>> my_rdd = Context().parallelize([('a', 4), ('b', 7), ('a', 2)])
-        >>> my_rdd.foldByKey(0, lambda a, b: a+b)['a']
+        >>> my_rdd.foldByKey(0, lambda a, b: a+b).collectAsMap()['a']
         6
 
         """
