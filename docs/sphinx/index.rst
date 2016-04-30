@@ -63,7 +63,14 @@ Install
 
 .. code-block:: bash
 
-  pip install pysparkling[s3,hdfs,http]
+  pip install pysparkling
+
+or to install with all dependencies:
+
+.. code-block:: bash
+
+  pip install pysparkling[hdfs,tests]
+
 
 
 Features
