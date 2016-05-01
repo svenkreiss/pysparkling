@@ -244,66 +244,69 @@ class Context(object):
 
         # this is the place to insert proper schedulers
         if allowLocal or isinstance(self._pool, DummyPool):
-            def local_map(partition):
-                task_context = TaskContext(
-                    stage_id=0,
-                    partition_id=partition.index,
-                )
-                return func(task_context, rdd.compute(partition, task_context))
-            map_result = (local_map(p) for p in partitions)
+            map_result = self._runJob_local(rdd, func, partitions)
         else:
-            def map_and_cache():
-                cm = CacheManager.singleton()
-                serialized_func_rdd = self._serializer((func, rdd))
-
-                def prepare(p):
-                    t_start = time.clock()
-                    cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
-                    self._stats['driver_cache_clone'] += (time.clock() -
-                                                          t_start)
-
-                    t_start = time.clock()
-                    cm_serialized = self._data_deserializer(cm_clone)
-                    self._stats['driver_cache_serialize'] += (time.clock() -
-                                                              t_start)
-
-                    t_start = time.clock()
-                    serialized_p = self._data_deserializer(p)
-                    self._stats['driver_serialize_data'] += (time.clock() -
-                                                             t_start)
-
-                    return (
-                        self._deserializer,
-                        self._data_serializer,
-                        self._data_deserializer,
-                        serialized_func_rdd,
-                        serialized_p,
-                        cm_serialized,
-                    )
-
-                for d in self._pool.map(runJob_map,
-                                        (prepare(p) for p in partitions)):
-                    t_start = time.clock()
-                    map_result, cache_result, s = self._data_deserializer(d)
-                    self._stats['driver_deserialize_data'] += (time.clock() -
-                                                               t_start)
-
-                    # join cache
-                    t_start = time.clock()
-                    cm.join(cache_result)
-                    self._stats['driver_cache_join'] += time.clock() - t_start
-
-                    # collect stats
-                    for k, v in s.items():
-                        self._stats[k] += v
-
-                    yield map_result
-            map_result = map_and_cache()
+            map_result = self._runJob_distributed(rdd, func, partitions)
         log.debug('Map jobs generated.')
 
         if resultHandler is not None:
             return resultHandler(map_result)
         return list(map_result)  # convert to list to execute on all partitions
+
+    def _runJob_local(self, rdd, func, partitions):
+        for partition in partitions:
+            task_context = TaskContext(
+                stage_id=0,
+                partition_id=partition.index,
+            )
+            yield func(task_context, rdd.compute(partition, task_context))
+
+    def _runJob_distributed(self, rdd, func, partitions):
+        cm = CacheManager.singleton()
+        serialized_func_rdd = self._serializer((func, rdd))
+
+        def prepare(p):
+            t_start = time.clock()
+            cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
+            self._stats['driver_cache_clone'] += (time.clock() -
+                                                  t_start)
+
+            t_start = time.clock()
+            cm_serialized = self._data_deserializer(cm_clone)
+            self._stats['driver_cache_serialize'] += (time.clock() -
+                                                      t_start)
+
+            t_start = time.clock()
+            serialized_p = self._data_deserializer(p)
+            self._stats['driver_serialize_data'] += (time.clock() -
+                                                     t_start)
+
+            return (
+                self._deserializer,
+                self._data_serializer,
+                self._data_deserializer,
+                serialized_func_rdd,
+                serialized_p,
+                cm_serialized,
+            )
+
+        for d in self._pool.map(runJob_map,
+                                (prepare(p) for p in partitions)):
+            t_start = time.clock()
+            map_result, cache_result, s = self._data_deserializer(d)
+            self._stats['driver_deserialize_data'] += (time.clock() -
+                                                       t_start)
+
+            # join cache
+            t_start = time.clock()
+            cm.join(cache_result)
+            self._stats['driver_cache_join'] += time.clock() - t_start
+
+            # collect stats
+            for k, v in s.items():
+                self._stats[k] += v
+
+            yield map_result
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         """Read a text file into an RDD.
