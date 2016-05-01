@@ -57,6 +57,11 @@ dependency on the JVM. This is what ``pysparkling`` is for.
    :alt: Join the chat at https://gitter.im/svenkreiss/pysparkling
    :target: https://gitter.im/svenkreiss/pysparkling?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
+Links:
+`Documentation <http://pysparkling.trivial.io/>`_,
+`Github <https://github.com/svenkreiss/pysparkling>`_,
+`Issue Tracker <https://github.com/svenkreiss/pysparkling/issues>`_
+
 
 Install
 =======
