@@ -2,7 +2,13 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.19...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.20...master>`_
+* `v0.3.20 <https://github.com/svenkreiss/pysparkling/compare/v0.3.19...v0.3.20>`_ (2016-05-01)
+    * Google Storage file system (using ``gs://``)
+    * dependencies: ``requests`` and ``boto`` are not optional anymore
+    * ``aggregateByKey()`` and ``foldByKey()`` return RDDs
+    * Python 3: use ``sys.maxsize`` instead of ``sys.maxint``
+    * flake8 linting
 * `v0.3.19 <https://github.com/svenkreiss/pysparkling/compare/v0.3.18...v0.3.19>`_ (2016-03-06)
     * removed use of ``itertools.tee()`` and replaced with clear ownership of partitions and partition data
     * replace some remaining use of ``str()`` with ``format()``
