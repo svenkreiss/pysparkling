@@ -4,9 +4,9 @@ from fnmatch import fnmatch
 import logging
 from io import BytesIO, StringIO
 
+from ...exceptions import FileSystemNotSupported
 from ...utils import Tokenizer
 from .file_system import FileSystem
-from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
@@ -67,22 +67,23 @@ class Hdfs(FileSystem):
         file_expr = t.next()
 
         if file_expr and '/' in fixed_path:
-            file_expr = fixed_path[fixed_path.rfind('/')+1:]+file_expr
+            file_expr = fixed_path[fixed_path.rfind('/') + 1:] + file_expr
             fixed_path = fixed_path[:fixed_path.rfind('/')]
         # file_expr is only the actual file expression if there was a * or ?.
         # Handle this case.
         if not file_expr:
             if '/' in fixed_path:
-                file_expr = fixed_path[fixed_path.rfind('/')+1:]
+                file_expr = fixed_path[fixed_path.rfind('/') + 1:]
                 fixed_path = fixed_path[:fixed_path.rfind('/')]
             else:
                 file_expr = fixed_path
                 fixed_path = ''
 
         files = []
-        for fn in c.list('/'+fixed_path, status=False):
+        for fn in c.list('{}/'.format(fixed_path), status=False):
             if fnmatch(fn, file_expr) or fnmatch(fn, file_expr + '/part*'):
-                files.append('{0}://{1}/{2}/{3}'.format(scheme, domain, fixed_path, fn))
+                files.append('{0}://{1}/{2}/{3}'.format(
+                    scheme, domain, fixed_path, fn))
         return files
 
     def load(self):

@@ -1,18 +1,18 @@
 from __future__ import print_function
 
-import os
+import cloudpickle
+from concurrent import futures
+import logging
 import math
-import time
+import multiprocessing
+import os
 import pickle
 import pprint
-from random import random, choice
-import timeit
-import logging
-import unittest
-import cloudpickle
-import multiprocessing
-from concurrent import futures
 from pysparkling import Context
+from random import random, choice
+import time
+import timeit
+import unittest
 
 
 def test_multiprocessing():
@@ -20,7 +20,7 @@ def test_multiprocessing():
     c = Context(pool=p, serializer=cloudpickle.dumps,
                 deserializer=pickle.loads)
     my_rdd = c.parallelize([1, 3, 4])
-    r = my_rdd.map(lambda x: x*x).collect()
+    r = my_rdd.map(lambda x: x ** 2).collect()
     print(r)
     assert 16 in r
 
@@ -51,7 +51,7 @@ def test_lazy_execution():
         def indent_line(self, l):
             # global indent_was_executed
             self.executed = True
-            return '--- '+l
+            return '--- ' + l
 
     r = Context().textFile('tests/test_multiprocessing.py')
     i = I()
@@ -70,7 +70,7 @@ def test_lazy_execution():
 
 def test_lazy_execution_threadpool():
     def indent_line(l):
-        return '--- '+l
+        return '--- ' + l
 
     with futures.ThreadPoolExecutor(4) as p:
         r = Context(pool=p).textFile('tests/test_multiprocessing.py')
@@ -85,7 +85,7 @@ def test_lazy_execution_threadpool():
 
 def test_lazy_execution_processpool():
     def indent_line(l):
-        return '--- '+l
+        return '--- ' + l
 
     with futures.ProcessPoolExecutor(4) as p:
         r = Context(
@@ -128,7 +128,7 @@ def map1(ft):
 
 def map_pi(n):
     return sum((
-        1 for x in (random()**2 + random()**2 for _ in range(n))
+        1 for x in (random() ** 2 + random() ** 2 for _ in range(n))
         if x < 1.0
     ))
 
@@ -137,8 +137,8 @@ def map_pi(n):
                  "skip performance test on Travis")
 def test_performance():
     # not pickle-able map function
-    #def map2(ft):
-    #    return [random.choice(ft[1].split()) for _ in range(1000)]
+    # def map2(ft):
+    #     return [random.choice(ft[1].split()) for _ in range(1000)]
 
     def create_context(n_processes=0):
         if not n_processes:
@@ -166,21 +166,21 @@ def test_performance():
     print('starting processing')
     n_cpu = multiprocessing.cpu_count()
     test_results = {}
-    for n in range(int(n_cpu*1.5 + 1)):
+    for n in range(int(n_cpu * 1.5 + 1)):
         test_results[n] = test(n)
         print(n, test_results[n][0])
     print('results where running on one core with full serialization is 1.0:')
     pprint.pprint({
-        n: 1.0 / (v[0]/test_results[1][0]) for n, v in test_results.items()
+        n: 1.0 / (v[0] / test_results[1][0]) for n, v in test_results.items()
     })
     print('time spent where:')
     pprint.pprint({
-        n: {k: '{:.1%}'.format(t/v[1]['map_exec']) for k, t in v[1].items()}
+        n: {k: '{:.1%}'.format(t / v[1]['map_exec']) for k, t in v[1].items()}
         for n, v in test_results.items()
     })
 
     # running on two cores takes less than 70% of the time running on one
-    assert test_results[2][0]/test_results[1][0] < 0.7
+    assert test_results[2][0] / test_results[1][0] < 0.7
 
     return (n_cpu, test_results)
 

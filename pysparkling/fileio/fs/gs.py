@@ -4,9 +4,9 @@ from fnmatch import fnmatch
 import logging
 from io import BytesIO, StringIO
 
+from ...exceptions import FileSystemNotSupported
 from ...utils import Tokenizer
 from .file_system import FileSystem
-from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
@@ -57,15 +57,12 @@ class GS(FileSystem):
         prefix = t.next(['*', '?'])
 
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
-        expr = expr[len(scheme)+3+len(project_name)+1+len(bucket_name)+1:]
+        expr_s = len(scheme) + 3 + len(project_name) + 1 + len(bucket_name) + 1
+        expr = expr[expr_s:]
         for k in bucket.list_blobs(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
                 files.append('{0}://{1}:{2}/{3}'.format(
-                    scheme,
-                    project_name,
-                    bucket_name,
-                    k.name,
-                ))
+                    scheme, project_name, bucket_name, k.name))
         return files
 
     def exists(self):
@@ -76,7 +73,7 @@ class GS(FileSystem):
         blob_name = t.next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
         return (bucket.get_blob(blob_name) or
-                list(bucket.list_blobs(prefix=blob_name+'/')))
+                list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'

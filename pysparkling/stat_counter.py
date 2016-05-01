@@ -76,12 +76,14 @@ class StatCounter(object):
             elif self.n * 10 < other.n:
                 self.mu = other.mu - (delta * self.n) / (self.n + other.n)
             else:
-                self.mu = (self.mu * self.n + other.mu * other.n) / (self.n + other.n)
+                self.mu = ((self.mu * self.n + other.mu * other.n) /
+                           (self.n + other.n))
 
             self.maxValue = maximum(self.maxValue, other.maxValue)
             self.minValue = minimum(self.minValue, other.minValue)
 
-            self.m2 += other.m2 + (delta * delta * self.n * other.n) / (self.n + other.n)
+            self.m2 += other.m2 + ((delta * delta * self.n * other.n) /
+                                   (self.n + other.n))
             self.n += other.n
 
         return self

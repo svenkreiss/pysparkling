@@ -6,15 +6,16 @@ Manages caches of calculated partitions.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-import zlib
-import pickle
 import logging
+import pickle
+import zlib
 
 log = logging.getLogger(__name__)
 
 
 class CacheManager(object):
-    """
+    """cache manager
+
     When mem_obj or disk_location are None, it means the object does not
     exist in memory or on disk. The other variables might be set though.
 
@@ -89,7 +90,8 @@ class CacheManager(object):
         )
 
     def get_not_in(self, idents):
-        """
+        """get entries not given in idents
+
         :param idents:
             A list of cache ids (or idents).
 
@@ -101,7 +103,8 @@ class CacheManager(object):
                 if i not in idents}
 
     def join(self, cache_objects):
-        """
+        """join
+
         :param cache_objects:
             Objects obtained with :func:`CacheManager.get_not_in()`.
 
@@ -115,7 +118,8 @@ class CacheManager(object):
                     v['disk_location'] is not None)]
 
     def clone_contains(self, filter_id):
-        """
+        """clone contains
+
         :param filter_id:
             A function returning true for ids that should be returned.
 
@@ -140,7 +144,7 @@ class CacheManager(object):
         return True
 
     def clear(self):
-        """Empties the entire cache."""
+        """empties the entire cache"""
         self.cache_obj = {}
         self.cache_cnt = 0
         self.cache_mem_size = 0.0

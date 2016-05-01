@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
-import zipfile
-import logging
 from io import BytesIO
+import logging
+import zipfile
 
 from .codec import Codec
 

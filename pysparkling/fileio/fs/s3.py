@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 
 from fnmatch import fnmatch
-import logging
 from io import BytesIO, StringIO
+import logging
 
+from ...exceptions import FileSystemNotSupported
 from ...utils import Tokenizer
 from .file_system import FileSystem
-from ...exceptions import FileSystemNotSupported
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class S3(FileSystem):
             bucket_name,
             validate=False
         )
-        expr = expr[len(scheme)+3+len(bucket_name)+1:]
+        expr = expr[len(scheme) + 3 + len(bucket_name) + 1:]
         for k in bucket.list(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
                 files.append('{0}://{1}/{2}'.format(
@@ -72,7 +72,8 @@ class S3(FileSystem):
         key_name = t.next()
         conn = S3._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
-        return bucket.get_key(key_name) or bucket.list(prefix=key_name+'/')
+        return (bucket.get_key(key_name) or
+                bucket.list(prefix='{}/'.format(key_name)))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'

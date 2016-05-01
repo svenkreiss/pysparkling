@@ -6,18 +6,18 @@ Provides a Python implementation of RDDs.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-import io
-import os
-import sys
+from collections import defaultdict
 import copy
+import functools
+import io
+import itertools
+import logging
+from operator import itemgetter
+import os
 import pickle
 import random
-import logging
-import functools
-import itertools
 import subprocess
-from collections import defaultdict
-from operator import itemgetter
+import sys
 
 try:
     from itertools import izip as zip  # Python 2
@@ -25,9 +25,9 @@ except ImportError:
     pass                               # Python 3
 
 from . import fileio
-from .stat_counter import StatCounter
 from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
+from .stat_counter import StatCounter
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize
 
@@ -35,7 +35,8 @@ log = logging.getLogger(__name__)
 
 
 class RDD(object):
-    """
+    """RDD
+
     In Spark's original form, RDDs are Resilient, Distributed Datasets.
     This class reimplements the same interface with the goal of being
     fast on small data at the cost of being resilient and distributed.
@@ -61,8 +62,11 @@ class RDD(object):
         return r
 
     def compute(self, split, task_context):
-        """split is a partition. This function is used in derived RDD
-        classes to add smarter behavior for specific cases."""
+        """interface to extend behavior for specific cases
+
+        :param split:
+            a partition
+        """
         return split.x()
 
     def partitions(self):
@@ -75,7 +79,8 @@ class RDD(object):
     """
 
     def aggregate(self, zeroValue, seqOp, combOp):
-        """
+        """aggregate
+
         [distributed]
 
         :param zeroValue:
@@ -117,7 +122,8 @@ class RDD(object):
         )
 
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
-        """
+        """aggregate by key
+
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
             for aggregating ``int`` s and ``float`` s, but any Python object is
@@ -169,8 +175,8 @@ class RDD(object):
         return self.context.parallelize(local_result.items())
 
     def cache(self):
-        """
-        Whenever a partition is computed, cache the result.
+        """Once a partition is computed, cache the result.
+
         Alias for :func:`RDD.persist`.
 
 
@@ -216,7 +222,8 @@ class RDD(object):
         return self.persist()
 
     def cartesian(self, other):
-        """
+        """cartesian
+
         :param other:
             Another RDD.
 
@@ -241,7 +248,8 @@ class RDD(object):
         return self.context.parallelize([(a, b) for a in v1 for b in v2])
 
     def coalesce(self, numPartitions, shuffle=False):
-        """
+        """coalesce
+
         :param numPartitions:
             Number of partitions in the resulting RDD.
 
@@ -266,8 +274,7 @@ class RDD(object):
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def cogroup(self, other, numPartitions=None):
-        """
-        Groups keys from both RDDs together. Values are nested iterators.
+        """Groups keys from both RDDs together. Values are nested iterators.
 
         :param other:
             The other RDD.
@@ -298,9 +305,7 @@ class RDD(object):
         ])
 
     def collect(self):
-        """
-        :returns:
-            The entire dataset as a list.
+        """returns the entire dataset as a list
 
 
         Example:
@@ -317,9 +322,7 @@ class RDD(object):
         )
 
     def collectAsMap(self):
-        """
-        :returns:
-            A dictionary of a pair dataset.
+        """returns a dictionary for a pair dataset
 
 
         Example:
@@ -333,9 +336,7 @@ class RDD(object):
         return dict(self.collect())
 
     def count(self):
-        """
-        :returns:
-            Number of entries in this dataset.
+        """number of entries in this dataset
 
 
         Example:
@@ -349,16 +350,11 @@ class RDD(object):
                                    resultHandler=sum)
 
     def countApprox(self):
-        """
-        Same as :func:`RDD.count()`.
-
-        """
+        """ame as :func:`RDD.count()`"""
         return self.count()
 
     def countByKey(self):
-        """
-        :returns:
-            A ``dict`` containing the count for every key.
+        """returns a ``dict`` containing the count for every key
 
 
         Example:
@@ -373,9 +369,7 @@ class RDD(object):
         return self.map(lambda r: r[0]).countByValue()
 
     def countByValue(self):
-        """
-        :returns:
-            A ``dict`` containing the count for every value.
+        """returns a ``dict`` containing the count for every value
 
 
         Example:
@@ -394,7 +388,8 @@ class RDD(object):
                                    resultHandler=sum_counts_by_keys)
 
     def distinct(self, numPartitions=None):
-        """
+        """distinct
+
         :param numPartitions:
             The number of partitions of the newly created RDD.
 
@@ -417,7 +412,8 @@ class RDD(object):
                                         numPartitions)
 
     def filter(self, f):
-        """
+        """filter
+
         :param f:
             A reference to a function that if it evaluates to true when applied
             to an element in the dataset, the element is kept.
@@ -442,9 +438,7 @@ class RDD(object):
         )
 
     def first(self):
-        """
-        :returns:
-            The first element in the dataset.
+        """returns the first element in the dataset
 
 
         Example:
@@ -468,8 +462,7 @@ class RDD(object):
         )
 
     def flatMap(self, f, preservesPartitioning=True):
-        """
-        A map operation followed by flattening.
+        """map followed by flatten
 
         :param f:
             The map function.
@@ -497,8 +490,7 @@ class RDD(object):
         )
 
     def flatMapValues(self, f):
-        """
-        A map operation on the values in a (key, value) pair followed by a map.
+        """map operation on values in a (key, value) pair followed by a flatten
 
         :param f:
             The map function.
@@ -523,7 +515,8 @@ class RDD(object):
         )
 
     def fold(self, zeroValue, op):
-        """
+        """fold
+
         :param zeroValue:
             The inital value, for example ``0`` or ``0.0``.
 
@@ -545,7 +538,8 @@ class RDD(object):
         return self.aggregate(zeroValue, op, op)
 
     def foldByKey(self, zeroValue, op):
-        """
+        """fold by key
+
         :param zeroValue:
             The inital value, for example ``0`` or ``0.0``.
 
@@ -567,9 +561,9 @@ class RDD(object):
         return self.aggregateByKey(zeroValue, op, op)
 
     def foreach(self, f):
-        """
-        Applies ``f`` to every element, but does not return a new RDD like
-        :func:`RDD.map()`.
+        """applies ``f`` to every element
+
+        It does not return a new RDD like :func:`RDD.map()`.
 
         :param f:
             Apply a function to every element.
@@ -589,9 +583,9 @@ class RDD(object):
                             resultHandler=None)
 
     def foreachPartition(self, f):
-        """
-        Applies ``f`` to every partition, but does not return a new RDD like
-        :func:`RDD.mapPartitions()`.
+        """applies ``f`` to every partition
+
+        It does not return a new RDD like :func:`RDD.mapPartitions()`.
 
         :param f:
             Apply a function to every partition.
@@ -601,8 +595,7 @@ class RDD(object):
                             resultHandler=None)
 
     def fullOuterJoin(self, other, numPartitions=None):
-        """
-        Returns the full outer join of two RDDs.
+        """returns the full outer join of two RDDs
 
         :param other:
             The RDD to join to this one.
@@ -640,23 +633,16 @@ class RDD(object):
         ])
 
     def getNumPartitions(self):
-        """
-        :returns:
-            Returns the number of partitions.
-
-        """
+        """returns the number of partitions"""
         return len(self.partitions())
 
     def getPartitions(self):
-        """
-        :returns:
-            The partitions of this RDD.
-
-        """
+        """returns the partitions of this RDD"""
         return self.partitions()
 
     def groupBy(self, f, numPartitions=None):
-        """
+        """group by f
+
         :param f:
             Function returning a key given an element of the dataset.
 
@@ -678,7 +664,8 @@ class RDD(object):
         return self.keyBy(f).groupByKey(numPartitions)
 
     def groupByKey(self, numPartitions=None):
-        """
+        """group by key
+
         :param numPartitions:
             The number of partitions in the new grouped dataset.
 
@@ -698,7 +685,8 @@ class RDD(object):
         ), numPartitions)
 
     def histogram(self, buckets):
-        """
+        """histogram
+
         :param buckets:
             A list of bucket boundaries or an int for the number of buckets.
 
@@ -723,8 +711,8 @@ class RDD(object):
             stats = self.stats()
             min_v = stats.min()
             max_v = stats.max()
-            buckets = [min_v + float(i)*(max_v-min_v)/num_buckets
-                       for i in range(num_buckets+1)]
+            buckets = [min_v + float(i) * (max_v - min_v) / num_buckets
+                       for i in range(num_buckets + 1)]
         h = [0 for _ in buckets]
         for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
@@ -740,7 +728,8 @@ class RDD(object):
         return None
 
     def intersection(self, other):
-        """
+        """intersection
+
         :param other:
             The other dataset to do the intersection with.
 
@@ -768,7 +757,8 @@ class RDD(object):
         return False
 
     def join(self, other, numPartitions=None):
-        """
+        """join
+
         :param other:
             The other RDD.
 
@@ -804,7 +794,8 @@ class RDD(object):
         ), numPartitions)
 
     def keyBy(self, f):
-        """
+        """key by f
+
         :param f:
             Function that returns a key from a dataset element.
 
@@ -823,7 +814,8 @@ class RDD(object):
         return self.map(lambda e: (f(e), e))
 
     def keys(self):
-        """
+        """keys
+
         :returns:
             A new RDD containing the keys of the current RDD.
 
@@ -838,7 +830,8 @@ class RDD(object):
         return self.map(lambda e: e[0])
 
     def leftOuterJoin(self, other, numPartitions=None):
-        """
+        """left outer join
+
         :param other:
             The other RDD.
 
@@ -871,8 +864,7 @@ class RDD(object):
         ])
 
     def lookup(self, key):
-        """
-        Return all the (key, value) pairs where the given key matches.
+        """Return all the (key, value) pairs where the given key matches.
 
         :param key:
             The key to lookup.
@@ -891,7 +883,8 @@ class RDD(object):
         return self.filter(lambda x: x[0] == key).values().collect()
 
     def map(self, f):
-        """
+        """map
+
         :param f:
             Map function.
 
@@ -913,7 +906,8 @@ class RDD(object):
         )
 
     def mapPartitions(self, f, preservesPartitioning=False):
-        """
+        """map partitions
+
         :param f:
             Map function.
 
@@ -938,7 +932,8 @@ class RDD(object):
         )
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
-        """
+        """map partitions with index
+
         :param f:
             Map function.
 
@@ -963,7 +958,8 @@ class RDD(object):
         )
 
     def mapValues(self, f):
-        """
+        """map values
+
         :param f:
             Map function.
 
@@ -978,9 +974,7 @@ class RDD(object):
         )
 
     def max(self):
-        """
-        :returns:
-            The maximum element.
+        """returns the maximum element
 
 
         Example:
@@ -993,9 +987,7 @@ class RDD(object):
         return self.stats().max()
 
     def mean(self):
-        """
-        :returns:
-            The mean of this dataset.
+        """returns the mean of this dataset
 
 
         Example:
@@ -1008,24 +1000,15 @@ class RDD(object):
         return self.stats().mean()
 
     def min(self):
-        """
-        :returns:
-            The minimum element.
-
-        """
+        """returns the minimum element"""
         return self.stats().min()
 
     def name(self):
-        """
-        :returns:
-            The name of the dataset.
-
-        """
+        """returns the name of the dataset"""
         return self._name
 
     def persist(self, storageLevel=None):
-        """
-        Cache the results of computed partitions.
+        """Cache the results of computed partitions.
 
         :param storageLevel:
             Not used.
@@ -1034,8 +1017,7 @@ class RDD(object):
         return PersistedRDD(self, storageLevel=storageLevel)
 
     def pipe(self, command, env=None):
-        """
-        Run a command with the elements in the dataset as argument.
+        """Run a command with the elements in the dataset as argument.
 
         :param command:
             Command line command to run.
@@ -1059,12 +1041,11 @@ class RDD(object):
             env = {}
 
         return self.context.parallelize(subprocess.check_output(
-            [command]+x if isinstance(x, list) else [command, x]
+            [command] + x if isinstance(x, list) else [command, x]
         ) for x in self.collect())
 
     def randomSplit(self, weights, seed=None):
-        """
-        Split the RDD into a few RDDs according to the given weights.
+        """Split the RDD into a few RDDs according to the given weights.
 
         .. note::
             Creating the new RDDs is currently implemented as a local
@@ -1092,7 +1073,7 @@ class RDD(object):
         sum_weights = sum(weights)
         boundaries = [0]
         for w in weights:
-            boundaries.append(boundaries[-1] + w/sum_weights)
+            boundaries.append(boundaries[-1] + w / sum_weights)
         random.seed(seed)
 
         lists = [[] for _ in weights]
@@ -1105,7 +1086,8 @@ class RDD(object):
         return [self.context.parallelize(l) for l in lists]
 
     def reduce(self, f):
-        """
+        """reduce
+
         :param f:
             A commutative and associative binary operator.
 
@@ -1124,7 +1106,8 @@ class RDD(object):
         )
 
     def reduceByKey(self, f):
-        """
+        """reduce by key
+
         :param f:
             A commutative and associative binary operator.
 
@@ -1144,7 +1127,8 @@ class RDD(object):
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
     def repartition(self, numPartitions):
-        """
+        """repartition
+
         :param numPartitions:
             Number of partitions in new RDD.
 
@@ -1158,7 +1142,8 @@ class RDD(object):
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def rightOuterJoin(self, other, numPartitions=None):
-        """
+        """right outer join
+
         :param other:
             The other RDD.
 
@@ -1191,7 +1176,8 @@ class RDD(object):
         ])
 
     def sample(self, withReplacement, fraction, seed=None):
-        """
+        """sample
+
         :param withReplacement:
             Not used.
 
@@ -1225,7 +1211,8 @@ class RDD(object):
         )
 
     def sampleByKey(self, withReplacement, fractions, seed=None):
-        """
+        """sample by key
+
         :param withReplacement:
             Not used.
 
@@ -1270,7 +1257,8 @@ class RDD(object):
         )
 
     def sampleStdev(self):
-        """
+        """sample standard deviation
+
         :returns:
             sample standard deviation
 
@@ -1285,7 +1273,8 @@ class RDD(object):
         return self.stats().sampleStdev()
 
     def sampleVariance(self):
-        """
+        """sample variance
+
         :returns:
             sample variance
 
@@ -1300,7 +1289,8 @@ class RDD(object):
         return self.stats().sampleVariance()
 
     def saveAsPickleFile(self, path, batchSize=10):
-        """
+        """save as pickle file
+
         .. warning::
             The output of this function is incompatible with the PySpark
             output as there is no pure Python way to write Sequence files.
@@ -1324,7 +1314,7 @@ class RDD(object):
             )
 
         codec_suffix = ''
-        if path.endswith(tuple('.'+ending
+        if path.endswith(tuple('.' + ending
                                for endings, _ in fileio.codec.FILE_ENDINGS
                                for ending in endings)):
             codec_suffix = path[path.rfind('.'):]
@@ -1352,7 +1342,8 @@ class RDD(object):
         return self
 
     def saveAsTextFile(self, path, compressionCodecClass=None):
-        """
+        """save as text file
+
         If the RDD has many partitions, the contents will be stored directly
         in the given path. If the RDD has more partitions, the data of the
         partitions are stored in individual files under ``path/part-00000`` and
@@ -1375,7 +1366,7 @@ class RDD(object):
             )
 
         codec_suffix = ''
-        if path.endswith(tuple('.'+ending
+        if path.endswith(tuple('.' + ending
                                for endings, _ in fileio.codec.FILE_ENDINGS
                                for ending in endings)):
             codec_suffix = path[path.rfind('.'):]
@@ -1402,7 +1393,8 @@ class RDD(object):
         return self
 
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
-        """
+        """sort by keyfunc
+
         :param keyfunc:
             Returns the value that will be sorted.
 
@@ -1444,7 +1436,8 @@ class RDD(object):
 
     def sortByKey(self, ascending=True, numPartitions=None,
                   keyfunc=itemgetter(0)):
-        """
+        """sort by key
+
         :param ascending:
             Default is True.
 
@@ -1482,7 +1475,8 @@ class RDD(object):
         return self.sortBy(keyfunc, ascending, numPartitions)
 
     def stats(self):
-        """
+        """stats
+
         :returns:
             A :class:`pysparkling.StatCounter` instance.
 
@@ -1503,7 +1497,8 @@ class RDD(object):
         )
 
     def stdev(self):
-        """
+        """stdev
+
         :returns:
             standard deviation
 
@@ -1518,7 +1513,8 @@ class RDD(object):
         return self.stats().stdev()
 
     def subtract(self, other, numPartitions=None):
-        """
+        """subtract
+
         :param other:
             The RDD to be subtracted from the current RDD.
 
@@ -1546,7 +1542,8 @@ class RDD(object):
         )
 
     def sum(self):
-        """
+        """sum
+
         :returns:
             The sum of all the elements.
 
@@ -1562,7 +1559,8 @@ class RDD(object):
                                    resultHandler=sum)
 
     def take(self, n):
-        """
+        """take
+
         Only evaluates the partitions that are necessary to return n elements.
 
         :param n:
@@ -1599,7 +1597,8 @@ class RDD(object):
         )
 
     def takeSample(self, n):
-        """
+        """take sample
+
         Assumes samples are evenly distributed between partitions.
 
         Only evaluates the partitions that are necessary to return n elements.
@@ -1633,8 +1632,8 @@ class RDD(object):
 
         rnd_entries = [
             (
-                int(e*num_partitions),  # partition number
-                e*num_partitions-int(e*num_partitions),  # element in partition
+                int(e * num_partitions),  # partition number
+                e * num_partitions - int(e * num_partitions),  # e in partition
             )
             for e in rnd_entries
         ]
@@ -1651,7 +1650,7 @@ class RDD(object):
                 if not p_result:
                     continue
                 for _, e in e_list[1]:
-                    e_num = int(e*len(p_result))
+                    e_num = int(e * len(p_result))
                     r.append(p_result[e_num])
             return r
 
@@ -1661,7 +1660,8 @@ class RDD(object):
         )
 
     def toLocalIterator(self):
-        """
+        """to local iterator
+
         :returns:
             An iterator over the dataset.
 
@@ -1679,7 +1679,8 @@ class RDD(object):
         )
 
     def top(self, num, key=None):
-        """
+        """top
+
         :returns:
             Top N elements in descending order.
 
@@ -1702,7 +1703,8 @@ class RDD(object):
         return self.sortBy(key, ascending=False).take(num)
 
     def union(self, other):
-        """
+        """union
+
         :param other:
             The other RDD for the union.
 
@@ -1721,7 +1723,8 @@ class RDD(object):
         return self.context.union((self, other))
 
     def values(self):
-        """
+        """values
+
         :returns:
             Values of a (key, value) dataset.
 
@@ -1729,7 +1732,8 @@ class RDD(object):
         return self.map(lambda e: e[1])
 
     def variance(self):
-        """
+        """variance
+
         :returns:
             The variance of the dataset.
 
@@ -1744,7 +1748,8 @@ class RDD(object):
         return self.stats().variance()
 
     def zip(self, other):
-        """
+        """zip
+
         :param other:
             Other dataset to zip with.
 
@@ -1768,7 +1773,8 @@ class RDD(object):
         )
 
     def zipWithIndex(self):
-        """
+        """zip with index
+
         :returns:
             New RDD with pairs of an original element and its index.
 
@@ -1789,8 +1795,7 @@ class RDD(object):
         )
 
     def zipWithUniqueId(self):
-        """
-        This is a fast operation.
+        """This is a fast operation.
 
         :returns:
             New RDD where every entry is zipped with a unique index.
@@ -1808,7 +1813,7 @@ class RDD(object):
         return MapPartitionsRDD(
             self,
             lambda tc, i, x: (
-                (xx, e*num_p+tc.partition_id) for e, xx in enumerate(x)
+                (xx, e * num_p + tc.partition_id) for e, xx in enumerate(x)
             ),
             preservesPartitioning=True,
         )

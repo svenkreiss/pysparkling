@@ -1,15 +1,15 @@
 from __future__ import print_function
 
-import os
-import sys
-import pickle
-import random
 import logging
-import tempfile
-import unittest
+from nose.plugins.skip import SkipTest
+import os
+import pickle
 from pysparkling import Context
 from pysparkling.fileio import File
-from nose.plugins.skip import SkipTest
+import random
+import sys
+import tempfile
+import unittest
 
 try:
     import py7zlib
@@ -26,10 +26,10 @@ HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
 def test_cache():
     # this crashes in version 0.2.28
     lines = Context().textFile('tests/*textFil*.py')
-    lines = lines.map(lambda l: '-'+l).cache()
+    lines = lines.map(lambda l: '-' + l).cache()
     print(len(lines.collect()))
-    lines = lines.map(lambda l: '+'+l)
-    lines = lines.map(lambda l: '-'+l).cache()
+    lines = lines.map(lambda l: '+' + l)
+    lines = lines.map(lambda l: '-' + l).cache()
     lines = lines.collect()
     print(lines)
     assert '-+-from pysparkling import Context' in lines
@@ -80,8 +80,8 @@ def test_s3_textFile_loop():
 
     random.seed()
 
-    fn = S3_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
-        int(random.random()*999999.0)
+    fn = '{}/pysparkling_test_{0}.txt'.format(
+        S3_TEST_PATH, int(random.random() * 999999.0)
     )
 
     rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
@@ -100,8 +100,8 @@ def test_hdfs_textFile_loop():
 
     random.seed()
 
-    fn = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
-        int(random.random()*999999.0)
+    fn = '{}/pysparkling_test_{0}.txt'.format(
+        HDFS_TEST_PATH, int(random.random() * 999999.0)
     )
     print('HDFS test file: {0}'.format(fn))
 
@@ -122,11 +122,11 @@ def test_hdfs_file_exists():
 
     random.seed()
 
-    fn1 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
-        int(random.random()*999999.0)
+    fn1 = '{}/pysparkling_test_{0}.txt'.format(
+        HDFS_TEST_PATH, int(random.random() * 999999.0)
     )
-    fn2 = HDFS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
-        int(random.random()*999999.0)
+    fn2 = '{}/pysparkling_test_{0}.txt'.format(
+        HDFS_TEST_PATH, int(random.random() * 999999.0)
     )
 
     rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
@@ -141,8 +141,8 @@ def test_gs_textFile_loop():
 
     random.seed()
 
-    fn = GS_TEST_PATH+'/pysparkling_test_{0}.txt'.format(
-        int(random.random()*999999.0)
+    fn = '{}/pysparkling_test_{0}.txt'.format(
+        GS_TEST_PATH, int(random.random() * 999999.0)
     )
 
     rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
@@ -161,8 +161,8 @@ def test_dumpToFile():
 
     random.seed()
 
-    fn = S3_TEST_PATH+'/pysparkling_test_{0}.pickle'.format(
-        int(random.random()*999999.0)
+    fn = '{}/pysparkling_test_{0}.pickle'.format(
+        S3_TEST_PATH, int(random.random() * 999999.0)
     )
     File(fn).dump(pickle.dumps({'hello': 'world'}))
 
@@ -188,8 +188,8 @@ def test_saveAsTextFile():
 def test_saveAsTextFile_tar():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar')
-    read_rdd = Context().textFile(tempFile.name+'.tar')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar')
+    read_rdd = Context().textFile(tempFile.name + '.tar')
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
@@ -198,8 +198,8 @@ def test_saveAsTextFile_tar():
 def test_saveAsTextFile_targz():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.gz')
-    read_rdd = Context().textFile(tempFile.name+'.tar.gz')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar.gz')
+    read_rdd = Context().textFile(tempFile.name + '.tar.gz')
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
@@ -207,8 +207,8 @@ def test_saveAsTextFile_targz():
 def test_saveAsTextFile_tarbz2():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.tar.bz2')
-    read_rdd = Context().textFile(tempFile.name+'.tar.bz2')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar.bz2')
+    read_rdd = Context().textFile(tempFile.name + '.tar.bz2')
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
@@ -216,16 +216,16 @@ def test_saveAsTextFile_tarbz2():
 def test_saveAsTextFile_gz():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.gz')
-    read_rdd = Context().textFile(tempFile.name+'.gz')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.gz')
+    read_rdd = Context().textFile(tempFile.name + '.gz')
     assert '5' in read_rdd.collect()
 
 
 def test_saveAsTextFile_zip():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.zip')
-    read_rdd = Context().textFile(tempFile.name+'.zip')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.zip')
+    read_rdd = Context().textFile(tempFile.name + '.zip')
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
@@ -233,20 +233,21 @@ def test_saveAsTextFile_zip():
 def test_saveAsTextFile_bz2():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.bz2')
-    read_rdd = Context().textFile(tempFile.name+'.bz2')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.bz2')
+    read_rdd = Context().textFile(tempFile.name + '.bz2')
     assert '5' in read_rdd.collect()
 
 
 def test_saveAsTextFile_lzma():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name+'.lzma')
-    read_rdd = Context().textFile(tempFile.name+'.lzma')
+    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.lzma')
+    read_rdd = Context().textFile(tempFile.name + '.lzma')
     assert '5' in read_rdd.collect()
 
 
-@unittest.skipIf(py7zlib is None, "py7zlib import failed, is pylzma installed?")
+@unittest.skipIf(py7zlib is None,
+                 "py7zlib import failed, is pylzma installed?")
 def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py

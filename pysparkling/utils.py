@@ -22,5 +22,5 @@ class Tokenizer(object):
             return value
 
         value = self.expression[:sep_pos]
-        self.expression = self.expression[sep_pos+len(separator):]
+        self.expression = self.expression[sep_pos + len(separator):]
         return value

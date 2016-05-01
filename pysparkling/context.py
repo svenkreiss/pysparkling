@@ -3,19 +3,19 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import time
-import pickle
-import logging
-import itertools
 from collections import defaultdict
+import itertools
+import logging
+import pickle
+import time
 
-from .rdd import RDD
+from . import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
-from .partition import Partition
-from .task_context import TaskContext
 from .cache_manager import CacheManager
 from .fileio import File, TextFile
-from . import __version__ as PYSPARKLING_VERSION
+from .partition import Partition
+from .rdd import RDD
+from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
 
@@ -62,8 +62,7 @@ def runJob_map(i):
 
 
 class Context(object):
-    """
-    Context object similar to a Spark Context.
+    """Context object similar to a Spark Context.
 
     The variable `_stats` contains measured timing information about data and
     function (de)serialization and workload execution to benchmark your jobs.
@@ -120,7 +119,8 @@ class Context(object):
         return Context.__last_rdd_id
 
     def parallelize(self, x, numPartitions=None):
-        """
+        """parallelize x
+
         :param x:
             An iterable (e.g. a list) that represents the data.
 
@@ -141,16 +141,17 @@ class Context(object):
 
         def partitioned():
             for i in range(numPartitions):
-                start = int(i * len_x/numPartitions)
-                end = int((i+1) * len_x/numPartitions)
-                if i+1 == numPartitions:
+                start = int(i * len_x / numPartitions)
+                end = int((i + 1) * len_x / numPartitions)
+                if i + 1 == numPartitions:
                     end += 1
-                yield itertools.islice(x, end-start)
+                yield itertools.islice(x, end - start)
 
         return self._parallelize_partitions(partitioned())
 
     def _parallelize_partitions(self, partitions):
-        """
+        """helper to parallelize partitions
+
         :param partitions:
             An iterable over the partitioned data.
 
@@ -165,9 +166,9 @@ class Context(object):
         )
 
     def pickleFile(self, name, minPartitions=None):
-        """
-        Read a pickle file created with :func:`RDD.saveAsPickleFile()`
-        into an RDD.
+        """read a pickle file
+
+        Reads files created with :func:`RDD.saveAsPickleFile()` into an RDD.
 
         :param name:
             Location of a file. Can include schemes like ``http://``,
@@ -212,8 +213,7 @@ class Context(object):
 
     def runJob(self, rdd, func, partitions=None, allowLocal=False,
                resultHandler=None):
-        """
-        This function is used by methods in the RDD.
+        """This function is used by methods in the RDD.
 
         Note that the maps are only inside generators and the resultHandler
         needs to take care of executing the ones that it needs. In other words,
@@ -242,72 +242,74 @@ class Context(object):
         if not partitions:
             partitions = rdd.partitions()
 
-        # TODO: this is the place to insert proper schedulers
+        # this is the place to insert proper schedulers
         if allowLocal or isinstance(self._pool, DummyPool):
-            def local_map(partition):
-                task_context = TaskContext(
-                    stage_id=0,
-                    partition_id=partition.index,
-                )
-                return func(task_context, rdd.compute(partition, task_context))
-            map_result = (local_map(p) for p in partitions)
+            map_result = self._runJob_local(rdd, func, partitions)
         else:
-            def map_and_cache():
-                cm = CacheManager.singleton()
-                serialized_func_rdd = self._serializer((func, rdd))
-
-                def prepare(p):
-                    t_start = time.clock()
-                    cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
-                    self._stats['driver_cache_clone'] += (time.clock() -
-                                                          t_start)
-
-                    t_start = time.clock()
-                    cm_serialized = self._data_deserializer(cm_clone)
-                    self._stats['driver_cache_serialize'] += (time.clock() -
-                                                              t_start)
-
-                    t_start = time.clock()
-                    serialized_p = self._data_deserializer(p)
-                    self._stats['driver_serialize_data'] += (time.clock() -
-                                                             t_start)
-
-                    return (
-                        self._deserializer,
-                        self._data_serializer,
-                        self._data_deserializer,
-                        serialized_func_rdd,
-                        serialized_p,
-                        cm_serialized,
-                    )
-
-                for d in self._pool.map(runJob_map,
-                                        (prepare(p) for p in partitions)):
-                    t_start = time.clock()
-                    map_result, cache_result, s = self._data_deserializer(d)
-                    self._stats['driver_deserialize_data'] += (time.clock() -
-                                                               t_start)
-
-                    # join cache
-                    t_start = time.clock()
-                    cm.join(cache_result)
-                    self._stats['driver_cache_join'] += time.clock() - t_start
-
-                    # collect stats
-                    for k, v in s.items():
-                        self._stats[k] += v
-
-                    yield map_result
-            map_result = map_and_cache()
+            map_result = self._runJob_distributed(rdd, func, partitions)
         log.debug('Map jobs generated.')
 
         if resultHandler is not None:
             return resultHandler(map_result)
         return list(map_result)  # convert to list to execute on all partitions
 
+    def _runJob_local(self, rdd, func, partitions):
+        for partition in partitions:
+            task_context = TaskContext(
+                stage_id=0,
+                partition_id=partition.index,
+            )
+            yield func(task_context, rdd.compute(partition, task_context))
+
+    def _runJob_distributed(self, rdd, func, partitions):
+        cm = CacheManager.singleton()
+        serialized_func_rdd = self._serializer((func, rdd))
+
+        def prepare(p):
+            t_start = time.clock()
+            cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
+            self._stats['driver_cache_clone'] += (time.clock() -
+                                                  t_start)
+
+            t_start = time.clock()
+            cm_serialized = self._data_deserializer(cm_clone)
+            self._stats['driver_cache_serialize'] += (time.clock() -
+                                                      t_start)
+
+            t_start = time.clock()
+            serialized_p = self._data_deserializer(p)
+            self._stats['driver_serialize_data'] += (time.clock() -
+                                                     t_start)
+
+            return (
+                self._deserializer,
+                self._data_serializer,
+                self._data_deserializer,
+                serialized_func_rdd,
+                serialized_p,
+                cm_serialized,
+            )
+
+        for d in self._pool.map(runJob_map,
+                                (prepare(p) for p in partitions)):
+            t_start = time.clock()
+            map_result, cache_result, s = self._data_deserializer(d)
+            self._stats['driver_deserialize_data'] += (time.clock() -
+                                                       t_start)
+
+            # join cache
+            t_start = time.clock()
+            cm.join(cache_result)
+            self._stats['driver_cache_join'] += time.clock() - t_start
+
+            # collect stats
+            for k, v in s.items():
+                self._stats[k] += v
+
+            yield map_result
+
     def textFile(self, filename, minPartitions=None, use_unicode=True):
-        """
-        Read a text file into an RDD.
+        """Read a text file into an RDD.
 
         :param filename:
             Location of a file. Can include schemes like ``http://``,
@@ -344,7 +346,8 @@ class Context(object):
         return rdd
 
     def union(self, rdds):
-        """
+        """union
+
         :param rdds:
             Iterable of RDDs.
 
@@ -357,8 +360,7 @@ class Context(object):
         )
 
     def wholeTextFiles(self, path, minPartitions=None, use_unicode=True):
-        """
-        Read text files into an RDD of pairs of file name and file content.
+        """Read text files into an RDD of pairs of file name and file content.
 
         :param path:
             Location of the files. Can include schemes like ``http://``,

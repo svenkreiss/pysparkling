@@ -13,7 +13,7 @@ def simple_textFile():
 
 def indent_line(l):
     print('============== INDENTING LINE ================')
-    return '--- '+l
+    return '--- ' + l
 
 
 def lazy_execution():
