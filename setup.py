@@ -3,7 +3,7 @@ from setuptools import setup
 # workaround: nosetests don't exit cleanly with older
 # python version (<=2.6 and even <2.7.4)
 try:
-    import multiprocessing
+    import multiprocessing  # noqa
 except ImportError:
     pass
 
@@ -35,6 +35,8 @@ setup(
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
         'tests': [
+            'flake8>=2.5.4',
+            'hacking>=0.11.0',
             'nose>=1.3.4',
             'futures>=3.0.1',
             'cloudpickle>=0.1.0',

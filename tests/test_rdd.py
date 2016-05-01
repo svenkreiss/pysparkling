@@ -1,16 +1,17 @@
-from pysparkling import Context
 from operator import add
+from pysparkling import Context
 
 import unittest
 
+
 class RDDTest(unittest.TestCase):
-    """ Tests for the resilient distributed databases """
+    """Tests for the resilient distributed databases"""
 
     def setUp(self):
         self.context = Context()
 
     def testLeftOuterJoinSimple(self):
-        """ Test the basic left outer join with simple key-value pairs """
+        """Test the basic left outer join with simple key-value pairs"""
         x = self.context.parallelize([('a', 'xa'), ('b', 'xb'), ('c', 'xc')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc'), ('d', 'zd')])
@@ -31,7 +32,7 @@ class RDDTest(unittest.TestCase):
                               ('d', ('zd', None))])
 
     def testLeftOuterJoinDuplicate(self):
-        """ Test the left outer join with duplicate keys """
+        """Test the left outer join with duplicate keys"""
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc1'), ('c', 'zc2'), ('d', 'zd')])
@@ -51,7 +52,7 @@ class RDDTest(unittest.TestCase):
                               ('c', ('xc2', 'zc2'))])
 
     def testRightOuterJoinSimple(self):
-        """ Test the basic right outer join with simple key-value pairs """
+        """Test the basic right outer join with simple key-value pairs"""
         x = self.context.parallelize([('a', 'xa'), ('b', 'xb'), ('c', 'xc')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc'), ('d', 'zd')])
@@ -71,7 +72,7 @@ class RDDTest(unittest.TestCase):
                               ('c', ('zc', 'xc'))])
 
     def testRightOuterJoinDuplicate(self):
-        """ Test the right outer join with duplicate keys """
+        """Test the right outer join with duplicate keys"""
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc1'), ('c', 'zc2'), ('d', 'zd')])
@@ -91,7 +92,7 @@ class RDDTest(unittest.TestCase):
                               ('d', (None, 'zd'))])
 
     def testFullOuterJoinSimple(self):
-        """ Test the basic full outer join with simple key-value pairs """
+        """Test the basic full outer join with simple key-value pairs"""
         x = self.context.parallelize([('a', 'xa'), ('b', 'xb'), ('c', 'xc')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc'), ('d', 'zd')])
@@ -115,7 +116,7 @@ class RDDTest(unittest.TestCase):
                               ('d', ('zd', None))])
 
     def testFullOuterJoinDuplicate(self):
-        """ Test the full outer join with duplicate keys """
+        """Test the full outer join with duplicate keys"""
         x = self.context.parallelize([('a', 'xa'), ('c', 'xc1'), ('c', 'xc2')])
         y = self.context.parallelize([('b', 'yb'), ('c', 'yc')])
         z = self.context.parallelize([('c', 'zc1'), ('c', 'zc2'), ('d', 'zd')])
@@ -171,7 +172,7 @@ class RDDTest(unittest.TestCase):
 
             def __lt__(self, other):
                 raise NotImplementedError("This object cannot be compared")
-        
+
         keys = (0, 1, 2, 0, 1, 2)
         r = [IncomparableValue(i) for i in range(len(keys))]
 
@@ -179,8 +180,8 @@ class RDDTest(unittest.TestCase):
         actual_group = k_rdd.groupByKey().collect()
 
         expected_group = ((0, r[0::3]),
-                  (1, r[1::3]),
-                  (2, r[2::3]))
+                          (1, r[1::3]),
+                          (2, r[2::3]))
 
         grouped_dict = {k: v for k, v in actual_group}
 
@@ -204,7 +205,7 @@ class RDDTest(unittest.TestCase):
 
             def __lt__(self, other):
                 raise NotImplementedError("This object cannot be compared")
-        
+
         keys = (0, 1, 2, 0, 1, 2)
         r = [IncomparableValueAddable(i) for i in range(len(keys))]
 
@@ -212,8 +213,8 @@ class RDDTest(unittest.TestCase):
         actual_group = k_rdd.reduceByKey(add).collect()
 
         expected_group = ((0, IncomparableValueAddable(3)),
-                  (1, IncomparableValueAddable(5)),
-                  (2, IncomparableValueAddable(7)))
+                          (1, IncomparableValueAddable(5)),
+                          (2, IncomparableValueAddable(7)))
 
         grouped_dict = {k: v for k, v in actual_group}
 

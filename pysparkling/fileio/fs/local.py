@@ -1,9 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
-import io
-import os
 from fnmatch import fnmatch
+import io
 import logging
+import os
 
 from ...utils import Tokenizer
 from .file_system import FileSystem
@@ -51,7 +51,7 @@ class Local(FileSystem):
             return io.StringIO(f.read())
 
     def dump(self, stream):
-        file_path = self.file_path # caching
+        file_path = self.file_path  # caching
 
         # making sure directory exists
         dirname = os.path.dirname(file_path)

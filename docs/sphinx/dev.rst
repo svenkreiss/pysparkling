@@ -4,9 +4,19 @@ Development
 ===========
 
 Fork the Github repository and apply your changes in a feature branch.
-To run pysparkling's unit tests, install the package and all
-dependencies with ``pip install -e .[s3,hdfs,http,tests]`` and run the
-tests with ``nosetests``. Don't run ``python setup.py test`` as this will
+To run pysparkling's unit tests:
+
+.. code-block:: sh
+
+    # install
+    pip install -e .[hdfs,tests]
+    flake8 --install-hook
+
+    # run linting and test
+    flake8
+    nosetests -vv
+
+Don't run ``python setup.py test`` as this will
 not execute the doctests. When all tests pass, create a Pull Request on GitHub.
 Please also update ``HISTORY.rst`` with short description of your change.
 

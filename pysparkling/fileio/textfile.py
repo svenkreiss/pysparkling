@@ -16,8 +16,7 @@ except NameError:
 
 
 class TextFile(File):
-    """
-    Derived from :class:`pysparkling.fileio.File`.
+    """Derived from :class:`pysparkling.fileio.File`.
 
     :param file_name:
         Any text file name. Supports the schemes ``http://``, ``s3://`` and
@@ -29,8 +28,7 @@ class TextFile(File):
         super(TextFile, self).__init__(file_name)
 
     def load(self, encoding='utf8', encoding_errors='ignore'):
-        """
-        Load the data from a file.
+        """Load the data from a file.
 
         :param encoding: (optional)
             The character encoding of the file.
@@ -49,8 +47,7 @@ class TextFile(File):
         return stream
 
     def dump(self, stream=None, encoding='utf8', encoding_errors='ignore'):
-        """
-        Writes a stream to a file.
+        """Writes a stream to a file.
 
         :param stream:
             An ``io.StringIO`` instance. A ``basestring`` is also possible and

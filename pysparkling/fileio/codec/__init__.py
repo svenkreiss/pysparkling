@@ -2,13 +2,13 @@ from __future__ import absolute_import
 
 import logging
 
-from .codec import Codec
-from .tar import Tar, TarGz, TarBz2
-from .gz import Gz
-from .zip import Zip
 from .bz2 import Bz2
+from .codec import Codec
+from .gz import Gz
 from .lzma import Lzma
 from .sevenz import SevenZ
+from .tar import Tar, TarGz, TarBz2
+from .zip import Zip
 
 log = logging.getLogger(__name__)
 

@@ -1,16 +1,17 @@
 from __future__ import absolute_import
 
-import logging
 from io import BytesIO
+import logging
 
-from . import fs
 from . import codec
+from . import fs
 
 log = logging.getLogger(__name__)
 
 
 class File(object):
-    """
+    """file object
+
     :param file_name:
         Any file name. Supports the schemes ``http://``, ``s3://`` and
         ``file://``.
@@ -24,7 +25,8 @@ class File(object):
 
     @staticmethod
     def resolve_filenames(all_expr):
-        """
+        """resolve expression for a filename
+
         :param all_expr:
             A comma separated list of expressions. The expressions can contain
             the wildcard characters ``*`` and ``?``. It also resolves Spark
@@ -44,8 +46,7 @@ class File(object):
         return files
 
     def exists(self):
-        """
-        Checks both for a file or directory at this location.
+        """Checks both for a file or directory at this location.
 
         :returns:
             True or false.
@@ -54,8 +55,7 @@ class File(object):
         return self.fs.exists()
 
     def load(self):
-        """
-        Load the data from a file.
+        """Load the data from a file.
 
         :returns:
             A ``io.BytesIO`` instance. Use ``getvalue()`` to get a string.
@@ -66,8 +66,7 @@ class File(object):
         return stream
 
     def dump(self, stream=None):
-        """
-        Writes a stream to a file.
+        """Writes a stream to a file.
 
         :param stream:
             A BytesIO instance. ``bytes`` are also possible and are converted
@@ -89,8 +88,7 @@ class File(object):
         return self
 
     def make_public(self, recursive=False):
-        """
-        Makes the file public. Currently only supported on S3.
+        """Makes the file public. Currently only supported on S3.
 
         :param recursive:
             Whether to apply this recursively.
