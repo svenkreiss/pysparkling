@@ -48,6 +48,11 @@ dependency on the JVM. This is what ``pysparkling`` is for.
    :alt: Join the chat at https://gitter.im/svenkreiss/pysparkling
    :target: https://gitter.im/svenkreiss/pysparkling?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
+Links:
+`Documentation <http://pysparkling.trivial.io/>`_,
+`Github <https://github.com/svenkreiss/pysparkling>`_,
+`Issue Tracker <https://github.com/svenkreiss/pysparkling/issues>`_
+
 
 Install
 =======
@@ -118,7 +123,7 @@ or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
 RDD
 ---
 
-*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.RDD
+*API doc*: http://pysparkling.trivial.io/en/latest/api.html#rdd
 
 
 Context
@@ -144,7 +149,7 @@ a common instantiation with ``multiprocessing`` looks like this:
 This assumes that your data is serializable with ``pickle`` which is generally
 faster. You can also specify a custom serializer/deserializer for data.
 
-*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.Context
+*API doc*: http://pysparkling.trivial.io/en/latest/api.html#context
 
 
 fileio
@@ -161,4 +166,4 @@ and ``file://`` locations and compression/decompression of ``.gz`` and
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
 
-*API doc*: http://pysparkling.trivial.io/v0.3/api.html#pysparkling.fileio.File
+*API doc*: http://pysparkling.trivial.io/en/latest/api.html#fileio
