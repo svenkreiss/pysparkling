@@ -17,6 +17,7 @@ except ImportError:
 
 
 class GS(FileSystem):
+    project_name = None
     _clients = {}
 
     def __init__(self, file_name):
@@ -30,8 +31,11 @@ class GS(FileSystem):
         # obtain key
         t = Tokenizer(self.file_name)
         t.next('://')  # skip scheme
-        project_name = t.next(':')
         bucket_name = t.next('/')
+        if ':' in bucket_name:
+            project_name, _, bucket_name = bucket_name.partition(':')
+        else:
+            project_name = GS.project_name
         blob_name = t.next()
 
         client = GS._get_client(project_name)
@@ -52,8 +56,11 @@ class GS(FileSystem):
 
         t = Tokenizer(expr)
         scheme = t.next('://')
-        project_name = t.next(':')
         bucket_name = t.next('/')
+        if ':' in bucket_name:
+            project_name, _, bucket_name = bucket_name.partition(':')
+        else:
+            project_name = GS.project_name
         prefix = t.next(['*', '?'])
 
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
@@ -68,8 +75,11 @@ class GS(FileSystem):
     def exists(self):
         t = Tokenizer(self.file_name)
         t.next('//')  # skip scheme
-        project_name = t.next(':')
         bucket_name = t.next('/')
+        if ':' in bucket_name:
+            project_name, _, bucket_name = bucket_name.partition(':')
+        else:
+            project_name = GS.project_name
         blob_name = t.next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
         return (bucket.get_blob(blob_name) or
