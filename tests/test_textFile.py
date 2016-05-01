@@ -293,7 +293,16 @@ def test_pyspark_compatibility_gz():
     assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
 
 
+def test_local_regex_read():
+    # was not working before 0.3.19
+    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile.close()
+    Context().parallelize(range(30), 30).saveAsTextFile(tempFile.name)
+    d = Context().textFile(tempFile.name + '/part-0000*').collect()
+    print(d)
+    assert len(d) == 10
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    # test_read_tar_gz_20news()
-    test_gs_textFile_loop()
+    test_local_regex_read()

@@ -24,6 +24,8 @@ class Local(FileSystem):
 
         t = Tokenizer(expr)
         prefix = t.next(['*', '?'])
+        if not prefix.endswith('/') and '/' in prefix:
+            prefix = os.path.dirname(prefix)
         files = []
         for root, _, filenames in os.walk(prefix):
             for filename in filenames:
