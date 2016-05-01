@@ -157,7 +157,7 @@ def test_performance():
         t = timeit.Timer(
             # lambda: c.wholeTextFiles('tests/*.py').map(map1).collect()
             lambda: c.parallelize(
-                [10000 for _ in range(100)],
+                [1000 for _ in range(100)],
                 100,
             ).map(map_pi).collect()
         ).timeit(number=10)
