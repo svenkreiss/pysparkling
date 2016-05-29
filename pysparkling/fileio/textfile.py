@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import logging
-from io import BytesIO, StringIO
+from io import BytesIO, StringIO, TextIOWrapper
 
 from . import codec
 from .file import File
@@ -43,7 +43,7 @@ class TextFile(File):
         else:
             stream = self.fs.load()
             stream = self.codec.decompress(stream)
-            stream = StringIO(stream.read().decode(encoding, encoding_errors))
+            stream = TextIOWrapper(stream, encoding, encoding_errors)
         return stream
 
     def dump(self, stream=None, encoding='utf8', encoding_errors='ignore'):
