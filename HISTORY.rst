@@ -2,7 +2,9 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.20...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.21...master>`_
+* `v0.3.21 <https://github.com/svenkreiss/pysparkling/compare/v0.3.20...v0.3.21>`_ (2016-05-31)
+    * faster text file reading by using ``io.TextIOWrapper`` for decoding
 * `v0.3.20 <https://github.com/svenkreiss/pysparkling/compare/v0.3.19...v0.3.20>`_ (2016-05-01)
     * Google Storage file system (using ``gs://``)
     * dependencies: ``requests`` and ``boto`` are not optional anymore
