@@ -1,4 +1,6 @@
 .DS_Store
+test.*
+profile.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

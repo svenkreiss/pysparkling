@@ -335,13 +335,13 @@ class Context(object):
         if minPartitions and minPartitions > num_partitions:
             num_partitions = minPartitions
 
+        encoding = 'utf8' if use_unicode else 'ascii'
+
         rdd_filenames = self.parallelize(resolved_names, num_partitions)
-        rdd = rdd_filenames.flatMap(lambda f_name: [
-            l.rstrip('\n')
-            for l in TextFile(f_name).load(
-                encoding='utf8' if use_unicode else 'ascii'
-            ).read().splitlines()
-        ])
+        rdd = rdd_filenames.flatMap(
+            lambda f_name:
+            TextFile(f_name).load(encoding=encoding).read().splitlines()
+        )
         rdd._name = filename
         return rdd
 
