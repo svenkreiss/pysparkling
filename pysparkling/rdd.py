@@ -677,12 +677,11 @@ class RDD(object):
         if numPartitions is None:
             numPartitions = self.getNumPartitions()
 
-        return self.context.parallelize((
-            (k, [gg[1] for gg in g]) for k, g in itertools.groupby(
-                sorted(self.collect(), key=itemgetter(0)),
-                lambda e: e[0],
-            )
-        ), numPartitions)
+        r = defaultdict(list)
+        for key, value in self.toLocalIterator():
+            r[key].append(value)
+
+        return self.context.parallelize(r.items(), numPartitions)
 
     def histogram(self, buckets):
         """histogram
