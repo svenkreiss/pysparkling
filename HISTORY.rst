@@ -2,7 +2,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.21...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.22...master>`_
+* `v0.3.22 <https://github.com/svenkreiss/pysparkling/compare/v0.3.21...v0.3.22>`_ (2016-06-18)
+    * reimplement RDD.groupByKey()
+    * clean up of docstrings
 * `v0.3.21 <https://github.com/svenkreiss/pysparkling/compare/v0.3.20...v0.3.21>`_ (2016-05-31)
     * faster text file reading by using ``io.TextIOWrapper`` for decoding
 * `v0.3.20 <https://github.com/svenkreiss/pysparkling/compare/v0.3.19...v0.3.20>`_ (2016-05-01)
