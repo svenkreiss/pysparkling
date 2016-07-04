@@ -56,9 +56,9 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = {k: v
-             for k, v in self.__dict__.items()
-             if k not in ('_p', 'context')}
+        r = dict((k, v)
+                 for k, v in self.__dict__.items()
+                 if k not in ('_p', 'context'))
         return r
 
     def compute(self, split, task_context):
@@ -1295,7 +1295,7 @@ class RDD(object):
             fileio.TextFile(
                 path
             ).dump(io.StringIO(''.join([
-                '{}\n'.format(xx) for xx in self.toLocalIterator()
+                '{0}\n'.format(xx) for xx in self.toLocalIterator()
             ])))
             return self
 
@@ -1305,7 +1305,7 @@ class RDD(object):
                 os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
                                                             codec_suffix))
             ).dump(io.StringIO(''.join([
-                '{}\n'.format(xx) for xx in x
+                '{0}\n'.format(xx) for xx in x
             ]))),
             resultHandler=list,
         )
