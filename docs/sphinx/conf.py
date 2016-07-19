@@ -12,22 +12,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-import shlex
-import sphinx_rtd_theme
+import sys
 
-# extract version from __init__.py
-pysparkling_init_filename = os.path.join(
-  os.path.dirname(__file__),
-  '..',
-  '..',
-  'pysparkling',
-  '__init__.py',
-)
-with open(pysparkling_init_filename, 'r') as f:
-    version_line = [l for l in f if l.startswith('__version__')][0]
-    PYSPARKLING_VERSION = version_line.split('=')[1].strip()[1:-1]
+sys.path.insert(0, os.path.abspath('../..'))
+import pysparkling
+PYSPARKLING_VERSION = pysparkling.__version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -148,7 +138,7 @@ html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
