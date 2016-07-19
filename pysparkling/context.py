@@ -119,7 +119,7 @@ class Context(object):
         return Context.__last_rdd_id
 
     def parallelize(self, x, numPartitions=None):
-        """parallelize x
+        """Parallelize x.
 
         :param x:
             An iterable (e.g. a list) that represents the data.
@@ -129,9 +129,7 @@ class Context(object):
             A partition is a unit of data that is processed at a time.
             Can be ``None``.
 
-        :returns:
-            New RDD.
-
+        :rtype: RDD
         """
         if not numPartitions:
             return RDD([Partition(x, 0)], self)
@@ -150,14 +148,10 @@ class Context(object):
         return self._parallelize_partitions(partitioned())
 
     def _parallelize_partitions(self, partitions):
-        """helper to parallelize partitions
+        """Helper to parallelize partitions.
 
-        :param partitions:
-            An iterable over the partitioned data.
-
-        :returns:
-            New RDD.
-
+        :param partitions: An iterable over the partitioned data.
+        :rtype: RDD
         """
 
         return RDD(
@@ -166,7 +160,7 @@ class Context(object):
         )
 
     def pickleFile(self, name, minPartitions=None):
-        """read a pickle file
+        """Read a pickle file.
 
         Reads files created with :func:`RDD.saveAsPickleFile()` into an RDD.
 
@@ -179,8 +173,7 @@ class Context(object):
             By default, every file is a partition, but this option allows to
             split these further.
 
-        :returns:
-            New RDD.
+        :rtype: RDD
 
 
         Example with a serialized list:
@@ -323,9 +316,7 @@ class Context(object):
         :param use_unicode: (optional, default=True)
             Use ``utf8`` if ``True`` and ``ascii`` if ``False``.
 
-        :returns:
-            New RDD.
-
+        :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(filename)
         log.debug('textFile() resolved "{0}" to {1} files.'
@@ -346,14 +337,10 @@ class Context(object):
         return rdd
 
     def union(self, rdds):
-        """union
+        """Create a union of rdds.
 
-        :param rdds:
-            Iterable of RDDs.
-
-        :returns:
-            New RDD.
-
+        :param rdds: Iterable of RDDs.
+        :rtype: RDD
         """
         return self.parallelize(
             (x for rdd in rdds for x in rdd.collect())
@@ -374,9 +361,7 @@ class Context(object):
         :param use_unicode: (optional, default=True)
             Use ``utf8`` if ``True`` and ``ascii`` if ``False``.
 
-        :returns:
-            New RDD.
-
+        :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(path)
         log.debug('wholeTextFiles() resolved "{0}" to {1} files.'

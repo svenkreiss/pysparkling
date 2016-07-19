@@ -18,10 +18,7 @@ except NameError:
 class TextFile(File):
     """Derived from :class:`pysparkling.fileio.File`.
 
-    :param file_name:
-        Any text file name. Supports the schemes ``http://``, ``s3://`` and
-        ``file://``.
-
+    :param file_name: Any text file name.
     """
 
     def __init__(self, file_name):
@@ -33,9 +30,7 @@ class TextFile(File):
         :param encoding: (optional)
             The character encoding of the file.
 
-        :returns:
-            An ``io.StringIO`` instance. Use ``read()`` to get a string.
-
+        :rtype: io.StringIO
         """
         if type(self.codec) == codec.Codec and \
            hasattr(self.fs, 'load_text'):
@@ -56,9 +51,7 @@ class TextFile(File):
         :param encoding: (optional)
             The character encoding of the file.
 
-        :returns:
-            self
-
+        :rtype: TextFile
         """
         if stream is None:
             stream = StringIO()

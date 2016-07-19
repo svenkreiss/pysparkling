@@ -53,9 +53,9 @@ The functionality provided by this module is used in ``Context.textFile()``
 for reading and in ``RDD.saveAsTextFile()`` for writing. You can use this
 submodule for writing files directly with ``File(filename).dump(some_data)``,
 ``File(filename).load()`` and ``File.exists(path)`` to read, write and check
-for existance of a file. All methods transparently handle ``http://``, ``s3://``
-and ``file://`` locations and compression/decompression of ``.gz`` and
-``.bz2`` files.
+for existance of a file. All methods transparently handle various schemas
+(for example ``http://``, ``s3://`` and ``file://``) and
+compression/decompression of ``.gz`` and ``.bz2`` files (among others).
 
 Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
 for auth and use file paths of the form ``s3://bucket_name/filename.txt``.

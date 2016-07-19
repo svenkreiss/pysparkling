@@ -12,10 +12,7 @@ log = logging.getLogger(__name__)
 class File(object):
     """file object
 
-    :param file_name:
-        Any file name. Supports the schemes ``http://``, ``s3://`` and
-        ``file://``.
-
+    :param file_name: Any file name.
     """
 
     def __init__(self, file_name):
@@ -34,9 +31,8 @@ class File(object):
             (i.e. ``my_data`` gets resolved to
             ``[my_data/part-00000, my_data/part-00001]``).
 
-        :returns:
-            A list of file names.
-
+        :returns: A list of file names.
+        :rtype: list
         """
         files = []
         for expr in all_expr.split(','):
@@ -48,18 +44,14 @@ class File(object):
     def exists(self):
         """Checks both for a file or directory at this location.
 
-        :returns:
-            True or false.
-
+        :returns: True or false.
         """
         return self.fs.exists()
 
     def load(self):
         """Load the data from a file.
 
-        :returns:
-            A ``io.BytesIO`` instance. Use ``getvalue()`` to get a string.
-
+        :rtype: io.BytesIO
         """
         stream = self.fs.load()
         stream = self.codec.decompress(stream)
@@ -72,9 +64,7 @@ class File(object):
             A BytesIO instance. ``bytes`` are also possible and are converted
             to BytesIO.
 
-        :returns:
-            self
-
+        :rtype: File
         """
         if stream is None:
             stream = BytesIO()
@@ -90,9 +80,8 @@ class File(object):
     def make_public(self, recursive=False):
         """Makes the file public. Currently only supported on S3.
 
-        :param recursive:
-            Whether to apply this recursively.
-
+        :param recursive: Whether to apply this recursively.
+        :rtype: File
         """
         self.fs.make_public(recursive)
         return self
