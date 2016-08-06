@@ -17,6 +17,8 @@ except ImportError:
 
 
 class Hdfs(FileSystem):
+    """:class:`.FileSystem` implementation for HDFS."""
+
     _conn = {}
 
     def __init__(self, file_name):

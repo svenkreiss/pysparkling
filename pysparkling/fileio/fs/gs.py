@@ -17,7 +17,18 @@ except ImportError:
 
 
 class GS(FileSystem):
+    """:class:`.FileSystem` implementation for Google Storage.
+
+    Paths are of the form `gs://bucket_name/file_path` or
+    `gs://project_name:bucket_name/file_path`.
+    """
+
+    #: Set a default project name.
     project_name = None
+
+    #: Default mime type.
+    mime_type = 'text/plain'
+
     _clients = {}
 
     def __init__(self, file_name):
@@ -101,7 +112,7 @@ class GS(FileSystem):
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.blob.name))
-        self.blob.upload_from_string(stream.read())
+        self.blob.upload_from_string(stream.read(), mime_type=self.mime_type)
         return self
 
     def make_public(self, recursive=False):
