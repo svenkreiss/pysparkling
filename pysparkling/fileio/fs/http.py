@@ -15,6 +15,8 @@ except ImportError:
 
 
 class Http(FileSystem):
+    """:class:`.FileSystem` implementation for HTTP."""
+
     def __init__(self, file_name):
         if requests is None:
             raise FileSystemNotSupported(

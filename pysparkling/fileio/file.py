@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class File(object):
-    """file object
+    """File object.
 
     :param file_name: Any file name.
     """

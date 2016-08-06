@@ -17,6 +17,17 @@ except ImportError:
 
 
 class S3(FileSystem):
+    """:class:`.FileSystem` implementation for S3.
+
+    Use environment variables ``AWS_SECRET_ACCESS_KEY`` and
+    ``AWS_ACCESS_KEY_ID`` for auth and use file paths of the form
+    ``s3://bucket_name/filename.txt``.
+    """
+
+    #: Keyword arguments for new connections.
+    #: Example: set to `{'anon': True}` for anonymous connections.
+    connection_kwargs = {}
+
     _conn = None
 
     def __init__(self, file_name):
@@ -30,20 +41,20 @@ class S3(FileSystem):
         t.next('://')  # skip scheme
         bucket_name = t.next('/')
         key_name = t.next()
-        conn = S3._get_conn()
+        conn = self._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
         self.key = bucket.get_key(key_name)
         if not self.key:
             self.key = bucket.new_key(key_name)
 
-    @staticmethod
-    def _get_conn():
-        if not S3._conn:
-            S3._conn = boto.connect_s3()
-        return S3._conn
+    @classmethod
+    def _get_conn(cls):
+        if not cls._conn:
+            cls._conn = boto.connect_s3(**cls.connection_kwargs)
+        return cls._conn
 
-    @staticmethod
-    def resolve_filenames(expr):
+    @classmethod
+    def resolve_filenames(cls, expr):
         files = []
 
         t = Tokenizer(expr)
@@ -51,7 +62,7 @@ class S3(FileSystem):
         bucket_name = t.next('/')
         prefix = t.next(['*', '?'])
 
-        bucket = S3._get_conn().get_bucket(
+        bucket = cls._get_conn().get_bucket(
             bucket_name,
             validate=False
         )
@@ -70,7 +81,7 @@ class S3(FileSystem):
         t.next('//')  # skip scheme
         bucket_name = t.next('/')
         key_name = t.next()
-        conn = S3._get_conn()
+        conn = self._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
         return (bucket.get_key(key_name) or
                 bucket.list(prefix='{}/'.format(key_name)))

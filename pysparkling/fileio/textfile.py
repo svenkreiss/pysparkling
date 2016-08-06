@@ -5,6 +5,7 @@ from io import BytesIO, StringIO, TextIOWrapper
 
 from . import codec
 from .file import File
+from .fs.file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ except NameError:
 
 
 class TextFile(File):
-    """Derived from :class:`pysparkling.fileio.File`.
+    """Derived from :class:`File`.
 
     :param file_name: Any text file name.
     """
@@ -27,13 +28,12 @@ class TextFile(File):
     def load(self, encoding='utf8', encoding_errors='ignore'):
         """Load the data from a file.
 
-        :param encoding: (optional)
-            The character encoding of the file.
-
+        :param str encoding: The character encoding of the file.
+        :param str encoding_errors: How to handle encoding errors.
         :rtype: io.StringIO
         """
         if type(self.codec) == codec.Codec and \
-           hasattr(self.fs, 'load_text'):
+           self.fs.load_text != FileSystem.load_text:
             stream = self.fs.load_text(encoding, encoding_errors)
         else:
             stream = self.fs.load()
