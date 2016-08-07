@@ -14,6 +14,11 @@ log = logging.getLogger(__name__)
 
 
 class SevenZ(Codec):
+    """Implementation of :class:`.Codec` for 7z compression.
+
+    Needs the `pylzma` module.
+    """
+
     def __init__(self):
         if py7zlib is None:
             log.warn('py7zlib could not be imported. To read 7z files, '

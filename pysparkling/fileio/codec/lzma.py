@@ -16,6 +16,11 @@ log = logging.getLogger(__name__)
 
 
 class Lzma(Codec):
+    """Implementation of :class:`.Codec` for lzma compression.
+
+    Needs Python >= 3.3.
+    """
+
     def __init__(self):
         if lzma is None:
             log.warn('LZMA codec not supported. It is only supported '

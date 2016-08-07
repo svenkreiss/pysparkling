@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Bz2(Codec):
+    """Implementation of :class:`.Codec` for bz2 compression."""
+
     def __init__(self):
         super(Bz2, self).__init__()
 

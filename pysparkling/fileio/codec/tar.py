@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Tar(Codec):
+    """Implementation of :class:`.Codec` for tar compression."""
+
     def __init__(self):
         super(Tar, self).__init__()
 
@@ -41,6 +43,8 @@ class Tar(Codec):
 
 
 class TarGz(Codec):
+    """Implementation of :class:`.Codec` for .tar.gz compression."""
+
     def __init__(self):
         super(TarGz, self).__init__()
 
@@ -72,6 +76,8 @@ class TarGz(Codec):
 
 
 class TarBz2(Codec):
+    """Implementation of :class:`.Codec` for .tar.bz2 compression."""
+
     def __init__(self):
         super(TarBz2, self).__init__()
 

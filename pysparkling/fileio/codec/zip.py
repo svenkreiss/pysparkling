@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Zip(Codec):
+    """Implementation of :class:`.Codec` for zip compression."""
+
     def __init__(self):
         super(Zip, self).__init__()
 

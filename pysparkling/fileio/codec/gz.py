@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Gz(Codec):
+    """Implementation of :class:`.Codec` for gz compression."""
+
     def __init__(self):
         super(Gz, self).__init__()
 
