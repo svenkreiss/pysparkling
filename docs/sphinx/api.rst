@@ -3,10 +3,12 @@
 API
 ===
 
-A usual ``pysparkling`` session starts with either parallelizing a ``list`` or
-by reading data from a file using the methods ``Context.parallelize(my_list)``
-or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
-``RDD`` which can then be processed with the methods below.
+.. currentmodule:: pysparkling
+
+A usual ``pysparkling`` session starts with either parallelizing a ``list``
+with :func:`Context.parallelize` or by reading data from a file using
+:func:`Context.textFile`. These two methods return :class:`RDD` instances that
+can then be processed.
 
 
 .. toctree::

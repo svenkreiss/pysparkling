@@ -11,11 +11,11 @@ for reading and in :func:`RDD.saveAsTextFile` for writing.
 
 .. currentmodule:: pysparkling.fileio
 
-You can use this submodule for writing files directly with :func:`File.dump`,
-:func:`File.load` and :func:`File.exists` to read, write and check
-for existance of a file. All methods transparently handle various schemas
-(for example ``http://``, ``s3://`` and ``file://``) and
-compression/decompression of ``.gz`` and ``.bz2`` files (among others).
+You can use this submodule with :func:`File.dump`, :func:`File.load` and
+:func:`File.exists` to read, write and check for existance of a file.
+All methods transparently handle various schemas (for example ``http://``,
+``s3://`` and ``file://``) and compression/decompression of ``.gz`` and
+``.bz2`` files (among others).
 
 
 .. autoclass:: pysparkling.fileio.File
