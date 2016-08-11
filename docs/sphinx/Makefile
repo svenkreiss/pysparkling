@@ -6,8 +6,6 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
-GHPAGES       = _build/ghpages/v0.3
-GHPAGESALL    = _build/ghpages
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -50,26 +48,10 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 	@echo "  coverage   to run coverage check of the documentation (if enabled)"
 
-ghpages:
-	$(MAKE) html
-	@echo "Copy index/"
-	cp version_index/* $(GHPAGESALL)/
-	cp version_index/.nojekyll $(GHPAGESALL)/
-	@echo "Pushing to gh-pages branch now."
-	ghp-import -b gh-pages $(GHPAGESALL)
-	git push origin gh-pages
-
-git push origin gh-pagesclean:
-	rm -rf $(BUILDDIR)/*
-
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-	mkdir -p $(GHPAGES)
-	cp -r $(BUILDDIR)/html/ $(GHPAGES)
-	@echo
-	@echo "Copied also to $(GHPAGES) ."
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

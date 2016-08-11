@@ -1,6 +1,9 @@
 .. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/logo/logo-w100.png
     :target: https://github.com/svenkreiss/pysparkling
 
+pysparkling
+===========
+
 **Pysparkling** provides a faster, more responsive way to develop programs
 for PySpark. It enables code intended for Spark applications to execute
 entirely in Python, without incurring the overhead of initializing and
@@ -26,12 +29,12 @@ times and less responsive feel.
 
 Here are a few areas where pysparkling excels:
 
-- Small to medium-scale exploratory data analysis
-- Application prototyping
-- Low-latency web deployments
-- Unit tests
+* Small to medium-scale exploratory data analysis
+* Application prototyping
+* Low-latency web deployments
+* Unit tests
 
-*Example:* you have a pipeline that processes 100k input documents
+**Example:** you have a pipeline that processes 100k input documents
 and converts them to normalized features. They are used to train a local
 scikit-learn classifier. The preprocessing is perfect for a full Spark
 task. Now, you want to use this trained classifier in an API
@@ -58,6 +61,12 @@ Install
 .. code-block:: bash
 
   pip install pysparkling
+
+or to install with all dependencies:
+
+.. code-block:: bash
+
+  pip install pysparkling[hdfs,tests]
 
 
 Features
@@ -93,75 +102,14 @@ and
 
     from pysparkling import Context
 
-    counts = Context().textFile(
-        'README.rst'
-    ).map(
-        lambda line: ''.join(ch if ch.isalnum() else ' ' for ch in line)
-    ).flatMap(
-        lambda line: line.split(' ')
-    ).map(
-        lambda word: (word, 1)
-    ).reduceByKey(
-        lambda a, b: a + b
+    counts = (
+        Context()
+        .textFile('README.rst')
+        .map(lambda line: ''.join(ch if ch.isalnum() else ' ' for ch in line))
+        .flatMap(lambda line: line.split(' '))
+        .map(lambda word: (word, 1))
+        .reduceByKey(lambda a, b: a + b)
     )
     print(counts.collect())
 
 which prints a long list of pairs of words and their counts.
-
-
-API
-===
-
-A usual ``pysparkling`` session starts with either parallelizing a ``list`` or
-by reading data from a file using the methods ``Context.parallelize(my_list)``
-or ``Context.textFile("path/to/textfile.txt")``. These two methods return an
-``RDD`` which can then be processed with the methods below.
-
-
-RDD
----
-
-*API doc*: http://pysparkling.trivial.io/en/latest/api.html#rdd
-
-
-Context
--------
-
-A ``Context`` describes the setup. Instantiating a Context with the default
-arguments using ``Context()`` is the most lightweight setup. All data is just
-in the local thread and is never serialized or deserialized.
-
-If you want to process the data in parallel, you can use the ``multiprocessing``
-module. Given the limitations of the default ``pickle`` serializer, you can
-specify to serialize all methods with ``cloudpickle`` instead. For example,
-a common instantiation with ``multiprocessing`` looks like this:
-
-.. code-block:: python
-
-  c = Context(
-      multiprocessing.Pool(4),
-      serializer=cloudpickle.dumps,
-      deserializer=pickle.loads,
-  )
-
-This assumes that your data is serializable with ``pickle`` which is generally
-faster. You can also specify a custom serializer/deserializer for data.
-
-*API doc*: http://pysparkling.trivial.io/en/latest/api.html#context
-
-
-fileio
-------
-
-The functionality provided by this module is used in ``Context.textFile()``
-for reading and in ``RDD.saveAsTextFile()`` for writing. You can use this
-submodule for writing files directly with ``File(filename).dump(some_data)``,
-``File(filename).load()`` and ``File.exists(path)`` to read, write and check
-for existance of a file. All methods transparently handle ``http://``, ``s3://``
-and ``file://`` locations and compression/decompression of ``.gz`` and
-``.bz2`` files.
-
-Use environment variables ``AWS_SECRET_ACCESS_KEY`` and ``AWS_ACCESS_KEY_ID``
-for auth and use file paths of the form ``s3://bucket_name/filename.txt``.
-
-*API doc*: http://pysparkling.trivial.io/en/latest/api.html#fileio
