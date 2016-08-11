@@ -1,7 +1,7 @@
 """pysparkling module."""
 # flake8: noqa
 
-__version__ = '0.3.23'
+__version__ = '0.3.24'
 
 from .exceptions import (FileAlreadyExistsException,
                          ConnectionException)
