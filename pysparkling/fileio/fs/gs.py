@@ -112,7 +112,8 @@ class GS(FileSystem):
 
     def dump(self, stream):
         log.debug('Dumping to {0}.'.format(self.blob.name))
-        self.blob.upload_from_string(stream.read(), mime_type=self.mime_type)
+        self.blob.upload_from_string(stream.read(),
+                                     content_type=self.mime_type)
         return self
 
     def make_public(self, recursive=False):
