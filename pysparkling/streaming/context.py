@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-import time
 import logging
+import time
 
 from ..rdd import RDD
 from .dstream import DStream
@@ -9,7 +9,7 @@ from .queuestream import QueueStream
 
 try:
     from .tcpstream import TCPTextStream, TCPBinaryStream
-except:
+except ImportError:
     TCPTextStream = False
     TCPBinaryStream = False
 
@@ -105,7 +105,7 @@ class StreamingContext(object):
             for d in self._dstreams:
                 d._apply(time_)
 
-        self._pcb = PeriodicCallback(cb, self.batch_duration*1000.0)
+        self._pcb = PeriodicCallback(cb, self.batch_duration * 1000.0)
         self._pcb.start()
         self._on_stop_cb.append(self._pcb.stop)
         StreamingContext._activeContext = self
@@ -128,11 +128,14 @@ class StreamingContext(object):
         StreamingContext._activeContext = None
 
     def textFileStream(self, directory):
-        """Creates an input stream that monitors this directory. File names
-        starting with ``.`` are ignored."""
+        """Creates an input stream that monitors this directory.
+
+        File names starting with ``.`` are ignored.
+        """
 
     def socketBinaryStream_(self, hostname, port, length):
         """Create a TCP socket server for binary input.
+
         This is not part of the PySpark API.
 
         :param hostname:

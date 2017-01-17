@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
-import struct
 import logging
+import struct
 
 from tornado.gen import coroutine
-from tornado.tcpserver import TCPServer
 from tornado.iostream import StreamClosedError
+from tornado.tcpserver import TCPServer
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,8 @@ class TCPTextStream(TCPServer):
 
 
 class TCPBinaryStream(TCPServer):
-    """
+    """Consumes binary messages from a TCP socket.
+
     :param length:
         An int for fixed message lengths in bytes.
 
@@ -45,6 +46,7 @@ class TCPBinaryStream(TCPServer):
         For example, use ``length='<I'`` for a little-endian (standard on x86)
         32-bit unsigned int.
     """
+
     def __init__(self, length=None):
         if TCPServer is False:
             log.error('Run \'pip install tornado\' to use TCPStream.')

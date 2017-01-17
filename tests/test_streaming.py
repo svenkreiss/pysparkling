@@ -1,6 +1,6 @@
 import logging
-import unittest
 import pysparkling
+import unittest
 
 
 class StreamingTestCase(unittest.TestCase):

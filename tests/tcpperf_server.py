@@ -1,13 +1,13 @@
 from __future__ import print_function, division
 
-import os
-import json
-import math
-import time
-import struct
-import logging
-import pysparkling
 from collections import defaultdict
+import json
+import logging
+import math
+import os
+import pysparkling
+import struct
+import time
 
 
 MEASUREMENT_POINTS = (
@@ -21,7 +21,7 @@ def client(n=2000, port=8123, format_='hello', processes=2):
     for _ in range(processes):
         os.system('python tests/tcpperf_client.py '
                   '-n {} --port {} --format {} &'
-                  ''.format(int(n/processes), port, format_))
+                  ''.format(int(n / processes), port, format_))
 
 
 def run(n=2000, port=8123, to_kv=None, format_='hello'):
@@ -42,7 +42,7 @@ def run(n=2000, port=8123, to_kv=None, format_='hello'):
         def update(rdd):
             for k, v in rdd.collect():
                 sensor_sums[k] += sum(v)
-                sensor_squares[k] += sum(vv**2 for vv in v)
+                sensor_squares[k] += sum(vv ** 2 for vv in v)
                 sensor_counts[k] += len(v)
 
         t.map(to_kv).groupByKey().foreachRDD(lambda _, rdd: update(rdd))
@@ -54,11 +54,12 @@ def run(n=2000, port=8123, to_kv=None, format_='hello'):
 
     result = max(counts) if counts else 0
     sensor_expections = {
-        k: (sensor_sums[k]/v, sensor_squares[k]/v)  # expectation of X and X^2
+        # expectation of X and X^2
+        k: (sensor_sums[k] / v, sensor_squares[k] / v)
         for k, v in sensor_counts.items()
     }
     sensors = {
-        k: (ex_ex2[0], math.sqrt(ex_ex2[1]-ex_ex2[0]**2))
+        k: (ex_ex2[0], math.sqrt(ex_ex2[1] - ex_ex2[0] ** 2))
         for k, ex_ex2 in sensor_expections.items()
     }
     print('run: n = {}, counts = {}, result = {}'.format(n, counts, result))
@@ -93,4 +94,4 @@ if __name__ == '__main__':
                 run(n, p, kv_from_json, 'json'),
                 run(n, p, kv_from_struct, 'struct'),
             )
-            f.write(', '.join('{}'.format(d) for d in data)+'\n')
+            f.write(', '.join('{}'.format(d) for d in data) + '\n')

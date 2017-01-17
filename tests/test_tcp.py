@@ -1,7 +1,7 @@
-import struct
 import logging
-import unittest
 import pysparkling
+import struct
+import unittest
 
 from contextlib import closing
 from tornado.testing import AsyncTestCase, gen_test
@@ -83,7 +83,7 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
 
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
-            stream.write(struct.pack('<I', 10)+b'hellohello')
+            stream.write(struct.pack('<I', 10) + b'hellohello')
 
         self.r = t
         self.expect = [[b'hellohello']]

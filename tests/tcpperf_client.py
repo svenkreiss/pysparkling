@@ -2,12 +2,13 @@
 
 from __future__ import absolute_import, division
 
-import sys
+import argparse
 import json
-import time
 import random
 import struct
-import argparse
+import sys
+import time
+
 from contextlib import closing
 from tornado import gen
 from tornado.tcpclient import TCPClient
@@ -29,10 +30,10 @@ class Emitter(object):
     def start(self):
         self.client = TCPClient()
 
-        self.pcb = PeriodicCallback(self.send, 1000.0/self.n)
+        self.pcb = PeriodicCallback(self.send, 1000.0 / self.n)
         self.pcb.start()
 
-        IOLoop.current().call_later(self.duration+0.5, self.stop)
+        IOLoop.current().call_later(self.duration + 0.5, self.stop)
         IOLoop.current().start()
 
     def stop(self):
@@ -44,7 +45,7 @@ class Emitter(object):
 
     @gen.coroutine
     def send(self):
-        if self.i >= self.duration*self.n:
+        if self.i >= self.duration * self.n:
             self.pcb.stop()
             return
 
@@ -61,7 +62,7 @@ class Emitter(object):
 
     def r(self):
         s = random.randint(1, 10)
-        v = s/10.0 + (1.5 - s/10.0)*random.random()
+        v = s / 10.0 + (1.5 - s / 10.0) * random.random()
         return (s, v)
 
     def text(self):
@@ -71,7 +72,7 @@ class Emitter(object):
         s, v = self.r()
         return (json.dumps({
             'sensor{}'.format(s): v,
-        })+'\n').encode('utf8')
+        }) + '\n').encode('utf8')
 
     def bello(self):
         # 5 bytes

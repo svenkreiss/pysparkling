@@ -39,7 +39,9 @@ class DStream(object):
         return self._context
 
     def count(self):
-        """Creates a new RDD stream where each RDD has a single entry that
+        """Count elements per RDD.
+
+        Creates a new RDD stream where each RDD has a single entry that
         is the count of the elements.
         """
         return self.mapPartitions(
@@ -94,7 +96,9 @@ class DStream(object):
                                            preservesPartitioning)
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
-        """Map partitions with a function that takes the partition index
+        """Apply a map function that takes an index and the data.
+
+        Map partitions with a function that takes the partition index
         and an iterator over the partition data as arguments.
 
         :param f:
