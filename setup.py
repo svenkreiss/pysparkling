@@ -34,6 +34,7 @@ setup(
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
+        'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
         'tests': [
             'flake8>=2.5.4',

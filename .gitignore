@@ -1,6 +1,7 @@
 .DS_Store
 test.*
 profile.out
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
