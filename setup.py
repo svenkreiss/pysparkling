@@ -17,10 +17,13 @@ with open('pysparkling/__init__.py', 'r') as f:
 setup(
     name='pysparkling',
     version=VERSION,
-    packages=['pysparkling',
-              'pysparkling.fileio',
-              'pysparkling.fileio.fs',
-              'pysparkling.fileio.codec'],
+    packages=[
+        'pysparkling',
+        'pysparkling.fileio',
+        'pysparkling.fileio.fs',
+        'pysparkling.fileio.codec',
+        'pysparkling.streaming',
+    ],
     license='MIT',
     description='Pure Python implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
@@ -37,12 +40,12 @@ setup(
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
         'tests': [
-            'flake8>=2.5.4',
-            'hacking>=0.11.0',
-            'nose>=1.3.4',
-            'futures>=3.0.1',
             'cloudpickle>=0.1.0',
             'doctest-ignore-unicode>=0.1.2',
+            'futures>=3.0.1',
+            'hacking>=0.11.0',
+            'nose>=1.3.4',
+            'tornado>=4.3',
         ]
     },
     entry_points={
