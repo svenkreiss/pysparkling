@@ -44,10 +44,10 @@ class DStream(object):
         Creates a new RDD stream where each RDD has a single entry that
         is the count of the elements.
         """
-        return self.mapPartitions(
-            lambda p: [sum(1 for _ in p)]
-        ).reduce(
-            operator.add
+        return (
+            self
+            .mapPartitions(lambda p: [sum(1 for _ in p)])
+            .reduce(operator.add)
         )
 
     def flatMap(self, f, preservesPartitioning=False):
@@ -110,21 +110,18 @@ class DStream(object):
 
     def mapValues(self, f):
         """Apply f to every element"""
-        return self.transform(
-            lambda rdd: rdd.mapValues(f)
-        )
+        return self.transform(lambda rdd: rdd.mapValues(f))
 
     def reduce(self, func):
         """Return a new DStream where each RDD was reduced with func."""
 
         # avoid RDD.reduce() which does not return an RDD
         return self.transform(
-            lambda rdd: rdd.map(
-                lambda i: (None, i)
-            ).reduceByKey(
-                func
-            ).map(
-                lambda i: i[1]
+            lambda rdd: (
+                rdd
+                .map(lambda i: (None, i))
+                .reduceByKey(func)
+                .map(lambda i: i[1])
             )
         )
 

@@ -30,7 +30,7 @@ class TestCount(StreamingTestCase):
     def test_groupByKey(self):
         t = self.stream_c.queueStream([[('a', 5), ('b', 8), ('a', 2)],
                                        [('a', 2), ('b', 3)]])
-        self.r = t.groupByKey().mapValues(sorted)
+        self.r = t.groupByKey().mapPartitions(sorted).mapValues(sorted)
         self.expect = [[('a', [2, 5]), ('b', [8])], [('a', [2]), ('b', [3])]]
 
     def test_mapValues(self):
