@@ -21,11 +21,11 @@ class Plot(object):
         x = [row['messages'] for row in self.data]
 
         # add some text for labels, title and axes ticks
-        ax.set_xlabel('emitted messages')
-        ax.set_ylabel('received messages')
+        ax.set_xlabel('emitted messages per second')
+        ax.set_ylabel('received messages per second')
         ax.set_xticks(x)
         ax.set_xlim(-300, max(x) + 300)
-        ax.set_ylim(-300, max(x) + 300)
+        ax.set_ylim(-300, 5000 + 300)
 
         fig.tight_layout()
 
@@ -40,7 +40,6 @@ class Plot(object):
             self.ax.plot(x, [row[k] for row in self.data], label=k)
             for k in self.data[0].keys() if k != 'messages'
         ]
-        print(graphs)
 
         self.ax.legend(
             handles=[ideal] + [g for g, in graphs],
