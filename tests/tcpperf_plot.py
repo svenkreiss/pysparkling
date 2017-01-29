@@ -40,7 +40,8 @@ class Plot(object):
     def plot(self):
         x = [row.messages for row in self.data]
 
-        ideal, = self.ax.plot(x, x, label='ideal', color='black', linestyle='--', linewidth=1)
+        ideal, = self.ax.plot(x, x, label='ideal', color='black',
+                              linestyle='--', linewidth=1)
         graphs = [
             self.ax.plot(x, [getattr(row, k) for row in self.data], label=k)
             for k in self.record._fields if k != 'messages'
