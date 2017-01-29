@@ -10,7 +10,7 @@ import struct
 import time
 
 
-MEASUREMENT_POINTS = (100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)
+MEASUREMENT_POINTS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000, 6000)
 
 
 class Server(object):
