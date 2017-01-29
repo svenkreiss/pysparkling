@@ -3,13 +3,12 @@
 from __future__ import absolute_import, division
 
 import argparse
+from contextlib import closing
 import json
 import random
 import struct
 import sys
 import time
-
-from contextlib import closing
 from tornado import gen
 from tornado.tcpclient import TCPClient
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -35,6 +34,7 @@ class Emitter(object):
 
         IOLoop.current().call_later(self.duration + 0.5, self.stop)
         IOLoop.current().start()
+        IOLoop.clear_current()
 
     def stop(self):
         if self.pcb is not None:

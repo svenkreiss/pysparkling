@@ -63,6 +63,7 @@ class StreamingContext(object):
             IOLoop.current().call_later(timeout, self.stop)
 
         IOLoop.current().start()
+        IOLoop.clear_current()
 
     def queueStream(self, rdds, oneAtATime=True, default=None):
         """Create stream iterable over RDDs.
@@ -132,8 +133,9 @@ class StreamingContext(object):
 
         File names starting with ``.`` are ignored.
         """
+        raise NotImplementedError
 
-    def socketBinaryStream_(self, hostname, port, length):
+    def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.
 
         This is not part of the PySpark API.
@@ -150,7 +152,6 @@ class StreamingContext(object):
         """
         stream = TCPBinaryStream(length)
         stream.listen(port, hostname)
-        stream.start()
         self._on_stop_cb.append(stream.stop)
         return DStream(stream, self)
 
