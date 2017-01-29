@@ -10,7 +10,8 @@ import struct
 import time
 
 
-MEASUREMENT_POINTS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000, 6000)
+MEASUREMENT_POINTS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
+                      6000, 7000, 8000)
 
 
 class Server(object):
@@ -61,7 +62,8 @@ class Server(object):
             k: (ex_ex2[0], math.sqrt(ex_ex2[1] - ex_ex2[0] ** 2))
             for k, ex_ex2 in sensor_expections.items()
         }
-        print('run: n = {}, counts = {}, result = {}'.format(n, counts, result))
+        print('run: n = {}, counts = {}, result = {}'
+              ''.format(n, counts, result))
         print('sensors = {}'.format(sensors))
         time.sleep(60)
         self.port += 1
