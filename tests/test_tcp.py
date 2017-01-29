@@ -58,7 +58,7 @@ class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
 
     @gen_test
     def test_main(self):
-        t = self.stream_c.socketBinaryStream_('localhost', 8123, length=5)
+        t = self.stream_c.socketBinaryStream('localhost', 8123, length=5)
 
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
@@ -79,7 +79,7 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
 
     @gen_test
     def test_main(self):
-        t = self.stream_c.socketBinaryStream_('localhost', 8123, length='<I')
+        t = self.stream_c.socketBinaryStream('localhost', 8123, length='<I')
 
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
