@@ -28,9 +28,9 @@ class Plot(object):
         # add some text for labels, title and axes ticks
         ax.set_xlabel('connections per second')
         ax.set_ylabel('processed messages per second')
-        ax.set_xticks(x)
+        # ax.set_xticks(x)
         ax.set_xlim(-300, max(x) + 300)
-        ax.set_ylim(-300, 5000 + 300)
+        ax.set_ylim(-300, 6000 + 300)
 
         fig.tight_layout()
 
