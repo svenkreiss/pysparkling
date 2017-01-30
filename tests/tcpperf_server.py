@@ -10,19 +10,24 @@ import struct
 import time
 
 
-MEASUREMENT_POINTS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
-                      6000, 7000, 8000)
+N_CONNECTIONS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
+                 6000, 7000, 8000)
+N_CONNECTIONS_1K = (10, 20, 30, 40, 45, 50, 60, 70, 80, 90, 100)
 
 
 class Server(object):
-    def __init__(self, start_port=8123):
+    def __init__(self, pause=60, values=1, start_port=8123, processes=2):
+        self.pause = pause
+        self.values = values
         self.port = start_port
+        self.processes = processes
 
-    def client(self, n=2000, format_='hello', processes=2):
-        for _ in range(processes):
+    def client(self, n=2000, format_='hello'):
+        for _ in range(self.processes):
             os.system('python tests/tcpperf_client.py '
-                      '-n {} --port {} --format {} &'
-                      ''.format(int(n / processes), self.port, format_))
+                      '-n {} --port {} --format {} --values {} &'
+                      ''.format(int(n / self.processes), self.port, format_,
+                                self.values))
 
     def run(self, n=2000, to_kv=None, format_='hello'):
         c = pysparkling.Context()
@@ -65,7 +70,7 @@ class Server(object):
         print('run: n = {}, counts = {}, result = {}'
               ''.format(n, counts, result))
         print('sensors = {}'.format(sensors))
-        time.sleep(60)
+        time.sleep(self.pause)
         self.port += 1
         return result
 
@@ -85,10 +90,24 @@ if __name__ == '__main__':
         s, v = struct.unpack('If', b)
         return ('sensor{}'.format(s), v)
 
+    with open('tests/tcpperf_messages.csv', 'w') as f:
+        f.write('# messages, hello, text, json, bello, struct\n')
+        server_1k = Server(pause=2, values=1000, processes=5)
+        for n in reversed(N_CONNECTIONS_1K):
+            data = (
+                n * 1000,
+                server_1k.run(n),
+                server_1k.run(n, None, 'bello'),
+                server_1k.run(n, kv_from_text, 'text'),
+                server_1k.run(n, kv_from_json, 'json'),
+                server_1k.run(n, kv_from_struct, 'struct'),
+            )
+            f.write(', '.join('{}'.format(d) for d in data) + '\n')
+
     with open('tests/tcpperf_connections.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
         server = Server()
-        for n in reversed(MEASUREMENT_POINTS):
+        for n in reversed(N_CONNECTIONS):
             data = (
                 n,
                 server.run(n),

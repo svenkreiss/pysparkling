@@ -6,13 +6,16 @@ import matplotlib.pyplot as plt
 
 
 class Plot(object):
-    def __init__(self):
+    def __init__(self, filename, x_label=None, y_label=None):
+        self.filename = filename
+        self.x_label = x_label or 'connections per second'
+        self.y_label = y_label or 'processed messages per second'
         self.record = None
         self.data = list(self.read())
         self.frame()
 
     def read(self):
-        with open('tests/tcpperf_connections.csv', 'r') as f:
+        with open(self.filename, 'r') as f:
             reader = csv.reader(f)
             self.record = namedtuple('record', [k.strip().replace('# ', '')
                                                 for k in next(reader)])
@@ -24,13 +27,14 @@ class Plot(object):
         fig, ax = plt.subplots()
 
         x = [row.messages for row in self.data]
+        y = [row.hello for row in self.data]
 
         # add some text for labels, title and axes ticks
-        ax.set_xlabel('connections per second')
-        ax.set_ylabel('processed messages per second')
+        ax.set_xlabel(self.x_label)
+        ax.set_ylabel(self.y_label)
         # ax.set_xticks(x)
         ax.set_xlim(-300, max(x) + 300)
-        ax.set_ylim(-300, 6000 + 300)
+        ax.set_ylim(-300, max(y) + 2000)
 
         fig.tight_layout()
 
@@ -40,8 +44,8 @@ class Plot(object):
     def plot(self):
         x = [row.messages for row in self.data]
 
-        ideal, = self.ax.plot(x, x, label='ideal', color='black',
-                              linestyle='--', linewidth=1)
+        ideal, = self.ax.plot([0.0, max(x)], [0.0, max(x)], label='ideal',
+                              color='black', linestyle='--', linewidth=1)
         graphs = [
             self.ax.plot(x, [getattr(row, k) for row in self.data], label=k)
             for k in self.record._fields if k != 'messages'
@@ -59,10 +63,11 @@ class Plot(object):
         return self
 
     def save(self):
-        self.fig.savefig('tests/tcpperf_plot.pdf')
-        self.fig.savefig('tests/tcpperf_plot.png', dpi=300)
+        self.fig.savefig(self.filename + '.pdf')
+        self.fig.savefig(self.filename + '.png', dpi=300)
         return self
 
 
 if __name__ == '__main__':
-    Plot().plot().save()
+    Plot('tests/tcpperf_connections.csv').plot().save()
+    Plot('tests/tcpperf_messages.csv', x_label='inbound messages per second').plot().save()

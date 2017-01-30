@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 import struct
 
-from tornado.gen import coroutine
+from tornado.gen import coroutine, moment
 from tornado.iostream import StreamClosedError
 from tornado.tcpserver import TCPServer
 
@@ -27,11 +27,13 @@ class TCPTextStream(TCPServer):
     @coroutine
     def handle_stream(self, stream, address):
         try:
-            data = yield stream.read_until(self.delimiter)
+            while True:
+                for _ in range(100):
+                    data = yield stream.read_until(self.delimiter)
+                    self.buffer.append(data[:-1].decode('utf8'))
+                yield moment
         except StreamClosedError:
-            return
-        stream.close()
-        self.buffer.append(data[:-1].decode('utf8'))
+            pass
 
 
 class TCPBinaryStream(TCPServer):
@@ -67,13 +69,15 @@ class TCPBinaryStream(TCPServer):
     @coroutine
     def handle_stream(self, stream, address):
         try:
-            if self.prefix_length:
-                prefix = yield stream.read_bytes(self.prefix_length)
-                message_length = struct.unpack(self.length, prefix)[0]
-            else:
-                message_length = self.length
-            data = yield stream.read_bytes(message_length)
+            while True:
+                for _ in range(100):
+                    if self.prefix_length:
+                        prefix = yield stream.read_bytes(self.prefix_length)
+                        message_length = struct.unpack(self.length, prefix)[0]
+                    else:
+                        message_length = self.length
+                    data = yield stream.read_bytes(message_length)
+                    self.buffer.append(data)
+                yield moment
         except StreamClosedError:
             return
-        stream.close()
-        self.buffer.append(data)

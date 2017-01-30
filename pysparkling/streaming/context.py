@@ -150,10 +150,10 @@ class StreamingContext(object):
             Message length. Length in bytes or a format string for
             ``struct.unpack()``. See :class:`TCPBinaryStream`s doc.
         """
-        stream = TCPBinaryStream(length)
-        stream.listen(port, hostname)
-        self._on_stop_cb.append(stream.stop)
-        return DStream(stream, self)
+        tcp_binary_stream = TCPBinaryStream(length)
+        tcp_binary_stream.listen(port, hostname)
+        self._on_stop_cb.append(tcp_binary_stream.stop)
+        return DStream(tcp_binary_stream, self)
 
     def socketTextStream(self, hostname, port):
         """Create a TCP socket server.
@@ -164,7 +164,7 @@ class StreamingContext(object):
         :param port:
             Port of TCP server.
         """
-        stream = TCPTextStream()
-        stream.listen(port, hostname)
-        self._on_stop_cb.append(stream.stop)
-        return DStream(stream, self)
+        tcp_text_stream = TCPTextStream()
+        tcp_text_stream.listen(port, hostname)
+        self._on_stop_cb.append(tcp_text_stream.stop)
+        return DStream(tcp_text_stream, self)

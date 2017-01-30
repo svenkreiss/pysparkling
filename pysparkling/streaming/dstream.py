@@ -22,9 +22,9 @@ class DStream(object):
             return
         self._current_time = time_
         self._current_rdds = [
-            i
-            if isinstance(i, RDD)
-            else self._context._context.parallelize(i)
+            (i
+             if isinstance(i, RDD)
+             else self._context._context.parallelize(i))
             for i in self._stream.get()
             if i is not None
         ]

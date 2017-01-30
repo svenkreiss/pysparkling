@@ -16,9 +16,10 @@ from tornado.iostream import StreamClosedError
 
 
 class Emitter(object):
-    def __init__(self, port, n=1000, duration=3.0):
+    def __init__(self, port, n=1000, values=1, duration=3.0):
         self.port = port
         self.n = n
+        self.values = values
         self.duration = duration
         self.message = self.hello
         self.i = 0
@@ -45,15 +46,16 @@ class Emitter(object):
 
     @gen.coroutine
     def send(self):
-        if self.i >= self.duration * self.n:
+        if self.i >= self.duration * self.n * self.values:
             self.pcb.stop()
             return
 
         try:
             stream = yield self.client.connect('127.0.0.1', self.port)
             with closing(stream):
-                stream.write(self.message())
-                self.i += 1
+                messages = b''.join(self.message() for _ in range(self.values))
+                stream.write(messages)
+                self.i += self.values
         except StreamClosedError:
             return
 
@@ -86,7 +88,9 @@ class Emitter(object):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-n', type=int, default=1000,
-                        help='messages per second')
+                        help='number of connections')
+    parser.add_argument('--values', type=int, default=1,
+                        help='number of values per connection')
     parser.add_argument('--port', type=int, default=8123,
                         help='target port number')
     parser.add_argument('--format', default='hello',
@@ -98,7 +102,7 @@ def main():
     args = parser.parse_args()
 
     time.sleep(args.delay)
-    e = Emitter(args.port, args.n)
+    e = Emitter(args.port, args.n, args.values)
     e.message = getattr(e, args.format)
     e.start()
     print('{} sent {} messages'.format(sys.argv[0], e.i))
