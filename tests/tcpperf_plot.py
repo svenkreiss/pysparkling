@@ -70,4 +70,7 @@ class Plot(object):
 
 if __name__ == '__main__':
     Plot('tests/tcpperf_connections.csv').plot().save()
-    Plot('tests/tcpperf_messages.csv', x_label='inbound messages per second').plot().save()
+    (Plot('tests/tcpperf_messages.csv',
+          x_label='inbound messages per second')
+     .plot()
+     .save())
