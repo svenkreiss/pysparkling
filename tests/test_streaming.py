@@ -14,7 +14,7 @@ class StreamingTestCase(unittest.TestCase):
         self.r.foreachRDD(lambda _, rdd: result.append(rdd.collect()))
 
         self.stream_c.start()
-        self.stream_c.awaitTermination(timeout=0.01)
+        self.stream_c.awaitTermination(timeout=0.1)
 
         print(result)
         assert result == self.expect
