@@ -1777,6 +1777,11 @@ class PersistedRDD(RDD):
         return iter(data)
 
 
+class EmptyRDD(RDD):
+    def __init__(self, context):
+        RDD.__init__(self, [], context)
+
+
 # pickle-able helpers
 
 class MapF(object):

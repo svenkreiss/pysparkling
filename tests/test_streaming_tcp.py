@@ -1,28 +1,13 @@
-import logging
-import pysparkling
-import struct
-import unittest
+from __future__ import print_function
 
 from contextlib import closing
+import logging
+import struct
+import unittest
 from tornado.testing import AsyncTestCase, gen_test
 from tornado.tcpclient import TCPClient
 
-
-class StreamingTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.c = pysparkling.Context()
-        self.stream_c = pysparkling.streaming.StreamingContext(self.c, 0.001)
-
-    def tearDown(self):
-        result = []
-        self.r.foreachRDD(lambda _, rdd: result.append(rdd.collect()))
-
-        self.stream_c.start()
-        self.stream_c.awaitTermination(timeout=0.01)
-
-        print(result)
-        assert result == self.expect
+from .streaming_test_case import StreamingTestCase
 
 
 class TCPTextTest(AsyncTestCase, StreamingTestCase):
@@ -36,15 +21,18 @@ class TCPTextTest(AsyncTestCase, StreamingTestCase):
 
     @gen_test
     def test_connect(self):
-        t = self.stream_c.socketTextStream('localhost', 8123)
+        self.result = 0
+        self.expect = 20
+        (
+            self.stream_c.socketTextStream('localhost', 8123)
+            .count()
+            .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
+        )
 
         for v in range(20):
             stream = yield self.client.connect('localhost', 8123)
             with closing(stream):
                 stream.write('{}\n'.format(v).encode('utf8'))
-
-        self.r = t.count()
-        self.expect = [[20]]
 
 
 class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
@@ -58,14 +46,16 @@ class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
 
     @gen_test
     def test_main(self):
-        t = self.stream_c.socketBinaryStream('localhost', 8123, length=5)
+        self.result = []
+        self.expect = [[b'hello']]
+        (
+            self.stream_c.socketBinaryStream('localhost', 8123, length=5)
+            .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
+        )
 
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
             stream.write(b'hello')
-
-        self.r = t
-        self.expect = [[b'hello']]
 
 
 class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
@@ -79,16 +69,14 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
 
     @gen_test
     def test_main(self):
-        t = self.stream_c.socketBinaryStream('localhost', 8123, length='<I')
+        self.result = []
+        self.expect = [[b'hellohello']]
+        (
+            self.stream_c.socketBinaryStream('localhost', 8123, length='<I')
+            .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
+        )
 
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
             stream.write(struct.pack('<I', 10) + b'hellohello')
 
-        self.r = t
-        self.expect = [[b'hellohello']]
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()

@@ -23,6 +23,8 @@ class Local(FileSystem):
             expr = expr[7:]
         if os.path.isfile(expr):
             return [expr]
+        if '/' not in expr:
+            expr = '.' + os.path.sep + expr
 
         t = Tokenizer(expr)
         prefix = t.next(['*', '?'])

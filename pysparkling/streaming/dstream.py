@@ -1,8 +1,6 @@
 import logging
 import operator
 
-from ..rdd import RDD
-
 log = logging.getLogger(__name__)
 
 
@@ -10,9 +8,10 @@ class DStream(object):
     def __init__(self, jdstream, ssc, jrdd_deserializer=None):
         self._stream = jdstream
         self._context = ssc
+        self._jrdd_deserializer = jrdd_deserializer
 
         self._current_time = 0.0
-        self._current_rdds = []
+        self._current_rdd = None
         self._fn = None
 
         ssc._add_dstream(self)
@@ -21,18 +20,15 @@ class DStream(object):
         if time_ <= self._current_time:
             return
         self._current_time = time_
-        self._current_rdds = [
-            (i
-             if isinstance(i, RDD)
-             else self._context._context.parallelize(i))
-            for i in self._stream.get()
-            if i is not None
-        ]
+        if self._jrdd_deserializer is None:
+            self._current_rdd = self._stream.get()
+        else:
+            self._current_rdd = self._jrdd_deserializer(self._stream.get())
 
     def _apply(self, time_):
         if self._fn is None:
             return
-        self._fn(time_, self._current_rdds)
+        self._fn(time_, self._current_rdd)
 
     def context(self):
         """Return the StreamContext of this stream."""
@@ -43,6 +39,8 @@ class DStream(object):
 
         Creates a new RDD stream where each RDD has a single entry that
         is the count of the elements.
+
+        :rtype: TransformedDStream
         """
         return (
             self
@@ -53,8 +51,8 @@ class DStream(object):
     def flatMap(self, f, preservesPartitioning=False):
         """Apply function f and flatten.
 
-        :param f:
-            mapping function
+        :param f: mapping function
+        :rtype: TransformedDStream
         """
         return self.mapPartitions(
             lambda p: (e for pp in p for e in f(pp)),
@@ -64,10 +62,9 @@ class DStream(object):
     def foreachRDD(self, func):
         """Apply func.
 
-        :param func:
-            Function to apply.
+        :param func: Function to apply.
         """
-        self._fn = lambda time_, rdds: [func(time_, i) for i in rdds]
+        self.transform(func)
 
     def groupByKey(self):
         """group by key"""
@@ -78,8 +75,8 @@ class DStream(object):
     def map(self, f, preservesPartitioning=False):
         """Apply function f
 
-        :param f:
-            mapping function
+        :param f: mapping function
+        :rtype: TransformedDStream
         """
         return self.mapPartitions(
             lambda p: (f(e) for e in p),
@@ -89,8 +86,8 @@ class DStream(object):
     def mapPartitions(self, f, preservesPartitioning=False):
         """Map partitions.
 
-        :param f:
-            mapping function
+        :param f: mapping function
+        :rtype: TransformedDStream
         """
         return self.mapPartitionsWithIndex(lambda i, p: f(p),
                                            preservesPartitioning)
@@ -101,8 +98,8 @@ class DStream(object):
         Map partitions with a function that takes the partition index
         and an iterator over the partition data as arguments.
 
-        :param f:
-            mapping function
+        :param f: mapping function
+        :rtype: TransformedDStream
         """
         return self.transform(
             lambda rdd: rdd.mapPartitionsWithIndex(f, preservesPartitioning)
@@ -113,7 +110,10 @@ class DStream(object):
         return self.transform(lambda rdd: rdd.mapValues(f))
 
     def reduce(self, func):
-        """Return a new DStream where each RDD was reduced with func."""
+        """Return a new DStream where each RDD was reduced with func.
+
+        :rtype: TransformedDStream
+        """
 
         # avoid RDD.reduce() which does not return an RDD
         return self.transform(
@@ -121,16 +121,20 @@ class DStream(object):
                 rdd
                 .map(lambda i: (None, i))
                 .reduceByKey(func)
-                .map(lambda i: i[1])
+                .map(lambda none_i: none_i[1])
             )
         )
 
     def transform(self, func):
         """Return a new DStream where each RDD is transformed by f.
 
-        :param f:
-            Function that transforms an RDD.
+        :param f: Function that transforms an RDD.
+        :rtype: TransformedDStream
         """
+        if func.__code__.co_argcount == 1:
+            one_arg_func = func
+            func = lambda _, rdd: one_arg_func(rdd)
+
         return TransformedDStream(self, func)
 
     def pprint(self, num=10):
@@ -161,7 +165,7 @@ class TransformedDStream(DStream):
     def _step(self, time_):
         if time_ <= self._current_time:
             return
+
         self._prev._step(time_)
         self._current_time = time_
-        self._current_rdds = [self._func(rdd)
-                              for rdd in self._prev._current_rdds]
+        self._current_rdd = self._func(time_, self._prev._current_rdd)

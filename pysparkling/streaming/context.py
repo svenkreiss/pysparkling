@@ -3,15 +3,16 @@ from __future__ import absolute_import
 import logging
 import time
 
-from ..rdd import RDD
 from .dstream import DStream
-from .queuestream import QueueStream
+from .filestream import FileTextStream, FileStreamDeserializer
+from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:
-    from .tcpstream import TCPTextStream, TCPBinaryStream
+    from .tcpstream import TCPTextStream, TCPBinaryStream, TCPDeserializer
 except ImportError:
     TCPTextStream = False
     TCPBinaryStream = False
+    TCPDeserializer = False
 
 try:
     import tornado
@@ -73,23 +74,21 @@ class StreamingContext(object):
         :param oneAtATime:
             Process one at a time or all.
         :param default:
-            If no more RDDs in ``rdds``, return this RDD.
+            If no more RDDs in ``rdds``, return this RDD. Can be None.
         """
-        if default is not None and not isinstance(default, RDD):
-            default = self._context.parallelize(default)
+        deserializer = QueueStreamDeserializer(self._context)
+        if default is not None:
+            default = deserializer(default)
 
         if Queue is False:
             log.error('Run "pip install tornado" to install tornado.')
 
         q = Queue()
         for i in rdds:
-            if isinstance(i, RDD):
-                q.put(i)
-            else:
-                q.put(self._context.parallelize(i))
+            q.put(i)
 
         qstream = QueueStream(q, oneAtATime, default)
-        return DStream(qstream, self)
+        return DStream(qstream, self, deserializer)
 
     def start(self):
         """Start processing streams."""
@@ -128,13 +127,6 @@ class StreamingContext(object):
 
         StreamingContext._activeContext = None
 
-    def textFileStream(self, directory):
-        """Creates an input stream that monitors this directory.
-
-        File names starting with ``.`` are ignored.
-        """
-        raise NotImplementedError
-
     def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.
 
@@ -150,21 +142,34 @@ class StreamingContext(object):
             Message length. Length in bytes or a format string for
             ``struct.unpack()``. See :class:`TCPBinaryStream`s doc.
         """
+        deserializer = TCPDeserializer(self._context)
         tcp_binary_stream = TCPBinaryStream(length)
         tcp_binary_stream.listen(port, hostname)
         self._on_stop_cb.append(tcp_binary_stream.stop)
-        return DStream(tcp_binary_stream, self)
+        return DStream(tcp_binary_stream, self, deserializer)
 
     def socketTextStream(self, hostname, port):
         """Create a TCP socket server.
 
-        :param hostname:
-            Hostname of TCP server.
-
-        :param port:
-            Port of TCP server.
+        :param string hostname: Hostname of TCP server.
+        :param int port: Port of TCP server.
+        :rtype: DStream
         """
+        deserializer = TCPDeserializer(self._context)
         tcp_text_stream = TCPTextStream()
         tcp_text_stream.listen(port, hostname)
         self._on_stop_cb.append(tcp_text_stream.stop)
-        return DStream(tcp_text_stream, self)
+        return DStream(tcp_text_stream, self, deserializer)
+
+    def textFileStream(self, directory):
+        """Monitor a directory and process all text files.
+
+        File names starting with ``.`` are ignored.
+
+        :param string directory: a path
+        :rtype: DStream
+        """
+        deserializer = FileStreamDeserializer(self._context)
+        file_stream = FileTextStream(directory)
+        self._on_stop_cb.append(file_stream.stop)
+        return DStream(file_stream, self, deserializer)

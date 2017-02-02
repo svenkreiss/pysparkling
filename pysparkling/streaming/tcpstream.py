@@ -2,12 +2,24 @@ from __future__ import absolute_import
 
 import logging
 import struct
-
 from tornado.gen import coroutine, moment
 from tornado.iostream import StreamClosedError
 from tornado.tcpserver import TCPServer
 
+from ..rdd import EmptyRDD
+
 log = logging.getLogger(__name__)
+
+
+class TCPDeserializer(object):
+    def __init__(self, context):
+        self.context = context
+
+    def __call__(self, data):
+        if data is None:
+            return EmptyRDD(self.context)
+
+        return self.context.parallelize(data)
 
 
 class TCPTextStream(TCPServer):
@@ -20,9 +32,12 @@ class TCPTextStream(TCPServer):
         self.buffer = []
 
     def get(self):
-        r = self.buffer
+        if not self.buffer:
+            return []
+
+        buffer = self.buffer
         self.buffer = []
-        return [r] if r else []
+        return buffer
 
     @coroutine
     def handle_stream(self, stream, address):
@@ -62,9 +77,12 @@ class TCPBinaryStream(TCPServer):
             self.prefix_length = struct.calcsize(self.length)
 
     def get(self):
-        r = self.buffer
+        if not self.buffer:
+            return []
+
+        buffer = self.buffer
         self.buffer = []
-        return [r] if r else []
+        return buffer
 
     @coroutine
     def handle_stream(self, stream, address):

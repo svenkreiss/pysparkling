@@ -2,17 +2,32 @@ from __future__ import print_function
 
 import pyspark
 import pyspark.streaming
-
-sc = pyspark.SparkContext()
-ssc = pyspark.streaming.StreamingContext(sc, 1)
+import time
 
 
 def simple_queue():
-    ssc.queueStream([range(20), ['a', 'b'], ['c']]).pprint()
+    ssc.queueStream([range(5), ['a', 'b'], ['c']], oneAtATime=False).pprint()
 
-    ssc.start()
-    ssc.awaitTermination()
+
+def simple_queue_count():
+    (ssc
+     .queueStream([range(5), ['a', 'b'], ['c']], oneAtATime=False)
+     .count()
+     .foreachRDD(lambda t, r: print('>>>>>>>>>>>>>>', t, r.collect())))
+
+
+def simple_queue_one_at_a_time():
+    ssc.queueStream([range(5), ['a', 'b'], ['c']], oneAtATime=True).pprint()
 
 
 if __name__ == '__main__':
-    simple_queue()
+    sc = pyspark.SparkContext()
+    ssc = pyspark.streaming.StreamingContext(sc, 1)
+
+    # simple_queue()
+    simple_queue_count()
+    # simple_queue_one_at_a_time()
+
+    ssc.start()
+    time.sleep(3.0)
+    ssc.stop(stopGraceFully=True)
