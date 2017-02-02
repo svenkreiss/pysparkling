@@ -1,9 +1,7 @@
 from __future__ import print_function
 
 from contextlib import closing
-import logging
 import struct
-import unittest
 from tornado.testing import AsyncTestCase, gen_test
 from tornado.tcpclient import TCPClient
 
@@ -79,4 +77,3 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
         stream = yield self.client.connect('localhost', 8123)
         with closing(stream):
             stream.write(struct.pack('<I', 10) + b'hellohello')
-
