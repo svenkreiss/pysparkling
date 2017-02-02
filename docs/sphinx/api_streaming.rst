@@ -3,8 +3,8 @@
 Streaming
 ---------
 
-.. autoclass:: pysparkling.streaming.context
+.. autoclass:: pysparkling.streaming.StreamingContext
    :members:
 
-.. autoclass:: pysparkling.streaming.dstream
+.. autoclass:: pysparkling.streaming.DStream
    :members:
