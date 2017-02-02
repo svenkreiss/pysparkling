@@ -16,4 +16,5 @@ can then be processed.
 
    api_rdd
    api_context
+   api_streaming
    api_fileio
