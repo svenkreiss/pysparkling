@@ -2,6 +2,8 @@
 test.*
 profile.out
 .vscode
+scripts/textout
+tests/textout
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

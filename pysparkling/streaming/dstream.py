@@ -125,6 +125,18 @@ class DStream(object):
             )
         )
 
+    def saveAsTextFiles(self, prefix, suffix=None):
+        """Save every RDD as a text file (or sets of text files).
+
+        :param string prefix: path prefix of the output
+        :param string suffix: file suffix (e.g. '.gz' to enable compression)
+        """
+        self.foreachRDD(
+            lambda time_, rdd:
+            rdd.saveAsTextFile('{}-{:.0f}{}'.format(
+                prefix, time_ * 1000, suffix if suffix is not None else ''))
+        )
+
     def transform(self, func):
         """Return a new DStream where each RDD is transformed by f.
 
