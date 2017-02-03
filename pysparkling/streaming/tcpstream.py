@@ -54,14 +54,7 @@ class TCPTextStream(TCPServer):
 class TCPBinaryStream(TCPServer):
     """Consumes binary messages from a TCP socket.
 
-    :param length:
-        An int for fixed message lengths in bytes.
-
-        For variable length messages where the message length is sent right
-        before the message itself, ``length`` is
-        a format string that can be passed to ``struct.unpack()``.
-        For example, use ``length='<I'`` for a little-endian (standard on x86)
-        32-bit unsigned int.
+    :param length: An int or string.
     """
 
     def __init__(self, length=None):

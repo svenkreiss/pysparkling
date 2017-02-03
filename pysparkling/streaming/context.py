@@ -28,17 +28,15 @@ log = logging.getLogger(__name__)
 
 
 class StreamingContext(object):
+    """Stream processing.
+
+    :param pysparkling.Context sparkContext: A pysparkling.Context.
+    :param float batchDuration: Duration in seconds per batch.
+    """
+
     _activeContext = None
 
     def __init__(self, sparkContext, batchDuration=None):
-        """Stream processing.
-
-        :param sparkContext:
-            A pysparkling.Context.
-
-        :param batchDuration:
-            Duration in seconds per batch.
-        """
         self._context = sparkContext
         self.batch_duration = batchDuration if batchDuration is not None else 1
         self._dstreams = []
@@ -56,8 +54,7 @@ class StreamingContext(object):
     def awaitTermination(self, timeout=None):
         """Wait for context to stop.
 
-        :param timeout:
-            in seconds
+        :param float timeout: in seconds
         """
 
         if timeout is not None:
@@ -69,12 +66,9 @@ class StreamingContext(object):
     def queueStream(self, rdds, oneAtATime=True, default=None):
         """Create stream iterable over RDDs.
 
-        :param rdds:
-            Iterable over RDDs.
-        :param oneAtATime:
-            Process one at a time or all.
-        :param default:
-            If no more RDDs in ``rdds``, return this RDD. Can be None.
+        :param rdds: Iterable over RDDs or lists.
+        :param oneAtATime: Process one at a time or all.
+        :param default: If no more RDDs in ``rdds``, return this. Can be None.
         """
         deserializer = QueueStreamDeserializer(self._context)
         if default is not None:
@@ -113,10 +107,8 @@ class StreamingContext(object):
     def stop(self, stopSparkContext=True, stopGraceFully=False):
         """Stop processing streams.
 
-        :param stopSparkContext:
-            stop the SparkContext (NOT IMPLEMENTED)
-        :param stopGracefully:
-            stop gracefully (NOT IMPLEMENTED)
+        :param stopSparkContext: stop the SparkContext (NOT IMPLEMENTED)
+        :param stopGracefully: stop gracefully (NOT IMPLEMENTED)
         """
         while self._on_stop_cb:
             cb = self._on_stop_cb.pop()
@@ -132,15 +124,18 @@ class StreamingContext(object):
 
         This is not part of the PySpark API.
 
-        :param hostname:
-            Hostname of TCP server.
-
-        :param port:
-            Port of TCP server.
-
+        :param string hostname: Hostname of TCP server.
+        :param int port: Port of TCP server.
         :param length:
             Message length. Length in bytes or a format string for
-            ``struct.unpack()``. See :class:`TCPBinaryStream`s doc.
+            ``struct.unpack()``.
+
+            For variable length messages where the message length is sent right
+            before the message itself, ``length`` is
+            a format string that can be passed to ``struct.unpack()``.
+            For example, use ``length='<I'`` for a little-endian (standard on x86)
+            32-bit unsigned int.
+        :rtype: DStream
         """
         deserializer = TCPDeserializer(self._context)
         tcp_binary_stream = TCPBinaryStream(length)
