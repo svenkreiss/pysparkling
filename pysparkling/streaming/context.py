@@ -69,6 +69,7 @@ class StreamingContext(object):
         :param rdds: Iterable over RDDs or lists.
         :param oneAtATime: Process one at a time or all.
         :param default: If no more RDDs in ``rdds``, return this. Can be None.
+        :rtype: DStream
         """
         deserializer = QueueStreamDeserializer(self._context)
         if default is not None:
