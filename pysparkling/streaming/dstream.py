@@ -203,8 +203,8 @@ class DStream(object):
         """
 
         def pprint_map(time_, rdd):
-            data = rdd.take(num + 1)
             print('>>> Time: {}'.format(time_))
+            data = rdd.take(num + 1)
             for d in data[:num]:
                 print(d)
             if len(data) > num:
