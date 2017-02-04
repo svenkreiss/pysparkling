@@ -14,7 +14,7 @@ from .broadcast import Broadcast
 from .cache_manager import CacheManager
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import RDD
+from .rdd import RDD, EmptyRDD
 from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
@@ -342,6 +342,9 @@ class Context(object):
         :param rdds: Iterable of RDDs.
         :rtype: RDD
         """
+        if all(isinstance(rdd, EmptyRDD) for rdd in rdds):
+            return EmptyRDD(self)
+
         return self.parallelize(
             (x for rdd in rdds for x in rdd.collect())
         )

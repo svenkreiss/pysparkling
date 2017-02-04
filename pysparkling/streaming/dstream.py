@@ -3,6 +3,8 @@ from __future__ import print_function
 import logging
 import operator
 
+from ..rdd import EmptyRDD
+
 log = logging.getLogger(__name__)
 
 
@@ -33,7 +35,10 @@ class DStream(object):
         self._fn(time_, self._current_rdd)
 
     def context(self):
-        """Return the StreamContext of this stream."""
+        """Return the StreamContext of this stream.
+
+        :rtype: StreamContext
+        """
         return self._context
 
     def count(self):
@@ -42,7 +47,7 @@ class DStream(object):
         Creates a new RDD stream where each RDD has a single entry that
         is the count of the elements.
 
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
         return (
             self
@@ -54,7 +59,7 @@ class DStream(object):
         """Apply function f and flatten.
 
         :param f: mapping function
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
         return self.mapPartitions(
             lambda p: (e for pp in p for e in f(pp)),
@@ -69,16 +74,17 @@ class DStream(object):
         self.transform(func)
 
     def groupByKey(self):
-        """group by key"""
-        return self.transform(
-            lambda rdd: rdd.groupByKey()
-        )
+        """group by key
+
+        :rtype: DStream
+        """
+        return self.transform(lambda rdd: rdd.groupByKey())
 
     def map(self, f, preservesPartitioning=False):
         """Apply function f
 
         :param f: mapping function
-        :rtype: TransformedDStream
+        :rtype: DStream
 
 
         Example:
@@ -107,7 +113,7 @@ class DStream(object):
         """Map partitions.
 
         :param f: mapping function
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
         return self.mapPartitionsWithIndex(lambda i, p: f(p),
                                            preservesPartitioning)
@@ -119,14 +125,16 @@ class DStream(object):
         and an iterator over the partition data as arguments.
 
         :param f: mapping function
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
         return self.transform(
             lambda rdd: rdd.mapPartitionsWithIndex(f, preservesPartitioning)
         )
 
     def mapValues(self, f):
-        """Apply f to every element.
+        """Apply ``f`` to every element.
+
+        :rtype: DStream
 
 
         Example:
@@ -149,9 +157,9 @@ class DStream(object):
         return self.transform(lambda rdd: rdd.mapValues(f))
 
     def reduce(self, func):
-        """Return a new DStream where each RDD was reduced with func.
+        """Return a new DStream where each RDD was reduced with ``func``.
 
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
 
         # avoid RDD.reduce() which does not return an RDD
@@ -177,10 +185,10 @@ class DStream(object):
         )
 
     def transform(self, func):
-        """Return a new DStream where each RDD is transformed by f.
+        """Return a new DStream where each RDD is transformed by ``f``.
 
         :param f: Function that transforms an RDD.
-        :rtype: TransformedDStream
+        :rtype: DStream
         """
         if func.__code__.co_argcount == 1:
             one_arg_func = func
@@ -191,8 +199,7 @@ class DStream(object):
     def pprint(self, num=10):
         """Print the first ``num`` elements of each RDD.
 
-        :param num:
-            Set number of elements to be printed.
+        :param int num: Set number of elements to be printed.
         """
 
         def pprint_map(time_, rdd):
@@ -205,6 +212,34 @@ class DStream(object):
             print('')
 
         self.foreachRDD(pprint_map)
+
+    def repartition(self, numPartitions):
+        """Repartition every RDD.
+
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([['hello', 'world']])
+        ...     .repartition(2)
+        ...     .foreachRDD(lambda rdd: print(len(rdd.partitions())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        2
+        0
+
+        """
+        return self.transform(
+            lambda rdd: (rdd.repartition(numPartitions)
+                         if not isinstance(rdd, EmptyRDD) else rdd)
+        )
 
 
 class TransformedDStream(DStream):
