@@ -77,6 +77,24 @@ class DStream(object):
 
         :param f: mapping function
         :rtype: TransformedDStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[4], [2], [7]])
+        ...     .map(lambda e: e + 1)
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [5]
+        [3]
+        [8]
         """
         return self.mapPartitions(
             lambda p: (f(e) for e in p),
@@ -106,7 +124,26 @@ class DStream(object):
         )
 
     def mapValues(self, f):
-        """Apply f to every element"""
+        """Apply f to every element.
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[('a', 4)], [('b', 2)], [('c', 7)]])
+        ...     .mapValues(lambda e: e + 1)
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [('a', 5)]
+        [('b', 3)]
+        [('c', 8)]
+        """
         return self.transform(lambda rdd: rdd.mapValues(f))
 
     def reduce(self, func):
