@@ -9,6 +9,16 @@ log = logging.getLogger(__name__)
 
 
 class DStream(object):
+    """A discrete stream of RDDs.
+
+    Usually a DStream is created by a :class:`StreamingContext` method
+    and the operated on with the methods below.
+
+    :param jdstream: previous stream
+    :param StreamingContext ssc: the streaming context
+    :param jrdd_deserializer: a deserializer callable
+    """
+
     def __init__(self, jdstream, ssc, jrdd_deserializer=None):
         self._stream = jdstream
         self._context = ssc
