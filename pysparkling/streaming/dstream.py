@@ -234,6 +234,22 @@ class DStream(object):
 
         :param string prefix: path prefix of the output
         :param string suffix: file suffix (e.g. '.gz' to enable compression)
+
+
+        Example:
+
+        >>> import os, pysparkling, tempfile
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> with tempfile.TemporaryDirectory() as tmp_dir:
+        ...     (
+        ...         ssc.queueStream([['hello', 'world'], [1, 2]])
+        ...         .saveAsTextFiles(os.path.join(tmp_dir, 'textout'))
+        ...     )
+        ...     ssc.start()
+        ...     ssc.awaitTermination(0.25)
+        ...     sc.textFile(tmp_dir + '*').collect()
+        ['hello', 'world', '1', '2']
         """
         self.foreachRDD(
             lambda time_, rdd:

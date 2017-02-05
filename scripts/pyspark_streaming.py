@@ -33,6 +33,12 @@ def window(ssc):
      .foreachRDD(lambda rdd: print('>>>>>>>>>', rdd.collect())))
 
 
+def union(ssc):
+    ds1 = ssc.queueStream([[1], [2], [3], [4], [5], [6]])
+    ds2 = ssc.queueStream([[1], [2], [3], [4], [5], [6]])
+    ssc.union(ds1, ds2).pprint()
+
+
 if __name__ == '__main__':
     sc = pyspark.SparkContext()
     ssc = pyspark.streaming.StreamingContext(sc, 1)
@@ -41,7 +47,8 @@ if __name__ == '__main__':
     # simple_queue_count(ssc)
     # simple_queue_one_at_a_time(ssc)
     # save_text(ssc)
-    window(ssc)
+    # window(ssc)
+    union(ssc)
 
     ssc.start()
     time.sleep(3.0)

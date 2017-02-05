@@ -70,6 +70,23 @@ class StreamingContext(object):
         :param oneAtATime: Process one at a time or all.
         :param default: If no more RDDs in ``rdds``, return this. Can be None.
         :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[4], [2], [7]])
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [4]
+        [2]
+        [7]
         """
         deserializer = QueueStreamDeserializer(self._context)
         if default is not None:
@@ -170,3 +187,6 @@ class StreamingContext(object):
         file_stream = FileTextStream(directory)
         self._on_stop_cb.append(file_stream.stop)
         return DStream(file_stream, self, deserializer)
+
+    #: Alias of :func:`.textFileStream`.
+    fileTextStream = textFileStream
