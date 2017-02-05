@@ -7,6 +7,7 @@ from collections import defaultdict
 import itertools
 import logging
 import pickle
+import struct
 import time
 
 from . import __version__ as PYSPARKLING_VERSION
@@ -301,6 +302,83 @@ class Context(object):
 
             yield map_result
 
+    def binaryFile(self, filename, minPartitions=None, recordLength=None):
+        """Read a binary file into an RDD.
+
+        :param filename:
+            Location of a file. Can include schemes like ``http://``,
+            ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
+            and multiple expressions separated by ``,``.
+
+        :param minPartitions: (optional)
+            By default, every file is a partition, but this option allows to
+            split these further.
+
+        :param recordLength: (optional, default=None)
+            If ``None`` every file is a record, ``int`` means fixed length
+            records and a ``string`` is used as a format string to ``struct``
+            to read the length of variable length binary records.
+
+        :rtype: RDD
+
+        .. warning::
+            Not part of PySpark API.
+
+
+        Example with whole file:
+
+        >>> import os, pysparkling, tempfile
+        >>> sc = pysparkling.Context()
+        >>> with tempfile.TemporaryDirectory() as tmp_dir:
+        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
+        ...         _ = f.write(b'bellobello')
+        ...     sc.binaryFile(tmp_dir + '*').collect()
+        [b'bellobello']
+
+
+        Example with fixed length records:
+
+        >>> import os, pysparkling, tempfile
+        >>> sc = pysparkling.Context()
+        >>> with tempfile.TemporaryDirectory() as tmp_dir:
+        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
+        ...         _ = f.write(b'bellobello')
+        ...     sc.binaryFile(tmp_dir + '*', recordLength=5).collect()
+        [b'bello', b'bello']
+
+
+        Example with variable length records:
+
+        >>> import os, pysparkling, struct, tempfile
+        >>> sc = pysparkling.Context()
+        >>> with tempfile.TemporaryDirectory() as tmp_dir:
+        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
+        ...         _ = f.write(struct.pack('<I', 5) + b'bello')
+        ...         _ = f.write(struct.pack('<I', 10) + b'bellobello')
+        ...     sc.binaryFile(tmp_dir + '*', recordLength='<I').collect()
+        [b'bello', b'bellobello']
+        """
+        resolved_names = File.resolve_filenames(filename)
+        log.debug('binaryFile() resolved "{0}" to {1} files.'
+                  ''.format(filename, len(resolved_names)))
+
+        num_partitions = len(resolved_names)
+        if minPartitions and minPartitions > num_partitions:
+            num_partitions = minPartitions
+
+        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd = rdd_filenames.map(lambda f_name: File(f_name).load().read())
+        if recordLength is None:
+            pass
+        elif isinstance(recordLength, int):
+            chunker = FixedLengthChunker(recordLength)
+            rdd = rdd.flatMap(chunker)
+        else:
+            chunker = VariableLengthChunker(recordLength)
+            rdd = rdd.flatMap(chunker)
+        rdd._name = filename
+        return rdd
+
     def textFile(self, filename, minPartitions=None, use_unicode=True):
         """Read a text file into an RDD.
 
@@ -406,3 +484,25 @@ def map_whole_text_file(f_name__encoding):
         f_name,
         TextFile(f_name).load(encoding=encoding).read(),
     )
+
+
+class FixedLengthChunker(object):
+    def __init__(self, recordLength):
+        self.record_length = recordLength
+
+    def __call__(self, data):
+        for i in range(0, len(data), self.record_length):
+            yield data[i: i + self.record_length]
+
+
+class VariableLengthChunker(object):
+    def __init__(self, recordLength):
+        self.length_fmt = recordLength
+        self.prefix_length = struct.calcsize(recordLength)
+
+    def __call__(self, data):
+        while data:
+            prefix, data = data[:self.prefix_length], data[self.prefix_length:]
+            length = struct.unpack(self.length_fmt, prefix)[0]
+            package, data = data[:length], data[length:]
+            yield package

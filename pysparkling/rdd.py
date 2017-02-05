@@ -1141,26 +1141,22 @@ class RDD(object):
         """randomly sample by key
 
         :param withReplacement: Not used.
-        :param fractions:
-            Specifies the probability that an element is sampled per Key.
-        :param seed: (optional)
-            Seed for random number generator.
+        :param fractions: The probability that an element is sampled per key.
+        :param seed: (optional) Seed for random number generator.
         :rtype: RDD
 
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> sc = Context()
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
         >>> fractions = {"a": 0.2, "b": 0.1}
-        >>> rdd = sc.parallelize(
-        ...     fractions.keys()
-        ... ).cartesian(
-        ...     sc.parallelize(range(0, 1000))
-        ... )
-        >>> sample = dict(
-        ...     rdd.sampleByKey(False, fractions, 2).groupByKey().collect()
-        ... )
+        >>> rdd = (sc
+        ...        .parallelize(fractions.keys())
+        ...        .cartesian(sc.parallelize(range(0, 1000))))
+        >>> sample = (rdd
+        ...           .sampleByKey(False, fractions, 2)
+        ...           .groupByKey().collectAsMap())
         >>> 100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150
         True
         >>> max(sample["a"]) <= 999 and min(sample["a"]) >= 0
@@ -1278,7 +1274,6 @@ class RDD(object):
         :param compressionCodecClass: Not used.
         :returns: ``self``
         :rtype: RDD
-
         """
         if fileio.TextFile(path).exists():
             raise FileAlreadyExistsException(
@@ -1704,10 +1699,10 @@ class RDD(object):
 
 class MapPartitionsRDD(RDD):
     def __init__(self, prev, f, preservesPartitioning=False):
-        """prev is the previous RDD.
+        """``prev`` is the previous RDD.
 
-        f is a function with the signature
-        (task_context, partition index, iterator over elements).
+        ``f`` is a function with the signature
+        ``(task_context, partition index, iterator over elements)``.
         """
         RDD.__init__(self, prev.partitions(), prev.context)
 
