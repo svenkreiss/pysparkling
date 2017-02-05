@@ -156,46 +156,6 @@ class DStream(object):
         """
         return self.transform(lambda rdd: rdd.mapValues(f))
 
-    def reduce(self, func):
-        """Return a new DStream where each RDD was reduced with ``func``.
-
-        :rtype: DStream
-        """
-
-        # avoid RDD.reduce() which does not return an RDD
-        return self.transform(
-            lambda rdd: (
-                rdd
-                .map(lambda i: (None, i))
-                .reduceByKey(func)
-                .map(lambda none_i: none_i[1])
-            )
-        )
-
-    def saveAsTextFiles(self, prefix, suffix=None):
-        """Save every RDD as a text file (or sets of text files).
-
-        :param string prefix: path prefix of the output
-        :param string suffix: file suffix (e.g. '.gz' to enable compression)
-        """
-        self.foreachRDD(
-            lambda time_, rdd:
-            rdd.saveAsTextFile('{}-{:.0f}{}'.format(
-                prefix, time_ * 1000, suffix if suffix is not None else ''))
-        )
-
-    def transform(self, func):
-        """Return a new DStream where each RDD is transformed by ``f``.
-
-        :param f: Function that transforms an RDD.
-        :rtype: DStream
-        """
-        if func.__code__.co_argcount == 1:
-            one_arg_func = func
-            func = lambda _, rdd: one_arg_func(rdd)
-
-        return TransformedDStream(self, func)
-
     def pprint(self, num=10):
         """Print the first ``num`` elements of each RDD.
 
@@ -212,6 +172,22 @@ class DStream(object):
             print('')
 
         self.foreachRDD(pprint_map)
+
+    def reduce(self, func):
+        """Return a new DStream where each RDD was reduced with ``func``.
+
+        :rtype: DStream
+        """
+
+        # avoid RDD.reduce() which does not return an RDD
+        return self.transform(
+            lambda rdd: (
+                rdd
+                .map(lambda i: (None, i))
+                .reduceByKey(func)
+                .map(lambda none_i: none_i[1])
+            )
+        )
 
     def repartition(self, numPartitions):
         """Repartition every RDD.
@@ -240,6 +216,30 @@ class DStream(object):
             lambda rdd: (rdd.repartition(numPartitions)
                          if not isinstance(rdd, EmptyRDD) else rdd)
         )
+
+    def saveAsTextFiles(self, prefix, suffix=None):
+        """Save every RDD as a text file (or sets of text files).
+
+        :param string prefix: path prefix of the output
+        :param string suffix: file suffix (e.g. '.gz' to enable compression)
+        """
+        self.foreachRDD(
+            lambda time_, rdd:
+            rdd.saveAsTextFile('{}-{:.0f}{}'.format(
+                prefix, time_ * 1000, suffix if suffix is not None else ''))
+        )
+
+    def transform(self, func):
+        """Return a new DStream where each RDD is transformed by ``f``.
+
+        :param f: Function that transforms an RDD.
+        :rtype: DStream
+        """
+        if func.__code__.co_argcount == 1:
+            one_arg_func = func
+            func = lambda _, rdd: one_arg_func(rdd)
+
+        return TransformedDStream(self, func)
 
     def window(self, windowDuration, slideDuration=None):
         """Windowed RDD.
