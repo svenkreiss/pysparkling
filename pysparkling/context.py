@@ -337,9 +337,8 @@ class Context(object):
 
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
-        ...         f.write(b'bellobello')
+        ...         _ = f.write(b'bellobello')
         ...     sc.binaryFile(tmp+'*').map(decode).collect()
-        10
         ['bellobello']
 
 
@@ -347,9 +346,8 @@ class Context(object):
 
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
-        ...         f.write(b'bellobello')
+        ...         _ = f.write(b'bellobello')
         ...     sc.binaryFile(tmp+'*', recordLength=5).map(decode).collect()
-        10
         ['bello', 'bello']
 
 
@@ -357,11 +355,9 @@ class Context(object):
 
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
-        ...         f.write(struct.pack('<I', 5) + b'bello')
-        ...         f.write(struct.pack('<I', 10) + b'bellobello')
+        ...         _ = f.write(struct.pack('<I', 5) + b'bello')
+        ...         _ = f.write(struct.pack('<I', 10) + b'bellobello')
         ...     sc.binaryFile(tmp+'*', recordLength='<I').map(decode).collect()
-        9
-        14
         ['bello', 'bellobello']
         """
         resolved_names = File.resolve_filenames(filename)
