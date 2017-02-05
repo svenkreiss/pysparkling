@@ -202,7 +202,7 @@ class StreamingContext(object):
         :rtype: DStream
 
         .. warning::
-            Not part of PySpark API.
+            Only ``int`` ``recordLength`` are supported in PySpark API.
         """
         deserializer = FileBinaryStreamDeserializer(self._context,
                                                     recordLength)
