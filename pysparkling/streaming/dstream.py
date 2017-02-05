@@ -37,7 +37,7 @@ class DStream(object):
     def context(self):
         """Return the StreamContext of this stream.
 
-        :rtype: StreamContext
+        :rtype: StreamingContext
         """
         return self._context
 
