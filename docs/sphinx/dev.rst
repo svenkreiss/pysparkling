@@ -14,7 +14,7 @@ To run pysparkling's unit tests:
 
     # run linting and test
     flake8
-    nosetests -vv
+    PERFORMANCE=1 nosetests -vv
 
 Don't run ``python setup.py test`` as this will
 not execute the doctests. When all tests pass, create a Pull Request on GitHub.
