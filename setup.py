@@ -40,6 +40,7 @@ setup(
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
         'tests': [
+            'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
             'doctest-ignore-unicode>=0.1.2',
             'futures>=3.0.1',

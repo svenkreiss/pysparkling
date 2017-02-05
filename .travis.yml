@@ -11,4 +11,4 @@ install:
  - "pip install .[tests]"
 script:
  - flake8
- - nosetests -vv
+ - PERFORMANCE=1 nosetests -vv

@@ -238,7 +238,8 @@ class DStream(object):
 
         Example:
 
-        >>> import os, pysparkling, tempfile
+        >>> from backports import tempfile
+        >>> import os, pysparkling
         >>> sc = pysparkling.Context()
         >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
         >>> with tempfile.TemporaryDirectory() as tmp_dir:

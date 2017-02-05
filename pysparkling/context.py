@@ -327,7 +327,8 @@ class Context(object):
 
         Example with whole file:
 
-        >>> import os, pysparkling, tempfile
+        >>> from backports import tempfile
+        >>> import os, pysparkling
         >>> sc = pysparkling.Context()
         >>> with tempfile.TemporaryDirectory() as tmp_dir:
         ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
@@ -338,7 +339,8 @@ class Context(object):
 
         Example with fixed length records:
 
-        >>> import os, pysparkling, tempfile
+        >>> from backports import tempfile
+        >>> import os, pysparkling
         >>> sc = pysparkling.Context()
         >>> with tempfile.TemporaryDirectory() as tmp_dir:
         ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
@@ -349,7 +351,8 @@ class Context(object):
 
         Example with variable length records:
 
-        >>> import os, pysparkling, struct, tempfile
+        >>> from backports import tempfile
+        >>> import os, pysparkling
         >>> sc = pysparkling.Context()
         >>> with tempfile.TemporaryDirectory() as tmp_dir:
         ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
