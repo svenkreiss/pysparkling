@@ -302,10 +302,10 @@ class Context(object):
 
             yield map_result
 
-    def binaryFile(self, filename, minPartitions=None, recordLength=None):
+    def binaryFiles(self, path, minPartitions=None):
         """Read a binary file into an RDD.
 
-        :param filename:
+        :param path:
             Location of a file. Can include schemes like ``http://``,
             ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
             and multiple expressions separated by ``,``.
@@ -313,11 +313,6 @@ class Context(object):
         :param minPartitions: (optional)
             By default, every file is a partition, but this option allows to
             split these further.
-
-        :param recordLength: (optional, default=None)
-            If ``None`` every file is a record, ``int`` means fixed length
-            records and a ``string`` is used as a format string to ``struct``
-            to read the length of variable length binary records.
 
         :rtype: RDD
 
@@ -338,7 +333,56 @@ class Context(object):
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
         ...         _ = f.write(b'bellobello')
-        ...     sc.binaryFile(tmp+'*').map(decode).collect()
+        ...     sc.binaryFiles(tmp+'*').mapValues(decode).collect()
+        [('...', 'bellobello')]
+        """
+        resolved_names = File.resolve_filenames(path)
+        log.debug('binaryFile() resolved "{0}" to {1} files.'
+                  ''.format(path, len(resolved_names)))
+
+        num_partitions = len(resolved_names)
+        if minPartitions and minPartitions > num_partitions:
+            num_partitions = minPartitions
+
+        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd = rdd_filenames.map(lambda f_name:
+                                (f_name, File(f_name).load().read()))
+        rdd._name = path
+        return rdd
+
+    def binaryRecords(self, path, recordLength=None):
+        """Read a binary file into an RDD.
+
+        :param path:
+            Location of a file. Can include schemes like ``http://``,
+            ``s3://`` and ``file://``, wildcard characters ``?`` and ``*``
+            and multiple expressions separated by ``,``.
+
+        :param recordLength:
+            If ``None`` every file is a record, ``int`` means fixed length
+            records and a ``string`` is used as a format string to ``struct``
+            to read the length of variable length binary records.
+
+        :rtype: RDD
+
+        .. warning::
+            Only an ``int`` recordLength is part of the PySpark API.
+
+
+        Setting up examples:
+
+        >>> import os, pysparkling
+        >>> from backports import tempfile
+        >>> sc = pysparkling.Context()
+        >>> decode = lambda bstring: bstring.decode()
+
+
+        Example with whole file:
+
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
+        ...         _ = f.write(b'bellobello')
+        ...     sc.binaryRecords(tmp+'*').map(decode).collect()
         ['bellobello']
 
 
@@ -347,7 +391,7 @@ class Context(object):
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
         ...         _ = f.write(b'bellobello')
-        ...     sc.binaryFile(tmp+'*', recordLength=5).map(decode).collect()
+        ...     sc.binaryRecords(tmp+'*', recordLength=5).map(decode).collect()
         ['bello', 'bello']
 
 
@@ -357,19 +401,12 @@ class Context(object):
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
         ...         _ = f.write(struct.pack('<I', 5) + b'bello')
         ...         _ = f.write(struct.pack('<I', 10) + b'bellobello')
-        ...     sc.binaryFile(tmp+'*', recordLength='<I').map(decode).collect()
+        ...     (sc.binaryRecords(tmp+'*', recordLength='<I')
+        ...      .map(decode).collect())
         ['bello', 'bellobello']
         """
-        resolved_names = File.resolve_filenames(filename)
-        log.debug('binaryFile() resolved "{0}" to {1} files.'
-                  ''.format(filename, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
-
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
-        rdd = rdd_filenames.map(lambda f_name: File(f_name).load().read())
+        rdd = self.binaryFiles(path).values()
         if recordLength is None:
             pass
         elif isinstance(recordLength, int):
@@ -378,7 +415,7 @@ class Context(object):
         else:
             chunker = VariableLengthChunker(recordLength)
             rdd = rdd.flatMap(chunker)
-        rdd._name = filename
+        rdd._name = path
         return rdd
 
     def textFile(self, filename, minPartitions=None, use_unicode=True):

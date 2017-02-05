@@ -4,7 +4,8 @@ import logging
 import time
 
 from .dstream import DStream
-from .filestream import FileTextStream, FileStreamDeserializer
+from .filestream import (FileStream, FileTextStreamDeserializer,
+                         FileBinaryStreamDeserializer)
 from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:
@@ -183,10 +184,31 @@ class StreamingContext(object):
         :param string directory: a path
         :rtype: DStream
         """
-        deserializer = FileStreamDeserializer(self._context)
-        file_stream = FileTextStream(directory)
+        deserializer = FileTextStreamDeserializer(self._context)
+        file_stream = FileStream(directory)
         self._on_stop_cb.append(file_stream.stop)
         return DStream(file_stream, self, deserializer)
 
     #: Alias of :func:`.textFileStream`.
     fileTextStream = textFileStream
+
+    def binaryRecordsStream(self, directory, recordLength=None):
+        """Monitor a directory and process all binary files.
+
+        File names starting with ``.`` are ignored.
+
+        :param string directory: a path
+        :param recordLength: None, int or struct format string
+        :rtype: DStream
+
+        .. warning::
+            Not part of PySpark API.
+        """
+        deserializer = FileBinaryStreamDeserializer(self._context,
+                                                    recordLength)
+        file_stream = FileStream(directory)
+        self._on_stop_cb.append(file_stream.stop)
+        return DStream(file_stream, self, deserializer)
+
+    #: Alias of :func:`.binaryRecordsStream`.
+    fileBinaryStream = binaryRecordsStream

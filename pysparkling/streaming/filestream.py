@@ -8,7 +8,7 @@ from ..rdd import EmptyRDD
 log = logging.getLogger(__name__)
 
 
-class FileStreamDeserializer(object):
+class FileTextStreamDeserializer(object):
     def __init__(self, context):
         self.context = context
 
@@ -19,7 +19,20 @@ class FileStreamDeserializer(object):
         return self.context.textFile(path)
 
 
-class FileTextStream(object):
+class FileBinaryStreamDeserializer(object):
+    def __init__(self, context, recordLength=None):
+        self.context = context
+        self.record_length = recordLength
+
+    def __call__(self, path):
+        if path is None:
+            return EmptyRDD(self.context)
+
+        return self.context.binaryRecords(
+            path, recordLength=self.record_length)
+
+
+class FileStream(object):
     def __init__(self, path):
         self.path = path
         self.files_done = set()
