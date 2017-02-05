@@ -64,6 +64,10 @@ class StreamingContext(object):
         IOLoop.current().start()
         IOLoop.clear_current()
 
+    def awaitTerminationOrTimeout(self, timeout):
+        """Provided for compatibility. Same as ``awaitTermination()`` here."""
+        return self.awaitTermination(timeout)
+
     def queueStream(self, rdds, oneAtATime=True, default=None):
         """Create stream iterable over RDDs.
 
@@ -102,6 +106,10 @@ class StreamingContext(object):
 
         qstream = QueueStream(q, oneAtATime, default)
         return DStream(qstream, self, deserializer)
+
+    def remember(self, duration):
+        """Provided for compatibility, but does nothing here."""
+        pass
 
     def start(self):
         """Start processing streams."""
