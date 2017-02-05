@@ -11,8 +11,10 @@ log = logging.getLogger(__name__)
 class DStream(object):
     """A discrete stream of RDDs.
 
-    Usually a DStream is created by a :class:`StreamingContext` method
-    and the operated on with the methods below.
+    Usually a DStream is created by a
+    :class:`pysparkling.streaming.StreamingContext` method like
+    :func:`pysparkling.streaming.StreamingContext.queueStream` and then
+    operated on with the methods below.
 
     :param jdstream: previous stream
     :param StreamingContext ssc: the streaming context
