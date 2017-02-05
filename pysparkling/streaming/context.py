@@ -123,7 +123,8 @@ class StreamingContext(object):
     def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.
 
-        This is not part of the PySpark API.
+        .. warning::
+            This is not part of the PySpark API.
 
         :param string hostname: Hostname of TCP server.
         :param int port: Port of TCP server.
