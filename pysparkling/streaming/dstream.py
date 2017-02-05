@@ -241,6 +241,33 @@ class DStream(object):
                          if not isinstance(rdd, EmptyRDD) else rdd)
         )
 
+    def window(self, windowDuration, slideDuration=None):
+        """Windowed RDD.
+
+        :param float windowDuration: multiple of batching interval
+        :param float slideDuration: multiple of batching interval
+        :rtype: DStream
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[1], [2], [3], [4], [5], [6]])
+        ...     .window(0.3)
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.65)
+        [1]
+        [1, 2]
+        [1, 2, 3]
+        [2, 3, 4]
+        [3, 4, 5]
+        [4, 5, 6]
+        """
+        return WindowedDStream(self, windowDuration, slideDuration)
+
 
 class TransformedDStream(DStream):
     def __init__(self, prev, func):
@@ -255,3 +282,38 @@ class TransformedDStream(DStream):
         self._prev._step(time_)
         self._current_time = time_
         self._current_rdd = self._func(time_, self._prev._current_rdd)
+
+
+class WindowedDStream(DStream):
+    def __init__(self, prev, windowDuration, slideDuration=None):
+        super(WindowedDStream, self).__init__(prev._stream, prev._context)
+
+        if slideDuration is None:
+            slideDuration = self._context.batch_duration
+
+        self._prev = prev
+        self._window_duration = int(round(
+            windowDuration / self._context.batch_duration))
+        self._slide_duration = int(round(
+            slideDuration / self._context.batch_duration))
+        self._slide_counter = 0
+        self._window = []
+
+    def _step(self, time_):
+        if time_ <= self._current_time:
+            return
+
+        self._prev._step(time_)
+        self._window.append(self._prev._current_rdd)
+
+        # window duration
+        while len(self._window) > self._window_duration:
+            self._window.pop(0)
+
+        # slide duration
+        self._slide_counter = (self._slide_counter + 1) % self._slide_duration
+        if self._slide_counter != 0:
+            return
+
+        self._current_time = time_
+        self._current_rdd = self._context._context.union(self._window)
