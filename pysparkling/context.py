@@ -325,41 +325,44 @@ class Context(object):
             Not part of PySpark API.
 
 
+        Setting up examples:
+
+        >>> import os, pysparkling
+        >>> from backports import tempfile
+        >>> sc = pysparkling.Context()
+        >>> decode = lambda bstring: bstring.decode()
+
+
         Example with whole file:
 
-        >>> from backports import tempfile
-        >>> import os, pysparkling
-        >>> sc = pysparkling.Context()
-        >>> with tempfile.TemporaryDirectory() as tmp_dir:
-        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
-        ...         _ = f.write(b'bellobello')
-        ...     sc.binaryFile(tmp_dir + '*').collect()
-        [b'bellobello']
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
+        ...         f.write(b'bellobello')
+        ...     sc.binaryFile(tmp + '*').map(decode).collect()
+        10
+        ['bellobello']
 
 
         Example with fixed length records:
 
-        >>> from backports import tempfile
-        >>> import os, pysparkling
-        >>> sc = pysparkling.Context()
-        >>> with tempfile.TemporaryDirectory() as tmp_dir:
-        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
-        ...         _ = f.write(b'bellobello')
-        ...     sc.binaryFile(tmp_dir + '*', recordLength=5).collect()
-        [b'bello', b'bello']
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
+        ...         f.write(b'bellobello')
+        ...     sc.binaryFile(tmp + '*', recordLength=5).map(decode).collect()
+        10
+        ['bello', 'bello']
 
 
         Example with variable length records:
 
-        >>> from backports import tempfile
-        >>> import os, pysparkling
-        >>> sc = pysparkling.Context()
-        >>> with tempfile.TemporaryDirectory() as tmp_dir:
-        ...     with open(os.path.join(tmp_dir, 'test.b'), 'wb') as f:
-        ...         _ = f.write(struct.pack('<I', 5) + b'bello')
-        ...         _ = f.write(struct.pack('<I', 10) + b'bellobello')
-        ...     sc.binaryFile(tmp_dir + '*', recordLength='<I').collect()
-        [b'bello', b'bellobello']
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
+        ...         f.write(struct.pack('<I', 5) + b'bello')
+        ...         f.write(struct.pack('<I', 10) + b'bellobello')
+        ...     sc.binaryFile(tmp + '*', recordLength='<I').map(decode).collect()
+        9
+        14
+        ['bello', 'bellobello']
         """
         resolved_names = File.resolve_filenames(filename)
         log.debug('binaryFile() resolved "{0}" to {1} files.'

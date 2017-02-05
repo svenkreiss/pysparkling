@@ -281,7 +281,7 @@ class RDD(object):
         >>>
         >>> [(k, sorted(list([list(vv) for vv in v])))
         ...  for k, v in sorted(a.cogroup(b).collect())
-        ... ]  # doctest: +IGNORE_UNICODE
+        ... ]
         [('house', [[1], [3]]), ('tree', [[], [2]])]
 
         """
@@ -600,7 +600,7 @@ class RDD(object):
         >>> rdd2 = sc.parallelize([('b', 2), ('c', 3)])
         >>> sorted(
         ...     rdd1.fullOuterJoin(rdd2).collect()
-        ... )  # doctest: +IGNORE_UNICODE
+        ... )
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
 
         """

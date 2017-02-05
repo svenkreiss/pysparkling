@@ -250,7 +250,7 @@ class DStream(object):
         ...     ssc.start()
         ...     ssc.awaitTermination(0.25)
         ...     result = sc.textFile(tmp_dir + '*').collect()
-        >>> result  # doctest: +IGNORE_UNICODE
+        >>> result
         ['hello', 'world', '1', '2']
         """
         self.foreachRDD(
