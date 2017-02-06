@@ -210,6 +210,54 @@ class DStream(object):
         """
         return self.transform(lambda rdd: rdd.groupByKey())
 
+    def join(self, other, numPartitions=None):
+        """Apply join to each pair of RDDs.
+
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('e', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('a', 1), ('b', 3)], [('c', 8)]])
+        >>> (
+        ...     s1.join(s2)
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', (4, 1))]
+        [('c', (7, 8))]
+        """
+        return CogroupedDStream(self, other, numPartitions, op='join')
+
+    def leftOuterJoin(self, other, numPartitions=None):
+        """Apply leftOuterJoin to each pair of RDDs.
+
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('e', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('a', 1), ('b', 3)], [('c', 8)]])
+        >>> (
+        ...     s1.leftOuterJoin(s2)
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', (4, 1)), ('e', (2, None))]
+        [('c', (7, 8))]
+        """
+        return CogroupedDStream(self, other, numPartitions, op='leftOuterJoin')
+
     def map(self, f, preservesPartitioning=False):
         """Apply function f
 
