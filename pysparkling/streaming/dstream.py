@@ -164,6 +164,14 @@ class DStream(object):
             preservesPartitioning,
         )
 
+    def flatMapValues(self, f):
+        """Apply f to each value of a key-value pair.
+
+        :param f: map function
+        :rtype: DStream
+        """
+        return self.transform(lambda rdd: rdd.flatMapValues(f))
+
     def foreachRDD(self, func):
         """Apply func.
 
