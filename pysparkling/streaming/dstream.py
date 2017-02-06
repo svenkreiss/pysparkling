@@ -395,6 +395,30 @@ class DStream(object):
                          if not isinstance(rdd, EmptyRDD) else rdd)
         )
 
+    def rightOuterJoin(self, other, numPartitions=None):
+        """Apply rightOuterJoin to each pair of RDDs.
+
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('e', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('a', 1), ('b', 3)], [('c', 8)]])
+        >>> (
+        ...     s1.rightOuterJoin(s2)
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', (4, 1)), ('b', (None, 3))]
+        [('c', (7, 8))]
+        """
+        return CogroupedDStream(self, other, numPartitions, op='rightOuterJoin')
+
     def saveAsTextFiles(self, prefix, suffix=None):
         """Save every RDD as a text file (or sets of text files).
 
