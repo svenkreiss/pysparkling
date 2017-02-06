@@ -417,7 +417,8 @@ class DStream(object):
         [('a', (4, 1)), ('b', (None, 3))]
         [('c', (7, 8))]
         """
-        return CogroupedDStream(self, other, numPartitions, op='rightOuterJoin')
+        return CogroupedDStream(self, other, numPartitions,
+                                op='rightOuterJoin')
 
     def saveAsTextFiles(self, prefix, suffix=None):
         """Save every RDD as a text file (or sets of text files).
