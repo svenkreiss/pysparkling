@@ -90,6 +90,61 @@ class DStream(object):
             .reduce(operator.add)
         )
 
+    def countByValue(self):
+        """Apply countByValue to every RDD.abs
+
+        :rtype: DStream
+
+        .. warning::
+            Implemented as a local operation.
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[1, 1, 5, 5, 5, 2]])
+        ...     .countByValue()
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.15)
+        [(1, 2), (2, 1), (5, 3)]
+        """
+        return self.transform(
+            lambda rdd: self._context._context.parallelize(
+                rdd.countByValue().items()))
+
+    def countByWindow(self, windowDuration, slideDuration=None):
+        """Applies count() after window().
+
+        :param float windowDuration: multiple of batch interval
+        :param float slideDuration: multiple of batch interval
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[1, 1, 5], [5, 5, 2, 4], [1, 2]])
+        ...     .countByWindow(0.2)
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [3]
+        [7]
+        [6]
+        """
+        return self.window(windowDuration, slideDuration).count()
+
     def flatMap(self, f, preservesPartitioning=False):
         """Apply function f and flatten.
 
