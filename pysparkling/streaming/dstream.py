@@ -145,6 +145,14 @@ class DStream(object):
         """
         return self.window(windowDuration, slideDuration).count()
 
+    def filter(self, f):
+        """Filter elements.
+
+        :param f: filter function
+        :rtype: DStream
+        """
+        return self.transform(lambda rdd: rdd.filter(f))
+
     def flatMap(self, f, preservesPartitioning=False):
         """Apply function f and flatten.
 
