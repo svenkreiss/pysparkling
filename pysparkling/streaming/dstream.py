@@ -28,7 +28,6 @@ class DStream(object):
 
         self._current_time = 0.0
         self._current_rdd = None
-        self._fn = None
 
         ssc._add_dstream(self)
 
@@ -41,10 +40,34 @@ class DStream(object):
         else:
             self._current_rdd = self._jrdd_deserializer(self._stream.get())
 
-    def _apply(self, time_):
-        if self._fn is None:
-            return
-        self._fn(time_, self._current_rdd)
+    def cache(self):
+        """Cache RDDs.
+
+        :rtype: DStream
+        """
+        return self.transform(lambda rdd: rdd.cache())
+
+    def cogroup(self, other, numPartitions=None):
+        """Apply cogroup to RDDs of this and other DStream.
+
+        :param DStream other: another DStream
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('b', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('a', 1), ('b', 3)], [('c', 8)]])
+        >>> s1.cogroup(s2).foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', [[4], [1]]), ('b', [[2], [3]])]
+        [('c', [[7], [8]])]
+        """
+        return CogroupedDStream(self, other)
 
     def context(self):
         """Return the StreamContext of this stream.
@@ -347,3 +370,20 @@ class WindowedDStream(DStream):
 
         self._current_time = time_
         self._current_rdd = self._context._context.union(self._window)
+
+
+class CogroupedDStream(DStream):
+    def __init__(self, prev1, prev2):
+        super(CogroupedDStream, self).__init__(prev1._stream, prev1._context)
+        self._prev1 = prev1
+        self._prev2 = prev2
+
+    def _step(self, time_):
+        if time_ <= self._current_time:
+            return
+
+        self._prev1._step(time_)
+        self._prev2._step(time_)
+        self._current_time = time_
+        self._current_rdd = self._prev1._current_rdd.cogroup(
+            self._prev2._current_rdd)

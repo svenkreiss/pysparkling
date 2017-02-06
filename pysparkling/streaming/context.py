@@ -122,10 +122,6 @@ class StreamingContext(object):
             for d in self._dstreams:
                 d._step(time_)
 
-            # run function of all streams
-            for d in self._dstreams:
-                d._apply(time_)
-
         self._pcb = PeriodicCallback(cb, self.batch_duration * 1000.0)
         self._pcb.start()
         self._on_stop_cb.append(self._pcb.stop)

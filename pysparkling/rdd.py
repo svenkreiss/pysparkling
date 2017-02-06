@@ -958,9 +958,7 @@ class RDD(object):
     def persist(self, storageLevel=None):
         """Cache the results of computed partitions.
 
-        :param storageLevel:
-            Not used.
-
+        :param storageLevel: Not used.
         """
         return PersistedRDD(self, storageLevel=storageLevel)
 
@@ -969,7 +967,6 @@ class RDD(object):
 
         :param command: Command line command to run.
         :param dict env: environment variables
-
         :rtype: RDD
 
         .. warning::
