@@ -67,7 +67,7 @@ class DStream(object):
         [('a', [[4], [1]]), ('b', [[2], [3]])]
         [('c', [[7], [8]])]
         """
-        return CogroupedDStream(self, other)
+        return CogroupedDStream(self, other, numPartitions)
 
     def context(self):
         """Return the StreamContext of this stream.
@@ -178,6 +178,30 @@ class DStream(object):
         :param func: Function to apply.
         """
         self.transform(func)
+
+    def fullOuterJoin(self, other, numPartitions=None):
+        """Apply fullOuterJoin to each pair of RDDs.
+
+        :rtype: DStream
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('b', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('a', 1), ('b', 3)], [('c', 8)]])
+        >>> (
+        ...     s1.fullOuterJoin(s2)
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', (4, 1)), ('b', (2, 3))]
+        [('c', (7, 8))]
+        """
+        return CogroupedDStream(self, other, numPartitions, op='fullOuterJoin')
 
     def groupByKey(self):
         """group by key
@@ -444,10 +468,12 @@ class WindowedDStream(DStream):
 
 
 class CogroupedDStream(DStream):
-    def __init__(self, prev1, prev2):
+    def __init__(self, prev1, prev2, numPartitions=None, op='cogroup'):
         super(CogroupedDStream, self).__init__(prev1._stream, prev1._context)
         self._prev1 = prev1
         self._prev2 = prev2
+        self._num_partitions = numPartitions
+        self._op = op
 
     def _step(self, time_):
         if time_ <= self._current_time:
@@ -456,5 +482,5 @@ class CogroupedDStream(DStream):
         self._prev1._step(time_)
         self._prev2._step(time_)
         self._current_time = time_
-        self._current_rdd = self._prev1._current_rdd.cogroup(
-            self._prev2._current_rdd)
+        self._current_rdd = getattr(self._prev1._current_rdd, self._op)(
+            self._prev2._current_rdd, self._num_partitions)
