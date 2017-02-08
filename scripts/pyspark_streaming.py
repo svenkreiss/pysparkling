@@ -39,6 +39,15 @@ def union(ssc):
     ssc.union(ds1, ds2).pprint()
 
 
+def updateStateByKey(ssc):
+    ssc.checkpoint('checkpoints/')
+    (ssc
+     .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('c', 4)]])
+     .updateStateByKey(lambda input_stream, state: state if not input_stream else input_stream[-1])
+     .pprint()
+     )
+
+
 if __name__ == '__main__':
     sc = pyspark.SparkContext()
     ssc = pyspark.streaming.StreamingContext(sc, 1)
@@ -48,7 +57,8 @@ if __name__ == '__main__':
     # simple_queue_one_at_a_time(ssc)
     # save_text(ssc)
     # window(ssc)
-    union(ssc)
+    # union(ssc)
+    updateStateByKey(ssc)
 
     ssc.start()
     time.sleep(3.0)
