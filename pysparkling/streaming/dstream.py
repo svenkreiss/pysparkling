@@ -367,6 +367,15 @@ class DStream(object):
             )
         )
 
+    def reduceByKey(self, func, numPartitions=None):
+        """Apply reduceByKey to every RDD.
+
+        :param func: reduce function to apply
+        :param int numPartitions: number of partitions
+        :rtype: DStream
+        """
+        return self.transform(lambda rdd: rdd.reduceByKey(func))
+
     def repartition(self, numPartitions):
         """Repartition every RDD.
 
@@ -449,6 +458,17 @@ class DStream(object):
             rdd.saveAsTextFile('{}-{:.0f}{}'.format(
                 prefix, time_ * 1000, suffix if suffix is not None else ''))
         )
+
+    def slice(self, begin, end):
+        """Filter RDDs to between begin and end.
+
+        :param datetime.datetime|int begin: datetiem or unix timestamp
+        :param datetime.datetime|int end: datetiem or unix timestamp
+        :rtype: DStream
+        """
+        return self.transform(lambda time_, rdd:
+                              rdd if begin <= time_ <= end
+                              else EmptyRDD(self._context._context))
 
     def transform(self, func):
         """Return a new DStream where each RDD is transformed by ``f``.
