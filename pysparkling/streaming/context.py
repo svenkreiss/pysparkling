@@ -86,12 +86,6 @@ class StreamingContext(object):
         self._on_stop_cb.append(file_stream.stop)
         return DStream(file_stream, self, deserializer)
 
-    #: Alias of :func:`.textFileStream`.
-    fileTextStream = textFileStream
-
-    #: Alias of :func:`.binaryRecordsStream`.
-    fileBinaryStream = binaryRecordsStream
-
     def queueStream(self, rdds, oneAtATime=True, default=None):
         """Create stream iterable over RDDs.
 
@@ -216,3 +210,9 @@ class StreamingContext(object):
         file_stream = FileStream(directory)
         self._on_stop_cb.append(file_stream.stop)
         return DStream(file_stream, self, deserializer)
+
+    #: Alias of :func:`.textFileStream`.
+    fileTextStream = textFileStream
+
+    #: Alias of :func:`.binaryRecordsStream`.
+    fileBinaryStream = binaryRecordsStream

@@ -43,7 +43,8 @@ def updateStateByKey(ssc):
     ssc.checkpoint('checkpoints/')
     (ssc
      .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('c', 4)]])
-     .updateStateByKey(lambda input_stream, state: state if not input_stream else input_stream[-1])
+     .updateStateByKey(lambda input_stream, state:
+                       state if not input_stream else input_stream[-1])
      .pprint()
      )
 
