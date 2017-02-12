@@ -68,6 +68,30 @@ class StreamingContext(object):
         """Provided for compatibility. Same as ``awaitTermination()`` here."""
         return self.awaitTermination(timeout)
 
+    def binaryRecordsStream(self, directory, recordLength=None):
+        """Monitor a directory and process all binary files.
+
+        File names starting with ``.`` are ignored.
+
+        :param string directory: a path
+        :param recordLength: None, int or struct format string
+        :rtype: DStream
+
+        .. warning::
+            Only ``int`` ``recordLength`` are supported in PySpark API.
+        """
+        deserializer = FileBinaryStreamDeserializer(self._context,
+                                                    recordLength)
+        file_stream = FileStream(directory)
+        self._on_stop_cb.append(file_stream.stop)
+        return DStream(file_stream, self, deserializer)
+
+    #: Alias of :func:`.textFileStream`.
+    fileTextStream = textFileStream
+
+    #: Alias of :func:`.binaryRecordsStream`.
+    fileBinaryStream = binaryRecordsStream
+
     def queueStream(self, rdds, oneAtATime=True, default=None):
         """Create stream iterable over RDDs.
 
@@ -127,21 +151,6 @@ class StreamingContext(object):
         self._on_stop_cb.append(self._pcb.stop)
         StreamingContext._activeContext = self
 
-    def stop(self, stopSparkContext=True, stopGraceFully=False):
-        """Stop processing streams.
-
-        :param stopSparkContext: stop the SparkContext (NOT IMPLEMENTED)
-        :param stopGracefully: stop gracefully (NOT IMPLEMENTED)
-        """
-        while self._on_stop_cb:
-            cb = self._on_stop_cb.pop()
-            log.debug('calling on_stop_cb {}'.format(cb))
-            cb()
-
-        IOLoop.current().stop()
-
-        StreamingContext._activeContext = None
-
     def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.
 
@@ -180,6 +189,21 @@ class StreamingContext(object):
         self._on_stop_cb.append(tcp_text_stream.stop)
         return DStream(tcp_text_stream, self, deserializer)
 
+    def stop(self, stopSparkContext=True, stopGraceFully=False):
+        """Stop processing streams.
+
+        :param stopSparkContext: stop the SparkContext (NOT IMPLEMENTED)
+        :param stopGracefully: stop gracefully (NOT IMPLEMENTED)
+        """
+        while self._on_stop_cb:
+            cb = self._on_stop_cb.pop()
+            log.debug('calling on_stop_cb {}'.format(cb))
+            cb()
+
+        IOLoop.current().stop()
+
+        StreamingContext._activeContext = None
+
     def textFileStream(self, directory):
         """Monitor a directory and process all text files.
 
@@ -192,27 +216,3 @@ class StreamingContext(object):
         file_stream = FileStream(directory)
         self._on_stop_cb.append(file_stream.stop)
         return DStream(file_stream, self, deserializer)
-
-    #: Alias of :func:`.textFileStream`.
-    fileTextStream = textFileStream
-
-    def binaryRecordsStream(self, directory, recordLength=None):
-        """Monitor a directory and process all binary files.
-
-        File names starting with ``.`` are ignored.
-
-        :param string directory: a path
-        :param recordLength: None, int or struct format string
-        :rtype: DStream
-
-        .. warning::
-            Only ``int`` ``recordLength`` are supported in PySpark API.
-        """
-        deserializer = FileBinaryStreamDeserializer(self._context,
-                                                    recordLength)
-        file_stream = FileStream(directory)
-        self._on_stop_cb.append(file_stream.stop)
-        return DStream(file_stream, self, deserializer)
-
-    #: Alias of :func:`.binaryRecordsStream`.
-    fileBinaryStream = binaryRecordsStream
