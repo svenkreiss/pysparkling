@@ -49,6 +49,10 @@ def updateStateByKey(ssc):
      )
 
 
+def stream_log(ssc):
+    ssc.textFileStream('/var/log/system.log*').pprint()
+
+
 if __name__ == '__main__':
     sc = pyspark.SparkContext()
     ssc = pyspark.streaming.StreamingContext(sc, 1)
@@ -59,7 +63,8 @@ if __name__ == '__main__':
     # save_text(ssc)
     # window(ssc)
     # union(ssc)
-    updateStateByKey(ssc)
+    # updateStateByKey(ssc)
+    stream_log(ssc)
 
     ssc.start()
     time.sleep(3.0)

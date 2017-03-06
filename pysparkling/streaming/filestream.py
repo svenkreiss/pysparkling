@@ -35,7 +35,7 @@ class FileBinaryStreamDeserializer(object):
 class FileStream(object):
     def __init__(self, path):
         self.path = path
-        self.files_done = set()
+        self.files_done = set(File.resolve_filenames(self.path))
 
     def get(self):
         files = [fn for fn in File.resolve_filenames(self.path)
