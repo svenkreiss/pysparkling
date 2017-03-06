@@ -133,8 +133,8 @@ def map_pi(n):
     ))
 
 
-@unittest.skipIf(os.getenv('TRAVIS', False) is not False,
-                 "skip performance test on Travis")
+@unittest.skipIf(os.getenv('PERFORMANCE', False) is False,
+                 "no PERFORMANCE=1 env")
 def test_performance():
     # not pickle-able map function
     # def map2(ft):

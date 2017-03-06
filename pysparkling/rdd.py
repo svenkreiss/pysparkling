@@ -281,7 +281,7 @@ class RDD(object):
         >>>
         >>> [(k, sorted(list([list(vv) for vv in v])))
         ...  for k, v in sorted(a.cogroup(b).collect())
-        ... ]  # doctest: +IGNORE_UNICODE
+        ... ]
         [('house', [[1], [3]]), ('tree', [[], [2]])]
 
         """
@@ -600,7 +600,7 @@ class RDD(object):
         >>> rdd2 = sc.parallelize([('b', 2), ('c', 3)])
         >>> sorted(
         ...     rdd1.fullOuterJoin(rdd2).collect()
-        ... )  # doctest: +IGNORE_UNICODE
+        ... )
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
 
         """
@@ -958,9 +958,7 @@ class RDD(object):
     def persist(self, storageLevel=None):
         """Cache the results of computed partitions.
 
-        :param storageLevel:
-            Not used.
-
+        :param storageLevel: Not used.
         """
         return PersistedRDD(self, storageLevel=storageLevel)
 
@@ -969,7 +967,6 @@ class RDD(object):
 
         :param command: Command line command to run.
         :param dict env: environment variables
-
         :rtype: RDD
 
         .. warning::
@@ -1141,26 +1138,22 @@ class RDD(object):
         """randomly sample by key
 
         :param withReplacement: Not used.
-        :param fractions:
-            Specifies the probability that an element is sampled per Key.
-        :param seed: (optional)
-            Seed for random number generator.
+        :param fractions: The probability that an element is sampled per key.
+        :param seed: (optional) Seed for random number generator.
         :rtype: RDD
 
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> sc = Context()
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
         >>> fractions = {"a": 0.2, "b": 0.1}
-        >>> rdd = sc.parallelize(
-        ...     fractions.keys()
-        ... ).cartesian(
-        ...     sc.parallelize(range(0, 1000))
-        ... )
-        >>> sample = dict(
-        ...     rdd.sampleByKey(False, fractions, 2).groupByKey().collect()
-        ... )
+        >>> rdd = (sc
+        ...        .parallelize(fractions.keys())
+        ...        .cartesian(sc.parallelize(range(0, 1000))))
+        >>> sample = (rdd
+        ...           .sampleByKey(False, fractions, 2)
+        ...           .groupByKey().collectAsMap())
         >>> 100 < len(sample["a"]) < 300 and 50 < len(sample["b"]) < 150
         True
         >>> max(sample["a"]) <= 999 and min(sample["a"]) >= 0
@@ -1278,7 +1271,6 @@ class RDD(object):
         :param compressionCodecClass: Not used.
         :returns: ``self``
         :rtype: RDD
-
         """
         if fileio.TextFile(path).exists():
             raise FileAlreadyExistsException(
@@ -1704,10 +1696,10 @@ class RDD(object):
 
 class MapPartitionsRDD(RDD):
     def __init__(self, prev, f, preservesPartitioning=False):
-        """prev is the previous RDD.
+        """``prev`` is the previous RDD.
 
-        f is a function with the signature
-        (task_context, partition index, iterator over elements).
+        ``f`` is a function with the signature
+        ``(task_context, partition index, iterator over elements)``.
         """
         RDD.__init__(self, prev.partitions(), prev.context)
 
@@ -1775,6 +1767,11 @@ class PersistedRDD(RDD):
             data = cm.get(cid)
 
         return iter(data)
+
+
+class EmptyRDD(RDD):
+    def __init__(self, context):
+        RDD.__init__(self, [], context)
 
 
 # pickle-able helpers
