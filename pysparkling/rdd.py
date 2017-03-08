@@ -6,6 +6,7 @@ Provides a Python implementation of RDDs.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
+from builtins import range
 from collections import defaultdict
 import copy
 import functools
@@ -32,6 +33,10 @@ from .stat_counter import StatCounter
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize
 
 log = logging.getLogger(__name__)
+
+
+def _hash(v):
+    return hash(v) & 0xffffffff
 
 
 class RDD(object):
@@ -108,7 +113,6 @@ class RDD(object):
         ...     [1, 2, 3, 4], 2
         ... ).aggregate((0, 0), seqOp, combOp)
         (10, 4)
-
         """
         return self.context.runJob(
             self,
@@ -153,7 +157,6 @@ class RDD(object):
         ... ).aggregateByKey(0, seqOp, combOp).collectAsMap()
         >>> (r['a'], r['b'])
         (4, 2)
-
         """
         def seqFuncByKey(tc, i):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
@@ -216,7 +219,6 @@ class RDD(object):
         ... ))
         >>> (my_rdd.collect(), n_exec)
         ([1, 4, 9, 16], 4)
-
         """
         return self.persist()
 
@@ -237,7 +239,6 @@ class RDD(object):
         >>> rdd = Context().parallelize([1, 2])
         >>> sorted(rdd.cartesian(rdd).collect())
         [(1, 1), (1, 2), (2, 1), (2, 2)]
-
         """
         v1 = self.toLocalIterator()
         v2 = other.collect()
@@ -260,7 +261,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3], 2).coalesce(1).getNumPartitions()
         1
-
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
@@ -283,7 +283,6 @@ class RDD(object):
         ...  for k, v in sorted(a.cogroup(b).collect())
         ... ]
         [('house', [[1], [3]]), ('tree', [[], [2]])]
-
         """
 
         d_self = defaultdict(list, self.groupByKey().collect())
@@ -304,7 +303,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3]).collect()
         [1, 2, 3]
-
         """
         return self.context.runJob(
             self,
@@ -324,7 +322,6 @@ class RDD(object):
         >>> d = Context().parallelize([('a', 1), ('b', 2)]).collectAsMap()
         >>> (d['a'], d['b'])
         (1, 2)
-
         """
         return dict(self.collect())
 
@@ -339,7 +336,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3], 2).count()
         3
-
         """
         return self.context.runJob(self, lambda tc, i: sum(1 for _ in i),
                                    resultHandler=sum)
@@ -364,7 +360,6 @@ class RDD(object):
         ...     [('a', 1), ('b', 2), ('b', 2)]
         ... ).countByKey()['b']
         2
-
         """
         return self.map(lambda r: r[0]).countByValue()
 
@@ -379,7 +374,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
         2
-
         """
         def map_func(tc, x):
             r = defaultdict(int)
@@ -401,7 +395,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 2, 4, 1]).distinct().count()
         3
-
         """
 
         if numPartitions is None:
@@ -413,10 +406,8 @@ class RDD(object):
     def filter(self, f):
         """filter
 
-        :param f:
-            A function that if it evaluates to true when applied
+        :param f: A function that if it evaluates to true when applied
             to an element in the dataset, the element is kept.
-
         :rtype: RDD
 
 
@@ -427,7 +418,6 @@ class RDD(object):
         ...     [1, 2, 2, 4, 1, 3, 5, 9], 3,
         ... ).filter(lambda x: x % 2 == 0).collect()
         [2, 2, 4]
-
         """
         return MapPartitionsRDD(
             self,
@@ -450,7 +440,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2], 20).first()
         1
-
         """
         return self.context.runJob(
             self,
@@ -462,12 +451,9 @@ class RDD(object):
     def flatMap(self, f, preservesPartitioning=True):
         """map followed by flatten
 
-        :param f:
-            The map function.
-
-        :param preservesPartitioning: (optional)
-            Preserve the partitioning of the original RDD. Default True.
-
+        :param f: The map function.
+        :param preservesPartitioning: (optional) Preserve the partitioning of
+            the original RDD. Default True.
         :rtype: RDD
 
 
@@ -478,7 +464,6 @@ class RDD(object):
         ...     lambda x: [ord(ch) for ch in x]
         ... ).collect()
         [104, 101, 108, 108, 111, 119, 111, 114, 108, 100]
-
         """
         return MapPartitionsRDD(
             self,
@@ -500,7 +485,6 @@ class RDD(object):
         ...     lambda x: [ord(ch) for ch in x]
         ... ).collect()
         [(1, 104), (1, 105), (2, 119), (2, 111), (2, 114), (2, 108), (2, 100)]
-
         """
         return MapPartitionsRDD(
             self,
@@ -522,7 +506,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([4, 7, 2])
         >>> my_rdd.fold(0, lambda a, b: a+b)
         13
-
         """
         return self.aggregate(zeroValue, op, op)
 
@@ -540,7 +523,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([('a', 4), ('b', 7), ('a', 2)])
         >>> my_rdd.foldByKey(0, lambda a, b: a+b).collectAsMap()['a']
         6
-
         """
         return self.aggregateByKey(zeroValue, op, op)
 
@@ -561,7 +543,6 @@ class RDD(object):
         >>> my_rdd.foreach(lambda x: a.append(x))
         >>> len(a)
         3
-
         """
         self.context.runJob(self, lambda tc, x: [f(xx) for xx in x],
                             resultHandler=None)
@@ -573,7 +554,6 @@ class RDD(object):
 
         :param f: Apply a function to every partition.
         :rtype: None
-
         """
         self.context.runJob(self, lambda tc, x: f(x),
                             resultHandler=None)
@@ -602,7 +582,6 @@ class RDD(object):
         ...     rdd1.fullOuterJoin(rdd2).collect()
         ... )
         [('a', (0, None)), ('b', (1, 2)), ('c', (None, 3))]
-
         """
 
         grouped = self.cogroup(other, numPartitions)
@@ -653,7 +632,6 @@ class RDD(object):
 
         .. note::
             Creating the new RDD is currently implemented as a local operation.
-
         """
 
         if numPartitions is None:
@@ -685,7 +663,6 @@ class RDD(object):
         >>> b, h = my_rdd.histogram(10)
         >>> h
         [1, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]
-
         """
         if isinstance(buckets, int):
             num_buckets = buckets
@@ -725,7 +702,6 @@ class RDD(object):
         >>> rdd2 = Context().parallelize([3, 4, 7, 4, 5])
         >>> rdd1.intersection(rdd2).collect()
         [4, 7]
-
         """
         return self.context.parallelize(
             list(set(self.toLocalIterator()) & set(other.toLocalIterator()))
@@ -752,7 +728,6 @@ class RDD(object):
         >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
         >>> rdd1.join(rdd2).collect()
         [(1, (1, 3))]
-
         """
 
         if numPartitions is None:
@@ -779,7 +754,6 @@ class RDD(object):
         >>> rdd = Context().parallelize([0, 4, 7, 4, 10])
         >>> rdd.keyBy(lambda x: x % 2).collect()
         [(0, 0), (0, 4), (1, 7), (0, 4), (0, 10)]
-
         """
         return self.map(lambda e: (f(e), e))
 
@@ -794,7 +768,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([(0, 1), (1, 1)]).keys().collect()
         [0, 1]
-
         """
         return self.map(lambda e: e[0])
 
@@ -816,7 +789,6 @@ class RDD(object):
         >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
         >>> rdd1.leftOuterJoin(rdd2).collect()
         [(0, (1, None)), (1, (1, 3))]
-
         """
 
         d_other = other.groupByKey().collectAsMap()
@@ -839,7 +811,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([(0, 1), (1, 1), (1, 3)]).lookup(1)
         [1, 3]
-
         """
         return self.filter(lambda x: x[0] == key).values().collect()
 
@@ -855,7 +826,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3]).map(lambda x: x+1).collect()
         [2, 3, 4]
-
         """
         return MapPartitionsRDD(
             self,
@@ -878,7 +848,6 @@ class RDD(object):
         ...     yield sum(iterator)
         >>> rdd.mapPartitions(f).collect()
         [3, 7]
-
         """
         return MapPartitionsRDD(
             self,
@@ -901,7 +870,6 @@ class RDD(object):
         ...     yield splitIndex
         >>> rdd.mapPartitionsWithIndex(f).sum()
         3
-
         """
         return MapPartitionsRDD(
             self,
@@ -930,7 +898,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3, 4, 3, 2], 2).max() == 4
         True
-
         """
         return self.stats().max()
 
@@ -943,7 +910,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([0, 4, 7, 4, 10]).mean()
         5.0
-
         """
         return self.stats().mean()
 
@@ -954,6 +920,24 @@ class RDD(object):
     def name(self):
         """returns the name of the dataset"""
         return self._name
+
+    def partitionBy(self, numPartitions, partitionFunc=None):
+        """Return a partitioned copy of this key-value RDD.
+
+        :param int numPartitions: Number of partitions.
+        :param function partitionFunc: Partition function.
+        :rtype: RDD
+        """
+
+        if partitionFunc is None:
+            partitionFunc = _hash
+
+        new_partitions = [[] for _ in range(numPartitions)]
+        for key_value in self.toLocalIterator():
+            idx = partitionFunc(key_value[0]) % numPartitions
+            new_partitions[idx].append(key_value)
+
+        return self.context._parallelize_partitions(new_partitions)
 
     def persist(self, storageLevel=None):
         """Cache the results of computed partitions.
@@ -979,7 +963,6 @@ class RDD(object):
         >>> piped = Context().parallelize(['0', 'hello', 'world']).pipe('echo')
         >>> b'hello\\n' in piped.collect()
         True
-
         """
         if env is None:
             env = {}
@@ -1008,7 +991,6 @@ class RDD(object):
         >>> rdd1, rdd2 = rdd.randomSplit([2, 3], seed=42)
         >>> (rdd1.count(), rdd2.count())
         (199, 301)
-
         """
         sum_weights = sum(weights)
         boundaries = [0]
@@ -1036,7 +1018,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([0, 4, 7, 4, 10]).reduce(lambda a, b: a+b)
         25
-
         """
         return self.context.runJob(
             self,
@@ -1061,7 +1042,6 @@ class RDD(object):
         >>> rdd = Context().parallelize([(0, 1), (1, 1), (1, 3)])
         >>> rdd.reduceByKey(lambda a, b: a+b).collect()
         [(0, 1), (1, 4)]
-
         """
         return self.groupByKey().mapValues(lambda x: functools.reduce(f, x))
 
@@ -1073,7 +1053,6 @@ class RDD(object):
 
         .. note::
             Creating the new RDD is currently implemented as a local operation.
-
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
@@ -1095,7 +1074,6 @@ class RDD(object):
         >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
         >>> sorted(rdd1.rightOuterJoin(rdd2).collect())
         [(1, (1, 3)), (2, (None, 1))]
-
         """
 
         d_self = self.groupByKey().collectAsMap()
@@ -1123,7 +1101,6 @@ class RDD(object):
         >>> all(s1 == s2 for s1, s2 in zip(sampled.collect(),
         ...                                sampled.collect()))
         True
-
         """
         def fraction_predicate(rnd, item):
             return rnd < fraction
@@ -1137,8 +1114,9 @@ class RDD(object):
     def sampleByKey(self, withReplacement, fractions, seed=None):
         """randomly sample by key
 
-        :param withReplacement: Not used.
-        :param fractions: The probability that an element is sampled per key.
+        :param bool withReplacement: Not used.
+        :param float fractions: Specifies the probability that an element is
+            sampled per Key.
         :param seed: (optional) Seed for random number generator.
         :rtype: RDD
 
@@ -1160,7 +1138,6 @@ class RDD(object):
         True
         >>> max(sample["b"]) <= 999 and min(sample["b"]) >= 0
         True
-
         """
         def key_fractions_predicate(rnd, item):
             return rnd < fractions[item[0]]
@@ -1182,7 +1159,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3]).sampleStdev()
         1.0
-
         """
         return self.stats().sampleStdev()
 
@@ -1197,7 +1173,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3]).sampleVariance()
         1.0
-
         """
         return self.stats().sampleVariance()
 
@@ -1222,7 +1197,6 @@ class RDD(object):
         >>> rdd = Context().parallelize(d).saveAsPickleFile(tmpFile.name)
         >>> 'hello' in Context().pickleFile(tmpFile.name).collect()
         True
-
         """
 
         if fileio.File(path).exists():
@@ -1329,7 +1303,6 @@ class RDD(object):
         >>> rdd = Context().parallelize([1, 5, 2, 3])
         >>> rdd.sortBy(lambda x: x, ascending=False).collect()
         [5, 3, 2, 1]
-
         """
 
         if numPartitions is None:
@@ -1345,9 +1318,8 @@ class RDD(object):
         """sort by key
 
         :param ascending: Default is True.
-        :param int numPartitions:
-            Default is None. None means the output will have the same number of
-            partitions as the input.
+        :param int numPartitions: Default is None. None means the output will
+            have the same number of partitions as the input.
         :param keyfunc: Returns the value that will be sorted.
         :rtype: RDD
 
@@ -1370,7 +1342,6 @@ class RDD(object):
         ... )
         >>> rdd.sortByKey(ascending=False).collect()[0][1] == 'a'
         True
-
         """
         return self.sortBy(keyfunc, ascending, numPartitions)
 
@@ -1387,7 +1358,6 @@ class RDD(object):
         >>> s = Context().parallelize(d, 3).stats()
         >>> sum(d)/len(d) == s.mean()
         True
-
         """
         return self.aggregate(
             StatCounter(),
@@ -1406,7 +1376,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1.5, 2.5]).stdev()
         0.5
-
         """
         return self.stats().stdev()
 
@@ -1425,7 +1394,6 @@ class RDD(object):
         >>> rdd2 = Context().parallelize([(1, 1), (1, 3)])
         >>> rdd1.subtract(rdd2).collect()
         [(0, 1)]
-
         """
         list_other = other.collect()
         return MapPartitionsRDD(
@@ -1445,13 +1413,12 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([0, 4, 7, 4, 10]).sum()
         25
-
         """
         return self.context.runJob(self, lambda tc, x: sum(x),
                                    resultHandler=sum)
 
     def take(self, n):
-        """take n elements and return them in a list
+        """Take n elements and return them in a list.
 
         Only evaluates the partitions that are necessary to return n elements.
 
@@ -1472,7 +1439,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([4, 7, 2], 3).take(2)
         [4, 7]
-
         """
 
         return self.context.runJob(
@@ -1489,7 +1455,6 @@ class RDD(object):
         """take sample
 
         Assumes samples are evenly distributed between partitions.
-
         Only evaluates the partitions that are necessary to return n elements.
 
         :param int n: The number of elements to sample.
@@ -1510,7 +1475,6 @@ class RDD(object):
         >>> d = [4, 9, 7, 3, 2, 5]
         >>> Context().parallelize(d, 3).takeSample(1)[0] in d
         True
-
         """
 
         rnd_entries = sorted([random.random() for _ in range(n)])
@@ -1554,7 +1518,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> sum(Context().parallelize([4, 9, 7, 3, 2, 5], 3).toLocalIterator())
         30
-
         """
         return self.context.runJob(
             self, lambda tc, i: list(i),
@@ -1575,7 +1538,6 @@ class RDD(object):
         >>> r = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
         >>> r.top(2)
         [9, 7]
-
         """
 
         def unit(x):
@@ -1599,7 +1561,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
         >>> my_rdd.union(my_rdd).count()
         12
-
         """
         return self.context.union((self, other))
 
@@ -1621,7 +1582,6 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1.5, 2.5]).variance()
         0.25
-
         """
         return self.stats().variance()
 
@@ -1641,7 +1601,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
         >>> my_rdd.zip(my_rdd).collect()
         [(4, 4), (9, 9), (7, 7), (3, 3), (2, 2), (5, 5)]
-
         """
         return self.context.parallelize(
             zip(self.toLocalIterator(), other.toLocalIterator())
@@ -1662,7 +1621,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([4, 9, 7, 3, 2, 5], 3)
         >>> my_rdd.zipWithIndex().collect()
         [(4, 0), (9, 1), (7, 2), (3, 3), (2, 4), (5, 5)]
-
         """
         return self.context.parallelize(
             (d, i) for i, d in enumerate(self.toLocalIterator())
@@ -1682,7 +1640,6 @@ class RDD(object):
         >>> my_rdd = Context().parallelize([423, 234, 986, 5, 345], 3)
         >>> my_rdd.zipWithUniqueId().collect()
         [(423, 0), (234, 1), (986, 4), (5, 2), (345, 5)]
-
         """
         num_p = self.getNumPartitions()
         return MapPartitionsRDD(
