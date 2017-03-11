@@ -6,7 +6,7 @@ Provides a Python implementation of RDDs.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-from builtins import range
+from builtins import range, zip
 from collections import defaultdict
 import copy
 import functools
@@ -21,13 +21,15 @@ import subprocess
 import sys
 
 try:
-    from itertools import izip as zip  # Python 2
+    import numpy
 except ImportError:
-    pass                               # Python 3
+    numpy = None
 
 from . import fileio
 from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
+from .samplers import (BernoulliSampler, PoissonSampler,
+                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize
@@ -1087,38 +1089,45 @@ class RDD(object):
     def sample(self, withReplacement, fraction, seed=None):
         """randomly sample
 
-        :param withReplacement: Not used.
-        :param fraction: Specifies the probability that an element is sampled.
-        :param seed: (optional) Seed for random number generator.
+        :param bool withReplacement: sample with replacement
+        :param float fraction: probability that an element is sampled
+        :param seed: (optional) Seed for random number generator
         :rtype: RDD
 
+        Sampling without replacement uses Bernoulli sampling and ``fraction``
+        is the probability that an element is sampled. Sampling with
+        replacement uses Poisson sampling where ``fraction`` is the
+        expectation.
 
         Example:
 
         >>> from pysparkling import Context
-        >>> rdd = Context().parallelize(range(100))
-        >>> sampled = rdd.sample(False, 0.1, seed=5)
-        >>> all(s1 == s2 for s1, s2 in zip(sampled.collect(),
-        ...                                sampled.collect()))
+        >>> rdd = Context().parallelize(range(1000))
+        >>> sampled = rdd.sample(False, 0.1, seed=5).collect()
+        >>> len(sampled)
+        115
+        >>> sampled_with_replacement = rdd.sample(True, 5.0, seed=5).collect()
+        >>> len(sampled_with_replacement) in (5067, 5111)  # w/o, w/ numpy
         True
         """
-        def fraction_predicate(rnd, item):
-            return rnd < fraction
+        sampler = (PoissonSampler(fraction)
+                   if withReplacement else BernoulliSampler(fraction))
 
         return PartitionwiseSampledRDD(
-            self, fraction_predicate,
-            preservesPartitioning=True,
-            seed=seed,
-        )
+            self, sampler, preservesPartitioning=True, seed=seed)
 
     def sampleByKey(self, withReplacement, fractions, seed=None):
         """randomly sample by key
 
-        :param bool withReplacement: Not used.
-        :param float fractions: Specifies the probability that an element is
-            sampled per Key.
+        :param bool withReplacement: sample with replacement
+        :param dict fractions: per key sample probabilities
         :param seed: (optional) Seed for random number generator.
         :rtype: RDD
+
+        Sampling without replacement uses Bernoulli sampling and ``fraction``
+        is the probability that an element is sampled. Sampling with
+        replacement uses Poisson sampling where ``fraction`` is the
+        expectation.
 
 
         Example:
@@ -1139,14 +1148,11 @@ class RDD(object):
         >>> max(sample["b"]) <= 999 and min(sample["b"]) >= 0
         True
         """
-        def key_fractions_predicate(rnd, item):
-            return rnd < fractions[item[0]]
+        sampler = (PoissonSamplerPerKey(fractions)
+                   if withReplacement else BernoulliSamplerPerKey(fractions))
 
         return PartitionwiseSampledRDD(
-            self, key_fractions_predicate,
-            preservesPartitioning=True,
-            seed=seed,
-        )
+            self, sampler, preservesPartitioning=True, seed=seed)
 
     def sampleStdev(self):
         """sample standard deviation
@@ -1673,11 +1679,14 @@ class MapPartitionsRDD(RDD):
 
 
 class PartitionwiseSampledRDD(RDD):
-    def __init__(self, prev, predicate, preservesPartitioning=False,
+    def __init__(self, prev, sampler, preservesPartitioning=False,
                  seed=None):
         """RDD with sampled partitions.
 
         :param RDD prev: previous RDD
+        :param sampler: a sampler
+        :param bool preservesPartitioning: preserve partitioning (not used)
+        :param int seed: random number generator seed (can be None)
         """
         RDD.__init__(self, prev.partitions(), prev.context)
 
@@ -1685,15 +1694,18 @@ class PartitionwiseSampledRDD(RDD):
             seed = random.randint(0, maxint)
 
         self.prev = prev
-        self.predicate = predicate
+        self.sampler = sampler
         self.preservesPartitioning = preservesPartitioning
         self.seed = seed
 
     def compute(self, split, task_context):
         random.seed(self.seed + split.index)
+        if numpy is not None:
+            numpy.random.seed(self.seed + split.index)
         return (
-            x for x in self.prev.compute(split, task_context._create_child())
-            if self.predicate(random.random(), x)
+            x
+            for x in self.prev.compute(split, task_context._create_child())
+            for _ in range(self.sampler(x))
         )
 
     def partitions(self):

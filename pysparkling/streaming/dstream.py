@@ -491,15 +491,15 @@ class DStream(object):
 
         >>> import pysparkling
         >>> sc = pysparkling.Context()
-        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.2)
         >>> (
         ...     ssc
         ...     .queueStream([[1], [2], [3], [4], [5], [6]])
-        ...     .window(0.3)
+        ...     .window(0.6)
         ...     .foreachRDD(lambda rdd: print(rdd.collect()))
         ... )
         >>> ssc.start()
-        >>> ssc.awaitTermination(0.65)
+        >>> ssc.awaitTermination(1.3)
         [1]
         [1, 2]
         [1, 2, 3]
