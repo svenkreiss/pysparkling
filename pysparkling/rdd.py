@@ -6,7 +6,7 @@ Provides a Python implementation of RDDs.
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-from builtins import range
+from builtins import range, zip
 from collections import defaultdict
 import copy
 import functools
@@ -21,9 +21,9 @@ import subprocess
 import sys
 
 try:
-    from itertools import izip as zip  # Python 2
+    import numpy
 except ImportError:
-    pass                               # Python 3
+    numpy = None
 
 from . import fileio
 from .cache_manager import CacheManager
@@ -1107,8 +1107,8 @@ class RDD(object):
         >>> len(sampled)
         115
         >>> sampled_with_replacement = rdd.sample(True, 5.0, seed=5).collect()
-        >>> len(sampled_with_replacement)
-        5067
+        >>> len(sampled_with_replacement) in (5067, 5111)  # w/o, w/ numpy
+        True
         """
         sampler = (PoissonSampler(fraction)
                    if withReplacement else BernoulliSampler(fraction))
@@ -1700,6 +1700,8 @@ class PartitionwiseSampledRDD(RDD):
 
     def compute(self, split, task_context):
         random.seed(self.seed + split.index)
+        if numpy is not None:
+            numpy.random.seed(self.seed + split.index)
         return (
             x
             for x in self.prev.compute(split, task_context._create_child())
