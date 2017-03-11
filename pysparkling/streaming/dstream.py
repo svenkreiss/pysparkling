@@ -495,7 +495,7 @@ class DStream(object):
         >>> (
         ...     ssc
         ...     .queueStream([[1], [2], [3], [4], [5], [6]])
-        ...     .window(0.3)
+        ...     .window(0.6)
         ...     .foreachRDD(lambda rdd: print(rdd.collect()))
         ... )
         >>> ssc.start()
