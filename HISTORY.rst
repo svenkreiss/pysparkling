@@ -2,7 +2,13 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.3.23...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.4.0...master>`_
+* `v0.4.0 <https://github.com/svenkreiss/pysparkling/compare/v0.3.23...v0.4.0>`_ (2017-03-11)
+    * major addition: ``pysparkling.streaming``
+    * updates to ``RDD.sample()``
+    * reorganized ``scripts`` and ``tests``
+    * added ``RDD.partitionBy()``
+    * minor updates to ``pysparkling.fileio``
 * `v0.3.23 <https://github.com/svenkreiss/pysparkling/compare/v0.3.22...v0.3.23>`_ (2016-08-06)
     * small improvements to fileio and better documentation
 * `v0.3.22 <https://github.com/svenkreiss/pysparkling/compare/v0.3.21...v0.3.22>`_ (2016-06-18)
