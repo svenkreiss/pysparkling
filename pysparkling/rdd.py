@@ -1099,15 +1099,16 @@ class RDD(object):
         replacement uses Poisson sampling where ``fraction`` is the
         expectation.
 
-
         Example:
 
         >>> from pysparkling import Context
-        >>> rdd = Context().parallelize(range(100))
-        >>> sampled = rdd.sample(False, 0.1, seed=5)
-        >>> all(s1 == s2 for s1, s2 in zip(sampled.collect(),
-        ...                                sampled.collect()))
-        True
+        >>> rdd = Context().parallelize(range(1000))
+        >>> sampled = rdd.sample(False, 0.1, seed=5).collect()
+        >>> len(sampled)
+        115
+        >>> sampled_with_replacement = rdd.sample(True, 5.0, seed=5).collect()
+        >>> len(sampled_with_replacement)
+        5067
         """
         sampler = (PoissonSampler(fraction)
                    if withReplacement else BernoulliSampler(fraction))

@@ -1,4 +1,28 @@
+import math
 import random
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
+
+
+def pysparkling_poisson(lambda_):
+    n = 0
+    exp_neg_lambda = math.exp(-lambda_)
+    prod = 1.0
+    while True:
+        prod *= random.random()
+        if prod > exp_neg_lambda:
+            n += 1
+        else:
+            return n
+
+
+def poisson(lambda_):
+    if numpy is not None:
+        return numpy.random.poisson(lambda_)
+    return pysparkling_poisson(lambda_)
 
 
 class BernoulliSampler(object):
@@ -14,7 +38,7 @@ class PoissonSampler(object):
         self.expectation = expectation
 
     def __call__(self, sample):
-        return random.poisson(self.expectation, 1)
+        return poisson(self.expectation)
 
 
 class BernoulliSamplerPerKey(object):
@@ -32,4 +56,4 @@ class PoissonSamplerPerKey(object):
 
     def __call__(self, sample):
         key = sample[0]
-        return random.poisson(self.expectations.get(key, 0.0), 1)
+        return poisson(self.expectations.get(key, 0.0))
