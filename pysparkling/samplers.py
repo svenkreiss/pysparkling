@@ -8,6 +8,9 @@ except ImportError:
 
 
 def pysparkling_poisson(lambda_):
+    if lambda_ == 0.0:
+        return 0
+
     n = 0
     exp_neg_lambda = math.exp(-lambda_)
     prod = 1.0
