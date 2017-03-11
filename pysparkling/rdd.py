@@ -1109,9 +1109,6 @@ class RDD(object):
         ...                                sampled.collect()))
         True
         """
-        def fraction_predicate(rnd, item):
-            return rnd < fraction
-
         sampler = (PoissonSampler(fraction)
                    if withReplacement else BernoulliSampler(fraction))
 
