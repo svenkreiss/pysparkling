@@ -5,9 +5,9 @@ class TextFile(StreamingTestCase):
 
     def test_connect(self):
         self.result = 0
-        self.expect = 78
+        self.expect = 22
         (
-            self.stream_c.textFileStream('HISTORY.*', process_all=True)
+            self.stream_c.textFileStream('LICENS*', process_all=True)
             .count()
             .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
         )
@@ -16,7 +16,7 @@ class TextFile(StreamingTestCase):
         self.result = 0
         self.expect = 0
         (
-            self.stream_c.textFileStream('HISTORY.*')
+            self.stream_c.textFileStream('LICENS*')
             .count()
             .saveAsTextFiles('tests/textout/')
         )
@@ -25,7 +25,7 @@ class TextFile(StreamingTestCase):
         self.result = 0
         self.expect = 0
         (
-            self.stream_c.textFileStream('HISTORY.*')
+            self.stream_c.textFileStream('LICENS*')
             .count()
             .saveAsTextFiles('tests/textout/', suffix='.gz')
         )
@@ -37,16 +37,16 @@ class BinaryFile(StreamingTestCase):
         self.result = 0
         self.expect = 1
         (
-            self.stream_c.fileBinaryStream('HISTORY.*', process_all=True)
+            self.stream_c.fileBinaryStream('LICENS*', process_all=True)
             .count()
             .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
         )
 
     def test_read_chunks(self):
         self.result = 0
-        self.expect = 100
+        self.expect = 28
         (
-            self.stream_c.fileBinaryStream('HISTORY.*', recordLength=50,
+            self.stream_c.fileBinaryStream('LICENS*', recordLength=40,
                                            process_all=True)
             .count()
             .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
