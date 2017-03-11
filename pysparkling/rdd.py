@@ -406,10 +406,9 @@ class RDD(object):
                                         numPartitions)
 
     def filter(self, f):
-        """filter
+        """filter elements
 
-        :param f: A function that if it evaluates to true when applied
-            to an element in the dataset, the element is kept.
+        :param f: a function that decides whether to keep an element
         :rtype: RDD
 
 
@@ -976,9 +975,9 @@ class RDD(object):
     def randomSplit(self, weights, seed=None):
         """Split the RDD into a few RDDs according to the given weights.
 
-        :param weights: Determines the relative lengths of the resulting RDDs.
-        :param int seed: Seed for random number generator.
-        :returns: A list of RDDs.
+        :param list[float] weights: relative lengths of the resulting RDDs
+        :param int seed: seed for random number generator
+        :returns: a list of RDDs
         :rtype: list
 
         .. note::
