@@ -47,11 +47,11 @@ class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
         self.result = []
         self.expect = [[b'hello']]
         (
-            self.stream_c.socketBinaryStream('127.0.0.1', 8123, length=5)
+            self.stream_c.socketBinaryStream('127.0.0.1', 8124, length=5)
             .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
         )
 
-        stream = yield self.client.connect('127.0.0.1', 8123)
+        stream = yield self.client.connect('127.0.0.1', 8124)
         with closing(stream):
             stream.write(b'hello')
 
@@ -70,10 +70,10 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
         self.result = []
         self.expect = [[b'hellohello']]
         (
-            self.stream_c.socketBinaryStream('127.0.0.1', 8123, length='<I')
+            self.stream_c.socketBinaryStream('127.0.0.1', 8125, length='<I')
             .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
         )
 
-        stream = yield self.client.connect('127.0.0.1', 8123)
+        stream = yield self.client.connect('127.0.0.1', 8125)
         with closing(stream):
             stream.write(struct.pack('<I', 10) + b'hellohello')
