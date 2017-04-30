@@ -40,11 +40,15 @@ def union(ssc):
 
 
 def updateStateByKey(ssc):
+    def processStateUpdateByKey(input_stream, state):
+        print('i', input_stream)
+        print('s', state)
+        return state if not input_stream else input_stream[-1]
+
     ssc.checkpoint('checkpoints/')
     (ssc
-     .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('c', 4)]])
-     .updateStateByKey(lambda input_stream, state:
-                       state if not input_stream else input_stream[-1])
+     .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('a', 5), ('c', 4)]])
+     .updateStateByKey(processStateUpdateByKey)
      .pprint()
      )
 
@@ -63,8 +67,8 @@ if __name__ == '__main__':
     # save_text(ssc)
     # window(ssc)
     # union(ssc)
-    # updateStateByKey(ssc)
-    stream_log(ssc)
+    updateStateByKey(ssc)
+    # stream_log(ssc)
 
     ssc.start()
     time.sleep(3.0)
