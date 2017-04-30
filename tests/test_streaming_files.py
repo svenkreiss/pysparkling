@@ -1,53 +1,73 @@
-from .streaming_test_case import StreamingTestCase
+import pysparkling
+import tornado.testing
 
 
-class TextFile(StreamingTestCase):
+class TextFile(tornado.testing.AsyncTestCase):
 
     def test_connect(self):
-        self.result = 0
-        self.expect = 22
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
+        result = []
         (
-            self.stream_c.textFileStream('LICENS*', process_all=True)
+            ssc.textFileStream('LICENS*', process_all=True)
             .count()
-            .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
+            .foreachRDD(lambda rdd: result.append(rdd.collect()[0]))
         )
 
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(sum(result), 22)
+
     def test_save(self):
-        self.result = 0
-        self.expect = 0
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
         (
-            self.stream_c.textFileStream('LICENS*')
+            ssc.textFileStream('LICENS*')
             .count()
             .saveAsTextFiles('tests/textout/')
         )
 
     def test_save_gz(self):
-        self.result = 0
-        self.expect = 0
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
         (
-            self.stream_c.textFileStream('LICENS*')
+            ssc.textFileStream('LICENS*')
             .count()
             .saveAsTextFiles('tests/textout/', suffix='.gz')
         )
 
 
-class BinaryFile(StreamingTestCase):
+class BinaryFile(tornado.testing.AsyncTestCase):
 
     def test_read_file(self):
-        self.result = 0
-        self.expect = 1
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
+        result = []
         (
-            self.stream_c.fileBinaryStream('LICENS*', process_all=True)
+            ssc.fileBinaryStream('LICENS*', process_all=True)
             .count()
-            .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
+            .foreachRDD(lambda rdd: result.append(rdd.collect()[0]))
         )
 
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(sum(result), 1)
+
     def test_read_chunks(self):
-        self.result = 0
-        self.expect = 28
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
+        result = []
         (
-            self.stream_c.fileBinaryStream('LICENS*', recordLength=40,
-                                           process_all=True)
+            ssc.fileBinaryStream('LICENS*', recordLength=40, process_all=True)
             .count()
-            .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
+            .foreachRDD(lambda rdd: result.append(rdd.collect()[0]))
         )
+
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(sum(result), 28)

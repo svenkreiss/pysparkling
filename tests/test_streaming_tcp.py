@@ -1,79 +1,87 @@
 from __future__ import print_function
 
+from collections import Counter
 from contextlib import closing
+import pysparkling
 import struct
-from tornado.testing import AsyncTestCase, gen_test
-from tornado.tcpclient import TCPClient
+import tornado.gen
+import tornado.tcpclient
+import tornado.testing
 
-from .streaming_test_case import StreamingTestCase
 
-
-class TCPTextTest(AsyncTestCase, StreamingTestCase):
-    def setUp(self):
-        super(TCPTextTest, self).setUp()
-        self.client = TCPClient()
-
-    def tearDown(self):
-        self.client.close()
-        super(TCPTextTest, self).tearDown()
-
-    @gen_test
-    def test_connect(self):
-        self.result = 0
-        self.expect = 20
-        (
-            self.stream_c.socketTextStream('127.0.0.1', 8123)
-            .count()
-            .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
-        )
-
+class TCPTextTest(tornado.testing.AsyncTestCase):
+    @tornado.gen.coroutine
+    def client(self):
+        client = tornado.tcpclient.TCPClient()
         for v in range(20):
-            stream = yield self.client.connect('127.0.0.1', 8123)
+            stream = yield client.connect('127.0.0.1', 8123)
             with closing(stream):
-                stream.write('{}\n'.format(v).encode('utf8'))
+                stream.write('a = {}\n'.format(v).encode('utf8'))
+        client.close()
 
+    def test_connect(self):
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
 
-class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
-    def setUp(self):
-        super(TCPBinaryFixedLengthTest, self).setUp()
-        self.client = TCPClient()
-
-    def tearDown(self):
-        self.client.close()
-        super(TCPBinaryFixedLengthTest, self).tearDown()
-
-    @gen_test
-    def test_main(self):
-        self.result = []
-        self.expect = [[b'hello']]
+        counter = Counter()
         (
-            self.stream_c.socketBinaryStream('127.0.0.1', 8124, length=5)
-            .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
+            ssc.socketTextStream('127.0.0.1', 8123)
+            .foreachRDD(lambda rdd:
+                        counter.update(''.join(rdd.collect()))
+                        if rdd.collect() else None)
         )
+        self.client()
 
-        stream = yield self.client.connect('127.0.0.1', 8124)
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(counter['a'], 20)
+
+
+class TCPBinaryFixedLengthTest(tornado.testing.AsyncTestCase):
+    @tornado.gen.coroutine
+    def client(self):
+        client = tornado.tcpclient.TCPClient()
+        stream = yield client.connect('127.0.0.1', 8124)
         with closing(stream):
             stream.write(b'hello')
+        client.close()
 
-
-class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
-    def setUp(self):
-        super(TCPBinaryUIntLengthTest, self).setUp()
-        self.client = TCPClient()
-
-    def tearDown(self):
-        self.client.close()
-        super(TCPBinaryUIntLengthTest, self).tearDown()
-
-    @gen_test
     def test_main(self):
-        self.result = []
-        self.expect = [[b'hellohello']]
-        (
-            self.stream_c.socketBinaryStream('127.0.0.1', 8125, length='<I')
-            .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
-        )
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
 
-        stream = yield self.client.connect('127.0.0.1', 8125)
+        counter = Counter()
+        (
+            ssc.socketBinaryStream('127.0.0.1', 8124, length=5)
+            .foreachRDD(lambda rdd: counter.update(rdd.collect()))
+        )
+        self.client()
+
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(counter[b'hello'], 1)
+
+
+class TCPBinaryUIntLengthTest(tornado.testing.AsyncTestCase):
+    @tornado.gen.coroutine
+    def client(self):
+        client = tornado.tcpclient.TCPClient()
+        stream = yield client.connect('127.0.0.1', 8125)
         with closing(stream):
             stream.write(struct.pack('<I', 10) + b'hellohello')
+        client.close()
+
+    def test_main(self):
+        sc = pysparkling.Context()
+        ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+
+        counter = Counter()
+        (
+            ssc.socketBinaryStream('127.0.0.1', 8125, length='<I')
+            .foreachRDD(lambda rdd: counter.update(rdd.collect()))
+        )
+        self.client()
+
+        ssc.start()
+        ssc.awaitTermination(timeout=0.3)
+        self.assertEqual(counter[b'hellohello'], 1)
