@@ -1057,6 +1057,37 @@ class RDD(object):
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
+    def repartitionAndSortWithinPartitions(self, numPartitions,
+                                           keyfunc, ascending=True):
+        """Repartition and sort within each partition.
+
+        :param int numPartitions: Number of partitions in new RDD.
+        :param keyfunc: Returns the value that will be sorted.
+        :param ascending: Default is True.
+        :rtype: RDD
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+
+        Example:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> rdd = sc.parallelize([1, 3, 2, 7, 8, 5, 7, 2, 6], 1)
+        >>> rdd.repartitionAndSortWithinPartitions(3, lambda x: x).collect()
+        [1, 2, 3, 5, 7, 8, 2, 6, 7]
+        """
+
+        def partition_sort(data):
+            return sorted(data, key=keyfunc, reverse=not ascending)
+
+        return (
+            self.context
+            .parallelize(self.toLocalIterator(), numPartitions)
+            .mapPartitions(partition_sort)
+        )
+
     def rightOuterJoin(self, other, numPartitions=None):
         """right outer join
 
@@ -1070,9 +1101,10 @@ class RDD(object):
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
-        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> rdd1 = sc.parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = sc.parallelize([(2, 1), (1, 3)])
         >>> sorted(rdd1.rightOuterJoin(rdd2).collect())
         [(1, (1, 3)), (2, (None, 1))]
         """
