@@ -485,8 +485,10 @@ class DStream(object):
     def updateStateByKey(self, func):
         """Process with state.
 
-        :param func: Function that takes an input_stream and the state.
+        :param func: Evaluated per key. Takes list of input_values and a state.
         :rtype: DStream
+
+        This example shows how to return the latest value per key:
 
         >>> import pysparkling
         >>> sc = pysparkling.Context()
@@ -494,16 +496,33 @@ class DStream(object):
         >>> (
         ...     ssc
         ...     .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('c', 4)]])
-        ...     .updateStateByKey(lambda input_stream, state:
+        ...     .updateStateByKey(lambda input_values, state:
         ...                       state
-        ...                       if not input_stream
-        ...                       else input_stream[-1])
+        ...                       if not input_values
+        ...                       else input_values[-1])
         ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
         ... )
         >>> ssc.start()
         >>> ssc.awaitTermination(0.5)
         [('a', 1), ('b', 3)]
         [('a', 2), ('b', 3), ('c', 4)]
+
+        This example counts values per key:
+
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.2)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[('a', 1)], [('a', 2), ('b', 4), ('b', 3)]])
+        ...     .updateStateByKey(lambda input_values, state:
+        ...                       (state if state is not None else 0) +
+        ...                       sum(input_values))
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.5)
+        [('a', 1)]
+        [('a', 3), ('b', 7)]
         """
         return StatefulDStream(self, func)
 
@@ -612,16 +631,10 @@ class StatefulDStream(DStream):
         self._state_rdd = EmptyRDD(self._context._context)
 
     def convert_fn(self, joined):
-        key, (value_input, value_state) = joined
-        input_stream = (key, value_input)
-        state = value_state
+        input_values, state_list = joined
+        state = state_list[-1] if len(state_list) > 0 else None
 
-        # check whether this key is being updated
-        # TODO(sven): does that break when None is a value?
-        if value_input is None:
-            input_stream = None
-
-        return (key, self._func(input_stream, state))
+        return self._func(input_values, state)
 
     def _step(self, time_):
         if time_ <= self._current_time:
@@ -630,6 +643,6 @@ class StatefulDStream(DStream):
         self._prev._step(time_)
         self._current_time = time_
 
-        combined = self._prev._current_rdd.fullOuterJoin(self._state_rdd)
-        self._state_rdd = combined.map(self.convert_fn)
+        combined = self._prev._current_rdd.cogroup(self._state_rdd)
+        self._state_rdd = combined.mapValues(self.convert_fn)
         self._current_rdd = self._state_rdd
