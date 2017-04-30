@@ -1,3 +1,8 @@
+"""Explore PySpark API.
+
+Run with `spark-submit scripts/pyspark_streaming.py`.
+"""
+
 from __future__ import print_function
 
 import pyspark
