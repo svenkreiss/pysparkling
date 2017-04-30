@@ -482,6 +482,50 @@ class DStream(object):
 
         return TransformedDStream(self, func)
 
+    def updateStateByKey(self, func):
+        """Process with state.
+
+        :param func: Evaluated per key. Takes list of input_values and a state.
+        :rtype: DStream
+
+        This example shows how to return the latest value per key:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.2)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[('a', 1), ('b', 3)], [('a', 2), ('c', 4)]])
+        ...     .updateStateByKey(lambda input_values, state:
+        ...                       state
+        ...                       if not input_values
+        ...                       else input_values[-1])
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.5)
+        [('a', 1), ('b', 3)]
+        [('a', 2), ('b', 3), ('c', 4)]
+
+        This example counts values per key:
+
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.2)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[('a', 1)], [('a', 2), ('b', 4), ('b', 3)]])
+        ...     .updateStateByKey(lambda input_values, state:
+        ...                       (state if state is not None else 0) +
+        ...                       sum(input_values))
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.5)
+        [('a', 1)]
+        [('a', 3), ('b', 7)]
+        """
+        return StatefulDStream(self, func)
+
     def window(self, windowDuration, slideDuration=None):
         """Windowed RDD.
 
@@ -577,3 +621,28 @@ class CogroupedDStream(DStream):
         self._current_time = time_
         self._current_rdd = getattr(self._prev1._current_rdd, self._op)(
             self._prev2._current_rdd, self._num_partitions)
+
+
+class StatefulDStream(DStream):
+    def __init__(self, prev, state_update_fn):
+        super(StatefulDStream, self).__init__(prev._stream, prev._context)
+        self._prev = prev
+        self._func = state_update_fn
+        self._state_rdd = EmptyRDD(self._context._context)
+
+    def convert_fn(self, joined):
+        input_values, state_list = joined
+        state = state_list[-1] if len(state_list) > 0 else None
+
+        return self._func(input_values, state)
+
+    def _step(self, time_):
+        if time_ <= self._current_time:
+            return
+
+        self._prev._step(time_)
+        self._current_time = time_
+
+        combined = self._prev._current_rdd.cogroup(self._state_rdd)
+        self._state_rdd = combined.mapValues(self.convert_fn)
+        self._current_rdd = self._state_rdd
