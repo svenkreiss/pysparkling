@@ -22,13 +22,13 @@ class TCPTextTest(AsyncTestCase, StreamingTestCase):
         self.result = 0
         self.expect = 20
         (
-            self.stream_c.socketTextStream('localhost', 8123)
+            self.stream_c.socketTextStream('127.0.0.1', 8123)
             .count()
             .foreachRDD(lambda rdd: self.incr_result(rdd.collect()[0]))
         )
 
         for v in range(20):
-            stream = yield self.client.connect('localhost', 8123)
+            stream = yield self.client.connect('127.0.0.1', 8123)
             with closing(stream):
                 stream.write('{}\n'.format(v).encode('utf8'))
 
@@ -47,11 +47,11 @@ class TCPBinaryFixedLengthTest(AsyncTestCase, StreamingTestCase):
         self.result = []
         self.expect = [[b'hello']]
         (
-            self.stream_c.socketBinaryStream('localhost', 8123, length=5)
+            self.stream_c.socketBinaryStream('127.0.0.1', 8123, length=5)
             .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
         )
 
-        stream = yield self.client.connect('localhost', 8123)
+        stream = yield self.client.connect('127.0.0.1', 8123)
         with closing(stream):
             stream.write(b'hello')
 
@@ -70,10 +70,10 @@ class TCPBinaryUIntLengthTest(AsyncTestCase, StreamingTestCase):
         self.result = []
         self.expect = [[b'hellohello']]
         (
-            self.stream_c.socketBinaryStream('localhost', 8123, length='<I')
+            self.stream_c.socketBinaryStream('127.0.0.1', 8123, length='<I')
             .foreachRDD(lambda rdd: self.append_result(rdd.collect()))
         )
 
-        stream = yield self.client.connect('localhost', 8123)
+        stream = yield self.client.connect('127.0.0.1', 8123)
         with closing(stream):
             stream.write(struct.pack('<I', 10) + b'hellohello')
