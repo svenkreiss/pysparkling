@@ -120,7 +120,7 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
     def test_basic(self):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
-        self.assertLess(t10, t1 / 5.0)
+        self.assertLess(t10, t1 / 2.0)
 
 
 # pickle-able map function
