@@ -8,6 +8,9 @@ from .local import Local
 from .s3 import S3
 
 
+__all__ = ['FileSystem', 'GS', 'Hdfs', 'Http', 'Local', 'S3']
+
+
 FILE_EXTENSIONS = [
     (('file', ''), Local),
     (('s3', 's3n'), S3),
