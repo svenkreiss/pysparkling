@@ -1,7 +1,4 @@
-"""
-Manages caches of calculated partitions.
-
-"""
+"""Manages caches of calculated partitions."""
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
@@ -19,18 +16,10 @@ class CacheManager(object):
     When mem_obj or disk_location are None, it means the object does not
     exist in memory or on disk. The other variables might be set though.
 
-    :param max_mem:
-        Memory in GB to keep in memory before spilling to disk.
-
-    :param serializer:
-        Use to serialize cache objects.
-
-    :param deserializer:
-        Use to deserialize cache objects.
-
-    :param checksum:
-        Function returning a checksum.
-
+    :param max_mem: Memory in GB to keep in memory before spilling to disk.
+    :param serializer: Use to serialize cache objects.
+    :param deserializer: Use to deserialize cache objects.
+    :param checksum: Function returning a checksum.
     """
     singleton__ = None
 
@@ -92,11 +81,8 @@ class CacheManager(object):
     def get_not_in(self, idents):
         """get entries not given in idents
 
-        :param idents:
-            A list of cache ids (or idents).
-
-        :returns:
-            All cache entries that are not in the given list.
+        :param idents: A list of cache ids (or idents).
+        :returns: All cache entries that are not in the given list.
         """
         return {i: c
                 for i, c in self.cache_obj.items()
@@ -107,7 +93,6 @@ class CacheManager(object):
 
         :param cache_objects:
             Objects obtained with :func:`CacheManager.get_not_in()`.
-
         """
         self.cache_obj.update(cache_objects)
 
@@ -126,7 +111,6 @@ class CacheManager(object):
         :returns:
             A new CacheManager with the entries that contain partial_ident
             in the ident.
-
         """
         cm = CacheManager(self.max_mem,
                           self.serializer, self.deserializer,
