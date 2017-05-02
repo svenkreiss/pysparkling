@@ -74,10 +74,17 @@ def stat():
     print(str(s2))
 
 
+def partition_by():
+    rdd = SC.parallelize(range(20), 2).map(lambda x: (x, x))
+    r = rdd.partitionBy(2).collect()
+    print('>>>>>>', r)
+
+
 if __name__ == '__main__':
     # simple_textFile()
     # lazy_execution()
     # count_lines()
     # create_key_value_txt()
-    create_pickled_files()
+    # create_pickled_files()
     # stat()
+    partition_by()

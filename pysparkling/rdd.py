@@ -928,6 +928,17 @@ class RDD(object):
         :param int numPartitions: Number of partitions.
         :param function partitionFunc: Partition function.
         :rtype: RDD
+
+
+        Example where even numbers get assigned to partition 0
+        and odd numbers to partition 1:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> rdd = sc.parallelize([1, 3, 2, 7, 8, 5], 1)
+        >>> keyvalue_rdd = rdd.map(lambda x: (x, x))
+        >>> keyvalue_rdd.partitionBy(2).keys().collect()
+        [2, 8, 1, 3, 7, 5]
         """
 
         if partitionFunc is None:
@@ -1057,6 +1068,40 @@ class RDD(object):
         """
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
+    def repartitionAndSortWithinPartitions(
+        self, numPartitions=None, partitionFunc=None,
+        ascending=True, keyfunc=None,
+    ):
+        """Repartition and sort within each partition.
+
+        :param int numPartitions: Number of partitions in new RDD.
+        :param partitionFunc: function that partitions
+        :param ascending: Default is True.
+        :param keyfunc: Returns the value that will be sorted.
+        :rtype: RDD
+
+
+        Example where even numbers are assigned to partition 0 and odd numbers
+        to partition 1 and then the partitions are sorted individually:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> rdd = sc.parallelize([1, 3, 2, 7, 8, 5], 1)
+        >>> kv_rdd = rdd.map(lambda x: (x, x))
+        >>> processed = kv_rdd.repartitionAndSortWithinPartitions(2)
+        >>> processed.keys().collect()
+        [2, 8, 1, 3, 5, 7]
+        """
+
+        def partition_sort(data):
+            return sorted(data, key=keyfunc, reverse=not ascending)
+
+        return (
+            self
+            .partitionBy(numPartitions, partitionFunc)
+            .mapPartitions(partition_sort)
+        )
+
     def rightOuterJoin(self, other, numPartitions=None):
         """right outer join
 
@@ -1070,9 +1115,10 @@ class RDD(object):
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
-        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> rdd1 = sc.parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = sc.parallelize([(2, 1), (1, 3)])
         >>> sorted(rdd1.rightOuterJoin(rdd2).collect())
         [(1, (1, 3)), (2, (None, 1))]
         """
