@@ -200,6 +200,23 @@ class DStream(object):
         >>> ssc.awaitTermination(0.25)
         [('a', (4, 1)), ('b', (2, 3))]
         [('c', (7, 8))]
+
+
+        Example with repeated keys:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> s1 = ssc.queueStream([[('a', 4), ('a', 2)], [('c', 7)]])
+        >>> s2 = ssc.queueStream([[('b', 1)], [('c', 8)]])
+        >>> (
+        ...     s1.fullOuterJoin(s2)
+        ...     .foreachRDD(lambda rdd: print(sorted(rdd.collect())))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.25)
+        [('a', (2, None)), ('a', (4, None)), ('b', (None, 1))]
+        [('c', (7, 8))]
         """
         return CogroupedDStream(self, other, numPartitions, op='fullOuterJoin')
 
@@ -482,6 +499,48 @@ class DStream(object):
 
         return TransformedDStream(self, func)
 
+    def transformWith(self, func, other, keepSerializer=False):
+        """Return a new DStream where each RDD is transformed by ``f``.
+
+        :param f: transformation function
+        :rtype: DStream
+
+        The transformation function can have arguments ``(time, rdd_a, rdd_b)``
+        or ``(rdd_a, rdd_b)``.
+        """
+        if func.__code__.co_argcount == 2:
+            two_arg_func = func
+            func = lambda _, rdd_a, rdd_b: two_arg_func(rdd_a, rdd_b)
+
+        return TransformedWithDStream(self, func, other)
+
+    def union(self, other):
+        """Union of two DStreams.
+
+        :param DStream other: Another DStream.
+
+
+        Example:
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> odd = ssc.queueStream([[1], [3], [5]])
+        >>> even = ssc.queueStream([[2], [4], [6]])
+        >>> (
+        ...     odd.union(even)
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [1, 2]
+        [3, 4]
+        [5, 6]
+        """
+        def union_rdds(rdd_a, rdd_b):
+            return self._context._context.union((rdd_a, rdd_b))
+
+        return self.transformWith(union_rdds, other)
+
     def updateStateByKey(self, func):
         """Process with state.
 
@@ -567,6 +626,26 @@ class TransformedDStream(DStream):
         self._prev._step(time_)
         self._current_time = time_
         self._current_rdd = self._func(time_, self._prev._current_rdd)
+
+
+class TransformedWithDStream(DStream):
+    def __init__(self, prev, func, other_prev):
+        super(TransformedWithDStream, self).__init__(
+            prev._stream, prev._context)
+        self._prev = prev
+        self._func = func
+        self._other_prev = other_prev
+
+    def _step(self, time_):
+        if time_ <= self._current_time:
+            return
+
+        self._prev._step(time_)
+        self._other_prev._step(time_)
+        self._current_time = time_
+        self._current_rdd = self._func(time_,
+                                       self._prev._current_rdd,
+                                       self._other_prev._current_rdd)
 
 
 class WindowedDStream(DStream):
