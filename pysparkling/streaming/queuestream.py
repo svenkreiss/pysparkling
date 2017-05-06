@@ -15,8 +15,7 @@ class QueueStreamDeserializer(object):
         return self.context.parallelize(data)
 
     def __call__(self, data):
-        rdds = [self.ensure_rdd(d) for d in data]
-        return self.context.union(rdds)
+        return self.ensure_rdd(data)
 
 
 class QueueStream(object):
@@ -29,9 +28,9 @@ class QueueStream(object):
         q_size = self.queue.qsize()
 
         if q_size == 0:
-            return [self.default]
+            return self.default
 
         if self.oneAtATime:
-            return [self.queue.get_nowait()]
+            return self.queue.get_nowait()
 
-        return [self.queue.get_nowait() for _ in range(q_size)]
+        return [e for _ in range(q_size) for e in self.queue.get_nowait()]
