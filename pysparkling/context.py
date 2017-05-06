@@ -125,14 +125,14 @@ class Context(object):
         :param x:
             An iterable (e.g. a list) that represents the data.
 
-        :param numPartitions: (optional)
+        :param int|None numPartitions: (optional)
             The number of partitions the data should be split into.
             A partition is a unit of data that is processed at a time.
             Can be ``None``.
 
         :rtype: RDD
         """
-        if not numPartitions:
+        if numPartitions is None or numPartitions <= 1:
             return RDD([Partition(x, 0)], self)
 
         x_len_iter, x = itertools.tee(x, 2)

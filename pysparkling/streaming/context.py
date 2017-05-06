@@ -113,6 +113,23 @@ class StreamingContext(object):
         [4]
         [2]
         [7]
+
+
+        Example testing the default value:
+
+        >>> import pysparkling
+        >>> sc = pysparkling.Context()
+        >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
+        >>> (
+        ...     ssc
+        ...     .queueStream([[4], [2]], default=['placeholder'])
+        ...     .foreachRDD(lambda rdd: print(rdd.collect()))
+        ... )
+        >>> ssc.start()
+        >>> ssc.awaitTermination(0.35)
+        [4]
+        [2]
+        ['placeholder']
         """
         deserializer = QueueStreamDeserializer(self._context)
         if default is not None:

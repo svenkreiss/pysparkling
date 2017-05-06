@@ -62,6 +62,12 @@ def stream_log(ssc):
     ssc.textFileStream('/var/log/system.log*').pprint()
 
 
+def stream_queue_default(ssc):
+    (ssc
+     .queueStream([[4], [2]], default=['placeholder'])
+     .foreachRDD(lambda rdd: print(rdd.collect())))
+
+
 if __name__ == '__main__':
     sc = pyspark.SparkContext()
     ssc = pyspark.streaming.StreamingContext(sc, 1)
@@ -72,8 +78,9 @@ if __name__ == '__main__':
     # save_text(ssc)
     # window(ssc)
     # union(ssc)
-    updateStateByKey(ssc)
+    # updateStateByKey(ssc)
     # stream_log(ssc)
+    stream_queue_default(ssc)
 
     ssc.start()
     time.sleep(3.0)
