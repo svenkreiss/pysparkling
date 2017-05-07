@@ -521,6 +521,7 @@ class DStream(object):
 
 
         Example:
+
         >>> import pysparkling
         >>> sc = pysparkling.Context()
         >>> ssc = pysparkling.streaming.StreamingContext(sc, 0.1)
@@ -547,6 +548,7 @@ class DStream(object):
         :param func: Evaluated per key. Takes list of input_values and a state.
         :rtype: DStream
 
+
         This example shows how to return the latest value per key:
 
         >>> import pysparkling
@@ -565,6 +567,7 @@ class DStream(object):
         >>> ssc.awaitTermination(0.5)
         [('a', 1), ('b', 3)]
         [('a', 2), ('b', 3), ('c', 4)]
+
 
         This example counts values per key:
 
@@ -591,6 +594,9 @@ class DStream(object):
         :param float windowDuration: multiple of batching interval
         :param float slideDuration: multiple of batching interval
         :rtype: DStream
+
+
+        Example:
 
         >>> import pysparkling
         >>> sc = pysparkling.Context()
