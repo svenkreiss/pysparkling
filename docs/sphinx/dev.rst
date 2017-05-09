@@ -9,7 +9,7 @@ To run pysparkling's unit tests:
 .. code-block:: sh
 
     # install
-    pip install -e .[hdfs,tests]
+    pip install -e .[hdfs,performance,streaming,tests]
     flake8 --install-hook
 
     # run linting and test
