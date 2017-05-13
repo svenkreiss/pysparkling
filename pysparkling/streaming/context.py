@@ -149,22 +149,6 @@ class StreamingContext(object):
         """Provided for compatibility, but does nothing here."""
         pass
 
-    def start(self):
-        """Start processing streams."""
-
-        def cb():
-            time_ = time.time()
-            log.debug('Step {}'.format(time_))
-
-            # run a step on all streams
-            for d in self._dstreams:
-                d._step(time_)
-
-        self._pcb = PeriodicCallback(cb, self.batch_duration * 1000.0)
-        self._pcb.start()
-        self._on_stop_cb.append(self._pcb.stop)
-        StreamingContext._activeContext = self
-
     def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.
 
@@ -202,6 +186,22 @@ class StreamingContext(object):
         tcp_text_stream.listen(port, hostname)
         self._on_stop_cb.append(tcp_text_stream.stop)
         return DStream(tcp_text_stream, self, deserializer)
+
+    def start(self):
+        """Start processing streams."""
+
+        def cb():
+            time_ = time.time()
+            log.debug('Step {}'.format(time_))
+
+            # run a step on all streams
+            for d in self._dstreams:
+                d._step(time_)
+
+        self._pcb = PeriodicCallback(cb, self.batch_duration * 1000.0)
+        self._pcb.start()
+        self._on_stop_cb.append(self._pcb.stop)
+        StreamingContext._activeContext = self
 
     def stop(self, stopSparkContext=True, stopGraceFully=False):
         """Stop processing streams.
