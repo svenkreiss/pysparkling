@@ -24,9 +24,6 @@ class TCPDeserializer(object):
 
 class TCPTextStream(TCPServer):
     def __init__(self, delimiter=b'\n'):
-        if TCPServer is False:
-            log.error('Run \'pip install tornado\' to use TCPStream.')
-
         super(TCPTextStream, self).__init__()
         self.delimiter = delimiter
         self.buffer = []
@@ -58,9 +55,6 @@ class TCPBinaryStream(TCPServer):
     """
 
     def __init__(self, length=None):
-        if TCPServer is False:
-            log.error('Run \'pip install tornado\' to use TCPStream.')
-
         super(TCPBinaryStream, self).__init__()
         self.length = length
         self.buffer = []
