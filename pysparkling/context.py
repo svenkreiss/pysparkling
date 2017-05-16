@@ -9,6 +9,7 @@ import logging
 import pickle
 import struct
 import time
+import traceback
 
 from . import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
@@ -68,29 +69,25 @@ class Context(object):
     The variable `_stats` contains measured timing information about data and
     function (de)serialization and workload execution to benchmark your jobs.
 
-    :param pool:
-        An instance with a ``map(func, iterable)`` method.
-
+    :param pool: An instance with a ``map(func, iterable)`` method.
     :param serializer:
         Serializer for functions. Examples are ``pickle.dumps`` and
         ``dill.dumps``.
-
     :param deserializer:
         Deserializer for functions. Examples are ``pickle.loads`` and
         ``dill.loads``.
-
-    :param data_serializer:
-        Serializer for the data.
-
-    :param data_deserializer:
-        Deserializer for the data.
+    :param data_serializer: Serializer for the data.
+    :param data_deserializer: Deserializer for the data.
+    :param int max_retries: maximum number a partition is retried
+    :param float retry_wait: seconds to wait between retries
 
     """
 
     __last_rdd_id = 0
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
-                 data_serializer=None, data_deserializer=None):
+                 data_serializer=None, data_deserializer=None,
+                 max_retries=3, retry_wait=0.0):
         if not pool:
             pool = DummyPool()
         if not serializer:
@@ -101,6 +98,8 @@ class Context(object):
             data_serializer = unit_fn
         if not data_deserializer:
             data_deserializer = unit_fn
+        self.max_retries = max_retries
+        self.retry_wait = retry_wait
 
         self._pool = pool
         self._serializer = serializer
@@ -241,10 +240,10 @@ class Context(object):
             map_result = self._runJob_local(rdd, func, partitions)
         else:
             map_result = self._runJob_distributed(rdd, func, partitions)
-        log.debug('Map jobs generated.')
 
         if resultHandler is not None:
             return resultHandler(map_result)
+
         return list(map_result)  # convert to list to execute on all partitions
 
     def _runJob_local(self, rdd, func, partitions):
@@ -253,7 +252,24 @@ class Context(object):
                 stage_id=0,
                 partition_id=partition.index,
             )
-            yield func(task_context, rdd.compute(partition, task_context))
+
+            result = []
+            for attempt in range(self.max_retries):
+                try:
+                    result = func(task_context,
+                                  rdd.compute(partition, task_context))
+                    break
+                except Exception:
+                    log.warn('Attempt {} failed for partition {} of {}.'
+                             ''.format(attempt + 1, partition.index,
+                                       rdd.name()))
+                    if attempt == self.max_retries - 1:
+                        log.error('Partition {} of {} failed.'
+                                  ''.format(partition.index, rdd.name()))
+                        traceback.print_exc()
+                    elif self.retry_wait:
+                        time.sleep(self.retry_wait)
+            yield result
 
     def _runJob_distributed(self, rdd, func, partitions):
         cm = CacheManager.singleton()
