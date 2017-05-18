@@ -4,12 +4,16 @@ log = logging.getLogger(__name__)
 
 
 class TaskContext(object):
-    def __init__(self, stage_id=0, partition_id=0):
+    def __init__(self, stage_id=0, partition_id=0,
+                 max_retries=3, retry_wait=0):
         log.debug('Running stage {0} for partition {1}'
                   ''.format(stage_id, partition_id))
 
         self.stage_id = stage_id
         self.partition_id = partition_id
+        self.max_retries = max_retries
+        self.retry_wait = retry_wait
+
         self.attempt_number = 0
         self.is_completed = False
         self.is_running_locally = True
