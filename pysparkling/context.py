@@ -27,11 +27,39 @@ def unit_fn(arg):
     return arg
 
 
-def runJob_map(i):
-    t_start = time.clock()
-    (deserializer, data_serializer, data_deserializer,
-     serialized, serialized_data, cache_manager) = i
+def _run_task(task_context, rdd, func, partition):
+    """Run a task, aka compute a partition.
 
+    :param TaskContext task_context: this task context
+    :param RDD rdd: rdd this partition is a part of
+    :param func: a function
+    :param Partition partition: partition to process
+    """
+    task_context.attempt_number += 1
+
+    try:
+        return func(task_context, rdd.compute(partition, task_context))
+    except Exception:
+        log.warn('Attempt {} failed for partition {} of {}.'
+                 ''.format(task_context.attempt_number, partition.index,
+                           rdd.name()))
+        traceback.print_exc()
+        if task_context.attempt_number == task_context.max_retries:
+            log.error('Partition {} of {} failed.'
+                      ''.format(partition.index, rdd.name()))
+            return []
+
+        if task_context.retry_wait:
+            time.sleep(task_context.retry_wait)
+        return _run_task(task_context, rdd, func, partition)
+
+
+def runJob_map(i):
+    (deserializer, data_serializer, data_deserializer,
+     serialized_func_rdd, serialized_task_context,
+     serialized_data, cache_manager) = i
+
+    t_start = time.clock()
     if cache_manager:
         if not CacheManager.singleton__:
             CacheManager.singleton__ = data_deserializer(cache_manager)
@@ -40,25 +68,33 @@ def runJob_map(i):
                 data_deserializer(cache_manager).cache_obj
             )
     cm_state = CacheManager.singleton().stored_idents()
-    t_cache_init = time.clock()
+    t_cache_init = time.clock() - t_start
 
-    func, rdd = deserializer(serialized)
-    t_deserialize_func = time.clock()
+    t_start = time.clock()
+    func, rdd = deserializer(serialized_func_rdd)
+    t_deserialize_func = time.clock() - t_start
+
+    t_start = time.clock()
     partition = data_deserializer(serialized_data)
-    t_deserialize_data = time.clock()
+    t_deserialize_data = time.clock() - t_start
 
-    task_context = TaskContext(stage_id=0, partition_id=partition.index)
-    result = func(task_context, rdd.compute(partition, task_context))
-    t_exec = time.clock()
+    t_start = time.clock()
+    task_context = deserializer(serialized_task_context)
+    t_deserialize_task_context = time.clock() - t_start
+
+    t_start = time.clock()
+    result = _run_task(task_context, rdd, func, partition)
+    t_exec = time.clock() - t_start
 
     return data_serializer((
         result,
         CacheManager.singleton().get_not_in(cm_state),
         {
-            'map_cache_init': t_cache_init - t_start,
-            'map_deserialize_func': t_deserialize_func - t_cache_init,
-            'map_deserialize_data': t_deserialize_data - t_deserialize_func,
-            'map_exec': t_exec - t_deserialize_data,
+            'map_cache_init': t_cache_init,
+            'map_deserialize_func': t_deserialize_func,
+            'map_deserialize_task_context': t_deserialize_task_context,
+            'map_deserialize_data': t_deserialize_data,
+            'map_exec': t_exec,
         }
     ))
 
@@ -251,33 +287,18 @@ class Context(object):
             task_context = TaskContext(
                 stage_id=0,
                 partition_id=partition.index,
+                max_retries=self.max_retries,
+                retry_wait=self.retry_wait,
             )
-
-            result = []
-            for attempt in range(self.max_retries):
-                try:
-                    result = func(task_context,
-                                  rdd.compute(partition, task_context))
-                    break
-                except Exception:
-                    log.warn('Attempt {} failed for partition {} of {}.'
-                             ''.format(attempt + 1, partition.index,
-                                       rdd.name()))
-                    if attempt == self.max_retries - 1:
-                        log.error('Partition {} of {} failed.'
-                                  ''.format(partition.index, rdd.name()))
-                        traceback.print_exc()
-                    elif self.retry_wait:
-                        time.sleep(self.retry_wait)
-            yield result
+            yield _run_task(task_context, rdd, func, partition)
 
     def _runJob_distributed(self, rdd, func, partitions):
         cm = CacheManager.singleton()
         serialized_func_rdd = self._serializer((func, rdd))
 
-        def prepare(p):
+        def prepare(partition):
             t_start = time.clock()
-            cm_clone = cm.clone_contains(lambda i: i[1] == p.index)
+            cm_clone = cm.clone_contains(lambda i: i[1] == partition.index)
             self._stats['driver_cache_clone'] += (time.clock() -
                                                   t_start)
 
@@ -287,7 +308,18 @@ class Context(object):
                                                       t_start)
 
             t_start = time.clock()
-            serialized_p = self._data_deserializer(p)
+            task_context = TaskContext(
+                stage_id=0,
+                partition_id=partition.index,
+                max_retries=self.max_retries,
+                retry_wait=self.retry_wait,
+            )
+            serialized_task_context = self._serializer(task_context)
+            self._stats['driver_serialize_task_context'] += (time.clock() -
+                                                             t_start)
+
+            t_start = time.clock()
+            serialized_partition = self._data_deserializer(partition)
             self._stats['driver_serialize_data'] += (time.clock() -
                                                      t_start)
 
@@ -296,7 +328,8 @@ class Context(object):
                 self._data_serializer,
                 self._data_deserializer,
                 serialized_func_rdd,
-                serialized_p,
+                serialized_task_context,
+                serialized_partition,
                 cm_serialized,
             )
 

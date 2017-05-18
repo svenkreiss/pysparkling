@@ -36,9 +36,10 @@ class Context(unittest.TestCase):
                     raise Exception
                 return value
 
-        rdd = pysparkling.Context().parallelize(range(6), 3)
+        data = list(range(6))
+        rdd = pysparkling.Context().parallelize(data, 3)
         result = rdd.mapPartitions(EverySecondCallFails()).collect()
-        self.assertEqual(result, list(range(6)))
+        self.assertEqual(result, data)
 
     def test_union(self):
         sc = pysparkling.Context()
