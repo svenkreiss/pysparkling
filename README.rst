@@ -43,13 +43,20 @@ document per API call. This does not have to be done in parallel, but there
 should be only a small overhead in initialization and preferably no
 dependency on the JVM. This is what ``pysparkling`` is for.
 
-.. image:: https://badge.fury.io/py/pysparkling.svg
-   :target: https://pypi.python.org/pypi/pysparkling/
 
-Links:
-`Documentation <http://pysparkling.trivial.io/>`_,
+`Documentation <http://pysparkling.trivial.io>`_:
+
+.. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/docs/readthedocs.png
+   :target: http://pysparkling.trivial.io
+
+
+Other links:
 `Github <https://github.com/svenkreiss/pysparkling>`_,
-`Issue Tracker <https://github.com/svenkreiss/pysparkling/issues>`_
+`Issue Tracker <https://github.com/svenkreiss/pysparkling/issues>`_,
+|pypi-badge|
+
+.. |pypi-badge| image:: https://badge.fury.io/py/pysparkling.svg
+   :target: https://pypi.python.org/pypi/pysparkling/
 
 
 Install
