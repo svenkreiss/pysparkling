@@ -920,6 +920,9 @@ class RDD(object):
 
     def name(self):
         """returns the name of the dataset"""
+        if self._name is None:
+            return 'RDD_{}'.format(self._rdd_id)
+
         return self._name
 
     def partitionBy(self, numPartitions, partitionFunc=None):
