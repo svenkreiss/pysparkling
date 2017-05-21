@@ -34,14 +34,13 @@ Here are a few areas where pysparkling excels:
 * Low-latency web deployments
 * Unit tests
 
-**Example:** you have a pipeline that processes 100k input documents
-and converts them to normalized features. They are used to train a local
-scikit-learn classifier. The preprocessing is perfect for a full Spark
-task. Now, you want to use this trained classifier in an API
-endpoint. Assume you need the same pre-processing pipeline for a single
-document per API call. This does not have to be done in parallel, but there
-should be only a small overhead in initialization and preferably no
-dependency on the JVM. This is what ``pysparkling`` is for.
+
+Install
+=======
+
+.. code-block:: bash
+
+    pip install pysparkling[s3,hdfs,http,streaming]
 
 
 `Documentation <http://pysparkling.trivial.io>`_:
@@ -57,14 +56,6 @@ Other links:
 
 .. |pypi-badge| image:: https://badge.fury.io/py/pysparkling.svg
    :target: https://pypi.python.org/pypi/pysparkling/
-
-
-Install
-=======
-
-.. code-block:: bash
-
-    pip install pysparkling[s3,hdfs,http,streaming]
 
 
 Features
