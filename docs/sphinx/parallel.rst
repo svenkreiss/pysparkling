@@ -17,6 +17,16 @@ Single machine parallelization either with
 ``multiprocessing.Pool`` is supported.
 
 
+.. code-block:: python
+
+    sc = pysparkling.Context(
+        pool=concurrent.futures.ProcessPoolExecutor(4),
+        serializer=cloudpickle.dumps,
+        deserializer=pickle.loads,
+    )
+
+
+
 ipcluster and IPython.parallel
 ------------------------------
 
