@@ -8,16 +8,21 @@ Pysparkling supports parallelizations on the local machine and across clusters
 of computers.
 
 
-Threads and Processes
+Processes and Threads
 ---------------------
 
-Single machine parallelization either with
+Single machine parallelization with
 ``concurrent.futures.ThreadPoolExecutor``,
-``concurrent.futures.ProcessPoolExecutor`` and
-``multiprocessing.Pool`` is supported.
+``concurrent.futures.ProcessPoolExecutor`` or
+``multiprocessing.Pool`` is supported. Use ``cloudpickle`` instead of ``pickle`` for
+serialization to support lambda functions (and more) for data transformations.
 
 
 .. code-block:: python
+
+    import cloudpickle
+    import concurrent
+    import pysparkling
 
     sc = pysparkling.Context(
         pool=concurrent.futures.ProcessPoolExecutor(4),
@@ -27,8 +32,14 @@ Single machine parallelization either with
 
 
 
+Experimental
+------------
+
+The following are experimental notes. Most of them don't even contain examples how to make
+use of these techniques with pysparkling.
+
 ipcluster and IPython.parallel
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Local test setup:
 
@@ -77,7 +88,7 @@ https://ipython.org/ipython-doc/dev/parallel/parallel_process.html#using-ipclust
 
 
 StarCluster
------------
+~~~~~~~~~~~
 
 Setting up StarCluster was an experiment. However it does not integrate well
 with the rest of our EC2 infrastructure, so we switched to a Chef based setup
