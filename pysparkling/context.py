@@ -121,7 +121,6 @@ class Context(object):
     :param data_deserializer: Deserializer for the data.
     :param int max_retries: maximum number a partition is retried
     :param float retry_wait: seconds to wait between retries
-
     """
 
     __last_rdd_id = 0
