@@ -8,6 +8,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   self
    read_write
    api
    parallel
