@@ -2,7 +2,11 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.4.0...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.4.1...master>`_
+* `v0.4.1 <https://github.com/svenkreiss/pysparkling/compare/v0.4.0...v0.4.1>`_ (2017-05-27)
+    * retries for failed partitions
+    * improve ``pysparkling.streaming.DStream``
+    * updates to docs
 * `v0.4.0 <https://github.com/svenkreiss/pysparkling/compare/v0.3.23...v0.4.0>`_ (2017-03-11)
     * major addition: ``pysparkling.streaming``
     * updates to ``RDD.sample()``
