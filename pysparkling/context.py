@@ -49,14 +49,15 @@ def _run_task(task_context, rdd, func, partition):
                  ''.format(task_context.attempt_number, partition.index,
                            rdd.name()))
         traceback.print_exc()
-        if task_context.attempt_number == task_context.max_retries:
-            log.error('Partition {} of {} failed.'
-                      ''.format(partition.index, rdd.name()))
-            return []
 
-        if task_context.retry_wait:
-            time.sleep(task_context.retry_wait)
-        return _run_task(task_context, rdd, func, partition)
+    if task_context.attempt_number == task_context.max_retries:
+        log.error('Partition {} of {} failed.'
+                  ''.format(partition.index, rdd.name()))
+        return []
+
+    if task_context.retry_wait:
+        time.sleep(task_context.retry_wait)
+    return _run_task(task_context, rdd, func, partition)
 
 
 def runJob_map(i):
