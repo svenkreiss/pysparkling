@@ -25,6 +25,11 @@ except ImportError:
     Queue = False
     PeriodicCallback = False
 
+try:
+    from tornado import speedups
+except ImportError:
+    speedups = None
+
 log = logging.getLogger(__name__)
 
 
