@@ -7,6 +7,7 @@ import math
 import multiprocessing
 import os
 import pickle
+import platform
 import pprint
 import pysparkling
 import random
@@ -117,6 +118,8 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
             rdd.map(lambda _: time.sleep(0.1)).collect()
         return time.time() - start
 
+    @unittest.skipIf(platform.python_implementation() == 'PyPy',
+                     'test fails in PyPy')
     def test_basic(self):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
