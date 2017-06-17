@@ -1302,8 +1302,19 @@ class RDD(object):
         """
         if fileio.TextFile(path).exists():
             raise FileAlreadyExistsException(
-                'Output {0} already exists.'.format(path)
-            )
+                'Output {0} already exists.'.format(path))
+
+        def to_stringio(data):
+            stringio = io.StringIO()
+            for line in data:
+                stringio.write('{}\n'.format(line))
+            stringio.seek(0)
+            return stringio
+
+        # fast single-file write for single partition RDDs
+        if self.getNumPartitions() == 1:
+            fileio.TextFile(path).dump(to_stringio(self.collect()))
+            return self
 
         codec_suffix = ''
         if path.endswith(tuple('.' + ending
@@ -1311,22 +1322,14 @@ class RDD(object):
                                for ending in endings)):
             codec_suffix = path[path.rfind('.'):]
 
-        if self.getNumPartitions() == 1:
-            fileio.TextFile(
-                path
-            ).dump(io.StringIO(''.join([
-                '{}\n'.format(xx) for xx in self.toLocalIterator()
-            ])))
-            return self
-
         self.context.runJob(
-            self,
-            lambda tc, x: fileio.TextFile(
-                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
-                                                            codec_suffix))
-            ).dump(io.StringIO(''.join([
-                '{}\n'.format(xx) for xx in x
-            ]))),
+            self.mapPartitions(to_stringio),
+            lambda tc, stringio:
+                fileio.TextFile(os.path.join(path,
+                                             'part-{0:05d}{1}'.format(
+                                                 tc.partitionId(),
+                                                 codec_suffix))
+                                ).dump(stringio),
             resultHandler=list,
         )
         fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()

@@ -8,6 +8,7 @@ import itertools
 import logging
 import pickle
 import struct
+import sys
 import time
 import traceback
 
@@ -45,10 +46,11 @@ def _run_task(task_context, rdd, func, partition):
     try:
         return func(task_context, rdd.compute(partition, task_context))
     except Exception:
-        log.warn('Attempt {} failed for partition {} of {}.'
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        log.warn('Attempt {} failed for partition {} of {} with {}, {}, {}'
                  ''.format(task_context.attempt_number, partition.index,
-                           rdd.name()))
-        traceback.print_exc()
+                           rdd.name(),
+                           exc_type, exc_value, exc_traceback))
 
     if task_context.attempt_number == task_context.max_retries:
         log.error('Partition {} of {} failed.'
