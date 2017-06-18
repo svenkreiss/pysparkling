@@ -106,12 +106,12 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
 
     def test_cache(self):
         r = self.sc.parallelize(range(3), 3)
-        r = r.map(lambda _: time.sleep(0.1)).cache()
+        r = r.map(lambda _: time.sleep(0.5)).cache()
         r.collect()
 
         start = time.time()
         r.collect()
-        self.assertLess(time.time() - start, 0.1)
+        self.assertLess(time.time() - start, 0.5)
 
 
 class ProcessPoolIdlePerformance(unittest.TestCase):
