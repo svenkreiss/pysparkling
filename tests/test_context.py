@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import logging
 import pysparkling
 import unittest
 
@@ -51,3 +52,8 @@ class Context(unittest.TestCase):
 
     def test_version(self):
         self.assertTrue(isinstance(pysparkling.Context().version, str))
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    Context().test_retry()
