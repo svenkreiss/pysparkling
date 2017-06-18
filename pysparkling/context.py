@@ -37,10 +37,10 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.debug('Running stage {} for partition {} of {}.'
-              ''.format(task_context.stage_id,
-                        task_context.partition_id,
-                        rdd.name()))
+    log.info('Running stage {} for partition {} of {}.'
+             ''.format(task_context.stage_id,
+                       task_context.partition_id,
+                       rdd.name()))
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
@@ -337,8 +337,8 @@ class Context(object):
                 cm_serialized,
             )
 
-        for d in self._pool.map(runJob_map,
-                                (prepare(p) for p in partitions)):
+        prepared_partitions = (prepare(p) for p in partitions)
+        for d in self._pool.map(runJob_map, prepared_partitions):
             t_start = time.clock()
             map_result, cache_result, s = self._data_deserializer(d)
             self._stats['driver_deserialize_data'] += (time.clock() -
