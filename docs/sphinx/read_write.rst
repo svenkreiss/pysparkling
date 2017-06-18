@@ -84,7 +84,7 @@ CSV
     def csv_row(data):
         s = io.StringIO()
         csv.writer(s).writerow(data)
-        return s.getvalue()
+        return s.getvalue()[:-1]
 
     (
         rdd
