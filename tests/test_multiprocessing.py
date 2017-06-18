@@ -92,6 +92,18 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
         r = self.sc.parallelize([1, 3, 4]).map(math.sqrt).collect()
         self.assertIn(2, r)
 
+    def test_zipWithIndex(self):
+        """Prevent regression in zipWithIndex().
+
+        Test the case of parallelizing data directly form toLocalIterator()
+        in the multiprocessing case.
+        """
+        r = (self.sc
+             .parallelize([1, 3, 4, 9, 15, 25, 50, 75, 100], 3)
+             .zipWithIndex()
+             .collect())
+        self.assertIn((4, 2), r)
+
     def test_cache(self):
         r = self.sc.parallelize(range(3), 3)
         r = r.map(lambda _: time.sleep(0.1)).cache()
