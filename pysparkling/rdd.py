@@ -26,7 +26,6 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
