@@ -158,7 +158,6 @@ class Context(object):
         :param int numPartitions:
             The number of partitions the data should be split into.
             A partition is a unit of data that is processed at a time.
-            Can be `None`.
 
         :rtype: RDD
         """
@@ -244,25 +243,15 @@ class Context(object):
         if you need everything to be executed, the resultHandler needs to be
         at least ``lambda x: list(x)`` to trigger execution of the generators.
 
-        :param func:
-            Map function. The signature is
+        :param func: Map function with signature
             func(TaskContext, Iterator over elements).
-
-        :param partitions: (optional)
-            List of partitions that are involved. Default is `None`, meaning
+        :param partitions: List of partitions that are involved. `None` means
             the map job is applied to all partitions.
-
-        :param allowLocal: (optional)
-            Allows for local execution. Default is False.
-
-        :param resultHandler: (optional)
-            Process the result from the maps.
-
-        :returns:
-            Result of resultHandler.
-
+        :param allowLocal: Allows local execution.
+        :param resultHandler: Process the result from the maps.
+        :returns: Result of resultHandler.
+        :rtype: list
         """
-
         if not partitions:
             partitions = rdd.partitions()
 
