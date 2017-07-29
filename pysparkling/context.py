@@ -62,12 +62,7 @@ def _run_task(task_context, rdd, func, partition):
 def runJob_map(i):
     (deserializer, data_serializer, data_deserializer,
      serialized_func_rdd, serialized_task_context,
-     serialized_data, serialized_cache_manager) = i
-
-    t_start = time.clock()
-    cache_manager = data_deserializer(serialized_cache_manager)
-    cm_state = cache_manager.stored_idents()
-    t_cache_init = time.clock() - t_start
+     serialized_data) = i
 
     t_start = time.clock()
     func, rdd = deserializer(serialized_func_rdd)
@@ -79,6 +74,7 @@ def runJob_map(i):
 
     t_start = time.clock()
     task_context = deserializer(serialized_task_context)
+    cm_state = task_context.cache_manager.stored_idents()
     t_deserialize_task_context = time.clock() - t_start
 
     t_start = time.clock()
@@ -87,9 +83,8 @@ def runJob_map(i):
 
     return data_serializer((
         result,
-        cache_manager.get_not_in(cm_state),
+        task_context.cache_manager.get_not_in(cm_state),
         {
-            'map_cache_init': t_cache_init,
             'map_deserialize_func': t_deserialize_func,
             'map_deserialize_task_context': t_deserialize_task_context,
             'map_deserialize_data': t_deserialize_data,
@@ -106,10 +101,10 @@ class Context(object):
 
     :param pool: An instance with a ``map(func, iterable)`` method.
     :param serializer:
-        Serializer for functions. Examples are ``pickle.dumps`` and
+        Serializer for functions. Examples are `pickle.dumps` and
         ``dill.dumps``.
     :param deserializer:
-        Deserializer for functions. Examples are ``pickle.loads`` and
+        Deserializer for functions. Examples are `pickle.loads` and
         ``dill.loads``.
     :param data_serializer: Serializer for the data.
     :param data_deserializer: Deserializer for the data.
@@ -160,10 +155,10 @@ class Context(object):
         :param x:
             An iterable (e.g. a list) that represents the data.
 
-        :param int|None numPartitions: (optional)
+        :param int numPartitions:
             The number of partitions the data should be split into.
             A partition is a unit of data that is processed at a time.
-            Can be ``None``.
+            Can be `None`.
 
         :rtype: RDD
         """
@@ -254,7 +249,7 @@ class Context(object):
             func(TaskContext, Iterator over elements).
 
         :param partitions: (optional)
-            List of partitions that are involved. Default is ``None``, meaning
+            List of partitions that are involved. Default is `None`, meaning
             the map job is applied to all partitions.
 
         :param allowLocal: (optional)
@@ -285,6 +280,7 @@ class Context(object):
     def _runJob_local(self, rdd, func, partitions):
         for partition in partitions:
             task_context = TaskContext(
+                cache_manager=self._cache_manager,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,
@@ -303,12 +299,8 @@ class Context(object):
                                                   t_start)
 
             t_start = time.clock()
-            cm_serialized = self._data_deserializer(cm_clone)
-            self._stats['driver_cache_serialize'] += (time.clock() -
-                                                      t_start)
-
-            t_start = time.clock()
             task_context = TaskContext(
+                cache_manager=cm_clone,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,
@@ -330,7 +322,6 @@ class Context(object):
                 serialized_func_rdd,
                 serialized_task_context,
                 serialized_partition,
-                cm_serialized,
             )
 
         prepared_partitions = (prepare(p) for p in partitions)
@@ -408,7 +399,7 @@ class Context(object):
             and multiple expressions separated by ``,``.
 
         :param recordLength:
-            If ``None`` every file is a record, ``int`` means fixed length
+            If `None` every file is a record, ``int`` means fixed length
             records and a ``string`` is used as a format string to ``struct``
             to read the length of variable length binary records.
 

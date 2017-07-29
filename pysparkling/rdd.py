@@ -1,7 +1,4 @@
-"""
-Provides a Python implementation of RDDs.
-
-"""
+"""Provides a Python implementation of RDDs."""
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
@@ -62,9 +59,8 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = {k: v
-             for k, v in self.__dict__.items()
-             if k not in ('_p', 'context')}
+        r = {k: v if k not in ('_p', 'context') else None
+             for k, v in self.__dict__.items()}
         return r
 
     def compute(self, split, task_context):
@@ -1774,12 +1770,11 @@ class PersistedRDD(RDD):
         else:
             cid = (self._rdd_id, split.index)
 
-        cm = self.context._cache_manager
-        if not cm.has(cid):
+        if not task_context.cache_manager.has(cid):
             data = list(self.prev.compute(split, task_context._create_child()))
-            cm.add(cid, data, self.storageLevel)
+            task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
-            data = cm.get(cid)
+            data = task_context.cache_manager.get(cid)
 
         return iter(data)
 
