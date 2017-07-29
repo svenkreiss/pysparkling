@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import pysparkling
+import time
 
 
 class Manip(object):
@@ -28,6 +29,31 @@ def test_cache_empty_partition():
     assert m.count == 10
 
 
+def test_timed_cache():
+    m = Manip()
+
+    # create a timed cache manager
+    cm = pysparkling.TimedCacheManager(timeout=1.0, min_gc_interval=1.0)
+
+    # create a cache entry
+    c = pysparkling.Context(cache_manager=cm)
+    rdd = c.parallelize(range(10), 2)
+    rdd = rdd.map(m.trivial_manip_with_debug).cache()
+    print(rdd.collect())
+    # make sure the cache is working
+    count_before = m.count
+    print(rdd.collect())
+    count_after = m.count
+    assert count_before == count_after
+
+    # wait to have the cache expire
+    time.sleep(1.5)
+    cm.gc()
+    print(rdd.collect())
+    assert m.count > count_after
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_cache_empty_partition()
+    # test_cache_empty_partition()
+    test_timed_cache()

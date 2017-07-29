@@ -5,6 +5,7 @@ from __future__ import (division, absolute_import, print_function,
 
 import logging
 import pickle
+import time
 import zlib
 
 log = logging.getLogger(__name__)
@@ -21,21 +22,8 @@ class CacheManager(object):
     :param deserializer: Use to deserialize cache objects.
     :param checksum: Function returning a checksum.
     """
-    singleton__ = None
 
-    @staticmethod
-    def singleton(max_mem=1.0,
-                  serializer=None, deserializer=None,
-                  checksum=None):
-        if CacheManager.singleton__ is None:
-            CacheManager.singleton__ = CacheManager(max_mem,
-                                                    serializer, deserializer,
-                                                    checksum)
-        return CacheManager.singleton__
-
-    def __init__(self,
-                 max_mem=1.0,
-                 serializer=None, deserializer=None,
+    def __init__(self, max_mem=1.0, serializer=None, deserializer=None,
                  checksum=None):
         self.max_mem = max_mem
         self.serializer = serializer if serializer else pickle.dumps
@@ -103,14 +91,12 @@ class CacheManager(object):
                     v['disk_location'] is not None)]
 
     def clone_contains(self, filter_id):
-        """clone contains
+        """Clone the cache manager and add a subset of the cache to it.
 
         :param filter_id:
             A function returning true for ids that should be returned.
 
-        :returns:
-            A new CacheManager with the entries that contain partial_ident
-            in the ident.
+        :rtype: CacheManager
         """
         cm = CacheManager(self.max_mem,
                           self.serializer, self.deserializer,
@@ -133,3 +119,53 @@ class CacheManager(object):
         self.cache_cnt = 0
         self.cache_mem_size = 0.0
         self.cache_disk_size = 0.0
+
+
+class TimedCacheManager(CacheManager):
+    def __init__(self,
+                 max_mem=1.0,
+                 serializer=None, deserializer=None,
+                 checksum=None, timeout=600.0, min_gc_interval=60.0):
+        super(TimedCacheManager, self).__init__(
+            max_mem, serializer, deserializer, checksum)
+
+        self.timeout = timeout
+        self.last_gc = time.time()
+        self.min_gc_interval = min_gc_interval
+
+    def add(self, ident, obj, storageLevel=None):
+        super(TimedCacheManager, self).add(ident, obj, storageLevel)
+        self.cache_obj[ident]['utc_added_s'] = time.time()
+        self.gc()
+
+    def clone_contains(self, filter_id):
+        """Clone the timed cache manager and add a subset of the cache to it.
+
+        :param filter_id:
+            A function returning true for ids that should be returned.
+
+        :rtype: TimedCacheManager
+        """
+        cm = TimedCacheManager(self.max_mem,
+                               self.serializer, self.deserializer,
+                               self.checksum,
+                               self.timeout, self.min_gc_interval)
+        cm.cache_obj = {i: c
+                        for i, c in self.cache_obj.items()
+                        if filter_id(i)}
+        return cm
+
+    def gc(self):
+        if time.time() - self.min_gc_interval < self.last_gc:
+            return
+
+        log.debug('Looking for timed out cache entries.')
+        threshold_time = time.time() - self.timeout
+        print(self.cache_obj.items())
+        timed_out_ids = {ident
+                         for ident, cache_obj in self.cache_obj.items()
+                         if cache_obj['utc_added_s'] < threshold_time}
+        log.debug('Timed out ids: {}'.format(timed_out_ids))
+        for id_ in timed_out_ids:
+            self.delete(id_)
+        log.debug('Clear done.')

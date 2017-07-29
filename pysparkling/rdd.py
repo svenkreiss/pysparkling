@@ -1,7 +1,4 @@
-"""
-Provides a Python implementation of RDDs.
-
-"""
+"""Provides a Python implementation of RDDs."""
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
@@ -26,7 +23,6 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
@@ -63,9 +59,8 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = {k: v
-             for k, v in self.__dict__.items()
-             if k not in ('_p', 'context')}
+        r = {k: v if k not in ('_p', 'context') else None
+             for k, v in self.__dict__.items()}
         return r
 
     def compute(self, split, task_context):
@@ -186,8 +181,7 @@ class RDD(object):
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> from pysparkling import CacheManager
+        >>> import pysparkling
         >>>
         >>> n_exec = 0
         >>>
@@ -196,31 +190,28 @@ class RDD(object):
         ...     n_exec += 1
         ...     return e*e
         >>>
-        >>> my_rdd = Context().parallelize([1, 2, 3, 4], 2)
-        >>> my_rdd = my_rdd.map(_map).cache()
+        >>> sc = pysparkling.Context()
+        >>> my_rdd = sc.parallelize([1, 2, 3, 4], 2).map(_map).cache()
         >>>
-        >>> logging.info('no exec until here')
-        >>> f = my_rdd.first()
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>>
-        >>> logging.info('executed map on first partition only so far')
-        >>> a = my_rdd.collect()
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>>
-        >>> logging.info('now _map() was executed on all partitions and should'
-        ...              'not be executed again')
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>> (my_rdd.collect(), n_exec)
-        ([1, 4, 9, 16], 4)
+        >>> # no exec until here
+        >>> n_exec
+        0
+        >>> # to get first element, compute the first partition
+        >>> my_rdd.first()
+        1
+        >>> n_exec
+        2
+        >>> # now compute the rest
+        >>> my_rdd.collect()
+        [1, 4, 9, 16]
+        >>> n_exec
+        4
+        >>> # now _map() was executed on all partitions and should
+        >>> # not be executed again
+        >>> my_rdd.collect()
+        [1, 4, 9, 16]
+        >>> n_exec
+        4
         """
         return self.persist()
 
@@ -1779,12 +1770,11 @@ class PersistedRDD(RDD):
         else:
             cid = (self._rdd_id, split.index)
 
-        cm = CacheManager.singleton()
-        if not cm.has(cid):
+        if not task_context.cache_manager.has(cid):
             data = list(self.prev.compute(split, task_context._create_child()))
-            cm.add(cid, data, self.storageLevel)
+            task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
-            data = cm.get(cid)
+            data = task_context.cache_manager.get(cid)
 
         return iter(data)
 
