@@ -62,17 +62,11 @@ def _run_task(task_context, rdd, func, partition):
 def runJob_map(i):
     (deserializer, data_serializer, data_deserializer,
      serialized_func_rdd, serialized_task_context,
-     serialized_data, cache_manager) = i
+     serialized_data, serialized_cache_manager) = i
 
     t_start = time.clock()
-    if cache_manager:
-        if not CacheManager.singleton__:
-            CacheManager.singleton__ = data_deserializer(cache_manager)
-        else:
-            CacheManager.singleton().join(
-                data_deserializer(cache_manager).cache_obj
-            )
-    cm_state = CacheManager.singleton().stored_idents()
+    cache_manager = data_deserializer(serialized_cache_manager)
+    cm_state = cache_manager.stored_idents()
     t_cache_init = time.clock() - t_start
 
     t_start = time.clock()
@@ -93,7 +87,7 @@ def runJob_map(i):
 
     return data_serializer((
         result,
-        CacheManager.singleton().get_not_in(cm_state),
+        cache_manager.get_not_in(cm_state),
         {
             'map_cache_init': t_cache_init,
             'map_deserialize_func': t_deserialize_func,
@@ -121,13 +115,14 @@ class Context(object):
     :param data_deserializer: Deserializer for the data.
     :param int max_retries: maximum number a partition is retried
     :param float retry_wait: seconds to wait between retries
+    :param cache_manager: custom cache manager (like `TimedCacheManager`)
     """
 
     __last_rdd_id = 0
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
-                 max_retries=3, retry_wait=0.0):
+                 max_retries=3, retry_wait=0.0, cache_manager=None):
         if not pool:
             pool = DummyPool()
         if not serializer:
@@ -141,6 +136,7 @@ class Context(object):
         self.max_retries = max_retries
         self.retry_wait = retry_wait
 
+        self._cache_manager = cache_manager or CacheManager()
         self._pool = pool
         self._serializer = serializer
         self._deserializer = deserializer
@@ -297,12 +293,12 @@ class Context(object):
             yield _run_task(task_context, rdd, func, partition)
 
     def _runJob_distributed(self, rdd, func, partitions):
-        cm = CacheManager.singleton()
         serialized_func_rdd = self._serializer((func, rdd))
 
         def prepare(partition):
             t_start = time.clock()
-            cm_clone = cm.clone_contains(lambda i: i[1] == partition.index)
+            cm_clone = self._cache_manager.clone_contains(
+                lambda i: i[1] == partition.index)
             self._stats['driver_cache_clone'] += (time.clock() -
                                                   t_start)
 
@@ -346,7 +342,7 @@ class Context(object):
 
             # join cache
             t_start = time.clock()
-            cm.join(cache_result)
+            self._cache_manager.join(cache_result)
             self._stats['driver_cache_join'] += time.clock() - t_start
 
             # collect stats
