@@ -122,20 +122,31 @@ class CacheManager(object):
 
 
 class TimedCacheManager(CacheManager):
+    """Cache manager with a timeout.
+
+    Assigns a timeout to each item that is stored. Timed out entries are only
+    removed when an :func:`.add` is called (or :func:`gc` is called
+    explicitly).
+
+    :param max_mem: Memory in GB to keep in memory before spilling to disk.
+    :param serializer: Use to serialize cache objects.
+    :param deserializer: Use to deserialize cache objects.
+    :param checksum: Function returning a checksum.
+    :param float timeout: timeout duration in seconds
+    """
     def __init__(self,
                  max_mem=1.0,
                  serializer=None, deserializer=None,
-                 checksum=None, timeout=600.0, min_gc_interval=60.0):
+                 checksum=None, timeout=600.0):
         super(TimedCacheManager, self).__init__(
             max_mem, serializer, deserializer, checksum)
 
         self.timeout = timeout
-        self.last_gc = time.time()
-        self.min_gc_interval = min_gc_interval
+        self._time_added = []  # pairs of (id, timestamp); oldest first
 
     def add(self, ident, obj, storageLevel=None):
         super(TimedCacheManager, self).add(ident, obj, storageLevel)
-        self.cache_obj[ident]['utc_added_s'] = time.time()
+        self._time_added.append((ident, time.time()))
         self.gc()
 
     def clone_contains(self, filter_id):
@@ -148,23 +159,20 @@ class TimedCacheManager(CacheManager):
         """
         cm = TimedCacheManager(self.max_mem,
                                self.serializer, self.deserializer,
-                               self.checksum,
-                               self.timeout, self.min_gc_interval)
+                               self.checksum, self.timeout)
         cm.cache_obj = {i: c
                         for i, c in self.cache_obj.items()
                         if filter_id(i)}
         return cm
 
     def gc(self):
-        if time.time() - self.min_gc_interval < self.last_gc:
-            return
-
+        """Remove timed out entries."""
         log.debug('Looking for timed out cache entries.')
         threshold_time = time.time() - self.timeout
-        timed_out_ids = {ident
-                         for ident, cache_obj in self.cache_obj.items()
-                         if cache_obj['utc_added_s'] < threshold_time}
-        log.debug('Timed out ids: {}'.format(timed_out_ids))
-        for id_ in timed_out_ids:
-            self.delete(id_)
+        while self._time_added:
+            ident, timestamp = self._time_added[0]
+            if timestamp > threshold_time:
+                break
+            self.delete(ident)
+            del self._time_added[0]
         log.debug('Clear done.')
