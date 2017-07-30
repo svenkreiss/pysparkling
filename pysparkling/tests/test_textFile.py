@@ -52,7 +52,7 @@ def test_local_textFile_2():
 def test_local_textFile_name():
     name = Context().textFile('{}/*.py'.format(LOCAL_TEST_PATH)).name()
     print(name)
-    assert name == '{}/*.py'.format(LOCAL_TEST_PATH)
+    assert name.startswith('{}/*.py'.format(LOCAL_TEST_PATH))
 
 
 def test_wholeTextFiles():

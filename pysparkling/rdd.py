@@ -912,12 +912,21 @@ class RDD(object):
         """returns the minimum element"""
         return self.stats().min()
 
+    def _name_only(self):
+        if self._name is not None:
+            return self._name
+
+        prev = getattr(self, 'prev', None)
+        while (prev):
+            if prev._name is not None:
+                return prev._name
+            prev = getattr(prev, 'prev', None)
+
+        return None
+
     def name(self):
         """returns the name of the dataset"""
-        if self._name is None:
-            return 'RDD_{}'.format(self._rdd_id)
-
-        return self._name
+        return '{}_{}'.format(self._name_only() or 'RDD', self._rdd_id)
 
     def partitionBy(self, numPartitions, partitionFunc=None):
         """Return a partitioned copy of this key-value RDD.
@@ -1712,6 +1721,7 @@ class MapPartitionsRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         self.prev = prev
+        self._name = '{}:{}'.format(prev._name_only() or 'RDD', f)
         self.f = f
         self.preservesPartitioning = preservesPartitioning
 
