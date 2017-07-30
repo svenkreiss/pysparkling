@@ -23,6 +23,7 @@ setup(
         'pysparkling.fileio.fs',
         'pysparkling.fileio.codec',
         'pysparkling.streaming',
+        'pysparkling.tests',
     ],
     license='MIT',
     description='Pure Python implementation of the Spark RDD interface.',

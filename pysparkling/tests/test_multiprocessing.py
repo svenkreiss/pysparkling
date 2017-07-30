@@ -28,7 +28,7 @@ class Processor(object):
 
 class LazyTestInjection(object):
     def lazy_execution_test(self):
-        r = self.sc.textFile('tests/test_multiprocessing.py')
+        r = self.sc.textFile(__file__)
 
         processor = Processor()
 

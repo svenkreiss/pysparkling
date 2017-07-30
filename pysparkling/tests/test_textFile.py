@@ -21,11 +21,12 @@ S3_TEST_PATH = os.getenv('S3_TEST_PATH')
 OAUTH2_CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
 GS_TEST_PATH = os.getenv('GS_TEST_PATH')
 HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
+LOCAL_TEST_PATH = os.path.dirname(__file__)
 
 
 def test_cache():
     # this crashes in version 0.2.28
-    lines = Context().textFile('tests/*textFil*.py')
+    lines = Context().textFile('{}/*textFil*.py'.format(LOCAL_TEST_PATH))
     lines = lines.map(lambda l: '-' + l).cache()
     print(len(lines.collect()))
     lines = lines.map(lambda l: '+' + l)
@@ -36,27 +37,29 @@ def test_cache():
 
 
 def test_local_textFile_1():
-    lines = Context().textFile('tests/*textFil*.py').collect()
+    lines = Context().textFile('{}/*textFil*.py'.format(LOCAL_TEST_PATH))
+    lines = lines.collect()
     print(lines)
     assert 'from pysparkling import Context' in lines
 
 
 def test_local_textFile_2():
-    line_count = Context().textFile('tests/*.py').count()
+    line_count = Context().textFile('{}/*.py'.format(LOCAL_TEST_PATH)).count()
     print(line_count)
     assert line_count > 90
 
 
 def test_local_textFile_name():
-    name = Context().textFile('tests/*.py').name()
+    name = Context().textFile('{}/*.py'.format(LOCAL_TEST_PATH)).name()
     print(name)
-    assert name == 'tests/*.py'
+    assert name == '{}/*.py'.format(LOCAL_TEST_PATH)
 
 
 def test_wholeTextFiles():
-    t = Context().wholeTextFiles('tests/*.py').lookup('tests/test_textFile.py')
-    print(t)
-    assert 'test_wholeTextFiles' in t[0]
+    all_files = Context().wholeTextFiles('{}/*.py'.format(LOCAL_TEST_PATH))
+    this_file = all_files.lookup(__file__)
+    print(this_file)
+    assert 'test_wholeTextFiles' in this_file[0]
 
 
 def test_s3_textFile():
@@ -84,7 +87,7 @@ def test_s3_textFile_loop():
         S3_TEST_PATH, int(random.random() * 999999.0)
     )
 
-    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
     rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
@@ -247,12 +250,12 @@ def test_saveAsTextFile_lzma():
 
 
 @unittest.skipIf(py7zlib is None,
-                 "py7zlib import failed, is pylzma installed?")
+                 'py7zlib import failed, is pylzma installed?')
 def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py
     # (brew install p7zip)
-    rdd = Context().textFile('tests/data.7z')
+    rdd = Context().textFile('{}/data.7z'.format(LOCAL_TEST_PATH))
     print(rdd.collect())
     assert 'from pysparkling import Context' in rdd.collect()
 
@@ -260,13 +263,13 @@ def test_read_7z():
 def test_read_tar_gz():
     # file was created with:
     # tar -cvzf data.tar.gz hello.txt
-    rdd = Context().textFile('tests/data.tar.gz')
+    rdd = Context().textFile('{}/data.tar.gz'.format(LOCAL_TEST_PATH))
     print(rdd.collect())
     assert 'Hello pysparkling!' in rdd.collect()
 
 
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
-                 "skip 20news test on Travis")
+                 'skip 20news test on Travis')
 def test_read_tar_gz_20news():
     # 20 news dataset has some '0xff' characters that lead to encoding
     # errors before. Adding this as a test case.
@@ -276,19 +279,22 @@ def test_read_tar_gz_20news():
 
 
 def test_pyspark_compatibility_txt():
-    kv = Context().textFile('tests/pyspark/key_value.txt').collect()
+    kv = Context().textFile(
+        '{}/pyspark/key_value.txt'.format(LOCAL_TEST_PATH)).collect()
     print(kv)
     assert u"('a', 1)" in kv and u"('b', 2)" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_bz2():
-    kv = Context().textFile('tests/pyspark/key_value.txt.bz2').collect()
+    kv = Context().textFile(
+        '{}/pyspark/key_value.txt.bz2'.format(LOCAL_TEST_PATH)).collect()
     print(kv)
     assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_gz():
-    kv = Context().textFile('tests/pyspark/key_value.txt.gz').collect()
+    kv = Context().textFile(
+        '{}/pyspark/key_value.txt.gz'.format(LOCAL_TEST_PATH)).collect()
     print(kv)
     assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
 
