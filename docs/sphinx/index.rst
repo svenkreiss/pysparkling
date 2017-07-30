@@ -11,7 +11,6 @@ Contents
    self
    read_write
    api
-   parallel
    dev
 
 
