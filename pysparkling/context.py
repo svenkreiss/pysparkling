@@ -102,10 +102,9 @@ class Context(object):
     :param pool: An instance with a ``map(func, iterable)`` method.
     :param serializer:
         Serializer for functions. Examples are `pickle.dumps` and
-        ``dill.dumps``.
+        `cloudpickle.dumps`.
     :param deserializer:
-        Deserializer for functions. Examples are `pickle.loads` and
-        ``dill.loads``.
+        Deserializer for functions. For example `pickle.loads`.
     :param data_serializer: Serializer for the data.
     :param data_deserializer: Deserializer for the data.
     :param int max_retries: maximum number a partition is retried

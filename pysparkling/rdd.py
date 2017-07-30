@@ -86,8 +86,8 @@ class RDD(object):
 
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
-            for aggregating ``int`` s and ``float`` s, but any Python object is
-            possible. Can be ``None``.
+            for aggregating `int` s and `float` s, but any Python object is
+            possible.
 
         :param seqOp:
             A reference to a function that combines the current state with a
@@ -126,8 +126,8 @@ class RDD(object):
 
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
-            for aggregating ``int`` s and ``float`` s, but any Python object is
-            possible. Can be ``None``.
+            for aggregating `int` s and `float` s, but any Python object is
+            possible.
 
         :param seqFunc:
             A reference to a function that combines the current state with a
@@ -137,8 +137,7 @@ class RDD(object):
             A reference to a function that combines outputs of seqFunc.
             In the first iteration, the current state is zeroValue.
 
-        :param int numPartitions: (optional)
-            Not used.
+        :param int numPartitions: Not used.
 
         :returns: An RDD with the output of ``combOp`` operations.
         :rtype: RDD
@@ -176,7 +175,7 @@ class RDD(object):
     def cache(self):
         """Once a partition is computed, cache the result.
 
-        Alias for :func:`RDD.persist`.
+        Alias for :func:`~pysparkling.RDD.persist`.
 
 
         Example:
@@ -334,14 +333,14 @@ class RDD(object):
                                    resultHandler=sum)
 
     def countApprox(self):
-        """same as :func:`RDD.count()`
+        """same as :func:`~pysparkling.RDD.count()`
 
         :rtype: int
         """
         return self.count()
 
     def countByKey(self):
-        """returns a ``dict`` containing the count for every key
+        """returns a `dict` containing the count for every key
 
         :rtype: dict
 
@@ -357,7 +356,7 @@ class RDD(object):
         return self.map(lambda r: r[0]).countByValue()
 
     def countByValue(self):
-        """returns a ``dict`` containing the count for every value
+        """returns a `dict` containing the count for every value
 
         :rtype: dict
 
@@ -521,7 +520,7 @@ class RDD(object):
     def foreach(self, f):
         """applies ``f`` to every element
 
-        It does not return a new RDD like :func:`RDD.map()`.
+        It does not return a new RDD like :func:`~pysparkling.RDD.map`.
 
         :param f: Apply a function to every element.
         :rtype: None
@@ -542,7 +541,8 @@ class RDD(object):
     def foreachPartition(self, f):
         """applies ``f`` to every partition
 
-        It does not return a new RDD like :func:`RDD.mapPartitions()`.
+        It does not return a new RDD like
+        :func:`~pysparkling.RDD.mapPartitions`.
 
         :param f: Apply a function to every partition.
         :rtype: None
@@ -554,7 +554,7 @@ class RDD(object):
         """returns the full outer join of two RDDs
 
         The output contains all keys from both input RDDs, with missing
-        keys replaced with None.
+        keys replaced with `None`.
 
         :param RDD other: The RDD to join to this one.
         :param int numPartitions: Number of partitions in the resulting RDD.
@@ -592,7 +592,10 @@ class RDD(object):
         return len(self.partitions())
 
     def getPartitions(self):
-        """returns the partitions of this RDD"""
+        """returns the partitions of this RDD
+
+        :rtype: list
+        """
         return self.partitions()
 
     def groupBy(self, f, numPartitions=None):
@@ -1038,7 +1041,7 @@ class RDD(object):
         :rtype: RDD
 
         .. note::
-            This operation includes a :func:`pysparkling.RDD.groupByKey()`
+            This operation includes a :func:`~pysparkling.RDD.groupByKey()`
             which is a local operation.
 
 
@@ -1070,7 +1073,7 @@ class RDD(object):
 
         :param int numPartitions: Number of partitions in new RDD.
         :param partitionFunc: function that partitions
-        :param ascending: Default is True.
+        :param ascending: Sort order.
         :param keyfunc: Returns the value that will be sorted.
         :rtype: RDD
 
@@ -1330,9 +1333,9 @@ class RDD(object):
         """sort by keyfunc
 
         :param keyfunc: Returns the value that will be sorted.
-        :param ascending: Default is True.
+        :param ascending: Specify sort order.
         :param int numPartitions:
-            Default is None. None means the output will have the same number of
+            `None` means the output will have the same number of
             partitions as the input.
         :rtype: RDD
 
@@ -1365,8 +1368,8 @@ class RDD(object):
                   keyfunc=itemgetter(0)):
         """sort by key
 
-        :param ascending: Default is True.
-        :param int numPartitions: Default is None. None means the output will
+        :param ascending: Sort order.
+        :param int numPartitions: `None` means the output will
             have the same number of partitions as the input.
         :param keyfunc: Returns the value that will be sorted.
         :rtype: RDD
