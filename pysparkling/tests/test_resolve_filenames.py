@@ -5,18 +5,19 @@ import os
 from pysparkling.fileio import File
 
 
+CURRENT_FILE_LOCATION = __file__
+
+
 def test_local_1():
     filenames = File.resolve_filenames(
-        'tests/*'
+        '{}/*'.format(os.path.dirname(CURRENT_FILE_LOCATION))
     )
-    assert 'tests/test_resolve_filenames.py' in filenames
+    assert CURRENT_FILE_LOCATION in filenames
 
 
 def test_local_2():
-    filenames = File.resolve_filenames(
-        'tests/test_resolve_filenames.py'
-    )
-    assert filenames == ['tests/test_resolve_filenames.py']
+    filenames = File.resolve_filenames(CURRENT_FILE_LOCATION)
+    assert filenames == [CURRENT_FILE_LOCATION]
 
 
 def test_s3_1():
