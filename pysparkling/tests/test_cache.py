@@ -33,7 +33,7 @@ def test_timed_cache():
     m = Manip()
 
     # create a timed cache manager
-    cm = pysparkling.TimedCacheManager(timeout=1.0, min_gc_interval=1.0)
+    cm = pysparkling.TimedCacheManager(timeout=1.0)
 
     # create a cache entry
     c = pysparkling.Context(cache_manager=cm)
