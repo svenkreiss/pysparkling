@@ -37,17 +37,17 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.info('Running stage {} for partition {} of {}.'
+    log.info('Running stage {} for partition {} of {} (id: {}).'
              ''.format(task_context.stage_id,
                        task_context.partition_id,
-                       rdd.name()))
+                       rdd.name(), rdd.id()))
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
     except Exception as e:
-        log.warn('Attempt {} failed for partition {} of {}: {}'
+        log.warn('Attempt {} failed for partition {} of {} (id: {}): {}'
                  ''.format(task_context.attempt_number, partition.index,
-                           rdd.name(), traceback.format_exc()))
+                           rdd.name(), rdd.id(), traceback.format_exc()))
 
         if task_context.attempt_number == task_context.max_retries:
             log.error('Partition {} of {} failed.'
