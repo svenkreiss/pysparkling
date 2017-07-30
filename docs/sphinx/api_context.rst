@@ -16,7 +16,7 @@ a common instantiation with `multiprocessing` looks like this:
 
 .. code-block:: python
 
-  c = Context(
+  sc = pysparkling.Context(
       multiprocessing.Pool(4),
       serializer=cloudpickle.dumps,
       deserializer=pickle.loads,
