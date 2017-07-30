@@ -87,7 +87,7 @@ def test_s3_textFile_loop():
         S3_TEST_PATH, int(random.random() * 999999.0)
     )
 
-    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
     rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
@@ -250,12 +250,12 @@ def test_saveAsTextFile_lzma():
 
 
 @unittest.skipIf(py7zlib is None,
-                 "py7zlib import failed, is pylzma installed?")
+                 'py7zlib import failed, is pylzma installed?')
 def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py
     # (brew install p7zip)
-    rdd = Context().textFile('tests/data.7z')
+    rdd = Context().textFile('{}/data.7z'.format(LOCAL_TEST_PATH))
     print(rdd.collect())
     assert 'from pysparkling import Context' in rdd.collect()
 
@@ -269,7 +269,7 @@ def test_read_tar_gz():
 
 
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
-                 "skip 20news test on Travis")
+                 'skip 20news test on Travis')
 def test_read_tar_gz_20news():
     # 20 news dataset has some '0xff' characters that lead to encoding
     # errors before. Adding this as a test case.
