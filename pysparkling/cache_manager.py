@@ -161,7 +161,6 @@ class TimedCacheManager(CacheManager):
 
         log.debug('Looking for timed out cache entries.')
         threshold_time = time.time() - self.timeout
-        print(self.cache_obj.items())
         timed_out_ids = {ident
                          for ident, cache_obj in self.cache_obj.items()
                          if cache_obj['utc_added_s'] < threshold_time}
