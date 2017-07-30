@@ -148,7 +148,7 @@ def test_gs_textFile_loop():
         GS_TEST_PATH, int(random.random() * 999999.0)
     )
 
-    rdd = Context().parallelize("Line {0}".format(n) for n in range(200))
+    rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
     rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
@@ -197,7 +197,7 @@ def test_saveAsTextFile_tar():
     assert '5' in read_rdd.collect()
 
 
-@unittest.skipIf(hasattr(sys, 'pypy_version_info'), "skip on pypy")
+@unittest.skipIf(hasattr(sys, 'pypy_version_info'), 'skip on pypy')
 def test_saveAsTextFile_targz():
     tempFile = tempfile.NamedTemporaryFile(delete=True)
     tempFile.close()
