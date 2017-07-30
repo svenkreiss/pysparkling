@@ -1792,6 +1792,7 @@ class PersistedRDD(RDD):
             data = list(self.prev.compute(split, task_context._create_child()))
             task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
+            log.info('Using cache of RDD {} partition {}.'.format(*cid))
             data = task_context.cache_manager.get(cid)
 
         return iter(data)
