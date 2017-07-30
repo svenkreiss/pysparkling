@@ -37,22 +37,23 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.info('Running stage {} for partition {} of {}.'
+    log.info('Running stage {} for partition {} of {} (id: {}).'
              ''.format(task_context.stage_id,
                        task_context.partition_id,
-                       rdd.name()))
+                       rdd.name(), rdd.id()))
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
-    except Exception:
-        log.warn('Attempt {} failed for partition {} of {}: {}'
+    except Exception as e:
+        log.warn('Attempt {} failed for partition {} of {} (id: {}): {}'
                  ''.format(task_context.attempt_number, partition.index,
-                           rdd.name(), traceback.format_exc()))
+                           rdd.name(), rdd.id(), traceback.format_exc()))
 
-    if task_context.attempt_number == task_context.max_retries:
-        log.error('Partition {} of {} failed.'
-                  ''.format(partition.index, rdd.name()))
-        return []
+        if task_context.attempt_number == task_context.max_retries:
+            log.error('Partition {} of {} failed.'
+                      ''.format(partition.index, rdd.name()))
+            if not task_context.catch_exceptions:
+                raise e
 
     if task_context.retry_wait:
         time.sleep(task_context.retry_wait)
@@ -110,13 +111,15 @@ class Context(object):
     :param int max_retries: maximum number a partition is retried
     :param float retry_wait: seconds to wait between retries
     :param cache_manager: custom cache manager (like `TimedCacheManager`)
+    :param catch_exceptions: whether to catch and silence user space exceptions
     """
 
     __last_rdd_id = 0
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
-                 max_retries=3, retry_wait=0.0, cache_manager=None):
+                 max_retries=3, retry_wait=0.0, cache_manager=None,
+                 catch_exceptions=False):
         if not pool:
             pool = DummyPool()
         if not serializer:
@@ -131,6 +134,7 @@ class Context(object):
         self.retry_wait = retry_wait
 
         self._cache_manager = cache_manager or CacheManager()
+        self._catch_exceptions = catch_exceptions
         self._pool = pool
         self._serializer = serializer
         self._deserializer = deserializer
@@ -269,6 +273,7 @@ class Context(object):
         for partition in partitions:
             task_context = TaskContext(
                 cache_manager=self._cache_manager,
+                catch_exceptions=self._catch_exceptions,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,
@@ -289,6 +294,7 @@ class Context(object):
             t_start = time.clock()
             task_context = TaskContext(
                 cache_manager=cm_clone,
+                catch_exceptions=self._catch_exceptions,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,

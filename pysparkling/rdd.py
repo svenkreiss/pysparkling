@@ -677,8 +677,8 @@ class RDD(object):
         return (buckets, h)
 
     def id(self):
-        # not implemented yet
-        return None
+        """the id of this RDD"""
+        return self._rdd_id
 
     def intersection(self, other):
         """intersection of this and other RDD
@@ -826,7 +826,7 @@ class RDD(object):
             self,
             MapF(f),
             preservesPartitioning=True,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapPartitions(self, f, preservesPartitioning=False):
         """map partitions
@@ -848,7 +848,7 @@ class RDD(object):
             self,
             lambda tc, i, x: f(x),
             preservesPartitioning=preservesPartitioning,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
         """map partitions with index
@@ -870,7 +870,7 @@ class RDD(object):
             self,
             lambda tc, i, x: f(i, x),
             preservesPartitioning=preservesPartitioning,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapValues(self, f):
         """map values in a pair dataset
@@ -882,7 +882,7 @@ class RDD(object):
             self,
             lambda tc, i, x: ((e[0], f(e[1])) for e in x),
             preservesPartitioning=True,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def max(self):
         """returns the maximum element
@@ -914,10 +914,16 @@ class RDD(object):
 
     def name(self):
         """returns the name of the dataset"""
-        if self._name is None:
-            return 'RDD_{}'.format(self._rdd_id)
+        if self._name is not None:
+            return self._name
 
-        return self._name
+        prev = getattr(self, 'prev', None)
+        while (prev):
+            if prev._name is not None:
+                return prev._name
+            prev = getattr(prev, 'prev', None)
+
+        return 'RDD'
 
     def partitionBy(self, numPartitions, partitionFunc=None):
         """Return a partitioned copy of this key-value RDD.
@@ -1329,6 +1335,14 @@ class RDD(object):
         fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
+    def setName(self, name):
+        """Assign a new name to this RDD.
+
+        :rtype: RDD
+        """
+        self._name = name
+        return self
+
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
         """sort by keyfunc
 
@@ -1712,6 +1726,7 @@ class MapPartitionsRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         self.prev = prev
+        self._name = '{}:{}'.format(prev.name(), f)
         self.f = f
         self.preservesPartitioning = preservesPartitioning
 
@@ -1777,6 +1792,7 @@ class PersistedRDD(RDD):
             data = list(self.prev.compute(split, task_context._create_child()))
             task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
+            log.info('Using cache of RDD {} partition {}.'.format(*cid))
             data = task_context.cache_manager.get(cid)
 
         return iter(data)

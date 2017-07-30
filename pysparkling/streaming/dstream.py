@@ -299,9 +299,11 @@ class DStream(object):
         [3]
         [8]
         """
-        return self.mapPartitions(
-            lambda p: (f(e) for e in p),
-            preservesPartitioning,
+        return (
+            self
+            .mapPartitions(lambda p: (f(e) for e in p), preservesPartitioning)
+            .transform(lambda rdd:
+                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
         )
 
     def mapPartitions(self, f, preservesPartitioning=False):
@@ -310,8 +312,12 @@ class DStream(object):
         :param f: mapping function
         :rtype: DStream
         """
-        return self.mapPartitionsWithIndex(lambda i, p: f(p),
-                                           preservesPartitioning)
+        return (
+            self
+            .mapPartitionsWithIndex(lambda i, p: f(p), preservesPartitioning)
+            .transform(lambda rdd:
+                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
+        )
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
         """Apply a map function that takes an index and the data.
