@@ -65,7 +65,7 @@ class RDD(object):
     def __getstate__(self):
         r = {k: v
              for k, v in self.__dict__.items()
-             if k not in ('_p', 'context')}
+             if k not in ('_p',)}
         return r
 
     def compute(self, split, task_context):

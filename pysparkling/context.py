@@ -151,6 +151,12 @@ class Context(object):
 
         self.version = PYSPARKLING_VERSION
 
+    def __getstate__(self):
+        r = {k: v
+             for k, v in self.__dict__.items()
+             if k not in ('_pool',)}
+        return r
+
     def broadcast(self, x):
         return Broadcast(x)
 
