@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import operator
+import pprint as py_pprint
 
 from ..rdd import EmptyRDD
 
@@ -367,7 +368,7 @@ class DStream(object):
             print('>>> Time: {}'.format(time_))
             data = rdd.take(num + 1)
             for d in data[:num]:
-                print(d)
+                py_pprint.pprint(d)
             if len(data) > num:
                 print('...')
             print('')
