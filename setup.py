@@ -47,6 +47,7 @@ setup(
             'doctest-ignore-unicode>=0.1.2',
             'futures>=3.0.1',
             'hacking>=0.11.0',
+            'memory-profiler>=0.47',
             'nose>=1.3.4',
             'tornado>=4.3',
         ]
