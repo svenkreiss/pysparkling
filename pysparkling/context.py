@@ -112,6 +112,7 @@ class Context(object):
     :param float retry_wait: seconds to wait between retries
     :param cache_manager: custom cache manager (like `TimedCacheManager`)
     :param catch_exceptions: whether to catch and silence user space exceptions
+    :param boolean strict_compatibility: strict PySpark combatibility
     """
 
     __last_rdd_id = 0
@@ -119,19 +120,22 @@ class Context(object):
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
                  max_retries=3, retry_wait=0.0, cache_manager=None,
-                 catch_exceptions=False):
-        if not pool:
+                 catch_exceptions=False, strict_compatibility=False):
+        if pool is None:
             pool = DummyPool()
-        if not serializer:
+        if serializer is None:
             serializer = unit_fn
-        if not deserializer:
+        if deserializer is None:
             deserializer = unit_fn
-        if not data_serializer:
+        if data_serializer is None:
             data_serializer = unit_fn
-        if not data_deserializer:
+        if data_deserializer is None:
             data_deserializer = unit_fn
         self.max_retries = max_retries
         self.retry_wait = retry_wait
+
+        self.strict_compatibility = strict_compatibility
+        self.locked = False
 
         self._cache_manager = cache_manager or CacheManager()
         self._catch_exceptions = catch_exceptions
@@ -146,9 +150,8 @@ class Context(object):
         self.version = PYSPARKLING_VERSION
 
     def __getstate__(self):
-        r = {k: v
-             for k, v in self.__dict__.items()
-             if k not in ('_pool',)}
+        r = {k: v if k not in ('_pool',) else None
+             for k, v in self.__dict__.items()}
         return r
 
     def broadcast(self, x):
@@ -264,16 +267,21 @@ class Context(object):
         if not partitions:
             partitions = rdd.partitions()
 
+        if self.strict_compatibility is True:
+            self.locked = True
+
         # this is the place to insert proper schedulers
         if allowLocal or isinstance(self._pool, DummyPool):
             map_result = self._runJob_local(rdd, func, partitions)
         else:
             map_result = self._runJob_distributed(rdd, func, partitions)
 
-        if resultHandler is not None:
-            return resultHandler(map_result)
+        result = (resultHandler(map_result) if resultHandler is not None
+                  else list(map_result))
 
-        return list(map_result)  # convert to list to execute on all partitions
+        self.locked = False
+
+        return result
 
     def _runJob_local(self, rdd, func, partitions):
         for partition in partitions:
