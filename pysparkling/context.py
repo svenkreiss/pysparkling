@@ -113,7 +113,6 @@ class Context(object):
     :param float retry_wait: seconds to wait between retries
     :param cache_manager: custom cache manager (like `TimedCacheManager`)
     :param catch_exceptions: whether to catch and silence user space exceptions
-    :param boolean strict_compatibility: strict PySpark combatibility
     """
 
     __last_rdd_id = 0
