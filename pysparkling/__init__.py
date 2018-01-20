@@ -3,9 +3,6 @@
 
 __version__ = '0.4.6'
 
-from .exceptions import (FileAlreadyExistsException,
-                         ConnectionException)
-
 from .rdd import RDD
 from .context import Context
 from .broadcast import Broadcast
@@ -14,8 +11,8 @@ from .cache_manager import CacheManager, TimedCacheManager
 
 from . import fileio
 from . import streaming
+from . import exceptions
 
-__all__ = ['FileAlreadyExistsException', 'ConnectionException',
-           'RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager',
+__all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager',
            'TimedCacheManager',
-           'fileio', 'streaming']
+           'exceptions', 'fileio', 'streaming']

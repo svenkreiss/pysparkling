@@ -1,9 +1,13 @@
 
-class FileAlreadyExistsException(Exception):
+class ConnectionException(Exception):
     pass
 
 
-class ConnectionException(Exception):
+class ContextIsLockedException(Exception):
+    pass
+
+
+class FileAlreadyExistsException(Exception):
     pass
 
 
