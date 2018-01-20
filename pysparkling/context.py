@@ -232,11 +232,11 @@ class Context(object):
         log.debug('pickleFile() resolved "{0}" to {1} files.'
                   ''.format(name, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.flatMap(
             lambda f_name: pickle.load(File(f_name).load())
         )
@@ -380,11 +380,11 @@ class Context(object):
         log.debug('binaryFile() resolved "{0}" to {1} files.'
                   ''.format(path, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.map(lambda f_name:
                                 (f_name, File(f_name).load().read()))
         rdd._name = path
@@ -479,13 +479,13 @@ class Context(object):
         log.debug('textFile() resolved "{0}" to {1} files.'
                   ''.format(filename, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
         encoding = 'utf8' if use_unicode else 'ascii'
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.flatMap(
             lambda f_name:
             TextFile(f_name).load(encoding=encoding).read().splitlines()
@@ -527,14 +527,14 @@ class Context(object):
         log.debug('wholeTextFiles() resolved "{0}" to {1} files.'
                   ''.format(path, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
         encoding = 'utf8' if use_unicode else 'ascii'
         rdd_filenames = self.parallelize(
-            [(f_name, encoding) for f_name in resolved_names],
-            num_partitions,
+            [(f_name, encoding) for f_name in sorted(resolved_names)],
+            n_partitions,
         )
         rdd = rdd_filenames.map(map_whole_text_file)
         rdd._name = path
