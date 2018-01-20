@@ -14,7 +14,7 @@ __all__ = ['FileSystem', 'GS', 'Hdfs', 'Http', 'Local', 'S3']
 FILE_EXTENSIONS = [
     (('file', ''), Local),
     (('s3', 's3n'), S3),
-    (('gs'), GS),
+    (('gs', 'gcs'), GS),
     (('http', 'https'), Http),
     (('hdfs'), Hdfs),
 ]
