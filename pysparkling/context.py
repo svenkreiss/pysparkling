@@ -121,7 +121,7 @@ class Context(object):
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
                  max_retries=3, retry_wait=0.0, cache_manager=None,
-                 catch_exceptions=False, strict_compatibility=False):
+                 catch_exceptions=False):
         if pool is None:
             pool = DummyPool()
         if serializer is None:
@@ -135,9 +135,6 @@ class Context(object):
         self.max_retries = max_retries
         self.retry_wait = retry_wait
 
-        self.strict_compatibility = strict_compatibility
-        self.locked = False
-
         self._cache_manager = cache_manager or CacheManager()
         self._catch_exceptions = catch_exceptions
         self._pool = pool
@@ -147,6 +144,7 @@ class Context(object):
         self._data_deserializer = data_deserializer
         self._s3_conn = None
         self._stats = defaultdict(float)
+        self.locked = False
 
         self.version = PYSPARKLING_VERSION
 
@@ -268,10 +266,10 @@ class Context(object):
         if not partitions:
             partitions = rdd.partitions()
 
+        # acquire lock
         if self.locked:
             raise ContextIsLockedException
-        if self.strict_compatibility is True:
-            self.locked = True
+        self.locked = True
 
         # this is the place to insert proper schedulers
         if allowLocal or isinstance(self._pool, DummyPool):
@@ -282,6 +280,7 @@ class Context(object):
         result = (resultHandler(map_result) if resultHandler is not None
                   else list(map_result))
 
+        # release lock
         self.locked = False
 
         return result

@@ -12,7 +12,7 @@ class Context(unittest.TestCase):
 
     def test_lock1(self):
         """Should not be able to create a new RDD inside a map operation."""
-        sc = pysparkling.Context(strict_compatibility=True)
+        sc = pysparkling.Context()
         self.assertRaises(
             pysparkling.exceptions.ContextIsLockedException,
             lambda: (sc
@@ -23,7 +23,7 @@ class Context(unittest.TestCase):
 
     def test_lock2(self):
         """Should not be able to create RDDs containing RDDs."""
-        sc = pysparkling.Context(strict_compatibility=True)
+        sc = pysparkling.Context()
 
         def parallelize_in_parallelize():
             o = sc.parallelize(sc.parallelize(range(x)) for x in range(5))
