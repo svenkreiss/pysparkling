@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import operator
+import pprint as py_pprint
 
 from ..rdd import EmptyRDD
 
@@ -299,9 +300,11 @@ class DStream(object):
         [3]
         [8]
         """
-        return self.mapPartitions(
-            lambda p: (f(e) for e in p),
-            preservesPartitioning,
+        return (
+            self
+            .mapPartitions(lambda p: (f(e) for e in p), preservesPartitioning)
+            .transform(lambda rdd:
+                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
         )
 
     def mapPartitions(self, f, preservesPartitioning=False):
@@ -310,8 +313,12 @@ class DStream(object):
         :param f: mapping function
         :rtype: DStream
         """
-        return self.mapPartitionsWithIndex(lambda i, p: f(p),
-                                           preservesPartitioning)
+        return (
+            self
+            .mapPartitionsWithIndex(lambda i, p: f(p), preservesPartitioning)
+            .transform(lambda rdd:
+                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
+        )
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
         """Apply a map function that takes an index and the data.
@@ -361,7 +368,7 @@ class DStream(object):
             print('>>> Time: {}'.format(time_))
             data = rdd.take(num + 1)
             for d in data[:num]:
-                print(d)
+                py_pprint.pprint(d)
             if len(data) > num:
                 print('...')
             print('')

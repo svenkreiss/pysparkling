@@ -1,7 +1,4 @@
-"""
-Provides a Python implementation of RDDs.
-
-"""
+"""Provides a Python implementation of RDDs."""
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
@@ -26,7 +23,6 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .cache_manager import CacheManager
 from .exceptions import FileAlreadyExistsException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
@@ -63,9 +59,8 @@ class RDD(object):
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = {k: v
-             for k, v in self.__dict__.items()
-             if k not in ('_p',)}
+        r = {k: v if k not in ('_p',) else None
+             for k, v in self.__dict__.items()}
         return r
 
     def compute(self, split, task_context):
@@ -91,8 +86,8 @@ class RDD(object):
 
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
-            for aggregating ``int`` s and ``float`` s, but any Python object is
-            possible. Can be ``None``.
+            for aggregating `int` s and `float` s, but any Python object is
+            possible.
 
         :param seqOp:
             A reference to a function that combines the current state with a
@@ -131,8 +126,8 @@ class RDD(object):
 
         :param zeroValue:
             The initial value to an aggregation, for example ``0`` or ``0.0``
-            for aggregating ``int`` s and ``float`` s, but any Python object is
-            possible. Can be ``None``.
+            for aggregating `int` s and `float` s, but any Python object is
+            possible.
 
         :param seqFunc:
             A reference to a function that combines the current state with a
@@ -142,8 +137,7 @@ class RDD(object):
             A reference to a function that combines outputs of seqFunc.
             In the first iteration, the current state is zeroValue.
 
-        :param int numPartitions: (optional)
-            Not used.
+        :param int numPartitions: Not used.
 
         :returns: An RDD with the output of ``combOp`` operations.
         :rtype: RDD
@@ -181,13 +175,12 @@ class RDD(object):
     def cache(self):
         """Once a partition is computed, cache the result.
 
-        Alias for :func:`RDD.persist`.
+        Alias for :func:`~pysparkling.RDD.persist`.
 
 
         Example:
 
-        >>> from pysparkling import Context
-        >>> from pysparkling import CacheManager
+        >>> import pysparkling
         >>>
         >>> n_exec = 0
         >>>
@@ -196,31 +189,28 @@ class RDD(object):
         ...     n_exec += 1
         ...     return e*e
         >>>
-        >>> my_rdd = Context().parallelize([1, 2, 3, 4], 2)
-        >>> my_rdd = my_rdd.map(_map).cache()
+        >>> sc = pysparkling.Context()
+        >>> my_rdd = sc.parallelize([1, 2, 3, 4], 2).map(_map).cache()
         >>>
-        >>> logging.info('no exec until here')
-        >>> f = my_rdd.first()
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>>
-        >>> logging.info('executed map on first partition only so far')
-        >>> a = my_rdd.collect()
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>>
-        >>> logging.info('now _map() was executed on all partitions and should'
-        ...              'not be executed again')
-        >>> logging.info('available caches in {1}: {0}'.format(
-        ...     CacheManager.singleton().stored_idents(),
-        ...     CacheManager.singleton(),
-        ... ))
-        >>> (my_rdd.collect(), n_exec)
-        ([1, 4, 9, 16], 4)
+        >>> # no exec until here
+        >>> n_exec
+        0
+        >>> # to get first element, compute the first partition
+        >>> my_rdd.first()
+        1
+        >>> n_exec
+        2
+        >>> # now compute the rest
+        >>> my_rdd.collect()
+        [1, 4, 9, 16]
+        >>> n_exec
+        4
+        >>> # now _map() was executed on all partitions and should
+        >>> # not be executed again
+        >>> my_rdd.collect()
+        [1, 4, 9, 16]
+        >>> n_exec
+        4
         """
         return self.persist()
 
@@ -343,14 +333,14 @@ class RDD(object):
                                    resultHandler=sum)
 
     def countApprox(self):
-        """same as :func:`RDD.count()`
+        """same as :func:`~pysparkling.RDD.count()`
 
         :rtype: int
         """
         return self.count()
 
     def countByKey(self):
-        """returns a ``dict`` containing the count for every key
+        """returns a `dict` containing the count for every key
 
         :rtype: dict
 
@@ -366,7 +356,7 @@ class RDD(object):
         return self.map(lambda r: r[0]).countByValue()
 
     def countByValue(self):
-        """returns a ``dict`` containing the count for every value
+        """returns a `dict` containing the count for every value
 
         :rtype: dict
 
@@ -530,7 +520,7 @@ class RDD(object):
     def foreach(self, f):
         """applies ``f`` to every element
 
-        It does not return a new RDD like :func:`RDD.map()`.
+        It does not return a new RDD like :func:`~pysparkling.RDD.map`.
 
         :param f: Apply a function to every element.
         :rtype: None
@@ -551,7 +541,8 @@ class RDD(object):
     def foreachPartition(self, f):
         """applies ``f`` to every partition
 
-        It does not return a new RDD like :func:`RDD.mapPartitions()`.
+        It does not return a new RDD like
+        :func:`~pysparkling.RDD.mapPartitions`.
 
         :param f: Apply a function to every partition.
         :rtype: None
@@ -563,7 +554,7 @@ class RDD(object):
         """returns the full outer join of two RDDs
 
         The output contains all keys from both input RDDs, with missing
-        keys replaced with None.
+        keys replaced with `None`.
 
         :param RDD other: The RDD to join to this one.
         :param int numPartitions: Number of partitions in the resulting RDD.
@@ -601,7 +592,10 @@ class RDD(object):
         return len(self.partitions())
 
     def getPartitions(self):
-        """returns the partitions of this RDD"""
+        """returns the partitions of this RDD
+
+        :rtype: list
+        """
         return self.partitions()
 
     def groupBy(self, f, numPartitions=None):
@@ -683,8 +677,8 @@ class RDD(object):
         return (buckets, h)
 
     def id(self):
-        # not implemented yet
-        return None
+        """the id of this RDD"""
+        return self._rdd_id
 
     def intersection(self, other):
         """intersection of this and other RDD
@@ -832,7 +826,7 @@ class RDD(object):
             self,
             MapF(f),
             preservesPartitioning=True,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapPartitions(self, f, preservesPartitioning=False):
         """map partitions
@@ -854,7 +848,7 @@ class RDD(object):
             self,
             lambda tc, i, x: f(x),
             preservesPartitioning=preservesPartitioning,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
         """map partitions with index
@@ -876,7 +870,7 @@ class RDD(object):
             self,
             lambda tc, i, x: f(i, x),
             preservesPartitioning=preservesPartitioning,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def mapValues(self, f):
         """map values in a pair dataset
@@ -888,7 +882,7 @@ class RDD(object):
             self,
             lambda tc, i, x: ((e[0], f(e[1])) for e in x),
             preservesPartitioning=True,
-        )
+        ).setName('{}:{}'.format(self.name(), f))
 
     def max(self):
         """returns the maximum element
@@ -920,10 +914,16 @@ class RDD(object):
 
     def name(self):
         """returns the name of the dataset"""
-        if self._name is None:
-            return 'RDD_{}'.format(self._rdd_id)
+        if self._name is not None:
+            return self._name
 
-        return self._name
+        prev = getattr(self, 'prev', None)
+        while (prev):
+            if prev._name is not None:
+                return prev._name
+            prev = getattr(prev, 'prev', None)
+
+        return 'RDD'
 
     def partitionBy(self, numPartitions, partitionFunc=None):
         """Return a partitioned copy of this key-value RDD.
@@ -1047,7 +1047,7 @@ class RDD(object):
         :rtype: RDD
 
         .. note::
-            This operation includes a :func:`pysparkling.RDD.groupByKey()`
+            This operation includes a :func:`~pysparkling.RDD.groupByKey()`
             which is a local operation.
 
 
@@ -1079,7 +1079,7 @@ class RDD(object):
 
         :param int numPartitions: Number of partitions in new RDD.
         :param partitionFunc: function that partitions
-        :param ascending: Default is True.
+        :param ascending: Sort order.
         :param keyfunc: Returns the value that will be sorted.
         :rtype: RDD
 
@@ -1335,13 +1335,21 @@ class RDD(object):
         fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()
         return self
 
+    def setName(self, name):
+        """Assign a new name to this RDD.
+
+        :rtype: RDD
+        """
+        self._name = name
+        return self
+
     def sortBy(self, keyfunc, ascending=True, numPartitions=None):
         """sort by keyfunc
 
         :param keyfunc: Returns the value that will be sorted.
-        :param ascending: Default is True.
+        :param ascending: Specify sort order.
         :param int numPartitions:
-            Default is None. None means the output will have the same number of
+            `None` means the output will have the same number of
             partitions as the input.
         :rtype: RDD
 
@@ -1374,8 +1382,8 @@ class RDD(object):
                   keyfunc=itemgetter(0)):
         """sort by key
 
-        :param ascending: Default is True.
-        :param int numPartitions: Default is None. None means the output will
+        :param ascending: Sort order.
+        :param int numPartitions: `None` means the output will
             have the same number of partitions as the input.
         :param keyfunc: Returns the value that will be sorted.
         :rtype: RDD
@@ -1718,6 +1726,7 @@ class MapPartitionsRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         self.prev = prev
+        self._name = '{}:{}'.format(prev.name(), f)
         self.f = f
         self.preservesPartitioning = preservesPartitioning
 
@@ -1779,12 +1788,12 @@ class PersistedRDD(RDD):
         else:
             cid = (self._rdd_id, split.index)
 
-        cm = CacheManager.singleton()
-        if not cm.has(cid):
+        if not task_context.cache_manager.has(cid):
             data = list(self.prev.compute(split, task_context._create_child()))
-            cm.add(cid, data, self.storageLevel)
+            task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
-            data = cm.get(cid)
+            log.info('Using cache of RDD {} partition {}.'.format(*cid))
+            data = task_context.cache_manager.get(cid)
 
         return iter(data)
 

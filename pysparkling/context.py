@@ -37,22 +37,23 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.info('Running stage {} for partition {} of {}.'
+    log.info('Running stage {} for partition {} of {} (id: {}).'
              ''.format(task_context.stage_id,
                        task_context.partition_id,
-                       rdd.name()))
+                       rdd.name(), rdd.id()))
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
-    except Exception:
-        log.warn('Attempt {} failed for partition {} of {}: {}'
+    except Exception as e:
+        log.warn('Attempt {} failed for partition {} of {} (id: {}): {}'
                  ''.format(task_context.attempt_number, partition.index,
-                           rdd.name(), traceback.format_exc()))
+                           rdd.name(), rdd.id(), traceback.format_exc()))
 
-    if task_context.attempt_number == task_context.max_retries:
-        log.error('Partition {} of {} failed.'
-                  ''.format(partition.index, rdd.name()))
-        return []
+        if task_context.attempt_number == task_context.max_retries:
+            log.error('Partition {} of {} failed.'
+                      ''.format(partition.index, rdd.name()))
+            if not task_context.catch_exceptions:
+                raise e
 
     if task_context.retry_wait:
         time.sleep(task_context.retry_wait)
@@ -62,18 +63,7 @@ def _run_task(task_context, rdd, func, partition):
 def runJob_map(i):
     (deserializer, data_serializer, data_deserializer,
      serialized_func_rdd, serialized_task_context,
-     serialized_data, cache_manager) = i
-
-    t_start = time.clock()
-    if cache_manager:
-        if not CacheManager.singleton__:
-            CacheManager.singleton__ = data_deserializer(cache_manager)
-        else:
-            CacheManager.singleton().join(
-                data_deserializer(cache_manager).cache_obj
-            )
-    cm_state = CacheManager.singleton().stored_idents()
-    t_cache_init = time.clock() - t_start
+     serialized_data) = i
 
     t_start = time.clock()
     func, rdd = deserializer(serialized_func_rdd)
@@ -85,6 +75,7 @@ def runJob_map(i):
 
     t_start = time.clock()
     task_context = deserializer(serialized_task_context)
+    cm_state = task_context.cache_manager.stored_idents()
     t_deserialize_task_context = time.clock() - t_start
 
     t_start = time.clock()
@@ -93,9 +84,8 @@ def runJob_map(i):
 
     return data_serializer((
         result,
-        CacheManager.singleton().get_not_in(cm_state),
+        task_context.cache_manager.get_not_in(cm_state),
         {
-            'map_cache_init': t_cache_init,
             'map_deserialize_func': t_deserialize_func,
             'map_deserialize_task_context': t_deserialize_task_context,
             'map_deserialize_data': t_deserialize_data,
@@ -112,22 +102,24 @@ class Context(object):
 
     :param pool: An instance with a ``map(func, iterable)`` method.
     :param serializer:
-        Serializer for functions. Examples are ``pickle.dumps`` and
-        ``dill.dumps``.
+        Serializer for functions. Examples are `pickle.dumps` and
+        `cloudpickle.dumps`.
     :param deserializer:
-        Deserializer for functions. Examples are ``pickle.loads`` and
-        ``dill.loads``.
+        Deserializer for functions. For example `pickle.loads`.
     :param data_serializer: Serializer for the data.
     :param data_deserializer: Deserializer for the data.
     :param int max_retries: maximum number a partition is retried
     :param float retry_wait: seconds to wait between retries
+    :param cache_manager: custom cache manager (like `TimedCacheManager`)
+    :param catch_exceptions: whether to catch and silence user space exceptions
     """
 
     __last_rdd_id = 0
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
-                 max_retries=3, retry_wait=0.0):
+                 max_retries=3, retry_wait=0.0, cache_manager=None,
+                 catch_exceptions=False):
         if not pool:
             pool = DummyPool()
         if not serializer:
@@ -141,6 +133,8 @@ class Context(object):
         self.max_retries = max_retries
         self.retry_wait = retry_wait
 
+        self._cache_manager = cache_manager or CacheManager()
+        self._catch_exceptions = catch_exceptions
         self._pool = pool
         self._serializer = serializer
         self._deserializer = deserializer
@@ -170,10 +164,9 @@ class Context(object):
         :param x:
             An iterable (e.g. a list) that represents the data.
 
-        :param int|None numPartitions: (optional)
+        :param int numPartitions:
             The number of partitions the data should be split into.
             A partition is a unit of data that is processed at a time.
-            Can be ``None``.
 
         :rtype: RDD
         """
@@ -259,25 +252,15 @@ class Context(object):
         if you need everything to be executed, the resultHandler needs to be
         at least ``lambda x: list(x)`` to trigger execution of the generators.
 
-        :param func:
-            Map function. The signature is
+        :param func: Map function with signature
             func(TaskContext, Iterator over elements).
-
-        :param partitions: (optional)
-            List of partitions that are involved. Default is ``None``, meaning
+        :param partitions: List of partitions that are involved. `None` means
             the map job is applied to all partitions.
-
-        :param allowLocal: (optional)
-            Allows for local execution. Default is False.
-
-        :param resultHandler: (optional)
-            Process the result from the maps.
-
-        :returns:
-            Result of resultHandler.
-
+        :param allowLocal: Allows local execution.
+        :param resultHandler: Process the result from the maps.
+        :returns: Result of resultHandler.
+        :rtype: list
         """
-
         if not partitions:
             partitions = rdd.partitions()
 
@@ -295,6 +278,8 @@ class Context(object):
     def _runJob_local(self, rdd, func, partitions):
         for partition in partitions:
             task_context = TaskContext(
+                cache_manager=self._cache_manager,
+                catch_exceptions=self._catch_exceptions,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,
@@ -303,22 +288,19 @@ class Context(object):
             yield _run_task(task_context, rdd, func, partition)
 
     def _runJob_distributed(self, rdd, func, partitions):
-        cm = CacheManager.singleton()
         serialized_func_rdd = self._serializer((func, rdd))
 
         def prepare(partition):
             t_start = time.clock()
-            cm_clone = cm.clone_contains(lambda i: i[1] == partition.index)
+            cm_clone = self._cache_manager.clone_contains(
+                lambda i: i[1] == partition.index)
             self._stats['driver_cache_clone'] += (time.clock() -
                                                   t_start)
 
             t_start = time.clock()
-            cm_serialized = self._data_deserializer(cm_clone)
-            self._stats['driver_cache_serialize'] += (time.clock() -
-                                                      t_start)
-
-            t_start = time.clock()
             task_context = TaskContext(
+                cache_manager=cm_clone,
+                catch_exceptions=self._catch_exceptions,
                 stage_id=0,
                 partition_id=partition.index,
                 max_retries=self.max_retries,
@@ -340,7 +322,6 @@ class Context(object):
                 serialized_func_rdd,
                 serialized_task_context,
                 serialized_partition,
-                cm_serialized,
             )
 
         prepared_partitions = (prepare(p) for p in partitions)
@@ -352,7 +333,7 @@ class Context(object):
 
             # join cache
             t_start = time.clock()
-            cm.join(cache_result)
+            self._cache_manager.join(cache_result)
             self._stats['driver_cache_join'] += time.clock() - t_start
 
             # collect stats
@@ -418,7 +399,7 @@ class Context(object):
             and multiple expressions separated by ``,``.
 
         :param recordLength:
-            If ``None`` every file is a record, ``int`` means fixed length
+            If `None` every file is a record, ``int`` means fixed length
             records and a ``string`` is used as a format string to ``struct``
             to read the length of variable length binary records.
 
