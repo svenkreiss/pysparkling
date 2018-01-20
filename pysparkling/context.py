@@ -14,6 +14,7 @@ import traceback
 from . import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
 from .cache_manager import CacheManager
+from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
 from .rdd import RDD, EmptyRDD
@@ -267,6 +268,8 @@ class Context(object):
         if not partitions:
             partitions = rdd.partitions()
 
+        if self.locked:
+            raise ContextIsLockedException
         if self.strict_compatibility is True:
             self.locked = True
 
