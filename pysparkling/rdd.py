@@ -23,7 +23,7 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .exceptions import FileAlreadyExistsException
+from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
@@ -53,13 +53,15 @@ class RDD(object):
     """
 
     def __init__(self, partitions, ctx):
+        if ctx.locked:
+            raise ContextIsLockedException
         self._p = list(partitions)
         self.context = ctx
         self._name = None
         self._rdd_id = ctx.newRddId()
 
     def __getstate__(self):
-        r = {k: v if k not in ('_p', 'context') else None
+        r = {k: v if k not in ('_p',) else None
              for k, v in self.__dict__.items()}
         return r
 

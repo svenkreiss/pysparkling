@@ -10,6 +10,30 @@ class Context(unittest.TestCase):
         b = pysparkling.Context().broadcast([1, 2, 3])
         self.assertEqual(b.value[0], 1)
 
+    def test_lock1(self):
+        """Should not be able to create a new RDD inside a map operation."""
+        sc = pysparkling.Context()
+        self.assertRaises(
+            pysparkling.exceptions.ContextIsLockedException,
+            lambda: (sc
+                     .parallelize(range(5))
+                     .map(lambda _: sc.parallelize([1]))
+                     .collect())
+        )
+
+    def test_lock2(self):
+        """Should not be able to create RDDs containing RDDs."""
+        sc = pysparkling.Context()
+
+        def parallelize_in_parallelize():
+            o = sc.parallelize(sc.parallelize(range(x)) for x in range(5))
+            print(o.map(lambda x: x.collect()).collect())
+
+        self.assertRaises(
+            pysparkling.exceptions.ContextIsLockedException,
+            parallelize_in_parallelize
+        )
+
     def test_parallelize_single_element(self):
         my_rdd = pysparkling.Context().parallelize([7], 100)
         self.assertEqual(my_rdd.collect(), [7])

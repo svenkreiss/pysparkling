@@ -14,6 +14,7 @@ import traceback
 from . import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
 from .cache_manager import CacheManager
+from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
 from .rdd import RDD, EmptyRDD
@@ -120,15 +121,15 @@ class Context(object):
                  data_serializer=None, data_deserializer=None,
                  max_retries=3, retry_wait=0.0, cache_manager=None,
                  catch_exceptions=False):
-        if not pool:
+        if pool is None:
             pool = DummyPool()
-        if not serializer:
+        if serializer is None:
             serializer = unit_fn
-        if not deserializer:
+        if deserializer is None:
             deserializer = unit_fn
-        if not data_serializer:
+        if data_serializer is None:
             data_serializer = unit_fn
-        if not data_deserializer:
+        if data_deserializer is None:
             data_deserializer = unit_fn
         self.max_retries = max_retries
         self.retry_wait = retry_wait
@@ -142,8 +143,14 @@ class Context(object):
         self._data_deserializer = data_deserializer
         self._s3_conn = None
         self._stats = defaultdict(float)
+        self.locked = False
 
         self.version = PYSPARKLING_VERSION
+
+    def __getstate__(self):
+        r = {k: v if k not in ('_pool',) else None
+             for k, v in self.__dict__.items()}
+        return r
 
     def broadcast(self, x):
         return Broadcast(x)
@@ -226,11 +233,11 @@ class Context(object):
         log.debug('pickleFile() resolved "{0}" to {1} files.'
                   ''.format(name, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.flatMap(
             lambda f_name: pickle.load(File(f_name).load())
         )
@@ -258,16 +265,24 @@ class Context(object):
         if not partitions:
             partitions = rdd.partitions()
 
+        # acquire lock
+        if self.locked:
+            raise ContextIsLockedException
+        self.locked = True
+
         # this is the place to insert proper schedulers
         if allowLocal or isinstance(self._pool, DummyPool):
             map_result = self._runJob_local(rdd, func, partitions)
         else:
             map_result = self._runJob_distributed(rdd, func, partitions)
 
-        if resultHandler is not None:
-            return resultHandler(map_result)
+        result = (resultHandler(map_result) if resultHandler is not None
+                  else list(map_result))
 
-        return list(map_result)  # convert to list to execute on all partitions
+        # release lock
+        self.locked = False
+
+        return result
 
     def _runJob_local(self, rdd, func, partitions):
         for partition in partitions:
@@ -374,11 +389,11 @@ class Context(object):
         log.debug('binaryFile() resolved "{0}" to {1} files.'
                   ''.format(path, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.map(lambda f_name:
                                 (f_name, File(f_name).load().read()))
         rdd._name = path
@@ -473,13 +488,13 @@ class Context(object):
         log.debug('textFile() resolved "{0}" to {1} files.'
                   ''.format(filename, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
         encoding = 'utf8' if use_unicode else 'ascii'
 
-        rdd_filenames = self.parallelize(resolved_names, num_partitions)
+        rdd_filenames = self.parallelize(sorted(resolved_names), n_partitions)
         rdd = rdd_filenames.flatMap(
             lambda f_name:
             TextFile(f_name).load(encoding=encoding).read().splitlines()
@@ -521,14 +536,14 @@ class Context(object):
         log.debug('wholeTextFiles() resolved "{0}" to {1} files.'
                   ''.format(path, len(resolved_names)))
 
-        num_partitions = len(resolved_names)
-        if minPartitions and minPartitions > num_partitions:
-            num_partitions = minPartitions
+        n_partitions = len(resolved_names)
+        if minPartitions and minPartitions > n_partitions:
+            n_partitions = minPartitions
 
         encoding = 'utf8' if use_unicode else 'ascii'
         rdd_filenames = self.parallelize(
-            [(f_name, encoding) for f_name in resolved_names],
-            num_partitions,
+            [(f_name, encoding) for f_name in sorted(resolved_names)],
+            n_partitions,
         )
         rdd = rdd_filenames.map(map_whole_text_file)
         rdd._name = path
