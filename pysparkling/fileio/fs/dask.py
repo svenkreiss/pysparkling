@@ -25,11 +25,11 @@ class Dask(FileSystem):
         if ':' in expr:
             worker_name, _, expr = expr.partition(':')
             prefix += '{}:'.format(worker_name)
-            workers = [worker_name]
+            workers = {worker_name}
 
-        submission = Dask.client.submit(Local.resolve_filenames, expr,
-                                        workers=workers)
-        filenames = submission.result()
+        filenames = Dask.client.submit(Local.resolve_filenames, expr,
+                                       workers=workers,
+                                       pure=False).result()
         return [prefix + file_name for file_name in filenames]
 
     def workers_and_path(self):
@@ -39,7 +39,7 @@ class Dask(FileSystem):
         workers = None
         if ':' in path:
             worker_name, _, path = path.partition(':')
-            workers = [worker_name]
+            workers = {worker_name}
 
         return workers, path
 
