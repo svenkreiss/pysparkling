@@ -9,12 +9,12 @@ To run pysparkling's unit tests:
 .. code-block:: sh
 
     # install
-    pip install -e .[hdfs,performance,streaming,tests]
+    pip install -e .[hdfs,performance,streaming,test]
     flake8 --install-hook
 
     # run linting and test
     flake8
-    PERFORMANCE=1 nosetests -vv
+    pytest -vv
 
 Don't run ``python setup.py test`` as this will
 not execute the doctests. When all tests pass, create a Pull Request on GitHub.

@@ -55,11 +55,6 @@ setup(
         'console_scripts': [],
     },
 
-    tests_require=[
-        'nose>=1.3.4',
-    ],
-    test_suite='nose.collector',
-
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
