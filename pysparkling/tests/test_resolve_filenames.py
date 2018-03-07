@@ -1,8 +1,8 @@
 from __future__ import print_function
 
-from nose.plugins.skip import SkipTest
 import os
 from pysparkling.fileio import File
+import pytest
 
 
 CURRENT_FILE_LOCATION = __file__
@@ -20,10 +20,8 @@ def test_local_2():
     assert filenames == [CURRENT_FILE_LOCATION]
 
 
+@pytest.mark.skipif(not os.getenv('AWS_ACCESS_KEY_ID'), reason='no AWS env')
 def test_s3_1():
-    if not os.getenv('AWS_ACCESS_KEY_ID'):
-        raise SkipTest
-
     filenames = File.resolve_filenames(
         's3n://aws-publicdatasets/common-crawl/'
         'crawl-data/CC-MAIN-2015-11/warc.paths.*'
