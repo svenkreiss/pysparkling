@@ -8,7 +8,7 @@ python:
 install:
  - pip install --upgrade pip
  - "if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi"
- - "pip install .[tests]"
+ - "pip install .[test]"
 script:
  - flake8
- - nosetests -vv
+ - pytest -vv

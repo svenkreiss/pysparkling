@@ -2,12 +2,12 @@ from __future__ import print_function
 
 from dask.distributed import Client as DaskClient
 import logging
-from nose.plugins.skip import SkipTest
 import os
 import pickle
 import pysparkling
 from pysparkling import Context
 from pysparkling.fileio import File
+import pytest
 import random
 import sys
 import tempfile
@@ -64,10 +64,8 @@ def test_wholeTextFiles():
     assert 'test_wholeTextFiles' in this_file[0]
 
 
+@pytest.mark.skipif(not AWS_ACCESS_KEY_ID, reason='no AWS env')
 def test_s3_textFile():
-    if not os.getenv('AWS_ACCESS_KEY_ID'):
-        raise SkipTest
-
     myrdd = Context().textFile(
         's3n://aws-publicdatasets/common-crawl/crawl-data/'
         'CC-MAIN-2015-11/warc.paths.*'
@@ -79,10 +77,8 @@ def test_s3_textFile():
     )
 
 
+@pytest.mark.skipif(not AWS_ACCESS_KEY_ID, reason='no AWS env')
 def test_s3_textFile_loop():
-    if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
-        raise SkipTest
-
     random.seed()
 
     fn = '{}/pysparkling_test_{0}.txt'.format(
@@ -99,10 +95,8 @@ def test_s3_textFile_loop():
     )
 
 
+@pytest.mark.skipif(not HDFS_TEST_PATH, reason='no HDFS env')
 def test_hdfs_textFile_loop():
-    if not HDFS_TEST_PATH:
-        raise SkipTest
-
     random.seed()
 
     fn = '{}/pysparkling_test_{0}.txt'.format(
@@ -121,10 +115,8 @@ def test_hdfs_textFile_loop():
     )
 
 
+@pytest.mark.skipif(not HDFS_TEST_PATH, reason='no HDFS env')
 def test_hdfs_file_exists():
-    if not HDFS_TEST_PATH:
-        raise SkipTest
-
     random.seed()
 
     fn1 = '{}/pysparkling_test_{0}.txt'.format(
@@ -140,10 +132,9 @@ def test_hdfs_file_exists():
     assert File(fn1).exists() and not File(fn2).exists()
 
 
+@pytest.mark.skipif(not GS_TEST_PATH, reason='no GS env')
+@pytest.mark.skipif(not OAUTH2_CLIENT_ID, reason='no OAUTH env')
 def test_gs_textFile_loop():
-    if not OAUTH2_CLIENT_ID or not GS_TEST_PATH:
-        raise SkipTest
-
     random.seed()
 
     fn = '{}/pysparkling_test_{0}.txt'.format(
@@ -160,10 +151,9 @@ def test_gs_textFile_loop():
     )
 
 
+@pytest.mark.skipif(not AWS_ACCESS_KEY_ID, reason='no AWS env')
+@pytest.mark.skipif(not S3_TEST_PATH, reason='no S3 env')
 def test_dumpToFile():
-    if not AWS_ACCESS_KEY_ID or not S3_TEST_PATH:
-        raise SkipTest
-
     random.seed()
 
     fn = '{}/pysparkling_test_{0}.pickle'.format(

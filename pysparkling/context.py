@@ -382,8 +382,8 @@ class Context(object):
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     with open(os.path.join(tmp, 'test.b'), 'wb') as f:
         ...         _ = f.write(b'bellobello')
-        ...     sc.binaryFiles(tmp+'*').mapValues(decode).collect()
-        [('...', 'bellobello')]
+        ...     sc.binaryFiles(tmp+'*').values().map(decode).collect()
+        ['bellobello']
         """
         resolved_names = File.resolve_filenames(path)
         log.debug('binaryFile() resolved "{0}" to {1} files.'
