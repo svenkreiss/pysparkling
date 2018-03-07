@@ -8,7 +8,10 @@ log = logging.getLogger(__name__)
 
 
 class Dask(FileSystem):
-    """:class:`.FileSystem` implementation for distributed dask files."""
+    """:class:`.FileSystem` implementation for distributed dask files.
+
+    Need to set `pysparkling.fileio.Dask.client` before use.
+    """
 
     client = None
 

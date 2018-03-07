@@ -44,6 +44,7 @@ setup(
         'tests': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
+            'distributed',
             'doctest-ignore-unicode>=0.1.2',
             'futures>=3.0.1',
             'hacking>=0.11.0',
