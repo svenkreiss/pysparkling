@@ -320,6 +320,8 @@ def test_dask_read():
         content = f.read().splitlines()
     assert content_dask == content
 
+    pysparkling.fileio.fs.Dask.client.close()
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
