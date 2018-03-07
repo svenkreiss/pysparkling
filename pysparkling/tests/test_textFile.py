@@ -1,9 +1,11 @@
 from __future__ import print_function
 
+from dask.distributed import Client as DaskClient
 import logging
 from nose.plugins.skip import SkipTest
 import os
 import pickle
+import pysparkling
 from pysparkling import Context
 from pysparkling.fileio import File
 import random
@@ -309,6 +311,16 @@ def test_local_regex_read():
     assert len(d) == 10
 
 
+def test_dask_read():
+    pysparkling.fileio.fs.Dask.client = DaskClient()
+
+    context = Context()
+    content_dask = context.textFile('dask://' + __file__).collect()
+    with open(__file__, 'r') as f:
+        content = f.read().splitlines()
+    assert content_dask == content
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    test_local_regex_read()
+    test_dask_read()

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from .dask import Dask
 from .file_system import FileSystem
 from .gs import GS
 from .hdfs import Hdfs
@@ -8,15 +9,16 @@ from .local import Local
 from .s3 import S3
 
 
-__all__ = ['FileSystem', 'GS', 'Hdfs', 'Http', 'Local', 'S3']
+__all__ = ['Dask', 'FileSystem', 'GS', 'Hdfs', 'Http', 'Local', 'S3']
 
 
 FILE_EXTENSIONS = [
+    (('dask',), Dask),
     (('file', ''), Local),
     (('s3', 's3n'), S3),
     (('gs', 'gcs'), GS),
     (('http', 'https'), Http),
-    (('hdfs'), Hdfs),
+    (('hdfs',), Hdfs),
 ]
 
 

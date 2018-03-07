@@ -20,8 +20,7 @@ __pycache__/
 .Python
 env/
 .env/
-venv/
-venv3/
+venv*/
 pypy/
 pypy3/
 build/
@@ -38,6 +37,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+dask-worker-space/
+.python-version
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
