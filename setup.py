@@ -41,14 +41,13 @@ setup(
         'hdfs': ['hdfs>=2.0.0'],
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
-        'tests': [
+        'test': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
-            'doctest-ignore-unicode>=0.1.2',
             'futures>=3.0.1',
             'hacking>=0.11.0',
             'memory-profiler>=0.47',
-            'nose>=1.3.4',
+            'pytest',
             'tornado>=4.3',
         ]
     },
