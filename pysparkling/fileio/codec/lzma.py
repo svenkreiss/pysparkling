@@ -23,8 +23,8 @@ class Lzma(Codec):
 
     def __init__(self):
         if lzma is None:
-            log.warn('LZMA codec not supported. It is only supported '
-                     'in Python>=3.3. Not compressing streams.')
+            log.warning('LZMA codec not supported. It is only supported '
+                        'in Python>=3.3. Not compressing streams.')
         super(Lzma, self).__init__()
 
     def compress(self, stream):

@@ -1,5 +1,6 @@
-import pysparkling
 import tornado.testing
+
+import pysparkling
 
 
 class TextFile(tornado.testing.AsyncTestCase):

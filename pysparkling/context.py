@@ -45,10 +45,10 @@ def _run_task(task_context, rdd, func, partition):
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
-    except Exception as e:
-        log.warn('Attempt {} failed for partition {} of {} (id: {}): {}'
-                 ''.format(task_context.attempt_number, partition.index,
-                           rdd.name(), rdd.id(), traceback.format_exc()))
+    except Exception as e:  # pylint: disable=broad-except
+        log.warning('Attempt {} failed for partition {} of {} (id: {}): {}'
+                    ''.format(task_context.attempt_number, partition.index,
+                              rdd.name(), rdd.id(), traceback.format_exc()))
 
         if task_context.attempt_number == task_context.max_retries:
             log.error('Partition {} of {} failed.'
@@ -61,7 +61,7 @@ def _run_task(task_context, rdd, func, partition):
     return _run_task(task_context, rdd, func, partition)
 
 
-def runJob_map(i):
+def runJob_map(i):  # pylint: disable=too-many-locals
     (deserializer, data_serializer, data_deserializer,
      serialized_func_rdd, serialized_task_context,
      serialized_data) = i

@@ -32,9 +32,9 @@ class TCPTextStream(TCPServer):
         if not self.buffer:
             return []
 
-        buffer = self.buffer
+        buffer_ = self.buffer
         self.buffer = []
-        return buffer
+        return buffer_
 
     @coroutine
     def handle_stream(self, stream, address):
@@ -67,9 +67,9 @@ class TCPBinaryStream(TCPServer):
         if not self.buffer:
             return []
 
-        buffer = self.buffer
+        buffer_ = self.buffer
         self.buffer = []
-        return buffer
+        return buffer_
 
     @coroutine
     def handle_stream(self, stream, address):

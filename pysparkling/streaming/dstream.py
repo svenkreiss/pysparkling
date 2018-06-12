@@ -724,7 +724,7 @@ class StatefulDStream(DStream):
 
     def convert_fn(self, joined):
         input_values, state_list = joined
-        state = state_list[-1] if len(state_list) > 0 else None
+        state = state_list[-1] if state_list else None
 
         return self._func(input_values, state)
 

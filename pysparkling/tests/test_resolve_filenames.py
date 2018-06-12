@@ -1,8 +1,10 @@
 from __future__ import print_function
 
 import os
-from pysparkling.fileio import File
+
 import pytest
+
+from pysparkling.fileio import File
 
 
 CURRENT_FILE_LOCATION = __file__

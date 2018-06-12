@@ -24,6 +24,10 @@ FILE_ENDINGS = [
 ]
 
 
+class NoCodec(Codec):
+    pass
+
+
 def get_codec(path):
     """Find the codec implementation for this path."""
     if '.' not in path or path.rfind('/') > path.rfind('.'):
@@ -34,4 +38,4 @@ def get_codec(path):
             log.debug('Using {0} codec: {1}'.format(endings, path))
             return codec_class
 
-    return Codec
+    return NoCodec

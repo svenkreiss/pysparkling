@@ -3,13 +3,15 @@ from __future__ import print_function
 import logging
 import os
 import pickle
-from pysparkling import Context
-from pysparkling.fileio import File
-import pytest
 import random
 import sys
 import tempfile
 import unittest
+
+import pytest
+
+from pysparkling import Context
+from pysparkling.fileio import File
 
 try:
     import py7zlib
@@ -79,8 +81,8 @@ def test_s3_textFile():
 def test_s3_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{0}.txt'.format(
-        S3_TEST_PATH, int(random.random() * 999999.0)
+    fn = '{}/pysparkling_test_{:d}.txt'.format(
+        S3_TEST_PATH, random.random() * 999999.0
     )
 
     rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
@@ -97,9 +99,8 @@ def test_s3_textFile_loop():
 def test_hdfs_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{0}.txt'.format(
-        HDFS_TEST_PATH, int(random.random() * 999999.0)
-    )
+    fn = '{}/pysparkling_test_{:d}.txt'.format(
+        HDFS_TEST_PATH, random.random() * 999999.0)
     print('HDFS test file: {0}'.format(fn))
 
     rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
@@ -117,12 +118,10 @@ def test_hdfs_textFile_loop():
 def test_hdfs_file_exists():
     random.seed()
 
-    fn1 = '{}/pysparkling_test_{0}.txt'.format(
-        HDFS_TEST_PATH, int(random.random() * 999999.0)
-    )
-    fn2 = '{}/pysparkling_test_{0}.txt'.format(
-        HDFS_TEST_PATH, int(random.random() * 999999.0)
-    )
+    fn1 = '{}/pysparkling_test_{:d}.txt'.format(
+        HDFS_TEST_PATH, random.random() * 999999.0)
+    fn2 = '{}/pysparkling_test_{:d}.txt'.format(
+        HDFS_TEST_PATH, random.random() * 999999.0)
 
     rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
     rdd.saveAsTextFile(fn1)
@@ -135,9 +134,8 @@ def test_hdfs_file_exists():
 def test_gs_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{0}.txt'.format(
-        GS_TEST_PATH, int(random.random() * 999999.0)
-    )
+    fn = '{}/pysparkling_test_{:d}.txt'.format(
+        GS_TEST_PATH, random.random() * 999999.0)
 
     rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
     rdd.saveAsTextFile(fn)
@@ -154,9 +152,8 @@ def test_gs_textFile_loop():
 def test_dumpToFile():
     random.seed()
 
-    fn = '{}/pysparkling_test_{0}.pickle'.format(
-        S3_TEST_PATH, int(random.random() * 999999.0)
-    )
+    fn = '{}/pysparkling_test_{:d}.pickle'.format(
+        S3_TEST_PATH, random.random() * 999999.0)
     File(fn).dump(pickle.dumps({'hello': 'world'}))
 
 

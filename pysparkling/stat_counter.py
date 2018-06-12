@@ -111,8 +111,8 @@ class StatCounter(object):
     def variance(self):
         if self.n == 0:
             return float('nan')
-        else:
-            return self.m2 / self.n
+
+        return self.m2 / self.n
 
     #
     # Return the sample variance, which corrects for bias in estimating
@@ -121,8 +121,8 @@ class StatCounter(object):
     def sampleVariance(self):
         if self.n <= 1:
             return float('nan')
-        else:
-            return self.m2 / (self.n - 1)
+
+        return self.m2 / (self.n - 1)
 
     # Return the standard deviation of the values.
     def stdev(self):

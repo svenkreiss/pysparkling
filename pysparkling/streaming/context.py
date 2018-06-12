@@ -16,17 +16,15 @@ except ImportError:
     TCPDeserializer = False
 
 try:
-    import tornado
     from tornado.ioloop import IOLoop, PeriodicCallback
     from tornado.queues import Queue
 except ImportError:
-    tornado = False
     IOLoop = False
     Queue = False
     PeriodicCallback = False
 
 try:
-    from tornado import speedups
+    from tornado import speedups  # pylint: disable=unused-import
 except ImportError:
     speedups = None
 

@@ -1,7 +1,8 @@
 from __future__ import print_function
 
-import pysparkling
 import tornado.testing
+
+import pysparkling
 
 
 class TestCount(tornado.testing.AsyncTestCase):
