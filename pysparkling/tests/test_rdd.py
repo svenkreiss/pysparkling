@@ -222,6 +222,37 @@ class RDDTest(unittest.TestCase):
         for k, v in expected_group:
             self.assertEqual(grouped_dict[k], v)
 
+    def test_reduceByKey_with_numPartition(self):
+        # This will fail if the values of the RDD need to be compared
+        class IncomparableValueAddable(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __eq__(self, other):
+                return self.value == other.value
+
+            def __add__(self, other):
+                return self.__class__(self.value + other.value)
+
+            def __lt__(self, other):
+                raise NotImplementedError("This object cannot be compared")
+
+        keys = (0, 1, 2, 0, 1, 2)
+        r = [IncomparableValueAddable(i) for i in range(len(keys))]
+
+        k_rdd = self.context.parallelize(zip(keys, r))
+        actual_group = k_rdd.reduceByKey(add, numPartitions=20).collect()
+
+        expected_group = ((0, IncomparableValueAddable(3)),
+                          (1, IncomparableValueAddable(5)),
+                          (2, IncomparableValueAddable(7)))
+
+        grouped_dict = {k: v for k, v in actual_group}
+
+        # Keep this order-agnostic
+        for k, v in expected_group:
+            self.assertEqual(grouped_dict[k], v)
+
 
 if __name__ == "__main__":
     unittest.main()
