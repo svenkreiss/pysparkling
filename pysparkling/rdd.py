@@ -1061,7 +1061,11 @@ class RDD(object):
         >>> rdd.reduceByKey(lambda a, b: a+b).collect()
         [(0, 1), (1, 4)]
         """
-        return self.groupByKey(numPartitions).mapValues(lambda x: functools.reduce(f, x))
+        return (
+            self
+            .groupByKey(numPartitions)
+            .mapValues(lambda x: functools.reduce(f, x))
+        )
 
     def repartition(self, numPartitions):
         """repartition
