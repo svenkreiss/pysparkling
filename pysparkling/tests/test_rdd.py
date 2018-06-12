@@ -1,7 +1,7 @@
+import unittest
+
 from operator import add
 from pysparkling import Context
-
-import unittest
 
 
 class RDDTest(unittest.TestCase):

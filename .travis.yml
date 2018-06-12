@@ -10,5 +10,5 @@ install:
  - "if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi"
  - "pip install .[test]"
 script:
- - flake8
+ - pylint pysparkling
  - pytest -vv

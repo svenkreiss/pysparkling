@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 
-import cloudpickle
 from concurrent import futures
 import logging
 import math
@@ -9,11 +8,14 @@ import os
 import pickle
 import platform
 import pprint
-import pysparkling
 import random
 import time
 import timeit
 import unittest
+
+import cloudpickle
+
+import pysparkling
 
 
 class Processor(object):
@@ -28,17 +30,17 @@ class Processor(object):
 
 class LazyTestInjection(object):
     def lazy_execution_test(self):
-        r = self.sc.textFile(__file__)
+        r = self.sc.textFile(__file__)  # pylint: disable=no-member
 
         processor = Processor()
 
         r = r.map(processor.indent_line)
-        self.assertFalse(processor.executed)
+        self.assertFalse(processor.executed)  # pylint: disable=no-member
         r = r.map(processor.indent_line).cache()
-        self.assertFalse(processor.executed)
+        self.assertFalse(processor.executed)  # pylint: disable=no-member
         r = r.map(processor.indent_line)
         r.collect()
-        self.assertTrue(processor.executed)
+        self.assertTrue(processor.executed)  # pylint: disable=no-member
 
 
 class Multiprocessing(unittest.TestCase):
@@ -175,13 +177,13 @@ def test_performance():
 
     def test(n_processes):
         sc = create_context(n_processes)
-        t = timeit.Timer(
+        timed = timeit.Timer(
             lambda: sc.parallelize(
                 [1000 for _ in range(100)],
                 100,
             ).map(map_pi).collect()
         ).timeit(number=10)
-        return (t, sc._stats)
+        return (timed, sc._stats)
 
     print('starting processing')
     n_cpu = multiprocessing.cpu_count()

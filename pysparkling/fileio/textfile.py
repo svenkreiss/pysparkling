@@ -22,17 +22,14 @@ class TextFile(File):
     :param file_name: Any text file name.
     """
 
-    def __init__(self, file_name):
-        super(TextFile, self).__init__(file_name)
-
-    def load(self, encoding='utf8', encoding_errors='ignore'):
+    def load(self, encoding='utf8', encoding_errors='ignore'):  # pylint: disable=arguments-differ
         """Load the data from a file.
 
         :param str encoding: The character encoding of the file.
         :param str encoding_errors: How to handle encoding errors.
         :rtype: io.StringIO
         """
-        if type(self.codec) == codec.Codec and \
+        if isinstance(self.codec, codec.NoCodec) and \
            self.fs.load_text != FileSystem.load_text:
             stream = self.fs.load_text(encoding, encoding_errors)
         else:
@@ -41,7 +38,7 @@ class TextFile(File):
             stream = TextIOWrapper(stream, encoding, encoding_errors)
         return stream
 
-    def dump(self, stream=None, encoding='utf8', encoding_errors='ignore'):
+    def dump(self, stream=None, encoding='utf8', encoding_errors='ignore'):  # pylint: disable=arguments-differ
         """Writes a stream to a file.
 
         :param stream:

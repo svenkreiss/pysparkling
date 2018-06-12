@@ -1,6 +1,8 @@
-from memory_profiler import profile
-import pysparkling
 import tempfile
+
+from memory_profiler import profile
+
+import pysparkling
 
 
 @profile

@@ -1,8 +1,9 @@
 from __future__ import print_function
 
 import logging
-import pysparkling
 import unittest
+
+import pysparkling
 
 
 class Context(unittest.TestCase):

@@ -28,7 +28,7 @@ from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
 
-maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize
+maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
 log = logging.getLogger(__name__)
 
@@ -920,7 +920,7 @@ class RDD(object):
             return self._name
 
         prev = getattr(self, 'prev', None)
-        while (prev):
+        while prev:
             if prev._name is not None:
                 return prev._name
             prev = getattr(prev, 'prev', None)
@@ -1079,8 +1079,8 @@ class RDD(object):
         return self.context.parallelize(self.toLocalIterator(), numPartitions)
 
     def repartitionAndSortWithinPartitions(
-        self, numPartitions=None, partitionFunc=None,
-        ascending=True, keyfunc=None,
+            self, numPartitions=None, partitionFunc=None,
+            ascending=True, keyfunc=None,
     ):
         """Repartition and sort within each partition.
 
@@ -1331,12 +1331,12 @@ class RDD(object):
 
         self.context.runJob(
             self.mapPartitions(to_stringio),
-            lambda tc, stringio:
-                fileio.TextFile(os.path.join(path,
-                                             'part-{0:05d}{1}'.format(
-                                                 tc.partitionId(),
-                                                 codec_suffix))
-                                ).dump(stringio),
+            lambda tc, stringio: (
+                fileio.TextFile(
+                    os.path.join(path, 'part-{0:05d}{1}'.format(
+                        tc.partitionId(), codec_suffix))
+                ).dump(stringio)
+            ),
             resultHandler=list,
         )
         fileio.TextFile(os.path.join(path, '_SUCCESS')).dump()

@@ -1,8 +1,9 @@
 from __future__ import print_function
 
 import logging
-import pysparkling
 import time
+
+import pysparkling
 
 
 class Manip(object):

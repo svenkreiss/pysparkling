@@ -45,7 +45,7 @@ class Hdfs(FileSystem):
         cache_id = domain + '__' + str(port)
 
         if cache_id not in Hdfs._conn:
-            Hdfs._conn[cache_id] = hdfs.InsecureClient(
+            Hdfs._conn[cache_id] = hdfs.InsecureClient(  # pylint: disable=no-member
                 'http://{0}:{1}'.format(domain, port)
             )
         return Hdfs._conn[cache_id], '/' + path
@@ -54,7 +54,7 @@ class Hdfs(FileSystem):
         c, p = Hdfs.client_and_path(self.file_name)
         try:
             c.status(p)
-        except hdfs.util.HdfsError:
+        except hdfs.util.HdfsError:  # pylint: disable=no-member
             return False
         return True
 

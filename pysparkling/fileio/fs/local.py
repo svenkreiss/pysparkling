@@ -14,9 +14,6 @@ log = logging.getLogger(__name__)
 class Local(FileSystem):
     """:class:`.FileSystem` implementation for the local file system."""
 
-    def __init__(self, file_name):
-        super(Local, self).__init__(file_name)
-
     @staticmethod
     def resolve_filenames(expr):
         if expr.startswith('file://'):
