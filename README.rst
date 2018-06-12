@@ -40,7 +40,7 @@ Install
 
 .. code-block:: bash
 
-    pip install pysparkling[s3,hdfs,http,streaming]
+    pip install pysparkling[s3,hdfs,streaming]
 
 
 `Documentation <http://pysparkling.trivial.io>`_:
