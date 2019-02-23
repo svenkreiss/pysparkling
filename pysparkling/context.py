@@ -38,10 +38,10 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.info('Running stage {} for partition {} of {} (id: {}).'
-             ''.format(task_context.stage_id,
-                       task_context.partition_id,
-                       rdd.name(), rdd.id()))
+    log.debug('Running stage {} for partition {} of {} (id: {}).'
+              ''.format(task_context.stage_id,
+                        task_context.partition_id,
+                        rdd.name(), rdd.id()))
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
