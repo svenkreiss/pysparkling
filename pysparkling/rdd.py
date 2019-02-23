@@ -671,7 +671,7 @@ class RDD(object):
         h = [0 for _ in buckets]
         for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
-                if x >= b[0] and x < b[1]:
+                if  b[0] <= x < b[1]:
                     h[i] += 1
             # make the last bin inclusive on the right
             if x == buckets[-1]:
@@ -1018,8 +1018,8 @@ class RDD(object):
         lists = [[] for _ in weights]
         for e in self.toLocalIterator():
             r = random.random()
-            for i, lbub in enumerate(zip(boundaries[:-1], boundaries[1:])):
-                if r >= lbub[0] and r < lbub[1]:
+            for i, (lb, ub) in enumerate(zip(boundaries[:-1], boundaries[1:])):
+                if lb <= r < ub:
                     lists[i].append(e)
 
         return [self.context.parallelize(l) for l in lists]

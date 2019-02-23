@@ -158,7 +158,7 @@ def map_pi(n):
     ))
 
 
-@unittest.skipIf(os.getenv('PERFORMANCE', False) is False,
+@unittest.skipIf(os.getenv('PERFORMANCE') is None,
                  'PERFORMANCE env variable not set')
 def test_performance():
     # not pickle-able map function

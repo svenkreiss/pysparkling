@@ -255,7 +255,7 @@ def test_read_tar_gz():
     assert 'Hello pysparkling!' in rdd.collect()
 
 
-@unittest.skipIf(os.getenv('TRAVIS', False) is not False,
+@unittest.skipIf(os.getenv('TRAVIS') is not None,
                  'skip 20news test on Travis')
 def test_read_tar_gz_20news():
     # 20 news dataset has some '0xff' characters that lead to encoding
