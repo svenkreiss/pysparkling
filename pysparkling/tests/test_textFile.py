@@ -255,6 +255,16 @@ def test_read_tar_gz():
     assert 'Hello pysparkling!' in rdd.collect()
 
 
+def test_read_files_tar_gz():
+    # file was created with:
+    # tar -cvzf data.tar.gz hello.txt
+    path = '{}/data.tar.gz'.format(LOCAL_TEST_PATH)
+    rdd = Context().wholeTextFiles(path)
+    print(rdd.collect())
+    assert 'Hello pysparkling!' in rdd.values().collect()
+    assert path + ':hello.txt' in rdd.values().collect()
+
+
 @unittest.skipIf(os.getenv('TRAVIS', False) is not False,
                  'skip 20news test on Travis')
 def test_read_tar_gz_20news():

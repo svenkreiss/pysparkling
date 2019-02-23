@@ -80,6 +80,19 @@ def partition_by():
     print('>>>>>>', r)
 
 
+def whole_text_file_in_tar():
+    rdd = SC.wholeTextFiles('pysparkling/tests/data.tar.gz',
+                            decompressionCodecClass="org.apache.hadoop.io.compress.GzipCodec")
+    print('>>>>>>>', rdd.collect())
+
+
+def key_value_filter():
+    rdd = SC.parallelize(range(20)).keyBy(lambda x: x % 2)
+    rdd = rdd.filter(lambda kv: kv[1] > 10)
+    # rdd = rdd.filter(lambda k, v: v > 10)  # not supported!
+    print('>>>>>>>', rdd.collect())
+
+
 if __name__ == '__main__':
     # simple_textFile()
     # lazy_execution()
@@ -87,4 +100,6 @@ if __name__ == '__main__':
     # create_key_value_txt()
     # create_pickled_files()
     # stat()
-    partition_by()
+    # partition_by()
+    # whole_text_file_in_tar()
+    key_value_filter()
