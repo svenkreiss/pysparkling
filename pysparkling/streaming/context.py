@@ -150,7 +150,6 @@ class StreamingContext(object):
 
     def remember(self, duration):
         """Provided for compatibility, but does nothing here."""
-        pass
 
     def socketBinaryStream(self, hostname, port, length):
         """Create a TCP socket server for binary input.

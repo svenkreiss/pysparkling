@@ -10,7 +10,7 @@ class QueueStreamDeserializer(object):
     def ensure_rdd(self, data):
         if data is None:
             return EmptyRDD(self.context)
-        elif isinstance(data, RDD):
+        if isinstance(data, RDD):
             return data
         return self.context.parallelize(data)
 
