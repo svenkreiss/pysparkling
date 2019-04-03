@@ -65,27 +65,18 @@ class Hdfs(FileSystem):
         t = Tokenizer(expr)
         scheme = t.next('://')
         domain = t.next('/')
-        fixed_path = t.next(['*', '?'])
-        file_expr = t.next()
+        fixed_path = "/" + t.next(['*', '?'])
 
-        if file_expr and '/' in fixed_path:
-            file_expr = fixed_path[fixed_path.rfind('/') + 1:] + file_expr
-            fixed_path = fixed_path[:fixed_path.rfind('/')]
-        # file_expr is only the actual file expression if there was a * or ?.
-        # Handle this case.
-        if not file_expr:
-            if '/' in fixed_path:
-                file_expr = fixed_path[fixed_path.rfind('/') + 1:]
-                fixed_path = fixed_path[:fixed_path.rfind('/')]
-            else:
-                file_expr = fixed_path
-                fixed_path = ''
+        if '/' in fixed_path:
+            folder_path = fixed_path[:fixed_path.rfind('/')]
+        else:
+            folder_path = fixed_path
 
         files = []
-        for fn in c.list('{}/'.format(fixed_path), status=False):
-            if fnmatch(fn, file_expr) or fnmatch(fn, file_expr + '/part*'):
-                files.append('{0}://{1}/{2}/{3}'.format(
-                    scheme, domain, fixed_path, fn))
+        for fn in c.list('{}/'.format(folder_path), status=False):
+            file_path = '{0}://{1}{2}/{3}'.format(scheme, domain, folder_path, fn)
+            if fnmatch(file_path, expr) or fnmatch(file_path, expr + '/part*'):
+                files.append(file_path)
         return files
 
     def load(self):
