@@ -10,8 +10,19 @@ CURRENT_FILE_LOCATION = __file__
 
 
 class MockedHdfsClient(object):
-    def list(self, *args, **kwargs):
-        return ["part-00001.gz", "part-00002.gz", "_SUCCESS"]
+    def list(self, path, status):
+        if path == "/user/username/":
+            return [
+                ("input", {"type": "DIRECTORY"}),
+                ("output", {"type": "DIRECTORY"})
+            ]
+        if path in ('/user/username/input', '/user/username/input/'):
+            return [
+                ("part-00001.gz", {"type": "FILE"}),
+                ("part-00002.gz", {"type": "FILE"}),
+                ("_SUCCESS", {"type": "FILE"})
+            ]
+        raise NotImplementedError("Return value not mocked for '{0}'".format(path))
 
 
 class MockedS3Bucket(object):
@@ -56,13 +67,11 @@ def test_s3_1():
             'crawl-data/CC-MAIN-2015-11/warc.paths.gz' in filenames)
 
 
-def test_hdfs_resolve_filenames():
+def test_hdfs_resolve_filenames_with_wildcard():
     from pysparkling.fileio.fs import Hdfs
-    unused_path = "/"
-    path = "hdfs://hdfs-cluster.com/user/username/input/part-*.gz"
-    Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), unused_path))
+    Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
 
-    filenames = Hdfs.resolve_filenames(path)
+    filenames = Hdfs.resolve_filenames("hdfs://hdfs-cluster.com/user/username/input/part-*.gz")
     print(filenames)
     assert filenames == [
         'hdfs://hdfs-cluster.com/user/username/input/part-00001.gz',
@@ -70,12 +79,46 @@ def test_hdfs_resolve_filenames():
     ]
 
 
+def test_hdfs_resolve_filenames_with_folder_path():
+    from pysparkling.fileio.fs import Hdfs
+    Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
+
+    filenames = Hdfs.resolve_filenames("hdfs://hdfs-cluster.com/user/username/input")
+    print(filenames)
+    assert filenames == [
+        'hdfs://hdfs-cluster.com/user/username/input/part-00001.gz',
+        'hdfs://hdfs-cluster.com/user/username/input/part-00002.gz'
+    ]
+
+
+def test_hdfs_resolve_filenames_with_folder_path_and_trailing_slash():
+    from pysparkling.fileio.fs import Hdfs
+    Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
+
+    filenames = Hdfs.resolve_filenames("hdfs://hdfs-cluster.com/user/username/input/")
+    print(filenames)
+    assert filenames == [
+        'hdfs://hdfs-cluster.com/user/username/input/part-00001.gz',
+        'hdfs://hdfs-cluster.com/user/username/input/part-00002.gz'
+    ]
+
+
+def test_hdfs_resolve_filenames_with_file_path():
+    from pysparkling.fileio.fs import Hdfs
+    Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
+
+    filenames = Hdfs.resolve_filenames("hdfs://hdfs-cluster.com/user/username/input/part-00001.gz")
+    print(filenames)
+    assert filenames == [
+        'hdfs://hdfs-cluster.com/user/username/input/part-00001.gz'
+    ]
+
+
 def test_s3_resolve_filenames():
     from pysparkling.fileio.fs import S3
     S3._get_conn = classmethod(lambda *args, **kwargs: MockedS3Connection())
-    path = "s3://bucket-name/user/username/input/part-*.gz"
-    filenames = S3.resolve_filenames(path)
 
+    filenames = S3.resolve_filenames("s3://bucket-name/user/username/input/part-*.gz")
     print(filenames)
     assert filenames == [
         's3://bucket-name/user/username/input/part-00001.gz',
@@ -87,5 +130,8 @@ if __name__ == '__main__':
     test_local_1()
     test_local_2()
     test_s3_1()
-    test_hdfs_resolve_filenames()
+    test_hdfs_resolve_filenames_with_folder_path()
+    test_hdfs_resolve_filenames_with_folder_path_and_trailing_slash()
+    test_hdfs_resolve_filenames_with_file_path()
+    test_hdfs_resolve_filenames_with_wildcard()
     test_s3_resolve_filenames()

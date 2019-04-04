@@ -5,7 +5,7 @@ import logging
 from io import BytesIO, StringIO
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer
+from ...utils import parse_file_uri, format_file_uri
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
@@ -31,11 +31,7 @@ class Hdfs(FileSystem):
 
     @staticmethod
     def client_and_path(path):
-        # obtain key
-        t = Tokenizer(path)
-        t.next('://')  # skip scheme
-        domain = t.next('/')
-        path = t.next()
+        _, domain, folder_path, file_pattern = parse_file_uri(path)
 
         if ':' not in domain:
             port = 50070
@@ -48,7 +44,7 @@ class Hdfs(FileSystem):
             Hdfs._conn[cache_id] = hdfs.InsecureClient(  # pylint: disable=no-member
                 'http://{0}:{1}'.format(domain, port)
             )
-        return Hdfs._conn[cache_id], '/' + path
+        return Hdfs._conn[cache_id], folder_path + file_pattern
 
     def exists(self):
         c, p = Hdfs.client_and_path(self.file_name)
@@ -62,21 +58,36 @@ class Hdfs(FileSystem):
     def resolve_filenames(expr):
         c, _ = Hdfs.client_and_path(expr)
 
-        t = Tokenizer(expr)
-        scheme = t.next('://')
-        domain = t.next('/')
-        fixed_path = "/" + t.next(['*', '?'])
-
-        if '/' in fixed_path:
-            folder_path = fixed_path[:fixed_path.rfind('/')]
-        else:
-            folder_path = fixed_path
+        scheme, domain, folder_path, _ = parse_file_uri(expr)
 
         files = []
-        for fn in c.list('{}/'.format(folder_path), status=False):
-            file_path = '{0}://{1}{2}/{3}'.format(scheme, domain, folder_path, fn)
-            if fnmatch(file_path, expr) or fnmatch(file_path, expr + '/part*'):
+        for fn, file_status in c.list(folder_path, status=True):
+            file_local_path = '{0}{1}'.format(folder_path, fn)
+            file_path = format_file_uri(scheme, domain, file_local_path)
+            part_file_expr = expr + ("" if expr.endswith("/") else "/") + 'part*'
+
+            if fnmatch(file_path, expr):
+                if file_status["type"] != "DIRECTORY":
+                    files.append(file_path)
+                else:
+                    files += Hdfs._get_folder_part_files(
+                        c,
+                        scheme,
+                        domain,
+                        file_local_path,
+                        part_file_expr
+                    )
+            elif fnmatch(file_path, part_file_expr):
                 files.append(file_path)
+        return files
+
+    @staticmethod
+    def _get_folder_part_files(c, scheme, domain, folder_local_path, expr_with_part):
+        files = []
+        for fn, file_status in c.list(folder_local_path, status=True):
+            sub_file_path = format_file_uri(scheme, domain, folder_local_path, fn)
+            if fnmatch(sub_file_path, expr_with_part) and file_status["type"] != "DIRECTORY":
+                files.append(sub_file_path)
         return files
 
     def load(self):
