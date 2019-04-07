@@ -1033,14 +1033,37 @@ class RDD(object):
         Example:
 
         >>> from pysparkling import Context
-        >>> Context().parallelize([0, 4, 7, 4, 10]).reduce(lambda a, b: a+b)
+        >>> Context().parallelize([0, 4, 7, 4, 10], 2).reduce(lambda a, b: a+b)
         25
+        >>> Context().parallelize([0, 4, 7, 4, 10], 10).reduce(lambda a, b: a+b)
+        25
+        >>> Context().parallelize([0], 10).reduce(lambda a, b: a+b)
+        0
+        >>> Context().parallelize([], 10).reduce(lambda a, b: a+b)
+        Traceback (most recent call last):
+        ...
+        ValueError: Can not reduce() empty RDD
         """
-        return self.context.runJob(
+        _empty = object()
+
+        def reducer(values):
+            try:
+                return functools.reduce(f, (v for v in values if v is not _empty))
+            except TypeError as e:
+                if e.args[0] == "reduce() of empty sequence with no initial value":
+                    return _empty
+                raise e
+
+        result = self.context.runJob(
             self,
-            lambda tc, x: functools.reduce(f, x),
-            resultHandler=lambda x: functools.reduce(f, x),
+            lambda tc, x: reducer(x),
+            resultHandler=reducer
         )
+
+        if result is _empty:
+            raise ValueError("Can not reduce() empty RDD")
+
+        return result
 
     def reduceByKey(self, f, numPartitions=None):
         """reduce by key
