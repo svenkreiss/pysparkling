@@ -159,29 +159,29 @@ class Context(object):
         Context.__last_rdd_id += 1
         return Context.__last_rdd_id
 
-    def parallelize(self, x, numPartitions=None):
+    def parallelize(self, x, numSlices=None):
         """Parallelize x.
 
         :param x:
             An iterable (e.g. a list) that represents the data.
 
-        :param int numPartitions:
+        :param int numSlices:
             The number of partitions the data should be split into.
             A partition is a unit of data that is processed at a time.
 
         :rtype: RDD
         """
-        if numPartitions is None or numPartitions <= 1:
+        if numSlices is None or numSlices <= 1:
             return RDD([Partition(x, 0)], self)
 
         x_len_iter, x = itertools.tee(x, 2)
         len_x = sum(1 for _ in x_len_iter)
 
         def partitioned():
-            for i in range(numPartitions):
-                start = int(i * len_x / numPartitions)
-                end = int((i + 1) * len_x / numPartitions)
-                if i + 1 == numPartitions:
+            for i in range(numSlices):
+                start = int(i * len_x / numSlices)
+                end = int((i + 1) * len_x / numSlices)
+                if i + 1 == numSlices:
                     end += 1
                 yield itertools.islice(x, end - start)
 
