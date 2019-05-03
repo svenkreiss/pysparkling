@@ -1,9 +1,11 @@
+dist: xenial
 language: python
 python:
  - "2.7"
  - "3.4"
  - "3.5"
  - "3.6"
+ - "3.7"
  - "pypy"
 install:
  - pip install --upgrade pip
@@ -11,4 +13,4 @@ install:
  - "pip install .[test]"
 script:
  - pylint pysparkling
- - pytest -vv
+ - python -m pytest -vv
