@@ -60,18 +60,18 @@ class Multiprocessing(unittest.TestCase):
         self.assertEqual(my_rdd.first(), 1)
 
 
+def square_op(x):
+    return x ** 2
+
+
 class MultiprocessingWithoutCloudpickle(unittest.TestCase):
     def setUp(self):
         pool = multiprocessing.Pool(4)
         self.sc = pysparkling.Context(pool=pool)
 
-    @staticmethod
-    def square_op(x):
-        return x ** 2
-
     def test_basic(self):
         my_rdd = self.sc.parallelize([1, 3, 4])
-        r = my_rdd.map(self.square_op).collect()
+        r = my_rdd.map(square_op).collect()
         self.assertIn(16, r)
 
 
