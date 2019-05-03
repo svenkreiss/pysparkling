@@ -2,7 +2,15 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.4.1...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.5.0...master>`_
+* `v0.5.0 <https://github.com/svenkreiss/pysparkling/compare/v0.4.1...v0.5.0>`_ (2019-05-03)
+    * fixes for HDFS thanks to @tools4origins
+    * fix for empty partitions by @tools4origins
+    * api fixes by @artem0 and @tools4origins
+    * various updates for streaming submodule
+    * various updates to lint and test system
+    * logging: converted some info messages to debug
+    * ... documentation for some point releases is missing
 * `v0.4.1 <https://github.com/svenkreiss/pysparkling/compare/v0.4.0...v0.4.1>`_ (2017-05-27)
     * retries for failed partitions
     * improve ``pysparkling.streaming.DStream``
