@@ -20,6 +20,11 @@ from .partition import Partition
 from .rdd import RDD, EmptyRDD
 from .task_context import TaskContext
 
+# Python 2 compatibility
+if not hasattr(time, 'perf_counter'):
+    time.perf_counter = time.clock
+
+
 log = logging.getLogger(__name__)
 
 
