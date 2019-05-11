@@ -18,7 +18,7 @@ class TextFile(tornado.testing.AsyncTestCase):
 
         ssc.start()
         ssc.awaitTermination(timeout=0.3)
-        self.assertEqual(sum(result), 22)
+        self.assertEqual(sum(result), 43)
 
     def test_save(self):
         sc = pysparkling.Context()
@@ -71,4 +71,4 @@ class BinaryFile(tornado.testing.AsyncTestCase):
 
         ssc.start()
         ssc.awaitTermination(timeout=0.3)
-        self.assertEqual(sum(result), 28)
+        self.assertEqual(sum(result), 52)
