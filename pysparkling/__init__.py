@@ -6,6 +6,7 @@ __version__ = '0.5.0'
 from .rdd import RDD
 from .context import Context
 from .broadcast import Broadcast
+from .accumulators import  Accumulator, AccumulatorParam
 from .stat_counter import StatCounter
 from .cache_manager import CacheManager, TimedCacheManager
 

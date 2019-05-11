@@ -13,6 +13,7 @@ import traceback
 
 from . import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
+from . import accumulators
 from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
@@ -158,7 +159,28 @@ class Context(object):
         return r
 
     def broadcast(self, x):
-        return Broadcast(x)
+        return Broadcast(self, x)
+
+    def accumulator(self, value, accum_param=None):
+        """
+        Create an ``Accumulator`` with the given initial value, using a given
+        ``AccumulatorParam`` helper object to define how to add values of the
+        data type if provided. Default AccumulatorParams are used for integers
+        and floating-point numbers if you do not provide one. For other types,
+        a custom AccumulatorParam can be used.
+        """
+        if not isinstance(self._pool, DummyPool):
+            raise NotImplementedError('Accumulators are not yet compatible with multiprocessing')
+        if accum_param is None:
+            if isinstance(value, int):
+                accum_param = accumulators.INT_ACCUMULATOR_PARAM
+            elif isinstance(value, float):
+                accum_param = accumulators.FLOAT_ACCUMULATOR_PARAM
+            elif isinstance(value, complex):
+                accum_param = accumulators.COMPLEX_ACCUMULATOR_PARAM
+            else:
+                raise TypeError("No default accumulator param for type {0}".format(type(value)))
+        return accumulators.Accumulator(value, accum_param)
 
     def newRddId(self):
         Context.__last_rdd_id += 1
