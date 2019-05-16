@@ -255,8 +255,12 @@ class RDD(object):
         >>> from pysparkling import Context
         >>> Context().parallelize([1, 2, 3], 2).coalesce(1).getNumPartitions()
         1
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).coalesce(4).getNumPartitions()
+        2
         """
-        return self.context.parallelize(self.toLocalIterator(), numPartitions)
+        newNumPartitions = numPartitions if shuffle else min(numPartitions, self.getNumPartitions())
+        return self.context.parallelize(self.toLocalIterator(), newNumPartitions)
 
     def cogroup(self, other, numPartitions=None):
         """Groups keys from both RDDs together. Values are nested iterators.
@@ -1098,8 +1102,17 @@ class RDD(object):
 
         .. note::
             Creating the new RDD is currently implemented as a local operation.
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).repartition(1).getNumPartitions()
+        1
+        >>> from pysparkling import Context
+        >>> Context().parallelize([1, 2, 3], 2).repartition(4).getNumPartitions()
+        4
         """
-        return self.context.parallelize(self.toLocalIterator(), numPartitions)
+        return self.coalesce(numPartitions, shuffle=True)
 
     def repartitionAndSortWithinPartitions(
             self, numPartitions=None, partitionFunc=None,
