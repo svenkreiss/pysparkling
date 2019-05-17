@@ -1307,6 +1307,27 @@ class RDD(object):
         """
         return dict(self.reduceByKey(f).collect())
 
+    def treeReduce(self, f, depth=2):
+        """same internal behaviour as :func:`~pysparkling.RDD.reduce()`
+
+        :param depth: Not used.
+
+        >>> from pysparkling import Context
+        >>> from operator import add
+        >>> rdd = Context().parallelize([-5, -4, -3, -2, -1, 1, 2, 3, 4], 10)
+        >>> rdd.treeReduce(add)
+        -5
+        >>> rdd.treeReduce(add, 1)
+        -5
+        >>> rdd.treeReduce(add, 2)
+        -5
+        >>> rdd.treeReduce(add, 5)
+        -5
+        >>> rdd.treeReduce(add, 10)
+        -5
+        """
+        return self.reduce(f)
+
     def repartition(self, numPartitions):
         """repartition
 
