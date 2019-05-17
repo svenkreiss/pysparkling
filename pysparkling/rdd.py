@@ -1180,6 +1180,21 @@ class RDD(object):
             .mapValues(lambda x: functools.reduce(f, x))
         )
 
+    def reduceByKeyLocally(self, f):
+        """reduce by key and return a dictionnary
+
+        :param f: A commutative and associative binary operator.
+        :param int numPartitions: Number of partitions in the resulting RDD.
+        :rtype: dict
+
+        >>> from pysparkling import Context
+        >>> from operator import add
+        >>> rdd = Context().parallelize([("a", 1), ("b", 1), ("a", 1)])
+        >>> sorted(rdd.reduceByKeyLocally(lambda a, b: a+b).items())
+        [('a', 2), ('b', 1)]
+        """
+        return dict(self.reduceByKey(f).collect())
+
     def repartition(self, numPartitions):
         """repartition
 
