@@ -222,6 +222,18 @@ class RDD(object):
         """
         return self.persist()
 
+    def glom(self):
+        """coalesce into a list elements of a partition
+
+        :rtype: RDD
+
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([1, 2, 3, 4], 2)
+        >>> sorted(rdd.glom().collect())
+        [[1, 2], [3, 4]]
+        """
+        return self.mapPartitions(lambda items: [list(items)])
+
     def cartesian(self, other):
         """cartesian product of this RDD with ``other``
 
