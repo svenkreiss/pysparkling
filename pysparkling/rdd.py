@@ -1395,6 +1395,19 @@ class RDD(object):
         """
         return self.stats().sampleVariance()
 
+    def isEmpty(self):
+        """
+        Returns whether or not RDD contains elements.
+
+        :rtype: bool
+        >>> from pysparkling import Context
+        >>> Context().parallelize([]).isEmpty()
+        True
+        >>> Context().parallelize([1]).isEmpty()
+        False
+        """
+        return not self.partitions() or len(self.take(1)) == 0
+
     def saveAsPickleFile(self, path, batchSize=10):
         """save as pickle file
 
