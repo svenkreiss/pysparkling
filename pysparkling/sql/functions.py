@@ -4,7 +4,11 @@ from pyspark.sql.types import StringType
 
 from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.column import parse, Column
-from pysparkling.stat_counter import ColumnStatHelper, CovarianceCounter
+
+
+def _get_stat_helper():
+    from pysparkling.stat_counter import ColumnStatHelper
+    return ColumnStatHelper
 
 
 def col(colName):
@@ -88,28 +92,32 @@ def avg(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.avg_aggregation(column=parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Avg
+    return col(Avg(column=parse(e)))
 
 
 def collect_list(e):
     """
     :rtype: Column
     """
-    return Collect(column=parse(e), mapper=list)
+    from pysparkling.sql.expressions.aggregate.collectors import CollectList
+    return col(CollectList(column=parse(e)))
 
 
 def collect_set(e):
     """
     :rtype: Column
     """
-    return Collect(column=parse(e), mapper=set)
+    from pysparkling.sql.expressions.aggregate.collectors import CollectSet
+    return CollectSet(column=parse(e))
 
 
 def corr(column1, column2):
     """
     :rtype: Column
     """
-    return CovarianceCounter.corr_aggregation(
+    from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr
+    return Corr(
         column1=parse(column1),
         column2=parse(column2)
     )
@@ -119,7 +127,8 @@ def count(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.count_aggregation(column=parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
+    return col(Count(column=parse(e)))
 
 
 def countDistinct(*exprs):
@@ -127,14 +136,16 @@ def countDistinct(*exprs):
     :rtype: Column
     """
     columns = [parse(e) for e in exprs]
-    return Collect(columns=columns, mapper=lambda x: len(set(x)))
+    from pysparkling.sql.expressions.aggregate.collectors import CountDistinct
+    return CountDistinct(columns=columns)
 
 
 def covar_pop(column1, column2):
     """
     :rtype: Column
     """
-    return CovarianceCounter.covar_pop_aggregation(
+    from pysparkling.sql.expressions.aggregate.covariance_aggregations import CovarPop
+    return CovarPop(
         column1=parse(column1),
         column2=parse(column2)
     )
@@ -144,7 +155,8 @@ def covar_samp(column1, column2):
     """
     :rtype: Column
     """
-    return CovarianceCounter.covar_samp_aggregation(
+    from pysparkling.sql.expressions.aggregate.covariance_aggregations import CovarSamp
+    return CovarSamp(
         column1=parse(column1),
         column2=parse(column2)
     )
@@ -154,6 +166,7 @@ def first(e, ignoreNulls=False):
     """
     :rtype: Column
     """
+    from pysparkling.sql.expressions.aggregate.collectors import First
     return First(parse(e), ignoreNulls)
 
 
@@ -176,13 +189,15 @@ def kurtosis(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.kurtosis_samp_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import KurtosisSamp
+    return col(KurtosisSamp(column=parse(e)))
 
 
 def last(e, ignoreNulls=False):
     """
     :rtype: Column
     """
+    from pysparkling.sql.expressions.aggregate.collectors import Last
     return Last(parse(e), ignoreNulls)
 
 
@@ -190,56 +205,65 @@ def max(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.max_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Max
+    return col(Max(column=parse(e)))
 
 
 def mean(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.mean_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Avg
+    # Discrepancy between name and object (mean vs Avg) replicate a discrepancy in PySpark
+    return col(Avg(column=parse(e)))
 
 
 def min(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.min_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Min
+    return col(Min(column=parse(e)))
 
 
 def skewness(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.skewness_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Skewness
+    return col(Skewness(column=parse(e)))
 
 
 def stddev(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.stddev_samp_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import StddevSamp
+    return col(StddevSamp(column=parse(e)))
 
 
 def stddev_samp(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.stddev_samp_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import StddevSamp
+    return col(StddevSamp(column=parse(e)))
 
 
 def stddev_pop(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.stddev_pop_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import StddevPop
+    return col(StddevPop(column=parse(e)))
 
 
 def sum(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.sum_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import Sum
+    return col(Sum(column=parse(e)))
 
 
 def sumDistinct(e):
@@ -253,21 +277,24 @@ def variance(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.var_samp_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import VarSamp
+    return col(VarSamp(column=parse(e)))
 
 
 def var_samp(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.var_samp_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import VarSamp
+    return col(VarSamp(column=parse(e)))
 
 
 def var_pop(e):
     """
     :rtype: Column
     """
-    return ColumnStatHelper.var_pop_aggregation(parse(e))
+    from pysparkling.sql.expressions.aggregate.stat_aggregations import VarPop
+    return col(VarPop(column=parse(e)))
 
 # //////////////////////////////////////////////////////////////////////////////////////////////
 # // Window functions

@@ -110,3 +110,16 @@ class SessionTests(TestCase):
         persisted_df = df.persist()
         self.assertEqual(persisted_df.is_cached, True)
         self.assertEqual(repr(persisted_df.storageLevel), repr(StorageLevel.MEMORY_ONLY))
+
+    def test_dataframe(self):
+        from pysparkling import Context
+        from pysparkling.sql.session import SparkSession
+        spark = SparkSession(Context())
+        df = spark.createDataFrame(
+            [[i % 3] for i in range(100)],
+            ["key"]
+        )
+        print(df.columns)
+        print(df.key)
+        sampled = df.sampleBy("key", fractions={0: 0.1, 1: 0.2}, seed=0)
+        sampled.groupBy("key").count().orderBy("key").show()

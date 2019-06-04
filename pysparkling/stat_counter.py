@@ -23,8 +23,9 @@ from __future__ import division
 import copy
 import math
 import numbers
-from collections import namedtuple, defaultdict
+from collections import namedtuple
 
+from pysparkling.sql.functions import parse
 from pysparkling.utils import row_from_keyed_values
 
 try:
@@ -176,7 +177,9 @@ class ColumnStatHelper(object):
         - name "stddev" the *sample* standard deviation metric
     """
 
-    def __init__(self, relative_error):
+    def __init__(self, column, percentiles_relative_error=1 / 10000):
+        self.column = column
+
         self.count = 0
         self.sum_of_values = 0
         self.sum_of_squares = 0
@@ -188,10 +191,11 @@ class ColumnStatHelper(object):
         self.head_sampled = []  # List acting as a buffer of the last added values
         self.head_max_size = 50000  # Buffer size after which buffer is added to sampled
         self.compression_threshold = 10000  # When to compress sampled
-        self.relative_error = relative_error
+        self.percentiles_relative_error = percentiles_relative_error
         self.compressed = True
 
-    def merge(self, value):
+    def merge(self, row):
+        value = self.column.eval(row)
         self.update_counters(value)
         if isinstance(value, numbers.Number):
             self.update_sample(value)
@@ -241,7 +245,7 @@ class ColumnStatHelper(object):
             if len(new_samples) == 0 or (sample_idx == len(self.sampled) and ops_idx == len(sorted_head) - 1):
                 delta = 0
             else:
-                delta = math.floor(2 * self.relative_error * count_without_head)
+                delta = math.floor(2 * self.percentiles_relative_error * count_without_head)
 
             new_samples.append(PercentileStats(value=current_sample, g=1, delta=delta))
 
@@ -270,7 +274,7 @@ class ColumnStatHelper(object):
         self.compressed = True
 
     def merge_threshold(self):
-        return 2 * self.relative_error * self.count
+        return 2 * self.percentiles_relative_error * self.count
 
     def finalize(self):
         if len(self.head_sampled) > 0:
@@ -308,13 +312,13 @@ class ColumnStatHelper(object):
             raise ValueError("quantile must be between 0 and 1")
         if len(self.sampled) == 0:
             return None
-        if quantile <= self.relative_error:
+        if quantile <= self.percentiles_relative_error:
             return self.sampled[0].value
-        if quantile >= 1 - self.relative_error:
+        if quantile >= 1 - self.percentiles_relative_error:
             return self.sampled[-1].value
 
         rank = math.ceil(quantile * self.count)
-        target_error = self.relative_error * self.count
+        target_error = self.percentiles_relative_error * self.count
         min_rank = 0
         for i, cur_sample in enumerate(self.sampled):
             min_rank += cur_sample.g
@@ -330,16 +334,36 @@ class ColumnStatHelper(object):
         return self.sum_of_values / self.count
 
     @property
-    def variance(self):
+    def variance_pop(self):
         if self.count == 0 or self.sum_of_values is None:
+            return None
+        return (self.sum_of_squares - ((self.sum_of_values * self.sum_of_values) / self.count)) / self.count
+
+    @property
+    def variance_samp(self):
+        if self.count <= 1 or self.sum_of_values is None:
             return None
         return (self.sum_of_squares - ((self.sum_of_values * self.sum_of_values) / self.count)) / (self.count - 1)
 
     @property
-    def stddev(self):
+    def variance(self):
+        return self.variance_samp
+
+    @property
+    def stddev_pop(self):
         if self.count == 0 or self.sum_of_values is None:
             return None
-        return math.sqrt(self.variance)
+        return math.sqrt(self.variance_pop)
+
+    @property
+    def stddev_samp(self):
+        if self.count <= 1 or self.sum_of_values is None:
+            return None
+        return math.sqrt(self.variance_samp)
+
+    @property
+    def stddev(self):
+        return self.stddev_samp
 
     @property
     def min(self):
@@ -355,18 +379,25 @@ class RowStatHelper(object):
     Class use to maintain one ColumnStatHelper for each Column found when aggregating a list of Rows
     """
 
-    def __init__(self, relative_error):
-        self.column_stat_helpers = defaultdict(lambda: ColumnStatHelper(relative_error))
-        # As pythom < 3.6 does not guarantee dict ordering
+    def __init__(self, exprs, percentiles_relative_error=1 / 10000):
+        self.percentiles_relative_error = percentiles_relative_error
+        self.column_stat_helpers = {}
+        self.cols = [parse(e) for e in exprs] if exprs else [parse("*")]
+        # As python < 3.6 does not guarantee dict ordering
         # we need to keep track of in which order the columns were
-        self.cols = []
+        self.col_names = []
 
-    def merge(self, cols, row):
-        cols = cols if cols and "*" not in cols else row.__fields__
-        self.cols += [col for col in cols if col not in self.cols]
-        self.column_stat_helpers.update({
-            col: self.column_stat_helpers[col].merge(row[col]) for col in cols
-        })
+    def merge(self, row):
+        for col in self.cols:
+            for col_name in col.output_cols(row):
+                if col_name not in self.column_stat_helpers:
+                    self.column_stat_helpers[col_name] = ColumnStatHelper(
+                        parse(col_name),
+                        self.percentiles_relative_error
+                    )
+                    self.col_names.append(col_name)
+                self.column_stat_helpers[col_name].merge(row)
+
         return self
 
     def mergeStats(self, other):
@@ -374,13 +405,13 @@ class RowStatHelper(object):
 
         :type other: RowStatHelper
         """
-        for col in other.cols:
-            counter = other.column_stat_helpers[col]
-            if col in self.column_stat_helpers:
-                self.column_stat_helpers[col] = self.column_stat_helpers[col].mergeStats(counter)
+        for col_name in other.col_names:
+            counter = other.column_stat_helpers[col_name]
+            if col_name in self.column_stat_helpers:
+                self.column_stat_helpers[col_name] = self.column_stat_helpers[col_name].mergeStats(counter)
             else:
-                self.column_stat_helpers[col] = counter
-                self.cols.append(col)
+                self.column_stat_helpers[col_name] = counter
+                self.col_names.append(col_name)
 
         return self
 
@@ -393,8 +424,8 @@ class RowStatHelper(object):
                 [
                     ("summary", stat)
                 ] + [
-                    (col, self.get_stat(self.column_stat_helpers[col], stat))
-                    for col in self.cols
+                    (col_name, self.get_stat(self.column_stat_helpers[col_name], stat))
+                    for col_name in self.col_names
                 ]
             )
             for stat in stats
@@ -413,6 +444,12 @@ class RowStatHelper(object):
         else:
             raise ValueError("{0} is not a recognised statistic".format(stat))
         return RowStatHelper.format_stat(value)
+
+    def get_col_quantile(self, col, quantile):
+        if str(col) not in self.column_stat_helpers:
+            raise Exception("Unable to get quantile for {0}".format(quantile))
+        quantile = self.column_stat_helpers[str(col)].get_quantile(quantile)
+        return float(quantile) if quantile is not None else None
 
     @staticmethod
     def format_stat(stat):

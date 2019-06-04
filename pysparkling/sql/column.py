@@ -2,7 +2,6 @@ import sys
 
 from pyspark.sql.types import DataType
 
-from pysparkling import Context
 from pysparkling.sql.expressions.mappers import *
 
 if sys.version >= '3':
@@ -176,6 +175,7 @@ class Column(object):
         |  1|
         +---+
         """
+        sys.exit(name)
         return self[name]
 
     def __getattr__(self, item):
@@ -435,6 +435,27 @@ class Column(object):
             return self.expr.eval(row)
         return row[str(self)]
 
+    @property
+    def may_output_multiple_cols(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.may_output_multiple_cols
+        return False
+
+    def output_cols(self, row):
+        if isinstance(self.expr, Expression):
+            return self.expr.output_cols(row)
+        return [str(self)]
+
+    def merge(self, row):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_merge(row)
+        return self
+
+    def mergeStats(self, row):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_merge_stats(row)
+        return self
+
     def __str__(self):
         return str(self.expr)
 
@@ -468,24 +489,28 @@ class Column(object):
 
 
 def resolve_column(col, row):
-    if not isinstance(col, Column) and not isinstance(col, Expression):
+    if not isinstance(col, Column):
         col = parse(col)
 
-    if not isinstance(col, Column) and hasattr(col, "output_cols"):
-        return zip(col.output_cols(row), col.eval(row))
+    output_cols = col.output_cols(row)
 
-    return [[col, col.eval(row)]]
+    if col.may_output_multiple_cols:
+        output_values = col.eval(row)
+    else:
+        output_values = [col.eval(row)]
+
+    return zip(output_cols, output_values)
 
 
 def parse(arg):
     """
     :rtype: Column
     """
-    if arg == "*":
-        return StarOperator()
     if isinstance(arg, Column):
         return arg
-    if isinstance(arg, str):
+    if arg == "*":
+        return Column(StarOperator())
+    if isinstance(arg, str) or isinstance(arg, Expression):
         return Column(arg)
     from pysparkling.sql.expressions.literals import Literal
     return Literal(value=arg)

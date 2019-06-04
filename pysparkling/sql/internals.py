@@ -1,6 +1,8 @@
 import json
 import math
+import random
 import warnings
+from copy import deepcopy
 from functools import partial
 
 from pyspark import StorageLevel, Row
@@ -188,14 +190,16 @@ class DataFrameInternal(object):
         return dict(sketched_rdd_content)
 
     def sampleBy(self, col, fractions, seed):
-        import random
+        if seed is None:
+            seed = random.random()
+
+        random.seed(seed)
 
         def sample_row(row):
             key = row[col]
             if key in fractions and random.random() < fractions[key]:
                 return True
 
-        random.seed(seed)
         return self._with_rdd(self._rdd.filter(sample_row))
 
     def toJSON(self):
@@ -216,10 +220,6 @@ class DataFrameInternal(object):
     def sort(self, cols, ascending):
         key = get_keyfunc(cols)
         return self._with_rdd(self._rdd.sortBy(key, ascending=ascending))
-
-    def groupBy(self, *cols):
-        key = get_keyfunc(cols)
-        return self._with_rdd(self._rdd.groupBy(key))
 
     def select(self, *cols):
         def mapper(row):
@@ -277,25 +277,28 @@ class DataFrameInternal(object):
                         ))
         return schema
 
-    def describe(self, cols):
-        stat_helper = self._get_stat_helper(cols=cols)
+    def describe(self, exprs):
+        stat_helper = self.get_stat_helper(exprs)
         return DataFrameInternal(self._sc, self._sc.parallelize(stat_helper.get_as_rows()))
 
     def summary(self, statistics):
-        stat_helper = self._get_stat_helper(cols=["*"])
+        stat_helper = self.get_stat_helper(["*"])
         if not statistics:
             statistics = ("count", "mean", "stddev", "min", "25%", "50%", "75%", "max")
         return DataFrameInternal(self._sc, self._sc.parallelize(stat_helper.get_as_rows(statistics)))
 
-    def _get_stat_helper(self, cols, relative_error=1 / 10000):
+    def get_stat_helper(self, exprs, percentiles_relative_error=1 / 10000):
         """
         :rtype: RowStatHelper
         """
-        return self._rdd.aggregate(
-            RowStatHelper(relative_error),
-            lambda counter, row: counter.merge(cols, row),
+        return self.aggregate(
+            RowStatHelper(exprs, percentiles_relative_error),
+            lambda counter, row: counter.merge(row),
             lambda counter1, counter2: counter1.mergeStats(counter2)
         )
+
+    def aggregate(self, zeroValue, seqOp, combOp):
+        return self._rdd.aggregate(zeroValue, seqOp, combOp)
 
     def showString(self, n, truncate=20, vertical=False):
         n = max(0, n)
@@ -386,13 +389,13 @@ class DataFrameInternal(object):
         # Last \n will be added by print()
         return output[:-1]
 
-    def approxQuantile(self, cols, quantiles, relative_error):
-        stat_helper = self._get_stat_helper(cols=cols, relative_error=relative_error)
+    def approxQuantile(self, exprs, quantiles, relative_error):
+        stat_helper = self.get_stat_helper(exprs, percentiles_relative_error=relative_error)
         return [
             [
-                float(stat_helper.column_stat_helpers[col].get_quantile(quantile))
+                stat_helper.get_col_quantile(col, quantile)
                 for quantile in quantiles
-            ] for col in cols
+            ] for col in stat_helper.col_names
         ]
 
     def corr(self, col1, col2, method):
@@ -465,3 +468,73 @@ class DataFrameInternal(object):
         schema = StructType([StructField(table_name, StringType)] + header_names)
 
         return schema, table
+
+
+class InternalGroupedDataFrame(object):
+    GROUP_BY_TYPE = 0
+    ROLLUP_TYPE = 1
+    CUBE_TYPE = 2
+
+    def __init__(self, df, grouping_exprs, group_type):
+        """
+        :type df: pysparkling.sql.dataframe.DataFrame
+        """
+        self.df = df
+        self.grouping_cols = [parse(e) for e in grouping_exprs]
+        self.group_type = group_type
+
+    def agg(self, stats):
+        init = GroupedStats(self.grouping_cols, stats)
+        aggregated_stats = self.df._jdf.aggregate(
+            init,
+            lambda grouped_stats, row: grouped_stats.merge(row),
+            lambda grouped_stats_1, grouped_stats_2: grouped_stats_1.mergeStats(grouped_stats_2)
+        )
+        data = []
+        for group_key in aggregated_stats.group_keys:
+            key = [(str(key), value) for key, value in zip(self.grouping_cols, group_key)]
+            key_as_row = row_from_keyed_values(key)
+            data.append(row_from_keyed_values(
+                key + [
+                    (str(stat), stat.eval(key_as_row)) for stat in aggregated_stats.groups[group_key]
+                ]
+            ))
+        # noinspection PyProtectedMember
+        return self.df._jdf._with_rdd(self.df._sc.parallelize(data))
+
+
+class GroupedStats(object):
+    def __init__(self, grouping_cols, stats):
+        self.grouping_cols = grouping_cols
+        self.stats = [stat for stat in stats]
+        self.groups = {}
+        # As python < 3.6 does not guarantee dict ordering
+        # we need to keep track of in which order the columns were
+        self.group_keys = []
+
+    def merge(self, row):
+        group_key = tuple(col.eval(row) for col in self.grouping_cols)
+        if group_key not in self.groups:
+            group_stats = [deepcopy(stat) for stat in self.stats]
+            self.groups[group_key] = group_stats
+            self.group_keys.append(group_key)
+        else:
+            group_stats = self.groups[group_key]
+
+        for i, stat in enumerate(group_stats):
+            group_stats[i] = stat.merge(row)
+
+        return self
+
+    def mergeStats(self, other):
+        for group_key in other.group_keys:
+            if group_key not in self.group_keys:
+                self.groups[group_key] = other.groups[group_key]
+                self.group_keys.append(group_key)
+            else:
+                group_stats = self.groups[group_key]
+                other_stats = other.groups[group_key]
+                for i, (stat, other_stat) in enumerate(zip(group_stats, other_stats)):
+                    group_stats[i] = stat.mergeStats(other_stat)
+
+        return self

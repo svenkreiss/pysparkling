@@ -7,7 +7,7 @@ from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, 
     IntegerType, FloatType, Row, _parse_datatype_json_value
 
 from pysparkling.sql.column import Column
-from pysparkling.sql.internals import DataFrameInternal
+from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
 from pysparkling.sql.readwriter import DataFrameWriter
 from pysparkling.sql.streaming import DataStreamWriter
 
@@ -488,12 +488,27 @@ class DataFrame(object):
 
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import count
         >>> spark = SparkSession(Context())
         >>> dataset = spark.createDataFrame(
         ...   [[i % 3] for i in range(100)],
         ...   ["key"]
         ... )
-        >>> sampled = dataset.sampleBy("key", fractions={0: 0.1, 1: 0.2}, seed=0)
+        >>> sampled = dataset.sampleBy("key", fractions={0: 0.5, 1: 0.25}, seed=0)
+        >>> sampled.groupBy("key").agg(count(1)).show()
+        +---+--------+
+        |key|count(1)|
+        +---+--------+
+        |  0|      14|
+        |  1|       3|
+        +---+--------+
+        >>> sampled.groupBy("key").count().show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|   14|
+        |  1|    3|
+        +---+-----+
         >>> sampled.groupBy("key").count().orderBy("key").show()
         +---+-----+
         |key|count|
@@ -528,6 +543,7 @@ class DataFrame(object):
 
     def alias(self, alias):
         assert isinstance(alias, basestring), "alias should be a string"
+        # todo
         ...
 
     def crossjoin(self, other):
@@ -535,6 +551,7 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def join(self, other, on=None, how=None):
+        # todo
         ...
 
     def sortWithinPartitions(self, *cols, ascending=True):
@@ -657,6 +674,8 @@ class DataFrame(object):
         """
         if len(cols) == 1 and isinstance(cols[0], list):
             cols = cols[0]
+        if len(cols) == 0:
+            cols = ["*"]
         return DataFrame(self._jdf.describe(cols), self.sql_ctx)
 
     def summary(self, *statistics):
@@ -746,7 +765,9 @@ class DataFrame(object):
             raise TypeError("unexpected item type: %s" % type(item))
 
     def __getattr__(self, name):
-        if name not in self.columns:
+        # noinspection PyArgumentList
+        columns = DataFrame.columns.fget(self)
+        if name not in columns:
             raise AttributeError(
                 "'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
         return Column(name)
@@ -758,36 +779,33 @@ class DataFrame(object):
             If one of the column names is '*', that column is expanded to include all columns
             in the current DataFrame.
 
-        # todo: alias
-        # >>> df.select(df.name, (df.age + 10).alias('age')).collect()
-        # [Row(name=u'Alice', age=12), Row(name=u'Bob', age=15)]
-        # >>> df.select('*').show()
-        # +---+-----+
-        # |age| name|
-        # +---+-----+
-        # |  2|Alice|
-        # |  5|  Bob|
-        # +---+-----+
-        # >>> df.select('name', 'age').show()
-        # +-----+---+
-        # | name|age|
-        # +-----+---+
-        # |Alice|  2|
-        # |  Bob|  5|
-        # +-----+---+
-        # >>> df.select('name').show()
-        # +-----+
-        # | name|
-        # +-----+
-        # |Alice|
-        # |  Bob|
-        # +-----+
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
+        >>> df.select('*').show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        >>> df.select('name', 'age').show()
+        +-----+---+
+        | name|age|
+        +-----+---+
+        |Alice|  2|
+        |  Bob|  5|
+        +-----+---+
+        >>> df.select('name').show()
+        +-----+
+        | name|
+        +-----+
+        |Alice|
+        |  Bob|
+        +-----+
         >>> df.select(df.name, (df.age + 10).alias('age')).collect()
         [Row(name='Alice', age=12), Row(name='Bob', age=15)]
         """
@@ -834,17 +852,17 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def groupBy(self, *cols):
-        jgd = self._jdf.groupBy(*cols)
+        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.GROUP_BY_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
-        jgd = self._jdf.rollup(self._jcols(*cols))
+        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.ROLLUP_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
-        jgd = self._jdf.cube(self._jcols(*cols))
+        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.CUBE_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 

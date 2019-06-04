@@ -1,5 +1,6 @@
 from pyspark.sql import Row
 
+from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.functions import count, mean, parse, avg, max, min, sum
 
@@ -37,23 +38,19 @@ class GroupedData(object):
             raise ValueError("exprs should not be empty")
 
         if len(exprs) == 1 and isinstance(exprs[0], dict):
-            jdf = self._jgd.agg(exprs[0])
+            jdf = self._jgd.agg_dict(exprs[0])
         else:
             # Columns
             if not all(isinstance(c, Column) for c in exprs):
                 raise ValueError("all exprs should be Column")
 
             # noinspection PyProtectedMember
-            jdf = self._jgd.agg(
-                exprs[0]._jc,
-                self.sql_ctx._sc,
-                [c._jc for c in exprs[1:]]
-            )
+            jdf = self._jgd.agg([parse(e) for e in exprs])
 
         return DataFrame(jdf, self.sql_ctx)
 
     def count(self):
-        return self.agg(count(1))
+        return self.agg(count(1).alias("count"))
 
     def mean(self, *cols):
         return self.agg(*(mean(parse(col)) for col in cols))
@@ -70,7 +67,7 @@ class GroupedData(object):
     def sum(self, *cols):
         return self.agg(*(sum(parse(col)) for col in cols))
 
-    # todo: implement apply()
+    # todo: implement pivot()
     # def pivot(self, pivot_col, values=None):
     #     if values is None:
     #         jgd = self._jgd.pivot(pivot_col)
