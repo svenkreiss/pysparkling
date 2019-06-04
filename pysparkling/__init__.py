@@ -1,5 +1,6 @@
 """pysparkling module"""
 # flake8: noqa
+from pyspark import Row
 
 __version__ = '0.6.0'
 
@@ -14,6 +15,6 @@ from . import fileio
 from . import streaming
 from . import exceptions
 
-__all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager',
+__all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager', 'Row',
            'TimedCacheManager',
            'exceptions', 'fileio', 'streaming']
