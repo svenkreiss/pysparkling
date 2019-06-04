@@ -122,6 +122,7 @@ class Context(object):
     """
 
     __last_rdd_id = 0
+    _active_context = None
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
@@ -152,6 +153,7 @@ class Context(object):
         self.locked = False
 
         self.version = PYSPARKLING_VERSION
+        Context._active_context = self
 
     def __getstate__(self):
         r = {k: v if k not in ('_pool',) else None
