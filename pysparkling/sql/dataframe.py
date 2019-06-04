@@ -1,11 +1,12 @@
 import sys
+import warnings
 
 from pyspark import StorageLevel
-from pyspark.sql import Column
-from pyspark.sql.types import TimestampType, IntegralType, _parse_datatype_json_string, ByteType, ShortType, \
-    IntegerType, FloatType, Row
+# noinspection PyProtectedMember
+from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
+    IntegerType, FloatType, Row, _parse_datatype_json_value
 
-from pysparkling import RDD
+from pysparkling.sql.column import Column
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.readwriter import DataFrameWriter
 from pysparkling.sql.streaming import DataStreamWriter
@@ -17,10 +18,12 @@ if sys.version >= '3':
 _NoValue = object()
 
 
+# noinspection PyMethodMayBeStatic
 class DataFrame(object):
     def __init__(self, jdf: DataFrameInternal, sql_ctx):
         self._jdf = jdf
         self.sql_ctx = sql_ctx
+        # noinspection PyProtectedMember
         self._sc = sql_ctx and sql_ctx._sc
         self._schema = []  # initialized lazily
 
@@ -36,17 +39,28 @@ class DataFrame(object):
     def is_cached(self):
         return self._jdf.is_cached()
 
+    @property
     def na(self):
         """Returns a :class:`DataFrameNaFunctions` for handling missing values.
         """
         return DataFrameNaFunctions(self)
 
+    @property
     def stat(self):
         return DataFrameStatFunctions(self)
 
     def toJSON(self, use_unicode=True):
-        rdd = self._jdf.toJSON()
-        return RDD(rdd.partitions(), ctx=self._sc)
+        """
+        Return an RDD containing all items after JSONification
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2)
+        >>> df.toJSON().collect()
+        ['{"id": 0}', '{"id": 1}']
+        """
+        return self._jdf.toJSON()
 
     def createTempView(self, name):
         self._jdf.createTempView(name)
@@ -72,32 +86,69 @@ class DataFrame(object):
     def schema(self):
         if self._schema is None:
             try:
-                self._schema = _parse_datatype_json_string(self._jdf.schema().json())
+                # todo: merge behavior with the one in self._inferSchemaFromList(data)
+                self._schema = _parse_datatype_json_value(self._jdf.schema())
             except AttributeError as e:
-                raise Exception(
-                    "Unable to parse datatype from schema. %s" % e)
+                raise Exception("Unable to parse datatype from schema. %s" % e)
         return self._schema
 
     def printSchema(self):
-        print(self._jdf.schema().treeString())
+        print(self.schema.treeString())
 
     def explain(self, extended=False):
-        if extended:
-            print(self._jdf.queryExecution().toString())
-        else:
-            print(self._jdf.queryExecution().simpleString())
+        print("Pysparkling does not provide query execution explanation")
 
     def exceptAll(self, other):
+        """Return a new :class:`DataFrame` containing rows in this :class:`DataFrame` but
+        not in another :class:`DataFrame` while preserving duplicates.
+
+        This is equivalent to `EXCEPT ALL` in SQL.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df1 = spark.createDataFrame(
+        ...         [("a", 1), ("a", 1), ("a", 1), ("a", 2), ("b",  3), ("c", 4)], ["C1", "C2"])
+        >>> df2 = spark.createDataFrame([("a", 1), ("b", 3)], ["C1", "C2"])
+
+        >>> df1.exceptAll(df2).show()
+        +---+---+
+        | C1| C2|
+        +---+---+
+        |  a|  1|
+        |  a|  1|
+        |  a|  2|
+        |  c|  4|
+        +---+---+
+
+        Also as standard in SQL, this function resolves columns by position (not by name).
+        """
         return DataFrame(self._jdf.exceptAll(other._jdf), self.sql_ctx)
 
     def isLocal(self):
         return True
 
     def isStreaming(self):
-        return self._jdf.isStreaming()
+        # todo: Add support of streaming
+        return False
 
     def show(self, n=20, truncate=True, vertical=False):
-        if isinstance(truncate, bool) and truncate:
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        """
+        if truncate is True:
             print(self._jdf.showString(n, 20, vertical))
         else:
             print(self._jdf.showString(n, int(truncate), vertical))
@@ -106,20 +157,13 @@ class DataFrame(object):
         return "DataFrame[%s]" % (", ".join("%s: %s" % c for c in self.dtypes))
 
     def checkpoint(self, eager=True):
-        jdf = self._jdf.checkpoint(eager)
-        return DataFrame(jdf, self.sql_ctx)
+        raise NotImplementedError("Streaming is not supported in PySparkling")
 
     def localCheckpoint(self, eager=True):
-        jdf = self._jdf.localCheckpoint(eager)
-        return DataFrame(jdf, self.sql_ctx)
+        raise NotImplementedError("Streaming is not supported in PySparkling")
 
     def withWatermark(self, eventTime, delayThreshold):
-        if not eventTime or type(eventTime) is not str:
-            raise TypeError("eventTime should be provided as a string")
-        if not delayThreshold or type(delayThreshold) is not str:
-            raise TypeError("delayThreshold should be provided as a string interval")
-        jdf = self._jdf.withWatermark(eventTime, delayThreshold)
-        return DataFrame(jdf, self.sql_ctx)
+        raise NotImplementedError("Streaming is not supported in PySparkling")
 
     def hint(self, name, *parameters):
         if len(parameters) == 1 and isinstance(parameters[0], list):
@@ -135,7 +179,7 @@ class DataFrame(object):
                     "all parameters should be in {0}, got {1} of type {2}".format(
                         allowed_types, p, type(p)))
 
-        jdf = self._jdf.hint(name, self._jseq(parameters))
+        jdf = self._jdf.hint(name, parameters)
         return DataFrame(jdf, self.sql_ctx)
 
     def count(self):
@@ -181,8 +225,12 @@ class DataFrame(object):
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2).limit(1)
-        >>> df.collect()
-        [Row(id=0)]
+        >>> df.show()
+        +---+
+        | id|
+        +---+
+        |  0|
+        +---+
         """
         return DataFrame(self._jdf.limit(n), self.sql_ctx)
 
@@ -324,15 +372,24 @@ class DataFrame(object):
         >>> spark.range(4, numPartitions=2).repartition(4).rdd.getNumPartitions()
         4
         >>> spark.range(4, numPartitions=2).repartition("id").rdd.getNumPartitions()
-        2000
+        200
+        >>> spark.createDataFrame(
+        ...   [[0], [1], [1], [2]],
+        ...   ["v"]
+        ... ).repartition(3, "v").rdd.foreachPartition(lambda x: print((list(x))))
+        [Row(v=0)]
+        [Row(v=1), Row(v=1)]
+        [Row(v=2)]
         """
         if isinstance(numPartitions, int):
             if not cols:
                 return DataFrame(self._jdf.repartition(numPartitions), self.sql_ctx)
             else:
                 def partitioner(row: Row):
-                    return row  # tuple(row[col] for col in cols)
-                return DataFrame(self._jdf.rdd().partitionBy(numPartitions, partitioner), self.sql_ctx)
+                    return sum(hash(row[col]) for col in cols)
+
+                repartitioned_jdf = self._jdf.partitionValues(numPartitions, partitioner)
+                return DataFrame(repartitioned_jdf, self.sql_ctx)
         elif isinstance(numPartitions, (basestring, Column)):
             # todo: rely on conf only
             newNumPartitions = self.sql_ctx.sparkSession.conf.get("numShufflePartitions", "200")
@@ -341,18 +398,56 @@ class DataFrame(object):
             raise TypeError("numPartitions should be an int, str or Column")
 
     def repartitionByRange(self, numPartitions, *cols):
-        return self.repartition(numPartitions, *cols)
+        """
+        Returns a new :class:`DataFrame` partitioned by the given partitioning expressions. The
+        resulting DataFrame is range partitioned.
+
+        :param numPartitions:
+            can be an int to specify the target number of partitions or a Column.
+            If it is a Column, it will be used as the first partitioning column. If not specified,
+            the default number of partitions is used.
+
+        At least one partition-by expression must be specified.
+
+        Note that due to performance reasons this method uses sampling to estimate the ranges.
+        Hence, the output may not be consistent, since sampling can return different values.
+
+        Sort orders are not supported in this pysparkling implementation
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(4, numPartitions=2).repartitionByRange(1, "id").rdd.getNumPartitions()
+        1
+        >>> spark.createDataFrame(
+        ...   [[0], [1], [1], [2], [4]],
+        ...   ["v"]
+        ... ).repartitionByRange(3, "v").rdd.foreachPartition(lambda x: print((list(x))))
+        [Row(v=0), Row(v=1), Row(v=1)]
+        [Row(v=2)]
+        [Row(v=4)]
+
+        """
+        # todo: support sort orders and assume "ascending nulls first" if needed
+        if isinstance(numPartitions, int):
+            if not cols:
+                raise ValueError("At least one partition-by expression must be specified.")
+            else:
+                repartitioned_jdf = self._jdf.repartitionByRange(numPartitions, *cols)
+                return DataFrame(repartitioned_jdf, self.sql_ctx)
+        elif isinstance(numPartitions, (basestring, Column)):
+            # todo: rely on conf only
+            newNumPartitions = self.sql_ctx.sparkSession.conf.get("numShufflePartitions", "200")
+            return self.repartitionByRange(int(newNumPartitions), numPartitions, *cols)
+        else:
+            raise TypeError("numPartitions should be an int, str or Column")
 
     def distinct(self):
         return DataFrame(self._jdf.distinct(), self.sql_ctx)
 
     def sample(self, withReplacement=None, fraction=None, seed=None):
-        is_withReplacement_set = \
-            type(withReplacement) == bool and isinstance(fraction, float)
-
-        is_withReplacement_omitted_kwargs = \
-            withReplacement is None and isinstance(fraction, float)
-
+        is_withReplacement_set = type(withReplacement) == bool and isinstance(fraction, float)
+        is_withReplacement_omitted_kwargs = withReplacement is None and isinstance(fraction, float)
         is_withReplacement_omitted_args = isinstance(withReplacement, float)
 
         if not (is_withReplacement_set
@@ -380,7 +475,36 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def sampleBy(self, col, fractions, seed=None):
-        ...
+        """
+        Returns a stratified sample without replacement based on the
+        fraction given on each stratum.
+
+        :param col: column that defines strata
+        :param fractions:
+            sampling fraction for each stratum. If a stratum is not
+            specified, we treat its fraction as zero.
+        :param seed: random seed
+        :return: a new DataFrame that represents the stratified sample
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> dataset = spark.createDataFrame(
+        ...   [[i % 3] for i in range(100)],
+        ...   ["key"]
+        ... )
+        >>> sampled = dataset.sampleBy("key", fractions={0: 0.1, 1: 0.2}, seed=0)
+        >>> sampled.groupBy("key").count().orderBy("key").show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|    3|
+        |  1|    6|
+        +---+-----+
+        >>> dataset.sampleBy("key", fractions={2: 1.0}, seed=0).count()
+        33
+        """
+        return DataFrame(self._jdf.sampleBy(col, fractions, seed), self.sql_ctx)
 
     def randomSplit(self, weights, seed=None):
         for w in weights:
@@ -413,26 +537,186 @@ class DataFrame(object):
     def join(self, other, on=None, how=None):
         ...
 
-    def sortWithinPartitions(self, *cols, **kwargs):
-        # todo: check impact of _sort_cols
-        jdf = self._jdf.sortWithinPartitions(cols, kwargs)
-        return DataFrame(jdf, self.sql_ctx)
+    def sortWithinPartitions(self, *cols, ascending=True):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(4, numPartitions=2)
+        >>> df.sortWithinPartitions("id", ascending=False).foreachPartition(lambda p: print(list(p)))
+        [Row(id=1), Row(id=0)]
+        [Row(id=3), Row(id=2)]
+        """
+        sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
+        return DataFrame(sorted_jdf, self.sql_ctx)
 
-    def sort(self, *cols, **kwargs):
-        # todo: check impact of _sort_cols
-        jdf = self._jdf.sort(cols, kwargs)
-        return DataFrame(jdf, self.sql_ctx)
+    def sort(self, *cols, ascending=True):
+        """Returns a new :class:`DataFrame` sorted by the specified column(s).
+
+        :param cols: list of :class:`Column` or column names to sort by.
+        :param ascending: boolean or list of boolean (default True).
+            Sort ascending vs. descending. Specify list for multiple sort orders.
+            If a list is specified, length of the list must equal length of the `cols`.
+
+        # >>> df.orderBy(desc("age"), "name").collect()
+        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        # >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
+        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.sort("age", ascending=False).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> df.sort("age", ascending=False).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> df.sort("age").show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        """
+        sorted_jdf = self._jdf.sort(cols, ascending)
+        return DataFrame(sorted_jdf, self.sql_ctx)
 
     def orderBy(self, *cols, **kwargs):
         return self.sort(*cols, **kwargs)
 
-    def describe(self, *cols):
+    @staticmethod
+    def _sort_cols(cols, kwargs):
+        """ Return a list of Columns that describes the sort order
+        """
+        # todo: use this function in sort methods to add support of custom orders
+        if not cols:
+            raise ValueError("should sort by at least one column")
         if len(cols) == 1 and isinstance(cols[0], list):
             cols = cols[0]
-        jdf = self._jdf.describe(cols)
-        return DataFrame(jdf, self.sql_ctx)
+
+        ascending = kwargs.get('ascending', True)
+        if isinstance(ascending, (bool, int)):
+            if not ascending:
+                cols = [jc.desc() for jc in cols]
+        elif isinstance(ascending, list):
+            cols = [jc if asc else jc.desc() for asc, jc in zip(ascending, cols)]
+        else:
+            raise TypeError("ascending can only be boolean or list, but got %s" % type(ascending))
+
+        return cols
+
+    def describe(self, *cols):
+        """Computes basic statistics for numeric and string columns.
+
+        This include count, mean, stddev, min, and max. If no columns are
+        given, this function computes statistics for all numerical or string columns.
+
+        .. note:: This function is meant for exploratory data analysis, as we make no
+            guarantee about the backward compatibility of the schema of the resulting DataFrame.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.describe(['age']).show()
+        +-------+------------------+
+        |summary|               age|
+        +-------+------------------+
+        |  count|                 2|
+        |   mean|               3.5|
+        | stddev|2.1213203435596424|
+        |    min|                 2|
+        |    max|                 5|
+        +-------+------------------+
+        >>> df.describe().show()
+        +-------+------------------+-----+
+        |summary|               age| name|
+        +-------+------------------+-----+
+        |  count|                 2|    2|
+        |   mean|               3.5| null|
+        | stddev|2.1213203435596424| null|
+        |    min|                 2|Alice|
+        |    max|                 5|  Bob|
+        +-------+------------------+-----+
+
+        Use summary for expanded statistics and control over which statistics to compute.
+        """
+        if len(cols) == 1 and isinstance(cols[0], list):
+            cols = cols[0]
+        return DataFrame(self._jdf.describe(cols), self.sql_ctx)
 
     def summary(self, *statistics):
+        """Computes specified statistics for numeric and string columns. Available statistics are:
+        - count
+        - mean
+        - stddev
+        - min
+        - max
+        - arbitrary approximate percentiles specified as a percentage (eg, 75%)
+
+        If no statistics are given, this function computes count, mean, stddev, min,
+        approximate quartiles (percentiles at 25%, 50%, and 75%), and max.
+
+        .. note:: This function is meant for exploratory data analysis, as we make no
+            guarantee about the backward compatibility of the schema of the resulting DataFrame.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+
+        >>> df.summary().show()
+        +-------+------------------+-----+
+        |summary|               age| name|
+        +-------+------------------+-----+
+        |  count|                 2|    2|
+        |   mean|               3.5| null|
+        | stddev|2.1213203435596424| null|
+        |    min|                 2|Alice|
+        |    25%|                 2| null|
+        |    50%|                 2| null|
+        |    75%|                 5| null|
+        |    max|                 5|  Bob|
+        +-------+------------------+-----+
+
+        >>> df.summary("count", "min", "25%", "75%", "max").show()
+        +-------+---+-----+
+        |summary|age| name|
+        +-------+---+-----+
+        |  count|  2|    2|
+        |    min|  2|Alice|
+        |    25%|  2| null|
+        |    75%|  5| null|
+        |    max|  5|  Bob|
+        +-------+---+-----+
+
+        To do a summary for specific columns first select them:
+
+        >>> df.select("age", "name").summary("count").show()
+        +-------+---+----+
+        |summary|age|name|
+        +-------+---+----+
+        |  count|  2|   2|
+        +-------+---+----+
+
+        See also describe for basic statistics.
+        """
         if len(statistics) == 1 and isinstance(statistics[0], list):
             statistics = statistics[0]
         jdf = self._jdf.summary(statistics)
@@ -461,21 +745,83 @@ class DataFrame(object):
         else:
             raise TypeError("unexpected item type: %s" % type(item))
 
-    # def __getattr__(self, name):
-    # if name not in self.columns:
-    #     raise AttributeError(
-    #         "'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
-    # jc = self._jdf.apply(name)
-    # return Column(jc)
+    def __getattr__(self, name):
+        if name not in self.columns:
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+        return Column(name)
 
     def select(self, *cols):
+        """Projects a set of expressions and returns a new :class:`DataFrame`.
+
+        :param cols: list of column names (string) or expressions (:class:`Column`).
+            If one of the column names is '*', that column is expanded to include all columns
+            in the current DataFrame.
+
+        # todo: alias
+        # >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+        # [Row(name=u'Alice', age=12), Row(name=u'Bob', age=15)]
+        # >>> df.select('*').show()
+        # +---+-----+
+        # |age| name|
+        # +---+-----+
+        # |  2|Alice|
+        # |  5|  Bob|
+        # +---+-----+
+        # >>> df.select('name', 'age').show()
+        # +-----+---+
+        # | name|age|
+        # +-----+---+
+        # |Alice|  2|
+        # |  Bob|  5|
+        # +-----+---+
+        # >>> df.select('name').show()
+        # +-----+
+        # | name|
+        # +-----+
+        # |Alice|
+        # |  Bob|
+        # +-----+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+        [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+        """
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
 
     def selectExpr(self, *expr):
+        """Projects a set of SQL expressions and returns a new :class:`DataFrame`.
+
+        This is a variant of :func:`select` that accepts SQL expressions.
+
+        # todo: handle this:
+        # >>> df.selectExpr("age * 2", "abs(age)").collect()
+        # [Row((age * 2)=4, abs(age)=2), Row((age * 2)=10, abs(age)=5)]
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.selectExpr("age").show()
+        +---+
+        |age|
+        +---+
+        |  2|
+        |  5|
+        +---+
+        """
         if len(expr) == 1 and isinstance(expr[0], list):
             expr = expr[0]
-        jdf = self._jdf.selectExpr(expr)
+        # todo: handle expr like abs(age)
+        # with jdf = self._jdf.selectExpr(expr)
+        jdf = self._jdf.select(*expr)
         return DataFrame(jdf, self.sql_ctx)
 
     def filter(self, condition):
@@ -488,7 +834,7 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def groupBy(self, *cols):
-        jgd = self._jdf.groupBy(self._jcols(*cols))
+        jgd = self._jdf.groupBy(*cols)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
@@ -506,12 +852,56 @@ class DataFrame(object):
         return self.groupBy().agg(*exprs)
 
     def union(self, other):
-        return DataFrame(self._jdf.union(other._jdf), self.sql_ctx)
+
+        """ Return a new :class:`DataFrame` containing union of rows in this and another frame.
+
+        This is equivalent to `UNION ALL` in SQL. To do a SQL-style set union
+        (that does deduplication of elements), use this function followed by :func:`distinct`.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
+        >>> df2 = spark.createDataFrame([Row(age=2, name='Alice')])
+        >>> df1.union(df2).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        """
+        # todo: support of "Also as standard in SQL, this function resolves columns by position (not by name)."
+        return self.unionByName(other)
 
     def unionAll(self, other):
+        """
+        Same as union
+        """
         return self.union(other)
 
     def unionByName(self, other):
+        """ Returns a new :class:`DataFrame` containing union of rows in this and another frame.
+
+        This is different from both `UNION ALL` and `UNION DISTINCT` in SQL. To do a SQL-style set
+        union (that does deduplication of elements), use this function followed by :func:`distinct`.
+
+        The difference between this function and :func:`union` is that this function
+        resolves columns by name (not by position):
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
+        >>> df2 = spark.createDataFrame([Row(age=2, name='Alice')])
+        >>> df1.union(df2).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        """
         return DataFrame(self._jdf.unionByName(other._jdf), self.sql_ctx)
 
     def intersect(self, other):
@@ -524,10 +914,7 @@ class DataFrame(object):
         return DataFrame(getattr(self._jdf, "except")(other._jdf), self.sql_ctx)
 
     def dropDuplicates(self, subset=None):
-        if subset is None:
-            jdf = self._jdf.dropDuplicates()
-        else:
-            jdf = self._jdf.dropDuplicates(self._jseq(subset))
+        jdf = self._jdf.dropDuplicates(cols=subset)
         return DataFrame(jdf, self.sql_ctx)
 
     def dropna(self, how='any', thresh=None, subset=None):
@@ -634,9 +1021,26 @@ class DataFrame(object):
             return DataFrame(self._jdf.na().replace('*', rep_dict), self.sql_ctx)
         else:
             return DataFrame(
-                self._jdf.na().replace(self._jseq(subset), self._jmap(rep_dict)), self.sql_ctx)
+                self._jdf.na().replace(subset, rep_dict), self.sql_ctx)
 
     def approxQuantile(self, col, probabilities, relativeError):
+        """
+        Approximate a list of quantiles (probabilities) for one or a list of columns (col)
+        with an error related to relativeError.
+
+        More information in pysparkling.stat_counter.ColumnStatHelper
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.approxQuantile("age", [0.1, 0.5, 0.9], 1/1000)
+        [2.0, 2.0, 5.0]
+        >>> df.approxQuantile(["age"], [0.1, 0.5, 0.9], 1/1000)
+        [[2.0, 2.0, 5.0]]
+        """
         if not isinstance(col, (basestring, list, tuple)):
             raise ValueError("col should be a string, list or tuple, but got %r" % type(col))
 
@@ -663,11 +1067,18 @@ class DataFrame(object):
             raise ValueError("relativeError should be numerical (float, int, long) >= 0.")
         relativeError = float(relativeError)
 
-        jaq = self._jdf.stat().approxQuantile(col, probabilities, relativeError)
+        jaq = self._jdf.approxQuantile(col, probabilities, relativeError)
         jaq_list = [list(j) for j in jaq]
         return jaq_list[0] if isStr else jaq_list
 
     def corr(self, col1, col2, method=None):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(50).corr('id', 'id')
+        1.0
+        """
         if not isinstance(col1, basestring):
             raise ValueError("col1 should be a string.")
         if not isinstance(col2, basestring):
@@ -677,21 +1088,30 @@ class DataFrame(object):
         if not method == "pearson":
             raise ValueError("Currently only the calculation of the Pearson Correlation " +
                              "coefficient is supported.")
-        return self._jdf.stat().corr(col1, col2, method)
+        return self._jdf.corr(col1, col2, method)
 
     def cov(self, col1, col2):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(50).cov('id', 'id')
+        212.5
+        """
         if not isinstance(col1, basestring):
             raise ValueError("col1 should be a string.")
         if not isinstance(col2, basestring):
             raise ValueError("col2 should be a string.")
-        return self._jdf.stat().cov(col1, col2)
+        return self._jdf.cov(col1, col2)
 
     def crosstab(self, col1, col2):
+        # todo: extra workin here
+        # todo: tests on schema
         if not isinstance(col1, basestring):
             raise ValueError("col1 should be a string.")
         if not isinstance(col2, basestring):
             raise ValueError("col2 should be a string.")
-        return DataFrame(self._jdf.stat().crosstab(col1, col2), self.sql_ctx)
+        return DataFrame(self._jdf.crosstab(self, col1, col2), self.sql_ctx)
 
     def freqItems(self, cols, support=None):
         if isinstance(cols, tuple):
@@ -700,11 +1120,11 @@ class DataFrame(object):
             raise ValueError("cols must be a list or tuple of column names as strings.")
         if not support:
             support = 0.01
-        return DataFrame(self._jdf.stat().freqItems(cols, support), self.sql_ctx)
+        return DataFrame(self._jdf.freqItems(cols, support), self.sql_ctx)
 
     def withColumn(self, colName, col):
         assert isinstance(col, Column), "col should be Column"
-        return DataFrame(self._jdf.withColumn(colName, col._jc), self.sql_ctx)
+        return DataFrame(self._jdf.withColumn(colName, col), self.sql_ctx)
 
     def withColumnRenamed(self, existing, new):
         return DataFrame(self._jdf.withColumnRenamed(existing, new), self.sql_ctx)
@@ -722,13 +1142,30 @@ class DataFrame(object):
             for col in cols:
                 if not isinstance(col, basestring):
                     raise TypeError("each col in the param list should be a string")
-            jdf = self._jdf.drop(self._jseq(cols))
+            jdf = self._jdf.drop(cols)
 
         return DataFrame(jdf, self.sql_ctx)
 
     def toDF(self, *cols):
-        jdf = self._jdf.toDF(self._jseq(cols))
-        return DataFrame(jdf, self.sql_ctx)
+        """Returns a new class:`DataFrame` that with new specified column names
+
+        :param cols: list of new column names (string)
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.toDF('f1', 'f2').show()
+        +---+-----+
+        | f1|   f2|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        """
+        return DataFrame(self._jdf.toDF(cols), self.sql_ctx)
 
     def transform(self, func):
         result = func(self)
@@ -742,66 +1179,14 @@ class DataFrame(object):
 
         import pandas as pd
 
-        if self.sql_ctx._conf.pandasRespectSessionTimeZone():
-            timezone = self.sql_ctx._conf.sessionLocalTimeZone()
+        # noinspection PyProtectedMember
+        sql_ctx_conf = self.sql_ctx._conf
+        if sql_ctx_conf.pandasRespectSessionTimeZone():
+            timezone = sql_ctx_conf.sessionLocalTimeZone()
         else:
             timezone = None
 
-        if self.sql_ctx._conf.arrowEnabled():
-            use_arrow = True
-            try:
-                from pyspark.sql.types import to_arrow_schema
-                from pyspark.sql.utils import require_minimum_pyarrow_version
-
-                require_minimum_pyarrow_version()
-                to_arrow_schema(self.schema)
-            except Exception as e:
-                if self.sql_ctx._conf.arrowFallbackEnabled():
-                    msg = (
-                            "toPandas attempted Arrow optimization because "
-                            "'spark.sql.execution.arrow.enabled' is set to true; however, "
-                            "failed by the reason below:\n  %s\n"
-                            "Attempting non-optimization as "
-                            "'spark.sql.execution.arrow.fallback.enabled' is set to "
-                            "true." % _exception_message(e))
-                    warnings.warn(msg)
-                    use_arrow = False
-                else:
-                    msg = (
-                            "toPandas attempted Arrow optimization because "
-                            "'spark.sql.execution.arrow.enabled' is set to true, but has reached "
-                            "the error below and will not continue because automatic fallback "
-                            "with 'spark.sql.execution.arrow.fallback.enabled' has been set to "
-                            "false.\n  %s" % _exception_message(e))
-                    warnings.warn(msg)
-                    raise
-
-            # Try to use Arrow optimization when the schema is supported and the required version
-            # of PyArrow is found, if 'spark.sql.execution.arrow.enabled' is enabled.
-            if use_arrow:
-                try:
-                    from pyspark.sql.types import _arrow_table_to_pandas, \
-                        _check_dataframe_localize_timestamps
-                    import pyarrow
-                    batches = self._collectAsArrow()
-                    if len(batches) > 0:
-                        table = pyarrow.Table.from_batches(batches)
-                        pdf = _arrow_table_to_pandas(table, self.schema)
-                        return _check_dataframe_localize_timestamps(pdf, timezone)
-                    else:
-                        return pd.DataFrame.from_records([], columns=self.columns)
-                except Exception as e:
-                    # We might have to allow fallback here as well but multiple Spark jobs can
-                    # be executed. So, simply fail in this case for now.
-                    msg = (
-                            "toPandas attempted Arrow optimization because "
-                            "'spark.sql.execution.arrow.enabled' is set to true, but has reached "
-                            "the error below and can not continue. Note that "
-                            "'spark.sql.execution.arrow.fallback.enabled' does not have an effect "
-                            "on failures in the middle of computation.\n  %s" % _exception_message(e))
-                    warnings.warn(msg)
-                    raise
-
+        # todo: Handle sql_ctx_conf.arrowEnabled()
         # Below is toPandas without Arrow optimization.
         pdf = pd.DataFrame.from_records(self.collect(), columns=self.columns)
 
