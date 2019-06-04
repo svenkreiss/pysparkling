@@ -2,6 +2,7 @@
 test.*
 profile.out
 .vscode
+.idea/
 scripts/textout
 tests/textout
 checkpoints/
