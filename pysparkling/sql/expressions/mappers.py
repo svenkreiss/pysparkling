@@ -2,8 +2,12 @@ from pysparkling.sql.expressions.expressions import Expression
 
 
 class StarOperator(Expression):
+    @property
+    def may_output_multiple_cols(self):
+        return True
+
     def output_cols(self, row):
-        return (col for col in row.__fields__)
+        return [col for col in row.__fields__]
 
     def eval(self, row):
         return (row[col] for col in row.__fields__)
@@ -14,6 +18,7 @@ class StarOperator(Expression):
 
 class IsNull(Expression):
     def __init__(self, expr):
+        super().__init__(expr)
         self.expr = expr
 
     def eval(self, row):
@@ -25,6 +30,7 @@ class IsNull(Expression):
 
 class IsNotNull(Expression):
     def __init__(self, expr):
+        super().__init__(expr)
         self.expr = expr
 
     def eval(self, row):
@@ -36,6 +42,7 @@ class IsNotNull(Expression):
 
 class Contains(Expression):
     def __init__(self, expr, value):
+        super().__init__(expr, value)
         self.expr = expr
         self.value = value
 
@@ -48,6 +55,7 @@ class Contains(Expression):
 
 class Negate(Expression):
     def __init__(self, expr):
+        super().__init__(expr)
         self.expr = expr
 
     def eval(self, row):
@@ -59,6 +67,7 @@ class Negate(Expression):
 
 class Add(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -71,6 +80,7 @@ class Add(Expression):
 
 class Minus(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -83,6 +93,7 @@ class Minus(Expression):
 
 class Time(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -95,6 +106,7 @@ class Time(Expression):
 
 class Divide(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -107,6 +119,7 @@ class Divide(Expression):
 
 class Mod(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -119,6 +132,7 @@ class Mod(Expression):
 
 class Pow(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -131,6 +145,7 @@ class Pow(Expression):
 
 class Equal(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -147,6 +162,7 @@ class Equal(Expression):
 
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -159,6 +175,7 @@ class EqNullSafe(Expression):
 
 class LessThan(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -171,6 +188,7 @@ class LessThan(Expression):
 
 class LessThanOrEqual(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -183,6 +201,7 @@ class LessThanOrEqual(Expression):
 
 class GreaterThan(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -195,6 +214,7 @@ class GreaterThan(Expression):
 
 class GreaterThanOrEqual(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -207,6 +227,7 @@ class GreaterThanOrEqual(Expression):
 
 class And(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -219,6 +240,7 @@ class And(Expression):
 
 class Or(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -231,6 +253,7 @@ class Or(Expression):
 
 class Invert(Expression):
     def __init__(self, arg1):
+        super().__init__(arg1)
         self.arg1 = arg1
 
     def eval(self, row):
@@ -242,6 +265,7 @@ class Invert(Expression):
 
 class BitwiseOR(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -254,6 +278,7 @@ class BitwiseOR(Expression):
 
 class BitwiseAnd(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -266,6 +291,7 @@ class BitwiseAnd(Expression):
 
 class BitwiseXor(Expression):
     def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -278,6 +304,7 @@ class BitwiseXor(Expression):
 
 class StartsWith(Expression):
     def __init__(self, arg1, substr):
+        super().__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -290,6 +317,7 @@ class StartsWith(Expression):
 
 class EndsWith(Expression):
     def __init__(self, arg1, substr):
+        super().__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -302,6 +330,7 @@ class EndsWith(Expression):
 
 class Substr(Expression):
     def __init__(self, expr, start, end):
+        super().__init__(expr, start, end)
         self.expr = expr
         self.start = start
         self.end = end
@@ -315,6 +344,7 @@ class Substr(Expression):
 
 class IsIn(Expression):
     def __init__(self, arg1, cols):
+        super().__init__(arg1, cols)
         self.arg1 = arg1
         self.cols = cols
 
@@ -330,6 +360,7 @@ class IsIn(Expression):
 
 class Alias(Expression):
     def __init__(self, expr, alias):
+        super().__init__(expr, alias)
         self.expr = expr
         self.alias = alias
 
