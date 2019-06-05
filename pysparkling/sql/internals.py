@@ -221,16 +221,18 @@ class DataFrameInternal(object):
         key = get_keyfunc(cols)
         return self._with_rdd(self._rdd.sortBy(key, ascending=ascending))
 
-    def select(self, *cols):
-        def mapper(row):
-            keyed_values = [
-                (key, value)
-                for col in cols
-                for key, value in resolve_column(col, row)
-            ]
-            return row_from_keyed_values(keyed_values)
+    def select(self, *exprs):
+        cols = [parse(e) for e in exprs]
 
-        return self._with_rdd(self._rdd.map(mapper))
+        def mapper(partition_index, partition):
+            initialized_cols = [col.initialize(partition_index) for col in cols]
+            return (row_from_keyed_values([
+                (key, value)
+                for col in initialized_cols
+                for key, value in resolve_column(col, row)
+            ]) for row in partition)
+
+        return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper))
 
     def selectExpr(self, *cols):
         # todo: implement
