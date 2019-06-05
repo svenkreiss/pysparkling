@@ -10,6 +10,7 @@ from pysparkling import RDD
 from pysparkling.sql.conf import RuntimeConfig
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.dataframe import DataFrame
+from pysparkling.sql.readwriter import DataFrameReader
 
 if sys.version >= '3':
     basestring = unicode = str
@@ -307,3 +308,7 @@ class SparkSession(object):
 
         idf = DataFrameInternal.range(self.sparkContext, start, end, step, numPartitions)
         return DataFrame(idf, self._wrapped)
+
+    @property
+    def read(self):
+        return DataFrameReader(self)

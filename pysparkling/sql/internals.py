@@ -17,7 +17,7 @@ from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percen
 
 
 def to_row(cols, record):
-    return Row(**dict(zip(cols, record)))
+    return row_from_keyed_values(zip(cols, record))
 
 
 class DataFrameInternal(object):
@@ -27,6 +27,8 @@ class DataFrameInternal(object):
         """
         self._sc = sc
         if convert_to_row:
+            if cols is None:
+                cols = ["_c{0}".format(i) for i in range(200)]
             rdd = rdd.map(partial(to_row, cols))
         self._rdd = rdd
 
