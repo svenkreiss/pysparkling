@@ -1,6 +1,7 @@
 import datetime
 import sys
 import itertools
+import math
 import random
 import re
 from operator import itemgetter
@@ -201,3 +202,111 @@ def pad_cell(cell, truncate, col_width):
         return cell.rjust(cell_width)
     else:
         return cell.ljust(cell_width)
+
+# todo: store random-related utils in a separated module
+class XORShiftRandom(object):
+    # todo: align generated values with the ones in Spark
+    def __init__(self, init):
+        self.seed = XORShiftRandom.hashSeed(init)
+        self.haveNextNextGaussian = False
+        self.nextNextGaussian = 0
+
+    def next(self, bits):
+        seed = self.seed
+        nextSeed = seed ^ (seed << 21)
+        nextSeed ^= (nextSeed >> 35)
+        nextSeed ^= (nextSeed << 4)
+        self.seed = nextSeed
+        return int(nextSeed & ((1 << bits) - 1))
+
+    def nextDouble(self):
+        return ((self.next(26) << 27) + self.next(27)) * 1.1102230246251565E-16
+
+    def nextGaussian(self):
+        if self.haveNextNextGaussian:
+            self.haveNextNextGaussian= False
+            return self.nextNextGaussian
+
+        v1 = 0
+        v2 = 0
+        s = 0
+        while not 0 < s < 1:
+            v1 = 2.0 * self.nextDouble() - 1
+            v2 = 2.0 * self.nextDouble() - 1
+            s = v1*v1 + v2*v2
+
+        multiplier = math.sqrt(-2*math.log(s) / s)
+        self.nextNextGaussian = v2 * multiplier
+        self.haveNextNextGaussian = True
+        return v1 * multiplier
+
+    @staticmethod
+    def hashSeed(seed):
+        as_bytes = seed.to_bytes(8, "big")
+        lowBits = MurmurHash3.bytesHash(as_bytes)
+        highBits = MurmurHash3.bytesHash(as_bytes, lowBits)
+        return (highBits << 32) | (lowBits & 0xFFFFFFFF)
+
+
+class MurmurHash3(object):
+    @staticmethod
+    def bytesHash(data, seed=0x3c074a61):
+        length = len(data)
+        h = seed
+
+        # Body
+        i = 0
+        while length >= 4:
+            k = data[i + 0] & 0xFF
+            k |= (data[i + 1] & 0xFF) << 8
+            k |= (data[i + 2] & 0xFF) << 16
+            k |= (data[i + 3] & 0xFF) << 24
+
+            h = MurmurHash3.mix(h, k)
+
+            i += 4
+            length -= 4
+
+        # Tail
+        k = 0
+        if length == 3:
+            k ^= (data[i + 2] & 0xFF) << 16
+        if length >= 2:
+            k ^= (data[i + 1] & 0xFF) << 8
+        if length >= 1:
+            k ^= (data[i + 0] & 0xFF)
+            h = MurmurHash3.mixLast(h, k)
+
+        # Finalization
+        return MurmurHash3.finalizeHash(h, len(data))
+
+    @staticmethod
+    def mix(h, data):
+        h = MurmurHash3.mixLast(h, data)
+        h = MurmurHash3.rotl(h, 13)
+        return h * 5 + 0xe6546b64
+
+    @staticmethod
+    def finalizeHash(h, length):
+        return MurmurHash3.avalanche(h ^ length)
+
+    @staticmethod
+    def avalanche(h):
+        h ^= h >> 16
+        h *= 0x85ebca6b
+        h ^= h >> 13
+        h *= 0xc2b2ae35
+        h ^= h >> 16
+        return h
+
+    @staticmethod
+    def mixLast(h, k):
+        k *= 0xcc9e2d51
+        k = MurmurHash3.rotl(k, 15)
+        k *= 0x1b873593
+
+        return h ^ k
+
+    @staticmethod
+    def rotl(i, distance):
+        return i << distance
