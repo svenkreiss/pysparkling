@@ -1,9 +1,8 @@
-import math
-
 from pyspark.sql.types import StringType
 
 from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.column import parse, Column
+from pysparkling.sql.expressions.mappers import *
 
 
 def _get_stat_helper():
@@ -301,58 +300,58 @@ def var_pop(e):
 # //////////////////////////////////////////////////////////////////////////////////////////////
 
 # def cume_dist():
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def dense_rank():
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def lag(e, offset, defaultValue=None):
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def lead(e, offset, defaultValue=None):
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def ntile(n):
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def percent_rank():
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def rank():
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 #
 #
 # def row_number():
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 
 
@@ -361,24 +360,54 @@ def array(*exprs):
     :rtype: Column
     """
     columns = [parse(e) for e in exprs]
-    return ArrayColumn(columns)
+    return col(ArrayColumn(columns))
 
 
-def map(*cols):
-    """
+def create_map(*exprs):
+    """Creates a new map column.
+
+    :param exprs: list of column names (string) or list of :class:`Column` expressions that are
+        grouped as key-value pairs, e.g. (key1, value1, key2, value2, ...).
+
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    >>> df.select(create_map('name', 'age').alias("map")).collect()
+    [Row(map={'Alice': 2}), Row(map={'Bob': 5})]
+    >>> df.select(create_map([df.name, df.age]).alias("map")).collect()
+    [Row(map={'Alice': 2}), Row(map={'Bob': 5})]
     """
-    columns = [parse(e) for e in expr]
-    return MapColumn(columns)
+    if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
+        exprs = exprs[0]
+    cols = [parse(e) for e in exprs]
+
+    return col(MapColumn(*cols))
 
 
-def map_from_arrays(key_exprs, value_exprs):
-    """
+def map_from_arrays(col1, col2):
+    """Creates a new map from two arrays.
+
+    :param col1: name of column containing a set of keys. All elements should not be null
+    :param col2: name of column containing a set of values
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
+    >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
+    +----------------+
+    |             map|
+    +----------------+
+    |[2 -> a, 5 -> b]|
+    +----------------+
     """
-    keys = [parse(e) for e in key_exprs]
-    values = [parse(e) for e in value_exprs]
-    return MapFromArraysColumn(keys, values)
+    key_col = parse(col1)
+    value_col = parse(col2)
+    return col(MapFromArraysColumn(key_col, value_col))
 
 
 def broadcast(df):
@@ -441,46 +470,91 @@ def negate(e):
 
 # todo: name should be not but the word is reserved. It is not exposed in Pyspark
 # def not(e):
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     return
 
 
 def rand(seed=None):
     """
+
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(4, numPartitions=2)
+    >>> df.select((rand(seed=42) * 3).alias("rand")).show()
+    +------------------+
+    |              rand|
+    +------------------+
+    |2.3675439190260485|
+    |1.8992753422855404|
+    |1.5878851952491426|
+    |0.8800146499990725|
+    +------------------+
     """
-    return Rand(seed)
+    return col(Rand(seed))
 
 
 def randn(seed=None):
     """
+
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(4, numPartitions=2)
+    >>> df.select((randn(seed=42) * 3).alias("randn")).show()
+    +------------------+
+    |             randn|
+    +------------------+
+    | 3.662337823324239|
+    |1.6855413955465237|
+    |0.7870748709777542|
+    |-5.552412872005739|
+    +------------------+
     """
-    return Randn(seed)
+    return col(Randn(seed))
 
 
 def spark_partition_id():
     """
     :rtype: Column
     """
-    return SparkPartitionID()
+    return col(SparkPartitionID())
 
 
 def sqrt(e):
     """
     :rtype: Column
     """
-    return Sqrt(parse(e))
+    return col(Sqrt(parse(e)))
 
 
 def struct(*exprs):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    >>> df.select(struct("age", col("name")).alias("struct")).collect()
+    [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
+    >>> df.select(struct("age", col("name"))).show()
+    +----------------------------------+
+    |named_struct(age, age, name, name)|
+    +----------------------------------+
+    |                        [2, Alice]|
+    |                          [5, Bob]|
+    +----------------------------------+
+
     """
     cols = [parse(e) for e in exprs]
-    CreateStruct(cols)
+    return col(CreateStruct(cols))
 
 
 def when(condition, value):
@@ -592,7 +666,7 @@ def expm1(e):
     """
     :rtype: Column
     """
-    return Exp(parse(e))
+    return ExpM1(parse(e))
 
 
 def factorial(e):
@@ -661,7 +735,7 @@ def log10(e):
     """
     :rtype: Column
     """
-    return log(10, e)
+    return Log10(parse(e))
 
 
 def log1p(e):
@@ -675,7 +749,7 @@ def log2(e):
     """
     :rtype: Column
     """
-    return log(2, e)
+    return Log2(parse(e))
 
 
 def pow(l, r):
@@ -864,7 +938,7 @@ def encode(value, charset):
     """
     :rtype: Column
     """
-    return Encore(parse(value), charset)
+    return Encode(parse(value), charset)
 
 
 def format_number(x, d):
@@ -893,7 +967,7 @@ def instr(str, substring):
     """
     :rtype: Column
     """
-    return StringInstr(parse(str), substring)
+    return StringInStr(parse(str), substring)
 
 
 def length(e):
@@ -1228,9 +1302,9 @@ def to_utc_timestamp(ts, tz):
 
 
 # def window(timeColumn, windowDuration, slideDuration=None, startTime="0 second"):
-    """
-    :rtype: Column
-    """
+#     """
+#     :rtype: Column
+#     """
 #     if slideDuration:
 #         slideDuration = windowDuration
 #     return

@@ -52,6 +52,7 @@ class GroupedData(object):
     def count(self):
         return self.agg(count(1).alias("count"))
 
+    # todo: avg, max, etc should work when cols is left empty
     def mean(self, *cols):
         return self.agg(*(mean(parse(col)) for col in cols))
 

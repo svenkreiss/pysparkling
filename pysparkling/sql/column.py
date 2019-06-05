@@ -121,7 +121,7 @@ class Column(object):
                          "in a string column or 'array_contains' function for an array column.")
 
     def bitwiseOR(self, other):
-        return Column(BitwiseOR(self, parse(other)))
+        return Column(BitwiseOr(self, parse(other)))
 
     def bitwiseAND(self, other):
         return Column(BitwiseAnd(self, parse(other)))
@@ -459,6 +459,11 @@ class Column(object):
     def __str__(self):
         return str(self.expr)
 
+    def initialize(self, partition_index):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_initialize(partition_index)
+        return self
+
     # todo: window functions
     # def over(self, window):
     #     """
@@ -489,9 +494,6 @@ class Column(object):
 
 
 def resolve_column(col, row):
-    if not isinstance(col, Column):
-        col = parse(col)
-
     output_cols = col.output_cols(row)
 
     if col.may_output_multiple_cols:
