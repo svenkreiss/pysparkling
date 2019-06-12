@@ -372,6 +372,14 @@ class Alias(Expression):
         self.expr = expr
         self.alias = alias
 
+    @property
+    def may_output_multiple_cols(self):
+        return self.expr.may_output_multiple_cols
+
+    @property
+    def may_output_multiple_rows(self):
+        return self.expr.may_output_multiple_rows
+
     def eval(self, row):
         return self.expr.eval(row)
 
@@ -862,3 +870,24 @@ class MapFromEntries(UnaryExpression):
 
     def __str__(self):
         return "map_from_entries({0})".format(self.column)
+
+
+class StringSplit(Expression):
+    def __init__(self, column, regex, limit):
+        import re
+        super().__init__(column)
+        self.column = column
+        self.regex = regex
+        self.compiled_regex = re.compile(regex)
+        self.limit = limit
+
+    def eval(self, row):
+        limit = self.limit if self.limit is not None else 0
+        return list(self.compiled_regex.split(str(self.column.eval(row)), limit))
+
+    def __str__(self):
+        return "split({0}, {1}{2})".format(
+            self.column,
+            self.regex,
+            ", {0}".format(self.limit) if self.limit is not None else ""
+        )

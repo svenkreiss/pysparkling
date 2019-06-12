@@ -3,6 +3,7 @@ import sys
 from pyspark.sql.types import DataType
 
 from pysparkling.sql.expressions.mappers import *
+from pysparkling.sql.expressions.literals import Literal
 
 if sys.version >= '3':
     basestring = str
@@ -230,7 +231,7 @@ class Column(object):
             raise TypeError(
                 "startPos and length must be the same type. "
                 "Got {startPos_t} and {length_t}, respectively."
-                .format(
+                    .format(
                     startPos_t=type(startPos),
                     length_t=type(length),
                 ))
@@ -441,6 +442,12 @@ class Column(object):
             return self.expr.may_output_multiple_cols
         return False
 
+    @property
+    def may_output_multiple_rows(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.may_output_multiple_rows
+        return False
+
     def output_cols(self, row):
         if isinstance(self.expr, Expression):
             return self.expr.output_cols(row)
@@ -496,12 +503,17 @@ class Column(object):
 def resolve_column(col, row):
     output_cols = col.output_cols(row)
 
-    if col.may_output_multiple_cols:
-        output_values = col.eval(row)
-    else:
-        output_values = [col.eval(row)]
+    output_values = col.eval(row)
 
-    return zip(output_cols, output_values)
+    if col.may_output_multiple_cols:
+        output_values = list(output_values)
+    else:
+        output_values = [output_values]
+
+    if not col.may_output_multiple_rows:
+        output_values = [[row_content] for row_content in output_values]
+
+    return output_cols, output_values
 
 
 def parse(arg):
@@ -514,5 +526,4 @@ def parse(arg):
         return Column(StarOperator())
     if isinstance(arg, str) or isinstance(arg, Expression):
         return Column(arg)
-    from pysparkling.sql.expressions.literals import Literal
     return Literal(value=arg)
