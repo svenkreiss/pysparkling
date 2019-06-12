@@ -15,6 +15,10 @@ class Expression(object):
     def may_output_multiple_cols(self):
         return False
 
+    @property
+    def may_output_multiple_rows(self):
+        return False
+
     def merge(self, row):
         pass
 

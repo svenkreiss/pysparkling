@@ -1,9 +1,11 @@
+import itertools
 import json
 import math
 import random
 import warnings
 from copy import deepcopy
 from functools import partial
+from itertools import product
 
 from pyspark import StorageLevel, Row
 from pyspark.sql.types import StructField, LongType, StructType, StringType
@@ -227,12 +229,34 @@ class DataFrameInternal(object):
         cols = [parse(e) for e in exprs]
 
         def mapper(partition_index, partition):
+            # Initialize non deterministic functions make them reproducible
             initialized_cols = [col.initialize(partition_index) for col in cols]
-            return (row_from_keyed_values([
-                (key, value)
-                for col in initialized_cols
-                for key, value in resolve_column(col, row)
-            ]) for row in partition)
+            generators = [col for col in initialized_cols if col.may_output_multiple_rows]
+            number_of_generators = len(generators)
+            if number_of_generators > 1:
+                raise Exception(
+                    "Only one generator allowed per select clause but found {0}: {1}".format(
+                        number_of_generators,
+                        ", ".join(generators)
+                    )
+                )
+
+            output_field_lists = []
+            for row in partition:
+                row_cols = []
+                rows = []
+                for col in initialized_cols:
+                    output_cols, output_values = resolve_column(col, row)
+                    row_cols += output_cols
+                    rows += output_values
+                for row_values in list(product(*rows)):
+                    output_field_lists.append(
+                        list(zip(row_cols, row_values))
+                    )
+            return list(
+                row_from_keyed_values(output_row_fields)
+                for output_row_fields in output_field_lists
+            )
 
         return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper))
 
