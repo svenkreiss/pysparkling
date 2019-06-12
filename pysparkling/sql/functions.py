@@ -2,7 +2,9 @@ from pyspark.sql.types import StringType
 
 from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.column import parse, Column
+from pysparkling.sql.expressions.explodes import Explode
 from pysparkling.sql.expressions.mappers import *
+from pysparkling.sql.expressions.literals import Literal
 
 
 def _get_stat_helper():
@@ -28,14 +30,14 @@ def lit(literal):
     """
     :rtype: Column
     """
-    return typedLit(literal)
+    return col(typedLit(literal))
 
 
 def typedLit(literal):
     """
     :rtype: Column
     """
-    return parse(literal)
+    return Literal(literal)
 
 
 def asc(columnName):
@@ -1065,7 +1067,7 @@ def split(str, regex, limit=None):
     """
     :rtype: Column
     """
-    return StringSplit(str, regex, limit)
+    return col(StringSplit(parse(str), regex, limit))
 
 
 def substring(str, pos, len):
@@ -1406,7 +1408,7 @@ def explode(e):
     """
     :rtype: Column
     """
-    return Explode(e)
+    return col(Explode(parse(e)))
 
 
 def explode_outer(e):
