@@ -7,6 +7,7 @@ from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, 
     IntegerType, FloatType, Row, _parse_datatype_json_value
 
 from pysparkling.sql.column import Column
+from pysparkling.sql.functions import col
 from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
 from pysparkling.sql.readwriter import DataFrameWriter
 from pysparkling.sql.streaming import DataStreamWriter
@@ -844,9 +845,9 @@ class DataFrame(object):
 
     def filter(self, condition):
         if isinstance(condition, basestring):
-            jdf = self._jdf.filter(condition)
+            jdf = self._jdf.filter(col(condition))
         elif isinstance(condition, Column):
-            jdf = self._jdf.filter(condition._jc)
+            jdf = self._jdf.filter(condition)
         else:
             raise TypeError("condition should be string or Column")
         return DataFrame(jdf, self.sql_ctx)
