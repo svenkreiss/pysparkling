@@ -264,6 +264,15 @@ class DataFrameInternal(object):
         # todo: implement
         raise NotImplementedError
 
+    def filter(self, condition):
+        condition = parse(condition)
+
+        def mapper(partition_index, partition):
+            initialized_condition = condition.initialize(partition_index)
+            return (row for row in partition if initialized_condition.eval(row))
+
+        return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper))
+
     def unionByName(self, other):
         return self._with_rdd(self._rdd.union(other.rdd()))
 
