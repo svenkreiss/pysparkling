@@ -780,35 +780,47 @@ class DataFrame(object):
             If one of the column names is '*', that column is expanded to include all columns
             in the current DataFrame.
 
+
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select('*').show()
+        # +---+-----+
+        # |age| name|
+        # +---+-----+
+        # |  2|Alice|
+        # |  5|  Bob|
+        # +---+-----+
+        # >>> df.select('name', 'age').show()
+        # +-----+---+
+        # | name|age|
+        # +-----+---+
+        # |Alice|  2|
+        # |  Bob|  5|
+        # +-----+---+
+        # >>> df.select('name').show()
+        # +-----+
+        # | name|
+        # +-----+
+        # |Alice|
+        # |  Bob|
+        # +-----+
+        # >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+        # [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+
+
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select('*').show()
-        +---+-----+
-        |age| name|
-        +---+-----+
-        |  2|Alice|
-        |  5|  Bob|
-        +---+-----+
-        >>> df.select('name', 'age').show()
-        +-----+---+
-        | name|age|
-        +-----+---+
-        |Alice|  2|
-        |  Bob|  5|
-        +-----+---+
-        >>> df.select('name').show()
-        +-----+
-        | name|
-        +-----+
-        |Alice|
-        |  Bob|
-        +-----+
-        >>> df.select(df.name, (df.age + 10).alias('age')).collect()
-        [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+        >>> from pysparkling.sql.functions import explode, split
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
+        +---+---+---+
+        |col| _1| _2|
+        +---+---+---+
+        |  a|a,b|1,2|
+        |  b|a,b|1,2|
+        +---+---+---+
+
         """
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
