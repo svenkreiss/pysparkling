@@ -1,7 +1,7 @@
-import itertools
 import json
 import math
 import random
+import sys
 import warnings
 from copy import deepcopy
 from functools import partial
@@ -13,9 +13,13 @@ from pyspark.sql.types import StructField, LongType, StructType, StringType
 from pysparkling import RDD
 from pysparkling.sql.column import resolve_column
 from pysparkling.sql.functions import parse, count
+from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
-    row_from_keyed_values, str_half_width, pad_cell
+    row_from_keyed_values, str_half_width, pad_cell, merge_rows
+
+if sys.version >= '3':
+    basestring = str
 
 
 def to_row(cols, record):
@@ -300,18 +304,7 @@ class DataFrameInternal(object):
         return self._with_rdd(self._rdd.map(mapper))
 
     def schema(self):
-        schema = {}
-        for row in self._rdd.takeSample(200):
-            for col in row:
-                new_type = type(row[col])
-                if col not in schema or schema[col] == type(None):
-                    schema[col] = new_type
-                elif row[col] is not None:
-                    old_type = schema[col]
-                    if old_type != new_type:
-                        raise Exception("Unable to parse col {0}, found types {1} and {2}".format(
-                            col, old_type, new_type
-                        ))
+        schema = infer_schema_from_list(self._rdd.takeSample(200))
         return schema
 
     def describe(self, exprs):
@@ -349,11 +342,7 @@ class DataFrameInternal(object):
 
         min_col_width = 3
 
-        cols = []
-        for row in rows:
-            for field in row.__fields__:
-                if field not in cols:
-                    cols.append(field)
+        cols = rows[0].__fields__ if len(rows) > 0 else []
         output = ""
         if not vertical:
             col_widths = [max(min_col_width, str_half_width(col)) for col in cols]
@@ -505,6 +494,52 @@ class DataFrameInternal(object):
         schema = StructType([StructField(table_name, StringType)] + header_names)
 
         return schema, table
+
+    def join(self, other, on, how):
+        if isinstance(on, basestring):
+            output_rdd = self.join_on_values(other, on)
+        else:
+            output_rdd = self.join_on_condition(other, on)
+
+        return self._with_rdd(output_rdd)
+
+    def join_on_condition(self, other, on):
+        """
+
+        :type other: DataFrameInternal
+        """
+        def condition(couple):
+            left, right = couple
+            tmp = merge_rows(left, right)
+            return on.eval(tmp)
+
+        joinded_rdd = self.rdd().cartesian(other.rdd()).filter(condition)
+
+        def format_output(entry):
+            left, right = entry
+
+            return merge_rows(left, right)
+
+        output_rdd = joinded_rdd.map(format_output)
+        return output_rdd
+
+    def join_on_values(self, other, on):
+        on = parse(on)
+
+        def add_key(row):
+            return on.eval(row), row
+
+        keyed_self = self.rdd().map(add_key)
+        keyed_other = other.rdd().map(add_key)
+        joined_rdd = keyed_self.join(keyed_other)
+
+        def format_output(entry):
+            key, (left, right) = entry
+
+            return merge_rows(left, right, key)
+
+        output_rdd = joined_rdd.map(format_output)
+        return output_rdd
 
 
 class InternalGroupedDataFrame(object):
