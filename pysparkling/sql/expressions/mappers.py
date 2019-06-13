@@ -763,7 +763,7 @@ class Least(Expression):
 
 class Length(UnaryExpression):
     def eval(self, row):
-        return len(str(self.column))
+        return len(str(self.column.eval(row)))
 
     def __str__(self):
         return "length({0})".format(self.column)
@@ -771,7 +771,7 @@ class Length(UnaryExpression):
 
 class Lower(UnaryExpression):
     def eval(self, row):
-        return str(self.column).lower()
+        return str(self.column.eval(row)).lower()
 
     def __str__(self):
         return "lower({0})".format(self.column)
@@ -779,7 +779,7 @@ class Lower(UnaryExpression):
 
 class Upper(UnaryExpression):
     def eval(self, row):
-        return str(self.column).upper()
+        return str(self.column.eval(row)).upper()
 
     def __str__(self):
         return "Upper({0})".format(self.column)
