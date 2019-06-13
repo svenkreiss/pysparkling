@@ -28,9 +28,11 @@ class OptionUtils(object):
 class DataFrameReader(OptionUtils):
     def option(self, k, v):
         self._jreader.option(k, v)
+        return self
 
     def schema(self, schema):
         self._jreader.schema(schema)
+        return self
 
     def __init__(self, spark):
         """
@@ -51,19 +53,6 @@ class DataFrameReader(OptionUtils):
             maxCharsPerColumn=None, maxMalformedLogPerPartition=None, mode=None,
             columnNameOfCorruptRecord=None, multiLine=None, charToEscapeQuoteEscaping=None,
             samplingRatio=None, enforceSchema=None, emptyValue=None, locale=None, lineSep=None):
-        """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.read.csv("/home/eguyomarch/toto.csv")
-        >>> df.show()
-        +---+-----+
-        |age| name|
-        +---+-----+
-        |  5|  Bob|
-        |  2|Alice|
-        +---+-----+
-        """
         self._set_opts(
             schema=schema, sep=sep, encoding=encoding, quote=quote, escape=escape, comment=comment,
             header=header, inferSchema=inferSchema, ignoreLeadingWhiteSpace=ignoreLeadingWhiteSpace,
@@ -98,27 +87,36 @@ class InternalReader(OptionUtils):
 
         :type spark: pysparkling.sql.session.SparkSession
         """
-        self.spark = spark
+        self._spark = spark
         self._options = {}
         self._schema = None
 
     def csv(self, paths):
-        return CSVReader(self.spark, paths, self._options).read()
+        return CSVReader(self._spark, paths, self._schema, self._options).read()
 
 
 class CSVReader(object):
-    def __init__(self, spark, paths, options):
+    def __init__(self, spark, paths, schema, options):
         self.spark = spark
         self.paths = paths
+        self.schema = schema
         self.sep = options.get("sep", ",")
 
     def read(self):
         sc = self.spark._sc
         paths = self.paths
+        cols = (
+            self.schema.replace("\n", "")
+                .replace(r" ", "")
+                .replace("STRING", "")
+                .replace("string", "")
+                .split(",")
+        )
         return DataFrameInternal(
             sc,
             sc.textFile(",".join(paths)).map(lambda line: line.split(self.sep)),
-            convert_to_row=True
+            convert_to_row=True,
+            cols=cols
         )
 
 
@@ -535,5 +533,3 @@ class DataFrameWriter(OptionUtils):
 #         for k in properties:
 #             jprop.setProperty(k, properties[k])
 #         self.mode(mode)._jwrite.jdbc(url, table, jprop)
-
-
