@@ -434,7 +434,13 @@ class Column(object):
     def eval(self, row):
         if isinstance(self.expr, Expression):
             return self.expr.eval(row)
-        return row[str(self)]
+        try:
+            return row[str(self)]
+        except ValueError as e:
+            raise ValueError("Unable to find the column '{0}' among {1}".format(
+                str(self),
+                row.__fields__
+            )) from None
 
     @property
     def may_output_multiple_cols(self):
