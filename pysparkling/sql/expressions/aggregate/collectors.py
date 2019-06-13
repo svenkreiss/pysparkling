@@ -33,7 +33,7 @@ class CollectSet(Aggregation):
         self.items |= other.items
 
     def eval(self, row):
-        return self.items
+        return list(self.items)
 
     def __str__(self):
         return "collect_set({0})".format(self.column)
