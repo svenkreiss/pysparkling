@@ -26,7 +26,7 @@ class DataFrame(object):
         self.sql_ctx = sql_ctx
         # noinspection PyProtectedMember
         self._sc = sql_ctx and sql_ctx._sc
-        self._schema = []  # initialized lazily
+        self._schema = None  # initialized lazily
 
         # Check whether _repr_html is supported or not, we use it to avoid calling _jdf twice
         # by __repr__ and _repr_html_ while eager evaluation opened.
@@ -88,7 +88,7 @@ class DataFrame(object):
         if self._schema is None:
             try:
                 # todo: merge behavior with the one in self._inferSchemaFromList(data)
-                self._schema = _parse_datatype_json_value(self._jdf.schema())
+                self._schema = self._jdf.schema()
             except AttributeError as e:
                 raise Exception("Unable to parse datatype from schema. %s" % e)
         return self._schema
@@ -552,8 +552,39 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def join(self, other, on=None, how=None):
-        # todo
-        ...
+        """
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import length
+        >>> spark = SparkSession(Context())
+        >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
+        >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
+        >>> a.join(b, on=length(a.name) * 2== length(b.n) + length(a.name)).show()
+        +----+----------+---+
+        |name|      time|  n|
+        +----+----------+---+
+        |   o|1479441846|  a|
+        |   o|1479441846|  b|
+        |   o|1479441846|  o|
+        +----+----------+---+
+        >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
+
+        >>> a.join(c, on=(a.name == c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   o|
+        +----+----------+----+
+        >>> a.join(c, on=(a.name != c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   a|
+        |   o|1479441846|   b|
+        +----+----------+----+
+        """
+        return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
     def sortWithinPartitions(self, *cols, ascending=True):
         """
