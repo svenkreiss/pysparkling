@@ -110,7 +110,7 @@ def collect_set(e):
     :rtype: Column
     """
     from pysparkling.sql.expressions.aggregate.collectors import CollectSet
-    return CollectSet(column=parse(e))
+    return col(CollectSet(column=parse(e)))
 
 
 def corr(column1, column2):
@@ -976,7 +976,7 @@ def length(e):
     """
     :rtype: Column
     """
-    return Length(parse(e))
+    return col(Length(parse(e)))
 
 
 def lower(e):
