@@ -281,7 +281,7 @@ class DataFrameInternal(object):
         return self._with_rdd(self._rdd.union(other.rdd()))
 
     def withColumn(self, colName, col):
-        return self.selectExpr("*", parse(col).alias(colName))
+        return self.select(parse("*"), parse(col).alias(colName))
 
     def withColumnRenamed(self, existing, new):
         def mapper(row):
