@@ -73,3 +73,15 @@ class Expression(object):
 
     def initialize(self, partition_index):
         pass
+
+
+class UnaryExpression(Expression):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+
+    def eval(self, row):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError

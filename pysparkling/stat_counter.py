@@ -183,6 +183,9 @@ class ColumnStatHelper(object):
         self.count = 0
         self.sum_of_values = 0
         self.sum_of_squares = 0
+        self.m2 = 0
+        self.m3 = 0
+        self.m4 = 0
         self.min_value = None
         self.max_value = None
 
@@ -209,12 +212,31 @@ class ColumnStatHelper(object):
             self.min_value = value
             self.max_value = value
         self.count += 1
+
         try:
             self.sum_of_values += value
             self.sum_of_squares += value * value
+            self.update_moments(value)
         except TypeError:
             self.sum_of_values = None
             self.sum_of_squares = None
+            self.m2 = None
+            self.m3 = None
+            self.m4 = None
+
+    def update_moments(self, value):
+        delta = value - self.mean
+        deltaN = delta / self.count
+        self.m2 = self.m2 + delta * (delta - deltaN)
+        delta2 = delta * delta
+        deltaN2 = deltaN * deltaN
+        self.m3 = self.m3 - 3 * deltaN * self.m2 + delta * (delta2 - deltaN2)
+        self.m4 = (
+                self.m4 -
+                4 * deltaN * self.m3 -
+                6 * deltaN2 * self.m2 +
+                delta * (delta * delta2 - deltaN * deltaN2)
+        )
 
     def update_sample(self, value):
         self.head_sampled.append(value)
@@ -300,11 +322,40 @@ class ColumnStatHelper(object):
             self.max_value = max(self.max_value, other.max_value)
             self.min_value = min(self.min_value, other.min_value)
 
-        self.sum_of_values += other.sum_of_values
-        self.sum_of_squares += other.sum_of_squares
+        try:
+            self.sum_of_values += other.sum_of_values
+            self.sum_of_squares += other.sum_of_squares
+            self.merge_moments(other)
+        except TypeError:
+            self.sum_of_values = None
+            self.sum_of_squares = None
+            self.m2 = None
+            self.m3 = None
+            self.m4 = None
+
         self.count += other.count
 
         return self
+
+    def merge_moments(self, other):
+        n1 = self.count
+        n2 = other.count
+        self.count = n1 + n2
+        delta = other.mean - self.mean
+        deltaN = delta / self.count if self.count != 0 else 0
+
+        self.m2 = self.m2 + other.m2 + delta * deltaN * n1 * n2
+        self.m3 = (
+                self.m3 + other.m3 +
+                deltaN * deltaN * delta * n1 * n2 * (n1 - n2) +
+                3 * deltaN * (n1 * other.m2 - n2 * self.m2)
+        )
+        self.m4 = (
+                self.m4 + other.m4 +
+                deltaN * deltaN * deltaN * delta * n1 * n2 * (n1 * n1 - n1 * n2 + n2 * n2) +
+                6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2) +
+                4 * deltaN * (n1 * other.m3 - n2 * self.m3)
+        )
 
     def get_quantile(self, quantile):
         self.finalize()
@@ -337,6 +388,7 @@ class ColumnStatHelper(object):
     def variance_pop(self):
         if self.count == 0 or self.sum_of_values is None:
             return None
+        return sqrt(self.m2 / self.n)
         return (self.sum_of_squares - ((self.sum_of_values * self.sum_of_values) / self.count)) / self.count
 
     @property
@@ -353,6 +405,7 @@ class ColumnStatHelper(object):
     def stddev_pop(self):
         if self.count == 0 or self.sum_of_values is None:
             return None
+
         return math.sqrt(self.variance_pop)
 
     @property
@@ -372,6 +425,22 @@ class ColumnStatHelper(object):
     @property
     def max(self):
         return self.max_value
+
+    @property
+    def skewness(self):
+        if self.count == 0:
+            return None
+        if self.m2 == 0:
+            return float("nan")
+        return math.sqrt(self.count) * self.m3 / math.sqrt(self.m2 * self.m2 * self.m2)
+
+    @property
+    def kurtosis(self):
+        if self.count == 0:
+            return None
+        if self.m2 == 0:
+            return float("nan")
+        return self.count * self.m4 / (self.m2 * self.m2) - 3
 
 
 class RowStatHelper(object):
@@ -498,11 +567,22 @@ class CovarianceCounter(object):
         return self
 
     @property
-    def cov(self):
+    def covar_samp(self):
         """
         Return the sample covariance for the observed examples
         """
+        if self.count <= 1:
+            return None
         return self.Ck / (self.count - 1)
+
+    @property
+    def covar_pop(self):
+        """
+        Return the sample covariance for the observed examples
+        """
+        if self.count == 0:
+            return None
+        return self.Ck / self.count
 
     @property
     def pearson_correlation(self):
