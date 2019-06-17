@@ -91,3 +91,19 @@ class StddevPop(SimpleStatAggregation):
 
     def __str__(self):
         return "stddev_pop({0})".format(self.column)
+
+
+class Skewness(SimpleStatAggregation):
+    def eval(self, row):
+        return self.stat_helper.skewness
+
+    def __str__(self):
+        return "skewness({0})".format(self.column)
+
+
+class Kurtosis(SimpleStatAggregation):
+    def eval(self, row):
+        return self.stat_helper.kurtosis
+
+    def __str__(self):
+        return "kurtosis({0})".format(self.column)

@@ -1,7 +1,7 @@
 import math
 
 
-from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.utils import XORShiftRandom, row_from_keyed_values
 
 
@@ -18,18 +18,6 @@ class StarOperator(Expression):
 
     def __str__(self):
         return "*"
-
-
-class UnaryExpression(Expression):
-    def __init__(self, column):
-        super().__init__(column)
-        self.column = column
-
-    def eval(self, row):
-        raise NotImplementedError
-
-    def __str__(self):
-        raise NotImplementedError
 
 
 class IsNull(UnaryExpression):
@@ -387,48 +375,6 @@ class Alias(Expression):
         return self.alias
 
 
-class ArrayColumn(Expression):
-    def __init__(self, columns):
-        super().__init__(columns)
-        self.columns = columns
-
-    def eval(self, row):
-        return [col.eval(row) for col in self.columns]
-
-    def __str__(self):
-        return "array({0})".format(", ".join(str(col) for col in self.columns))
-
-
-class MapColumn(Expression):
-    def __init__(self, *columns):
-        super().__init__(columns)
-        self.columns = columns
-        self.keys = columns[::2]
-        self.values = columns[1::2]
-
-    def eval(self, row):
-        return dict((key.eval(row), value.eval(row)) for key, value in zip(self.keys, self.values))
-
-    def __str__(self):
-        return "map({0})".format(", ".join(str(col) for col in self.columns))
-
-
-class MapFromArraysColumn(Expression):
-    def __init__(self, keys, values):
-        super().__init__(keys, values)
-        self.keys = keys
-        self.values = values
-
-    def eval(self, row):
-        return dict(zip(self.keys.eval(row), self.values.eval(row)))
-
-    def __str__(self):
-        return "map_from_arrays({0}, {1})".format(
-            self.keys,
-            self.values
-        )
-
-
 class Coalesce(Expression):
     def __init__(self, columns):
         super().__init__(columns)
@@ -468,6 +414,19 @@ class NaNvl(Expression):
 
     def __str__(self):
         return "nanvl({0}, {1})".format(self.col1, self.col2)
+
+
+class Hypot(Expression):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+        self.a = a
+        self.b = b
+
+    def eval(self, row):
+        return math.hypot(self.a, self.b)
+
+    def __str__(self):
+        return "hypot({0}, {1})".format(self.a, self.b)
 
 
 class Sqrt(UnaryExpression):
@@ -516,6 +475,19 @@ class Atan(UnaryExpression):
 
     def __str__(self):
         return "ATAN({0})".format(self.column)
+
+
+class Atan2(Expression):
+    def __init__(self, y, x):
+        super().__init__(y, x)
+        self.y = y
+        self.x = x
+
+    def eval(self, row):
+        return math.atan2(self.y.eval(row), self.x.eval(row))
+
+    def __str__(self):
+        return "ATAN({0}, {1})".format(self.y, self.x)
 
 
 class Tan(UnaryExpression):
@@ -795,41 +767,6 @@ class Concat(Expression):
 
     def __str__(self):
         return "concat({0})".format(", ".join(col for col in self.columns))
-
-
-class Size(UnaryExpression):
-    def eval(self, row):
-        column_value = self.column.eval(row)
-        if isinstance(column_value, (list, set, dict)):
-            return len(column_value)
-        raise Expression("{0} value should be a list, set or a dict, got {1}".format(self.column, type(column_value)))
-
-    def __str__(self):
-        return "size({0})".format(self.column)
-
-
-class ArraySort(UnaryExpression):
-    def eval(self, row):
-        return sorted(self.column.eval(row))
-
-    def __str__(self):
-        return "array_sort({0})".format(self.column)
-
-
-class ArrayMin(UnaryExpression):
-    def eval(self, row):
-        return min(self.column.eval(row))
-
-    def __str__(self):
-        return "array_min({0})".format(self.column)
-
-
-class ArrayMax(UnaryExpression):
-    def eval(self, row):
-        return max(self.column.eval(row))
-
-    def __str__(self):
-        return "array_max({0})".format(self.column)
 
 
 class Reverse(UnaryExpression):

@@ -39,6 +39,25 @@ class CollectSet(Aggregation):
         return "collect_set({0})".format(self.column)
 
 
+class SumDistinct(Aggregation):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+        self.items = set()
+
+    def merge(self, row):
+        self.items.add(self.column.eval(row))
+
+    def mergeStats(self, other):
+        self.items |= other.items
+
+    def eval(self, row):
+        return sum(self.items)
+
+    def __str__(self):
+        return "sum_distinct({0})".format(self.column)
+
+
 class First(Aggregation):
     _sentinel = object()
 

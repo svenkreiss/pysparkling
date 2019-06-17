@@ -430,7 +430,7 @@ class DataFrameInternal(object):
 
     def cov(self, col1, col2):
         covariance_helper = self._get_covariance_helper("pearson", col1, col2)
-        return covariance_helper.cov
+        return covariance_helper.covar_samp
 
     def _get_covariance_helper(self, method, col1, col2):
         """
