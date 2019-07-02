@@ -226,8 +226,14 @@ def skewness(e):
     >>> from pysparkling import Context
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
-    >>> spark.range(100).select((col("id")**2).alias("n")).groupBy(lit(1)).agg(skewness("n")).show()
-    [Row(map={'Alice': 2}), Row(map={'Bob': 5})]
+    >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
+    >>> df.groupBy().agg(skewness("n")).show()
+    +------------------+
+    |       skewness(n)|
+    +------------------+
+    |0.6440904335963368|
+    +------------------+
+
     """
     return col(Skewness(column=parse(e)))
 
@@ -1077,11 +1083,11 @@ def substring_index(str, delim, count):
     return col(SubstringIndex(str, delim, count))
 
 
-def translate(src, matchingString, replaceString):
+def translate(srcCol, matchingString, replaceString):
     """
     :rtype: Column
     """
-    return col(StringTranslate(str, matchingString, replaceString))
+    return col(StringTranslate(srcCol, matchingString, replaceString))
 
 
 def trim(e, trimString=" "):

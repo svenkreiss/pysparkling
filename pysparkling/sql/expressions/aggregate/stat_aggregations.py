@@ -12,7 +12,7 @@ class SimpleStatAggregation(Aggregation):
         self.stat_helper.merge(row)
 
     def mergeStats(self, other):
-        self.stat_helper.mergeStats(other)
+        self.stat_helper.mergeStats(other.expr.stat_helper)
 
     def eval(self, row):
         raise NotImplementedError
