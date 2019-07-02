@@ -1,3 +1,4 @@
+import json
 import sys
 
 from pysparkling import RDD
@@ -74,6 +75,31 @@ class DataFrameReader(OptionUtils):
         else:
             raise TypeError("path can be only string, list or RDD")
 
+    def json(self, path, schema=None, primitivesAsString=None, prefersDecimal=None,
+             allowComments=None, allowUnquotedFieldNames=None, allowSingleQuotes=None,
+             allowNumericLeadingZero=None, allowBackslashEscapingAnyCharacter=None,
+             mode=None, columnNameOfCorruptRecord=None, dateFormat=None, timestampFormat=None,
+             multiLine=None, allowUnquotedControlChars=None, lineSep=None, samplingRatio=None,
+             dropFieldIfAllNull=None, encoding=None, locale=None):
+        self._set_opts(
+            schema=schema, primitivesAsString=primitivesAsString, prefersDecimal=prefersDecimal,
+            allowComments=allowComments, allowUnquotedFieldNames=allowUnquotedFieldNames,
+            allowSingleQuotes=allowSingleQuotes, allowNumericLeadingZero=allowNumericLeadingZero,
+            allowBackslashEscapingAnyCharacter=allowBackslashEscapingAnyCharacter,
+            mode=mode, columnNameOfCorruptRecord=columnNameOfCorruptRecord, dateFormat=dateFormat,
+            timestampFormat=timestampFormat, multiLine=multiLine,
+            allowUnquotedControlChars=allowUnquotedControlChars, lineSep=lineSep,
+            samplingRatio=samplingRatio, dropFieldIfAllNull=dropFieldIfAllNull, encoding=encoding,
+            locale=locale)
+        if isinstance(path, basestring):
+            path = [path]
+        if type(path) == list:
+            return self._df(self._jreader.json(path))
+        elif isinstance(path, RDD):
+            return self._df(self._jreader.json(path.collect()))
+        else:
+            raise TypeError("path can be only string, list or RDD")
+
 
 class InternalReader(OptionUtils):
     def schema(self, schema):
@@ -94,6 +120,19 @@ class InternalReader(OptionUtils):
     def csv(self, paths):
         return CSVReader(self._spark, paths, self._schema, self._options).read()
 
+    def json(self, paths):
+        return JSONReader(self._spark, paths, self._schema, self._options).read()
+
+
+def _parse_schema(schema):
+    return (
+        schema.replace("\n", "")
+            .replace(r" ", "")
+            .replace("STRING", "")
+            .replace("string", "")
+            .split(",")
+    )
+
 
 class CSVReader(object):
     def __init__(self, spark, paths, schema, options):
@@ -105,16 +144,30 @@ class CSVReader(object):
     def read(self):
         sc = self.spark._sc
         paths = self.paths
-        cols = (
-            self.schema.replace("\n", "")
-                .replace(r" ", "")
-                .replace("STRING", "")
-                .replace("string", "")
-                .split(",")
-        )
+        cols = _parse_schema(self.schema)
         return DataFrameInternal(
             sc,
             sc.textFile(",".join(paths)).map(lambda line: line.split(self.sep)),
+            convert_to_row=True,
+            cols=cols
+        )
+
+
+class JSONReader(object):
+    def __init__(self, spark, paths, schema, options):
+        self.spark = spark
+        self.paths = paths
+        self.schema = schema
+
+    def read(self):
+        sc = self.spark._sc
+        paths = self.paths
+        if self.schema is None:
+            raise NotImplementedError
+        cols = _parse_schema(self.schema)
+        return DataFrameInternal(
+            sc,
+            sc.textFile(",".join(paths)).map(lambda line: json.loads(line).values()),
             convert_to_row=True,
             cols=cols
         )
