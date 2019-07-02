@@ -182,7 +182,6 @@ class ColumnStatHelper(object):
 
         self.count = 0
         self.sum_of_values = 0
-        self.sum_of_squares = 0
         self.m2 = 0
         self.m3 = 0
         self.m4 = 0
@@ -211,22 +210,21 @@ class ColumnStatHelper(object):
         else:
             self.min_value = value
             self.max_value = value
-        self.count += 1
 
         try:
-            self.sum_of_values += value
-            self.sum_of_squares += value * value
             self.update_moments(value)
+            self.sum_of_values += value
         except TypeError:
             self.sum_of_values = None
-            self.sum_of_squares = None
             self.m2 = None
             self.m3 = None
             self.m4 = None
 
+        self.count += 1
+
     def update_moments(self, value):
-        delta = value - self.mean
-        deltaN = delta / self.count
+        delta = value - self.mean if self.count > 0 else 0
+        deltaN = delta / (self.count + 1)
         self.m2 = self.m2 + delta * (delta - deltaN)
         delta2 = delta * delta
         deltaN2 = deltaN * deltaN
@@ -323,12 +321,10 @@ class ColumnStatHelper(object):
             self.min_value = min(self.min_value, other.min_value)
 
         try:
-            self.sum_of_values += other.sum_of_values
-            self.sum_of_squares += other.sum_of_squares
             self.merge_moments(other)
+            self.sum_of_values += other.sum_of_values
         except TypeError:
             self.sum_of_values = None
-            self.sum_of_squares = None
             self.m2 = None
             self.m3 = None
             self.m4 = None
@@ -340,12 +336,12 @@ class ColumnStatHelper(object):
     def merge_moments(self, other):
         n1 = self.count
         n2 = other.count
-        self.count = n1 + n2
+        new_count = n1 + n2
         delta = other.mean - self.mean
-        deltaN = delta / self.count if self.count != 0 else 0
+        deltaN = delta / new_count if new_count != 0 else 0
 
-        self.m2 = self.m2 + other.m2 + delta * deltaN * n1 * n2
-        self.m3 = (
+        new_m2 = self.m2 + other.m2 + delta * deltaN * n1 * n2
+        new_m3 = (
                 self.m3 + other.m3 +
                 deltaN * deltaN * delta * n1 * n2 * (n1 - n2) +
                 3 * deltaN * (n1 * other.m2 - n2 * self.m2)
@@ -356,6 +352,8 @@ class ColumnStatHelper(object):
                 6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2) +
                 4 * deltaN * (n1 * other.m3 - n2 * self.m3)
         )
+        self.m2 = new_m2
+        self.m3 = new_m3
 
     def get_quantile(self, quantile):
         self.finalize()
@@ -388,14 +386,13 @@ class ColumnStatHelper(object):
     def variance_pop(self):
         if self.count == 0 or self.sum_of_values is None:
             return None
-        return sqrt(self.m2 / self.n)
-        return (self.sum_of_squares - ((self.sum_of_values * self.sum_of_values) / self.count)) / self.count
+        return self.m2 / self.count
 
     @property
     def variance_samp(self):
         if self.count <= 1 or self.sum_of_values is None:
             return None
-        return (self.sum_of_squares - ((self.sum_of_values * self.sum_of_values) / self.count)) / (self.count - 1)
+        return self.m2 / (self.count - 1)
 
     @property
     def variance(self):
