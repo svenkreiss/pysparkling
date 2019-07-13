@@ -1,8 +1,10 @@
-
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.5.0...master>`_
+* `master <https://github.com/svenkreiss/pysparkling/compare/v0.6.0...master>`_
+* `v0.6.0 <https://github.com/svenkreiss/pysparkling/compare/v0.5.0...v0.6.0>`_ (2019-07-13)
+    * Broadcast, Accumulator and AccumulatorParam by @alexprengere
+    * support for increasing partition numbers in coalesce and repartition by @tools4origins
 * `v0.5.0 <https://github.com/svenkreiss/pysparkling/compare/v0.4.1...v0.5.0>`_ (2019-05-03)
     * fixes for HDFS thanks to @tools4origins
     * fix for empty partitions by @tools4origins

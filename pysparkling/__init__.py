@@ -1,7 +1,7 @@
 """pysparkling module"""
 # flake8: noqa
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 from .rdd import RDD
 from .context import Context
