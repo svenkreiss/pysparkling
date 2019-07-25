@@ -1,6 +1,6 @@
 import sys
 
-from pyspark.sql.types import DataType
+from pyspark.sql.types import DataType, StructField
 
 from pysparkling.sql.expressions.mappers import *
 from pysparkling.sql.expressions.literals import Literal
@@ -431,16 +431,32 @@ class Column(object):
         jc = self._jc.otherwise(v)
         return Column(jc)
 
-    def eval(self, row):
+    def eval(self, row, schema):
         if isinstance(self.expr, Expression):
-            return self.expr.eval(row)
-        try:
-            return row[str(self)]
-        except ValueError as e:
-            raise ValueError("Unable to find the column '{0}' among {1}".format(
-                str(self),
-                row.__fields__
-            )) from None
+            return self.expr.eval(row, schema)
+
+        return row[self.find_position_in_schema(schema)]
+
+    def find_fields_in_schema(self, schema):
+        if isinstance(self.expr, Expression):
+            return self.expr.output_fields(schema)
+        else:
+            return [schema[self.find_position_in_schema(schema)]]
+
+    def find_position_in_schema(self, schema):
+        expr = self.expr
+        if isinstance(expr, str):
+            show_id = False
+            field_name = expr
+            matches = set(i for i, field in enumerate(schema.fields) if field_name == field.name)
+        elif isinstance(expr, StructField):
+            show_id = True
+            field_name = format_field(expr, show_id=show_id)
+            matches = set(i for i, field in enumerate(schema.fields) if expr is field)
+        else:
+            raise NotImplementedError
+
+        return get_checked_matches(matches, field_name, schema, show_id)
 
     @property
     def may_output_multiple_cols(self):
@@ -454,19 +470,23 @@ class Column(object):
             return self.expr.may_output_multiple_rows
         return False
 
-    def output_cols(self, row):
+    def output_fields(self, schema):
         if isinstance(self.expr, Expression):
-            return self.expr.output_cols(row)
-        return [str(self)]
+            return self.expr.output_fields(schema)
+        return [StructField(
+            name=self.col_name,
+            dataType=self.data_type,
+            nullable=self.is_nullable
+        )]
 
-    def merge(self, row):
+    def merge(self, row, schema):
         if isinstance(self.expr, Expression):
-            self.expr.recursive_merge(row)
+            self.expr.recursive_merge(row, schema)
         return self
 
-    def mergeStats(self, row):
+    def mergeStats(self, row, schema):
         if isinstance(self.expr, Expression):
-            self.expr.recursive_merge_stats(row)
+            self.expr.recursive_merge_stats(row, schema)
         return self
 
     def __str__(self):
@@ -502,14 +522,27 @@ class Column(object):
 
     __bool__ = __nonzero__
 
+    @property
+    def col_name(self):
+        return str(self)
+
+    @property
+    def data_type(self):
+        # todo: be more specific
+        return DataType()
+
+    @property
+    def is_nullable(self):
+        return True
+
     def __repr__(self):
         return 'Column<%s>' % self._jc.toString().encode('utf8')
 
 
-def resolve_column(col, row):
-    output_cols = col.output_cols(row)
+def resolve_column(col, row, schema):
+    output_cols = [field.name for field in col.output_fields(schema)]
 
-    output_values = col.eval(row)
+    output_values = col.eval(row, schema)
 
     if col.may_output_multiple_cols:
         output_values = list(output_values)
@@ -533,3 +566,32 @@ def parse(arg):
     if isinstance(arg, str) or isinstance(arg, Expression):
         return Column(arg)
     return Literal(value=arg)
+
+
+def get_checked_matches(matches, field_name, schema, show_id):
+    if len(matches) == 0:
+        raise ValueError("Unable to find the column '{0}' among {1}".format(
+            field_name,
+            format_schema(schema, show_id)
+        )) from None
+
+    if len(matches) > 1:
+        raise ValueError(
+            "Reference '{0}' is ambiguous, found {1} columns matching it.".format(
+                field_name,
+                len(matches)
+            )
+        )
+
+    return matches.pop()
+
+
+def format_schema(schema, show_id):
+    return [format_field(field, show_id=show_id) for field in schema.fields]
+
+
+def format_field(field, show_id):
+    if show_id:
+        return "{0}#{1}".format(field.name, id(field))
+    else:
+        return field.name

@@ -8,13 +8,13 @@ class SimpleStatAggregation(Aggregation):
         self.column = column
         self.stat_helper = ColumnStatHelper(column)
 
-    def merge(self, row):
-        self.stat_helper.merge(row)
+    def merge(self, row, schema):
+        self.stat_helper.merge(row, schema)
 
     def mergeStats(self, other):
         self.stat_helper.mergeStats(other.expr.stat_helper)
 
-    def eval(self, row):
+    def eval(self, row, schema):
         raise NotImplementedError
 
     def __str__(self):
@@ -22,7 +22,7 @@ class SimpleStatAggregation(Aggregation):
 
 
 class Count(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.count
 
     def __str__(self):
@@ -30,7 +30,7 @@ class Count(SimpleStatAggregation):
 
 
 class Max(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.max
 
     def __str__(self):
@@ -38,7 +38,7 @@ class Max(SimpleStatAggregation):
 
 
 class Min(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.min
 
     def __str__(self):
@@ -46,7 +46,7 @@ class Min(SimpleStatAggregation):
 
 
 class Sum(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.sum
 
     def __str__(self):
@@ -54,7 +54,7 @@ class Sum(SimpleStatAggregation):
 
 
 class Avg(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.min
 
     def __str__(self):
@@ -62,7 +62,7 @@ class Avg(SimpleStatAggregation):
 
 
 class VarSamp(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.variance_samp
 
     def __str__(self):
@@ -70,7 +70,7 @@ class VarSamp(SimpleStatAggregation):
 
 
 class VarPop(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.variance_pop
 
     def __str__(self):
@@ -78,7 +78,7 @@ class VarPop(SimpleStatAggregation):
 
 
 class StddevSamp(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.stddev_samp
 
     def __str__(self):
@@ -86,7 +86,7 @@ class StddevSamp(SimpleStatAggregation):
 
 
 class StddevPop(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.stddev_pop
 
     def __str__(self):
@@ -94,7 +94,7 @@ class StddevPop(SimpleStatAggregation):
 
 
 class Skewness(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.skewness
 
     def __str__(self):
@@ -102,7 +102,7 @@ class Skewness(SimpleStatAggregation):
 
 
 class Kurtosis(SimpleStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.kurtosis
 
     def __str__(self):

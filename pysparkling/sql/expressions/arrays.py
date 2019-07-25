@@ -7,9 +7,9 @@ class ArraysOverlap(Expression):
         self.array1 = array1
         self.array2 = array2
 
-    def eval(self, row):
-        set1 = set(self.array1.eval(row))
-        set2 = set(self.array2.eval(row))
+    def eval(self, row, schema):
+        set1 = set(self.array1.eval(row, schema))
+        set2 = set(self.array2.eval(row, schema))
         overlap = set1 & set2
         if len(overlap) > 1 or (len(overlap) == 1 and None not in overlap):
             return True
@@ -27,8 +27,8 @@ class ArrayContains(Expression):
         self.value = value  # not a column
         super().__init__(array)
 
-    def eval(self, row):
-        array_eval = self.array.eval(row)
+    def eval(self, row, schema):
+        array_eval = self.array.eval(row, schema)
         if array_eval is None:
             return None
         return self.value in array_eval
@@ -42,8 +42,8 @@ class ArrayColumn(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
-        return [col.eval(row) for col in self.columns]
+    def eval(self, row, schema):
+        return [col.eval(row, schema) for col in self.columns]
 
     def __str__(self):
         return "array({0})".format(", ".join(str(col) for col in self.columns))
@@ -56,8 +56,8 @@ class MapColumn(Expression):
         self.keys = columns[::2]
         self.values = columns[1::2]
 
-    def eval(self, row):
-        return dict((key.eval(row), value.eval(row)) for key, value in zip(self.keys, self.values))
+    def eval(self, row, schema):
+        return dict((key.eval(row, schema), value.eval(row, schema)) for key, value in zip(self.keys, self.values))
 
     def __str__(self):
         return "map({0})".format(", ".join(str(col) for col in self.columns))
@@ -69,8 +69,8 @@ class MapFromArraysColumn(Expression):
         self.keys = keys
         self.values = values
 
-    def eval(self, row):
-        return dict(zip(self.keys.eval(row), self.values.eval(row)))
+    def eval(self, row, schema):
+        return dict(zip(self.keys.eval(row, schema), self.values.eval(row, schema)))
 
     def __str__(self):
         return "map_from_arrays({0}, {1})".format(
@@ -80,8 +80,8 @@ class MapFromArraysColumn(Expression):
 
 
 class Size(UnaryExpression):
-    def eval(self, row):
-        column_value = self.column.eval(row)
+    def eval(self, row, schema):
+        column_value = self.column.eval(row, schema)
         if isinstance(column_value, (list, set, dict)):
             return len(column_value)
         raise Expression("{0} value should be a list, set or a dict, got {1}".format(self.column, type(column_value)))
@@ -91,24 +91,24 @@ class Size(UnaryExpression):
 
 
 class ArraySort(UnaryExpression):
-    def eval(self, row):
-        return sorted(self.column.eval(row))
+    def eval(self, row, schema):
+        return sorted(self.column.eval(row, schema))
 
     def __str__(self):
         return "array_sort({0})".format(self.column)
 
 
 class ArrayMin(UnaryExpression):
-    def eval(self, row):
-        return min(self.column.eval(row))
+    def eval(self, row, schema):
+        return min(self.column.eval(row, schema))
 
     def __str__(self):
         return "array_min({0})".format(self.column)
 
 
 class ArrayMax(UnaryExpression):
-    def eval(self, row):
-        return max(self.column.eval(row))
+    def eval(self, row, schema):
+        return max(self.column.eval(row, schema))
 
     def __str__(self):
         return "array_max({0})".format(self.column)
@@ -121,8 +121,8 @@ class Slice(Expression):
         self.length = length
         super().__init__(x)
 
-    def eval(self, row):
-        return self.x.eval(row)[self.start, self.start + self.length]
+    def eval(self, row, schema):
+        return self.x.eval(row, schema)[self.start, self.start + self.length]
 
     def __str__(self):
         return "slice({0}, {1}, {2})".format(self.x, self.start, self.length)
@@ -135,8 +135,8 @@ class ArrayJoin(Expression):
         self.delimiter = delimiter
         self.nullReplacement = nullReplacement
 
-    def eval(self, row):
-        column_eval = self.column.eval(row)
+    def eval(self, row, schema):
+        column_eval = self.column.eval(row, schema)
         return self.delimiter.join(
             value if value is not None else self.nullReplacement for value in column_eval
         )
@@ -157,10 +157,10 @@ class ArrayPosition(Expression):
         self.col = col
         self.value = value
 
-    def eval(self, row):
+    def eval(self, row, schema):
         if self.value is None:
             return None
-        col_eval = self.col.eval(row)
+        col_eval = self.col.eval(row, schema)
         if col_eval is None:
             return None
 
@@ -176,8 +176,8 @@ class ElementAt(Expression):
         self.col = col
         self.extraction = extraction
 
-    def eval(self, row):
-        col_eval = self.col.eval(row)
+    def eval(self, row, schema):
+        col_eval = self.col.eval(row, schema)
         if isinstance(col_eval, list):
             return col_eval[self.extraction - 1]
         return col_eval.get(self.extraction)
@@ -192,8 +192,8 @@ class ArrayRemove(Expression):
         self.col = col
         self.element = element
 
-    def eval(self, row):
-        array = self.col.eval(row)
+    def eval(self, row, schema):
+        array = self.col.eval(row, schema)
         return [value for value in array if value != self.element]
 
     def __str__(self):
@@ -201,8 +201,8 @@ class ArrayRemove(Expression):
 
 
 class ArrayDistinct(UnaryExpression):
-    def eval(self, row):
-        return list(set(self.column.eval(row)))
+    def eval(self, row, schema):
+        return list(set(self.column.eval(row, schema)))
 
     def __str__(self):
         return "array_distinct({0})".format(self.column)
@@ -214,8 +214,8 @@ class ArrayIntersect(Expression):
         self.col1 = col1
         self.col2 = col2
 
-    def eval(self, row):
-        return list(set(self.col1.eval(row)) & set(self.col2.eval(row)))
+    def eval(self, row, schema):
+        return list(set(self.col1.eval(row, schema)) & set(self.col2.eval(row, schema)))
 
     def __str__(self):
         return "array_intersect({0}, {1})".format(self.col1, self.col2)
@@ -227,8 +227,8 @@ class ArrayUnion(Expression):
         self.col1 = col1
         self.col2 = col2
 
-    def eval(self, row):
-        return list(set(self.col1.eval(row)) | set(self.col2.eval(row)))
+    def eval(self, row, schema):
+        return list(set(self.col1.eval(row, schema)) | set(self.col2.eval(row, schema)))
 
     def __str__(self):
         return "array_union({0}, {1})".format(self.col1, self.col2)
@@ -240,8 +240,8 @@ class ArrayExcept(Expression):
         self.col1 = col1
         self.col2 = col2
 
-    def eval(self, row):
-        return list(set(self.col1.eval(row)) - set(self.col2.eval(row)))
+    def eval(self, row, schema):
+        return list(set(self.col1.eval(row, schema)) - set(self.col2.eval(row, schema)))
 
     def __str__(self):
         return "array_except({0}, {1})".format(self.col1, self.col2)
