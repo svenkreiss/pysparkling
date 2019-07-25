@@ -29,6 +29,8 @@ from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
 
+maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
+
 log = logging.getLogger(__name__)
 
 
