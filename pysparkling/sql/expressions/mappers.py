@@ -10,10 +10,10 @@ class StarOperator(Expression):
     def may_output_multiple_cols(self):
         return True
 
-    def output_cols(self, row):
-        return [col for col in row.__fields__]
+    def output_fields(self, schema):
+        return [field for field in schema.fields]
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return (row[col] for col in row.__fields__)
 
     def __str__(self):
@@ -21,16 +21,16 @@ class StarOperator(Expression):
 
 
 class IsNull(UnaryExpression):
-    def eval(self, row):
-        return self.column.eval(row) is None
+    def eval(self, row, schema):
+        return self.column.eval(row, schema) is None
 
     def __str__(self):
         return "({0} IS NULL)".format(self.column)
 
 
 class IsNotNull(UnaryExpression):
-    def eval(self, row):
-        return self.column.eval(row) is not None
+    def eval(self, row, schema):
+        return self.column.eval(row, schema) is not None
 
     def __str__(self):
         return "({0} IS NOT NULL)".format(self.column)
@@ -42,16 +42,16 @@ class Contains(Expression):
         self.expr = expr
         self.value = value
 
-    def eval(self, row):
-        return self.value in self.expr.eval(row)
+    def eval(self, row, schema):
+        return self.value in self.expr.eval(row, schema)
 
     def __str__(self):
         return "contains({0}, {1})".format(self.expr, self.value)
 
 
 class Negate(UnaryExpression):
-    def eval(self, row):
-        return not self.column.eval(row)
+    def eval(self, row, schema):
+        return not self.column.eval(row, schema)
 
     def __str__(self):
         return "(- {0})".format(self.column)
@@ -63,8 +63,8 @@ class Add(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) + self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) + self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} + {1})".format(self.arg1, self.arg2)
@@ -76,8 +76,8 @@ class Minus(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) - self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) - self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} - {1})".format(self.arg1, self.arg2)
@@ -89,8 +89,8 @@ class Time(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) * self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) * self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} * {1})".format(self.arg1, self.arg2)
@@ -102,8 +102,8 @@ class Divide(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) / self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) / self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} / {1})".format(self.arg1, self.arg2)
@@ -115,8 +115,8 @@ class Mod(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) % self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) % self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} % {1})".format(self.arg1, self.arg2)
@@ -128,8 +128,8 @@ class Pow(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) ** self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) ** self.arg2.eval(row, schema)
 
     def __str__(self):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
@@ -141,9 +141,9 @@ class Equal(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        value_1 = self.arg1.eval(row)
-        value_2 = self.arg2.eval(row)
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
         if value_1 is None or value_2 is None:
             return None
         return value_1 == value_2
@@ -158,8 +158,8 @@ class EqNullSafe(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) == self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) == self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} <=> {1})".format(self.arg1, self.arg2)
@@ -171,8 +171,8 @@ class LessThan(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) < self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) < self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} < {1})".format(self.arg1, self.arg2)
@@ -184,8 +184,8 @@ class LessThanOrEqual(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) <= self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) <= self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} <= {1})".format(self.arg1, self.arg2)
@@ -197,8 +197,8 @@ class GreaterThan(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) > self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) > self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} > {1})".format(self.arg1, self.arg2)
@@ -210,8 +210,8 @@ class GreaterThanOrEqual(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) >= self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) >= self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} >= {1})".format(self.arg1, self.arg2)
@@ -223,8 +223,8 @@ class And(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) and self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) and self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} AND {1})".format(self.arg1, self.arg2)
@@ -236,16 +236,16 @@ class Or(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) or self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) or self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} OR {1})".format(self.arg1, self.arg2)
 
 
 class Invert(UnaryExpression):
-    def eval(self, row):
-        return not self.column.eval(row)
+    def eval(self, row, schema):
+        return not self.column.eval(row, schema)
 
     def __str__(self):
         return "(NOT {0})".format(self.column)
@@ -257,8 +257,8 @@ class BitwiseOr(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) | self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) | self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} | {1})".format(self.arg1, self.arg2)
@@ -270,8 +270,8 @@ class BitwiseAnd(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) & self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) & self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} & {1})".format(self.arg1, self.arg2)
@@ -283,16 +283,16 @@ class BitwiseXor(Expression):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def eval(self, row):
-        return self.arg1.eval(row) ^ self.arg2.eval(row)
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) ^ self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} ^ {1})".format(self.arg1, self.arg2)
 
 
 class BitwiseNot(UnaryExpression):
-    def eval(self, row):
-        return ~(self.column.eval(row))
+    def eval(self, row, schema):
+        return ~(self.column.eval(row, schema))
 
     def __str__(self):
         return "~{0}".format(self.column)
@@ -304,8 +304,8 @@ class StartsWith(Expression):
         self.arg1 = arg1
         self.substr = substr
 
-    def eval(self, row):
-        return str(self.arg1.eval(row)).startswith(self.substr)
+    def eval(self, row, schema):
+        return str(self.arg1.eval(row, schema)).startswith(self.substr)
 
     def __str__(self):
         return "startswith({0}, {1})".format(self.arg1, self.substr)
@@ -317,8 +317,8 @@ class EndsWith(Expression):
         self.arg1 = arg1
         self.substr = substr
 
-    def eval(self, row):
-        return str(self.arg1.eval(row)).endswith(self.substr)
+    def eval(self, row, schema):
+        return str(self.arg1.eval(row, schema)).endswith(self.substr)
 
     def __str__(self):
         return "endswith({0}, {1})".format(self.arg1, self.substr)
@@ -331,8 +331,8 @@ class Substr(Expression):
         self.start = start
         self.end = end
 
-    def eval(self, row):
-        return str(self.expr.eval(row))[self.start:self.end]
+    def eval(self, row, schema):
+        return str(self.expr.eval(row, schema))[self.start:self.end]
 
     def __str__(self):
         return "substring({0}, {1}, {2})".format(self.expr, self.start, self.end)
@@ -344,8 +344,8 @@ class IsIn(Expression):
         self.arg1 = arg1
         self.cols = cols
 
-    def eval(self, row):
-        return str(self.arg1.eval(row)) in [col.eval(row) for col in self.cols]
+    def eval(self, row, schema):
+        return str(self.arg1.eval(row, schema)) in [col.eval(row, schema) for col in self.cols]
 
     def __str__(self):
         return "({0} IN ({1}))".format(
@@ -368,8 +368,8 @@ class Alias(Expression):
     def may_output_multiple_rows(self):
         return self.expr.may_output_multiple_rows
 
-    def eval(self, row):
-        return self.expr.eval(row)
+    def eval(self, row, schema):
+        return self.expr.eval(row, schema)
 
     def __str__(self):
         return self.alias
@@ -380,9 +380,9 @@ class Coalesce(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
+    def eval(self, row, schema):
         for col in self.columns:
-            col_value = col.eval(row)
+            col_value = col.eval(row, schema)
             if col_value is not None:
                 return col_value
         return None
@@ -392,8 +392,8 @@ class Coalesce(Expression):
 
 
 class IsNaN(UnaryExpression):
-    def eval(self, row):
-        return self.eval(row) == float("nan")
+    def eval(self, row, schema):
+        return self.eval(row, schema) == float("nan")
 
     def __str__(self):
         return "isnan({0})".format(", ".join(self.column))
@@ -405,12 +405,12 @@ class NaNvl(Expression):
         self.col1 = col1
         self.col2 = col2
 
-    def eval(self, row):
+    def eval(self, row, schema):
         nan = float("nan")
-        col1_value = self.col1.eval(row)
+        col1_value = self.col1.eval(row, schema)
         if col1_value != nan:
             return float(col1_value)
-        return float(self.col2.eval(row))
+        return float(self.col2.eval(row, schema))
 
     def __str__(self):
         return "nanvl({0}, {1})".format(self.col1, self.col2)
@@ -422,7 +422,7 @@ class Hypot(Expression):
         self.a = a
         self.b = b
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return math.hypot(self.a, self.b)
 
     def __str__(self):
@@ -430,48 +430,48 @@ class Hypot(Expression):
 
 
 class Sqrt(UnaryExpression):
-    def eval(self, row):
-        return math.sqrt(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.sqrt(self.column.eval(row, schema))
 
     def __str__(self):
         return "SQRT({0})".format(self.column)
 
 
 class Cbrt(UnaryExpression):
-    def eval(self, row):
-        return self.column.eval(row) ** 1./3.
+    def eval(self, row, schema):
+        return self.column.eval(row, schema) ** 1./3.
 
     def __str__(self):
         return "CBRT({0})".format(self.column)
 
 
 class Abs(UnaryExpression):
-    def eval(self, row):
-        return abs(self.column.eval(row))
+    def eval(self, row, schema):
+        return abs(self.column.eval(row, schema))
 
     def __str__(self):
         return "ABS({0})".format(self.column)
 
 
 class Acos(UnaryExpression):
-    def eval(self, row):
-        return math.acos(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.acos(self.column.eval(row, schema))
 
     def __str__(self):
         return "ACOS({0})".format(self.column)
 
 
 class Asin(UnaryExpression):
-    def eval(self, row):
-        return math.asin(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.asin(self.column.eval(row, schema))
 
     def __str__(self):
         return "ASIN({0})".format(self.column)
 
 
 class Atan(UnaryExpression):
-    def eval(self, row):
-        return math.atan(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.atan(self.column.eval(row, schema))
 
     def __str__(self):
         return "ATAN({0})".format(self.column)
@@ -483,96 +483,96 @@ class Atan2(Expression):
         self.y = y
         self.x = x
 
-    def eval(self, row):
-        return math.atan2(self.y.eval(row), self.x.eval(row))
+    def eval(self, row, schema):
+        return math.atan2(self.y.eval(row, schema), self.x.eval(row, schema))
 
     def __str__(self):
         return "ATAN({0}, {1})".format(self.y, self.x)
 
 
 class Tan(UnaryExpression):
-    def eval(self, row):
-        return math.tan(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.tan(self.column.eval(row, schema))
 
     def __str__(self):
         return "TAN({0})".format(self.column)
 
 
 class Tanh(UnaryExpression):
-    def eval(self, row):
-        return math.tanh(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.tanh(self.column.eval(row, schema))
 
     def __str__(self):
         return "TANH({0})".format(self.column)
 
 
 class Cos(UnaryExpression):
-    def eval(self, row):
-        return math.cos(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.cos(self.column.eval(row, schema))
 
     def __str__(self):
         return "COS({0})".format(self.column)
 
 
 class Cosh(UnaryExpression):
-    def eval(self, row):
-        return math.cosh(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.cosh(self.column.eval(row, schema))
 
     def __str__(self):
         return "COSH({0})".format(self.column)
 
 
 class Sin(UnaryExpression):
-    def eval(self, row):
-        return math.sin(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.sin(self.column.eval(row, schema))
 
     def __str__(self):
         return "SIN({0})".format(self.column)
 
 
 class Sinh(UnaryExpression):
-    def eval(self, row):
-        return math.sinh(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.sinh(self.column.eval(row, schema))
 
     def __str__(self):
         return "SINH({0})".format(self.column)
 
 
 class Exp(UnaryExpression):
-    def eval(self, row):
-        return math.exp(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.exp(self.column.eval(row, schema))
 
     def __str__(self):
         return "EXP({0})".format(self.column)
 
 
 class ExpM1(UnaryExpression):
-    def eval(self, row):
-        return math.expm1(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.expm1(self.column.eval(row, schema))
 
     def __str__(self):
         return "EXPM1({0})".format(self.column)
 
 
 class Factorial(UnaryExpression):
-    def eval(self, row):
-        return math.factorial(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.factorial(self.column.eval(row, schema))
 
     def __str__(self):
         return "factorial({0})".format(self.column)
 
 
 class Floor(UnaryExpression):
-    def eval(self, row):
-        return math.floor(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.floor(self.column.eval(row, schema))
 
     def __str__(self):
         return "FLOOR({0})".format(self.column)
 
 
 class Ceil(UnaryExpression):
-    def eval(self, row):
-        return math.ceil(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.ceil(self.column.eval(row, schema))
 
     def __str__(self):
         return "CEIL({0})".format(self.column)
@@ -584,8 +584,8 @@ class Log(Expression):
         self.base = base
         self.value = value
 
-    def eval(self, row):
-        value_eval = self.value.eval(row)
+    def eval(self, row, schema):
+        value_eval = self.value.eval(row, schema)
         if value_eval == 0:
             return None
         return math.log(value_eval, self.base)
@@ -598,40 +598,40 @@ class Log(Expression):
 
 
 class Log10(UnaryExpression):
-    def eval(self, row):
-        return math.log10(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.log10(self.column.eval(row, schema))
 
     def __str__(self):
         return "LOG10({0})".format(self.column)
 
 
 class Log2(UnaryExpression):
-    def eval(self, row):
-        return math.log2(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.log2(self.column.eval(row, schema))
 
     def __str__(self):
         return "LOG2({0})".format(self.column)
 
 
 class Log1p(UnaryExpression):
-    def eval(self, row):
-        return math.log1p(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.log1p(self.column.eval(row, schema))
 
     def __str__(self):
         return "LOG1P({0})".format(self.column)
 
 
 class Rint(UnaryExpression):
-    def eval(self, row):
-        return round(self.column.eval(row))
+    def eval(self, row, schema):
+        return round(self.column.eval(row, schema))
 
     def __str__(self):
         return "ROUND({0})".format(self.column)
 
 
 class Signum(UnaryExpression):
-    def eval(self, row):
-        column_value = self.column.eval(row)
+    def eval(self, row, schema):
+        column_value = self.column.eval(row, schema)
         if column_value == 0:
             return 0
         elif column_value > 0:
@@ -644,16 +644,16 @@ class Signum(UnaryExpression):
 
 
 class ToDegrees(UnaryExpression):
-    def eval(self, row):
-        return math.degrees(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.degrees(self.column.eval(row, schema))
 
     def __str__(self):
         return "DEGREES({0})".format(self.column)
 
 
 class ToRadians(UnaryExpression):
-    def eval(self, row):
-        return math.radians(self.column.eval(row))
+    def eval(self, row, schema):
+        return math.radians(self.column.eval(row, schema))
 
     def __str__(self):
         return "RADIANS({0})".format(self.column)
@@ -665,7 +665,7 @@ class Rand(Expression):
         self.seed = seed
         self.random_generator = None
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.random_generator.nextDouble()
 
     def initialize(self, partition_index):
@@ -681,7 +681,7 @@ class Randn(Expression):
         self.seed = seed
         self.random_generator = None
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.random_generator.nextGaussian()
 
     def initialize(self, partition_index):
@@ -696,7 +696,7 @@ class SparkPartitionID(Expression):
         super().__init__()
         self.partition_index = None
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.partition_index
 
     def initialize(self, partition_index):
@@ -711,9 +711,9 @@ class CreateStruct(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return row_from_keyed_values([
-            (str(col), col.eval(row)) for col in self.columns
+            (str(col), col.eval(row, schema)) for col in self.columns
         ])
 
     def __str__(self):
@@ -721,8 +721,8 @@ class CreateStruct(Expression):
 
 
 class Bin(UnaryExpression):
-    def eval(self, row):
-        return format(self.column.eval(row), 'b')
+    def eval(self, row, schema):
+        return format(self.column.eval(row, schema), 'b')
 
     def __str__(self):
         return "bin({0})".format(self.column)
@@ -733,8 +733,8 @@ class Greatest(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
-        return max(col.eval(row) for col in self.columns)
+    def eval(self, row, schema):
+        return max(col.eval(row, schema) for col in self.columns)
 
     def __str__(self):
         return "greatest({0})".format(", ".join(str(col) for col in self.columns))
@@ -745,32 +745,32 @@ class Least(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
-        return min(col.eval(row) for col in self.columns)
+    def eval(self, row, schema):
+        return min(col.eval(row, schema) for col in self.columns)
 
     def __str__(self):
         return "least({0})".format(", ".join(str(col) for col in self.columns))
 
 
 class Length(UnaryExpression):
-    def eval(self, row):
-        return len(str(self.column.eval(row)))
+    def eval(self, row, schema):
+        return len(str(self.column.eval(row, schema)))
 
     def __str__(self):
         return "length({0})".format(self.column)
 
 
 class Lower(UnaryExpression):
-    def eval(self, row):
-        return str(self.column.eval(row)).lower()
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema)).lower()
 
     def __str__(self):
         return "lower({0})".format(self.column)
 
 
 class Upper(UnaryExpression):
-    def eval(self, row):
-        return str(self.column.eval(row)).upper()
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema)).upper()
 
     def __str__(self):
         return "Upper({0})".format(self.column)
@@ -781,48 +781,48 @@ class Concat(Expression):
         super().__init__(columns)
         self.columns = columns
 
-    def eval(self, row):
-        return "".join(str(col.eval(row)) for col in self.columns)
+    def eval(self, row, schema):
+        return "".join(str(col.eval(row, schema)) for col in self.columns)
 
     def __str__(self):
         return "concat({0})".format(", ".join(col for col in self.columns))
 
 
 class Reverse(UnaryExpression):
-    def eval(self, row):
-        return str(self.column.eval(row))[::-1]
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema))[::-1]
 
     def __str__(self):
         return "reverse({0})".format(self.column)
 
 
 class MapKeys(UnaryExpression):
-    def eval(self, row):
-        return list(self.column.eval(row).keys())
+    def eval(self, row, schema):
+        return list(self.column.eval(row, schema).keys())
 
     def __str__(self):
         return "map_keys({0})".format(self.column)
 
 
 class MapValues(UnaryExpression):
-    def eval(self, row):
-        return list(self.column.eval(row).values())
+    def eval(self, row, schema):
+        return list(self.column.eval(row, schema).values())
 
     def __str__(self):
         return "map_values({0})".format(self.column)
 
 
 class MapEntries(UnaryExpression):
-    def eval(self, row):
-        return list(self.column.eval(row).items())
+    def eval(self, row, schema):
+        return list(self.column.eval(row, schema).items())
 
     def __str__(self):
         return "map_entries({0})".format(self.column)
 
 
 class MapFromEntries(UnaryExpression):
-    def eval(self, row):
-        return dict(self.column.eval(row))
+    def eval(self, row, schema):
+        return dict(self.column.eval(row, schema))
 
     def __str__(self):
         return "map_from_entries({0})".format(self.column)
@@ -837,9 +837,9 @@ class StringSplit(Expression):
         self.compiled_regex = re.compile(regex)
         self.limit = limit
 
-    def eval(self, row):
+    def eval(self, row, schema):
         limit = self.limit if self.limit is not None else 0
-        return list(self.compiled_regex.split(str(self.column.eval(row)), limit))
+        return list(self.compiled_regex.split(str(self.column.eval(row, schema)), limit))
 
     def __str__(self):
         return "split({0}, {1}{2})".format(

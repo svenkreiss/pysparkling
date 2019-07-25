@@ -6,7 +6,7 @@ class Literal(Expression):
         super().__init__()
         self.value = value
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.value
 
     def __str__(self):

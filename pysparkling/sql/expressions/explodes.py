@@ -10,8 +10,8 @@ class Explode(Expression):
     def may_output_multiple_rows(self):
         return True
 
-    def eval(self, row):
-        return list(sub_value for sub_value in self.column.eval(row))
+    def eval(self, row, schema):
+        return list(sub_value for sub_value in self.column.eval(row, schema))
 
     def __str__(self):
         return "col"

@@ -7,6 +7,7 @@ from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, 
     IntegerType, FloatType, Row, _parse_datatype_json_value
 
 from pysparkling.sql.column import Column
+from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.functions import col
 from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
 from pysparkling.sql.readwriter import DataFrameWriter
@@ -85,13 +86,7 @@ class DataFrame(object):
 
     @property
     def schema(self):
-        if self._schema is None:
-            try:
-                # todo: merge behavior with the one in self._inferSchemaFromList(data)
-                self._schema = self._jdf.schema()
-            except AttributeError as e:
-                raise Exception("Unable to parse datatype from schema. %s" % e)
-        return self._schema
+        return self._jdf.schema
 
     def printSchema(self):
         print(self.schema.treeString())
@@ -560,7 +555,7 @@ class DataFrame(object):
         >>> spark = SparkSession(Context())
         >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
         >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
-        >>> a.join(b, on=length(a.name) * 2== length(b.n) + length(a.name)).show()
+        >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).show()
         +----+----------+---+
         |name|      time|  n|
         +----+----------+---+
@@ -784,25 +779,19 @@ class DataFrame(object):
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
-            jc = self._jdf.apply(item)
-            return Column(jc)
+            return getattr(self, item)
         elif isinstance(item, Column):
             return self.filter(item)
         elif isinstance(item, (list, tuple)):
             return self.select(*item)
         elif isinstance(item, int):
-            jc = self._jdf.apply(self.columns[item])
-            return Column(jc)
+            return Column(FieldAsExpression(self.schema[item]))
         else:
             raise TypeError("unexpected item type: %s" % type(item))
 
     def __getattr__(self, name):
-        # noinspection PyArgumentList
-        columns = DataFrame.columns.fget(self)
-        if name not in columns:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
-        return Column(name)
+        field_position = Column(name).find_position_in_schema(self.schema)
+        return self[field_position]
 
     def select(self, *cols):
         """Projects a set of expressions and returns a new :class:`DataFrame`.

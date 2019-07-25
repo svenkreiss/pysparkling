@@ -196,8 +196,8 @@ class ColumnStatHelper(object):
         self.percentiles_relative_error = percentiles_relative_error
         self.compressed = True
 
-    def merge(self, row):
-        value = self.column.eval(row)
+    def merge(self, row, schema):
+        value = self.column.eval(row, schema)
         self.update_counters(value)
         if isinstance(value, numbers.Number):
             self.update_sample(value)
@@ -424,6 +424,10 @@ class ColumnStatHelper(object):
         return self.max_value
 
     @property
+    def sum(self):
+        return self.sum_of_values
+
+    @property
     def skewness(self):
         if self.count == 0:
             return None
@@ -453,16 +457,17 @@ class RowStatHelper(object):
         # we need to keep track of in which order the columns were
         self.col_names = []
 
-    def merge(self, row):
+    def merge(self, row, schema):
         for col in self.cols:
-            for col_name in col.output_cols(row):
+            for field in col.output_fields(schema):
+                col_name = field.name
                 if col_name not in self.column_stat_helpers:
                     self.column_stat_helpers[col_name] = ColumnStatHelper(
                         parse(col_name),
                         self.percentiles_relative_error
                     )
                     self.col_names.append(col_name)
-                self.column_stat_helpers[col_name].merge(row)
+                self.column_stat_helpers[col_name].merge(row, schema)
 
         return self
 

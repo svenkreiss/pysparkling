@@ -1,5 +1,5 @@
 from functools import reduce
-from pyspark.sql.types import _infer_schema, _has_nulltype, _merge_type
+from pyspark.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType
 
 
 def infer_schema_from_list(data, names=None):
@@ -22,3 +22,17 @@ def infer_schema_from_list(data, names=None):
     if _has_nulltype(schema):
         raise ValueError("Some of types cannot be determined after inferring")
     return schema
+
+
+def merge_schemas(first, second, field_not_to_duplicate=None):
+    fields = [field for field in first.fields] + [
+        field for field in second.fields if field.name != field_not_to_duplicate
+    ]
+    return StructType(fields)
+
+
+def get_schema_from_cols(cols, current_schema):
+    new_schema = StructType(fields=[
+        field for col in cols for field in col.find_fields_in_schema(current_schema)
+    ])
+    return new_schema

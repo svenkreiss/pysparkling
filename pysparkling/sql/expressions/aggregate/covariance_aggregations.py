@@ -9,13 +9,13 @@ class CovarianceStatAggregation(Aggregation):
         self.column2 = column2
         self.stat_helper = CovarianceCounter(method="pearson")
 
-    def merge(self, row):
-        self.stat_helper.add(row.eval(self.column1), row.eval(self.column2))
+    def merge(self, row, schema):
+        self.stat_helper.add(row.eval(self.column1, schema), row.eval(self.column2, schema))
 
     def mergeStats(self, other):
         self.stat_helper.merge(other)
 
-    def eval(self, row):
+    def eval(self, row, schema):
         raise NotImplementedError
 
     def __str__(self):
@@ -23,7 +23,7 @@ class CovarianceStatAggregation(Aggregation):
 
 
 class Corr(CovarianceStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.pearson_correlation
 
     def __str__(self):
@@ -31,7 +31,7 @@ class Corr(CovarianceStatAggregation):
 
 
 class CovarSamp(CovarianceStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.covar_samp
 
     def __str__(self):
@@ -39,7 +39,7 @@ class CovarSamp(CovarianceStatAggregation):
 
 
 class CovarPop(CovarianceStatAggregation):
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.stat_helper.covar_pop
 
     def __str__(self):

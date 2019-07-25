@@ -8,12 +8,12 @@ from functools import partial
 from itertools import product
 
 from pyspark import StorageLevel, Row
-from pyspark.sql.types import StructField, LongType, StructType, StringType
+from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
 from pysparkling.sql.column import resolve_column
 from pysparkling.sql.functions import parse, count
-from pysparkling.sql.schema_utils import infer_schema_from_list
+from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
     row_from_keyed_values, str_half_width, pad_cell, merge_rows
@@ -27,19 +27,30 @@ def to_row(cols, record):
 
 
 class DataFrameInternal(object):
-    def __init__(self, sc, rdd, cols=None, convert_to_row=False):
+    def __init__(self, sc, rdd, cols=None, convert_to_row=False, schema=None):
         """
         :type rdd: RDD
         """
-        self._sc = sc
         if convert_to_row:
             if cols is None:
                 cols = ["_c{0}".format(i) for i in range(200)]
             rdd = rdd.map(partial(to_row, cols))
-        self._rdd = rdd
 
-    def _with_rdd(self, rdd):
-        return DataFrameInternal(self._sc, rdd)
+        self._sc = sc
+        self._rdd = rdd
+        if schema is None and convert_to_row is False:
+            raise NotImplementedError("Schema cannot be None when creating DataFrameInternal from another")
+        if schema is not None:
+            self.schema = schema
+        else:
+            self.schema = infer_schema_from_list(self._rdd.takeSample(withReplacement=False, num=200))
+
+    def _with_rdd(self, rdd, schema):
+        return DataFrameInternal(
+            self._sc,
+            rdd,
+            schema=schema
+        )
 
     def rdd(self):
         return self._rdd
@@ -66,7 +77,7 @@ class DataFrameInternal(object):
 
     def limit(self, n):
         jdf = self._sc.parallelize(self._rdd.take(n))
-        return self._with_rdd(jdf)
+        return self._with_rdd(jdf, self.schema)
 
     def take(self, n):
         return self._rdd.take(n)
@@ -78,22 +89,22 @@ class DataFrameInternal(object):
         self._rdd.foreachPartition(f)
 
     def cache(self):
-        return self._with_rdd(self._rdd.cache())
+        return self._with_rdd(self._rdd.cache(), self.schema)
 
     def persist(self, storageLevel=StorageLevel.MEMORY_ONLY):
-        return self._with_rdd(self._rdd.persist(storageLevel))
+        return self._with_rdd(self._rdd.persist(storageLevel), self.schema)
 
     def unpersist(self, blocking=False):
-        return self._with_rdd(self._rdd.unpersist(blocking))
+        return self._with_rdd(self._rdd.unpersist(blocking), self.schema)
 
     def coalesce(self, numPartitions):
-        return self._with_rdd(self._rdd.coalesce(numPartitions))
+        return self._with_rdd(self._rdd.coalesce(numPartitions), self.schema)
 
     def repartition(self, numPartitions):
-        return self._with_rdd(self._rdd.repartition(numPartitions))
+        return self._with_rdd(self._rdd.repartition(numPartitions), self.schema)
 
     def distinct(self):
-        return self._with_rdd(self._rdd.distinct())
+        return self._with_rdd(self._rdd.distinct(), self.schema)
 
     def sample(self, withReplacement=None, fraction=None, seed=None):
         return self._with_rdd(
@@ -101,12 +112,14 @@ class DataFrameInternal(object):
                 withReplacement=withReplacement,
                 fraction=fraction,
                 seed=seed
-            )
+            ),
+            self.schema
         )
 
     def randomSplit(self, weights, seed):
         return self._with_rdd(
-            self._rdd.randomSplit(weights=weights, seed=seed)
+            self._rdd.randomSplit(weights=weights, seed=seed),
+            self.schema
         )
 
     @property
@@ -118,7 +131,8 @@ class DataFrameInternal(object):
 
     def partitionValues(self, numPartitions, partitioner):
         return self._with_rdd(
-            self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values()
+            self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values(),
+            self.schema
         )
 
     def repartitionByRange(self, numPartitions, *cols):
@@ -208,7 +222,10 @@ class DataFrameInternal(object):
             if key in fractions and random.random() < fractions[key]:
                 return True
 
-        return self._with_rdd(self._rdd.filter(sample_row))
+        return self._with_rdd(
+            self._rdd.filter(sample_row),
+            self.schema
+        )
 
     def toJSON(self):
         """
@@ -223,14 +240,21 @@ class DataFrameInternal(object):
         def partition_sort(data):
             return sorted(data, key=key, reverse=not ascending)
 
-        return self._with_rdd(self._rdd.mapPartitions(partition_sort))
+        return self._with_rdd(
+            self._rdd.mapPartitions(partition_sort),
+            self.schema
+        )
 
     def sort(self, cols, ascending):
         key = get_keyfunc(cols)
-        return self._with_rdd(self._rdd.sortBy(key, ascending=ascending))
+        return self._with_rdd(
+            self._rdd.sortBy(key, ascending=ascending),
+            self.schema
+        )
 
     def select(self, *exprs):
         cols = [parse(e) for e in exprs]
+        new_schema = get_schema_from_cols(cols, self.schema)
 
         def mapper(partition_index, partition):
             # Initialize non deterministic functions make them reproducible
@@ -250,7 +274,7 @@ class DataFrameInternal(object):
                 row_cols = []
                 rows = []
                 for col in initialized_cols:
-                    output_cols, output_values = resolve_column(col, row)
+                    output_cols, output_values = resolve_column(col, row, schema=self.schema)
                     row_cols += output_cols
                     rows += output_values
                 for row_values in list(product(*rows)):
@@ -262,7 +286,7 @@ class DataFrameInternal(object):
                 for output_row_fields in output_field_lists
             )
 
-        return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper))
+        return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper), schema=new_schema)
 
     def selectExpr(self, *cols):
         # todo: implement
@@ -273,12 +297,22 @@ class DataFrameInternal(object):
 
         def mapper(partition_index, partition):
             initialized_condition = condition.initialize(partition_index)
-            return (row for row in partition if initialized_condition.eval(row))
+            return (row for row in partition if initialized_condition.eval(row, self.schema))
 
-        return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper))
+        return self._with_rdd(
+            self._rdd.mapPartitionsWithIndex(mapper),
+            self.schema
+        )
 
     def unionByName(self, other):
-        return self._with_rdd(self._rdd.union(other.rdd()))
+        # This behavior (keeping the column of self) is the same as in PySpark
+        # todo: add 2 tests with
+        # ... df.unionByName(df2).select(df2.age).show()
+        # and df.unionByName(df2).select(df.age).show()
+        return self._with_rdd(
+            self._rdd.union(other.rdd()),
+            self.schema
+        )
 
     def withColumn(self, colName, col):
         return self.select(parse("*"), parse(col).alias(colName))
@@ -293,29 +327,53 @@ class DataFrameInternal(object):
 
         return self._with_rdd(self._rdd.map(mapper))
 
-    def toDF(self, cols):
+    def toDF(self, new_names):
         def mapper(row):
             keyed_values = [
-                (new, row[old])
-                for new, old in zip(cols, row.__fields__)
+                (new_name, row[old])
+                for new_name, old in zip(new_names, row.__fields__)
             ]
             return row_from_keyed_values(keyed_values)
 
-        return self._with_rdd(self._rdd.map(mapper))
+        new_schema = StructType([
+            StructField(
+                new_name,
+                field.dataType,
+                field.nullable
+            ) for new_name, field in zip(new_names, self.schema.fields)
+        ])
 
-    def schema(self):
-        schema = infer_schema_from_list(self._rdd.takeSample(200))
-        return schema
+        return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
 
-    def describe(self, exprs):
-        stat_helper = self.get_stat_helper(exprs)
-        return DataFrameInternal(self._sc, self._sc.parallelize(stat_helper.get_as_rows()))
+    def describe(self, cols):
+        stat_helper = self.get_stat_helper(cols)
+        exprs = [parse(col) for col in cols]
+
+        return DataFrameInternal(
+            self._sc,
+            self._sc.parallelize(stat_helper.get_as_rows()),
+            schema=self.get_summary_schema(exprs)
+        )
 
     def summary(self, statistics):
         stat_helper = self.get_stat_helper(["*"])
         if not statistics:
             statistics = ("count", "mean", "stddev", "min", "25%", "50%", "75%", "max")
-        return DataFrameInternal(self._sc, self._sc.parallelize(stat_helper.get_as_rows(statistics)))
+        return DataFrameInternal(
+            self._sc,
+            self._sc.parallelize(stat_helper.get_as_rows(statistics)),
+            schema=self.get_summary_schema([parse("*")])
+        )
+
+    def get_summary_schema(self, exprs):
+        return StructType(
+            [
+                StructField("summary", StringType(), True)
+            ] + [
+                StructField(field.name, StringType(), True)
+                for field in get_schema_from_cols(exprs, self.schema).fields
+            ]
+        )
 
     def get_stat_helper(self, exprs, percentiles_relative_error=1 / 10000):
         """
@@ -323,7 +381,7 @@ class DataFrameInternal(object):
         """
         return self.aggregate(
             RowStatHelper(exprs, percentiles_relative_error),
-            lambda counter, row: counter.merge(row),
+            lambda counter, row: counter.merge(row, self.schema),
             lambda counter1, counter2: counter1.mergeStats(counter2)
         )
 
@@ -497,37 +555,39 @@ class DataFrameInternal(object):
 
     def join(self, other, on, how):
         if isinstance(on, basestring):
-            output_rdd = self.join_on_values(other, on)
+            new_schema = merge_schemas(self.schema, other.schema, field_not_to_duplicate=on)
+            output_rdd = self.join_on_values(other, on, new_schema)
         else:
-            output_rdd = self.join_on_condition(other, on)
+            new_schema = merge_schemas(self.schema, other.schema)
+            output_rdd = self.join_on_condition(other, on, new_schema)
 
-        return self._with_rdd(output_rdd)
+        return self._with_rdd(output_rdd, schema=new_schema)
 
-    def join_on_condition(self, other, on):
+    def join_on_condition(self, other, on, new_schema):
         """
 
         :type other: DataFrameInternal
         """
         def condition(couple):
             left, right = couple
-            tmp = merge_rows(left, right)
-            return on.eval(tmp)
+            merged_rows = merge_rows(left, right)
+            return on.eval(merged_rows, schema=new_schema)
 
-        joinded_rdd = self.rdd().cartesian(other.rdd()).filter(condition)
+        joined_rdd = self.rdd().cartesian(other.rdd()).filter(condition)
 
         def format_output(entry):
             left, right = entry
 
             return merge_rows(left, right)
 
-        output_rdd = joinded_rdd.map(format_output)
+        output_rdd = joined_rdd.map(format_output)
         return output_rdd
 
-    def join_on_values(self, other, on):
+    def join_on_values(self, other, on, new_schema):
         on = parse(on)
 
         def add_key(row):
-            return on.eval(row), row
+            return on.eval(row, new_schema), row
 
         keyed_self = self.rdd().map(add_key)
         keyed_other = other.rdd().map(add_key)
@@ -559,7 +619,7 @@ class InternalGroupedDataFrame(object):
         init = GroupedStats(self.grouping_cols, stats)
         aggregated_stats = self.df._jdf.aggregate(
             init,
-            lambda grouped_stats, row: grouped_stats.merge(row),
+            lambda grouped_stats, row: grouped_stats.merge(row, self.df.schema),
             lambda grouped_stats_1, grouped_stats_2: grouped_stats_1.mergeStats(grouped_stats_2)
         )
         data = []
@@ -568,11 +628,23 @@ class InternalGroupedDataFrame(object):
             key_as_row = row_from_keyed_values(key)
             data.append(row_from_keyed_values(
                 key + [
-                    (str(stat), stat.eval(key_as_row)) for stat in aggregated_stats.groups[group_key]
+                    (str(stat), stat.eval(key_as_row, self.df.schema)) for stat in aggregated_stats.groups[group_key]
                 ]
             ))
+        new_schema = StructType(
+            [
+                field for col in self.grouping_cols for field in
+                col.find_fields_in_schema(self.df.schema)
+            ] + [
+                StructField(
+                    str(stat for stat in stats),
+                    DataType(),
+                    True
+                )
+            ]
+        )
         # noinspection PyProtectedMember
-        return self.df._jdf._with_rdd(self.df._sc.parallelize(data))
+        return self.df._jdf._with_rdd(self.df._sc.parallelize(data), schema=new_schema)
 
 
 class GroupedStats(object):
@@ -584,8 +656,8 @@ class GroupedStats(object):
         # we need to keep track of in which order the columns were
         self.group_keys = []
 
-    def merge(self, row):
-        group_key = tuple(col.eval(row) for col in self.grouping_cols)
+    def merge(self, row, schema):
+        group_key = tuple(col.eval(row, schema) for col in self.grouping_cols)
         if group_key not in self.groups:
             group_stats = [deepcopy(stat) for stat in self.stats]
             self.groups[group_key] = group_stats
@@ -594,7 +666,7 @@ class GroupedStats(object):
             group_stats = self.groups[group_key]
 
         for i, stat in enumerate(group_stats):
-            group_stats[i] = stat.merge(row)
+            group_stats[i] = stat.merge(row, schema)
 
         return self
 

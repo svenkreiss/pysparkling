@@ -7,13 +7,13 @@ class CollectList(Aggregation):
         self.column = column
         self.items = []
 
-    def merge(self, row):
-        self.items.append(self.column.eval(row))
+    def merge(self, row, schema):
+        self.items.append(self.column.eval(row, schema))
 
     def mergeStats(self, other):
         self.items += other.items
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.items
 
     def __str__(self):
@@ -26,13 +26,13 @@ class CollectSet(Aggregation):
         self.column = column
         self.items = set()
 
-    def merge(self, row):
-        self.items.add(self.column.eval(row))
+    def merge(self, row, schema):
+        self.items.add(self.column.eval(row, schema))
 
     def mergeStats(self, other):
         self.items |= other.items
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return list(self.items)
 
     def __str__(self):
@@ -45,13 +45,13 @@ class SumDistinct(Aggregation):
         self.column = column
         self.items = set()
 
-    def merge(self, row):
-        self.items.add(self.column.eval(row))
+    def merge(self, row, schema):
+        self.items.add(self.column.eval(row, schema))
 
     def mergeStats(self, other):
         self.items |= other.items
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return sum(self.items)
 
     def __str__(self):
@@ -67,15 +67,15 @@ class First(Aggregation):
         self.value = self._sentinel
         self.ignore_nulls = ignore_nulls
 
-    def merge(self, row):
+    def merge(self, row, schema):
         if self.value is First._sentinel or (self.ignore_nulls and self.value is None):
-            self.value = self.column.eval(row)
+            self.value = self.column.eval(row, schema)
 
     def mergeStats(self, other):
         if self.value is First._sentinel or (self.ignore_nulls and self.value is None):
             self.value = other.value
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.value if self.value is not First._sentinel else None
 
     def __str__(self):
@@ -91,8 +91,8 @@ class Last(Aggregation):
         self.value = None
         self.ignore_nulls = ignore_nulls
 
-    def merge(self, row):
-        new_value = self.column.eval(row)
+    def merge(self, row, schema):
+        new_value = self.column.eval(row, schema)
         if not (self.ignore_nulls and new_value is None):
             self.value = new_value
 
@@ -100,7 +100,7 @@ class Last(Aggregation):
         if not (self.ignore_nulls and other.value is None):
             self.value = other.value
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return self.value
 
     def __str__(self):
@@ -113,15 +113,15 @@ class CountDistinct(Aggregation):
         self.columns = columns
         self.items = set()
 
-    def merge(self, row):
+    def merge(self, row, schema):
         self.items.add(tuple(
-            col.eval(row) for col in self.columns
+            col.eval(row, schema) for col in self.columns
         ))
 
     def mergeStats(self, other):
         self.items += other.items
 
-    def eval(self, row):
+    def eval(self, row, schema):
         return len(self.items)
 
     def __str__(self):
