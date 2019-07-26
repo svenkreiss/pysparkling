@@ -40,7 +40,11 @@ class DataFrameInternal(object):
         self._sc = sc
         self._rdd = rdd
         if schema is None and convert_to_row is False:
-            raise NotImplementedError("Schema cannot be None when creating DataFrameInternal from another")
+            raise NotImplementedError(
+                "Schema cannot be None when creating DataFrameInternal from another. "
+                "As a user you should not see this error, feel free to report a bug at "
+                "https://github.com/svenkreiss/pysparkling/issues"
+            )
         if schema is not None:
             self.schema = schema
         else:
@@ -290,8 +294,7 @@ class DataFrameInternal(object):
         return self._with_rdd(self._rdd.mapPartitionsWithIndex(mapper), schema=new_schema)
 
     def selectExpr(self, *cols):
-        # todo: implement
-        raise NotImplementedError
+        raise NotImplementedError("Pysparkling does not currently support DF.selectExpr")
 
     def filter(self, condition):
         condition = parse(condition)
