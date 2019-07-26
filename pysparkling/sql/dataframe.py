@@ -539,8 +539,7 @@ class DataFrame(object):
 
     def alias(self, alias):
         assert isinstance(alias, basestring), "alias should be a string"
-        # todo
-        ...
+        raise NotImplementedError
 
     def crossjoin(self, other):
         jdf = self._jdf.crossJoin(other)
