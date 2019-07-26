@@ -922,8 +922,7 @@ class DataFrame(object):
         |  2|Alice|
         +---+-----+
         """
-        # todo: support of "Also as standard in SQL, this function resolves columns by position (not by name)."
-        return self.unionByName(other)
+        return DataFrame(self._jdf.union(other._jdf), self.sql_ctx)
 
     def unionAll(self, other):
         """

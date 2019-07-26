@@ -3,6 +3,7 @@ import math
 import random
 import sys
 import warnings
+from collections import Counter
 from copy import deepcopy
 from functools import partial
 from itertools import product
@@ -304,13 +305,69 @@ class DataFrameInternal(object):
             self.schema
         )
 
-    def unionByName(self, other):
+    def union(self, other):
+        self_field_names = [field.name for field in self.schema.fields]
+        other_field_names = [field.name for field in other.schema.fields]
+        if len(self_field_names) != len(other_field_names):
+            raise Exception(
+                "Union can only be performed on tables with the same number "
+                "of columns, but the first table has {0} columns and the "
+                "second table has {1} columns".format(
+                    len(self_field_names),
+                    len(other_field_names)
+                )
+            )
+
+        def change_col_names(row):
+            return row_from_keyed_values([
+                (field.name, value) for field, value in zip(self.schema.fields, row)
+            ])
+
         # This behavior (keeping the column of self) is the same as in PySpark
+        return self._with_rdd(
+            self._rdd.union(other.rdd().map(change_col_names)),
+            self.schema
+        )
+
+    def unionByName(self, other):
         # todo: add 2 tests with
         # ... df.unionByName(df2).select(df2.age).show()
         # and df.unionByName(df2).select(df.age).show()
+
+        self_field_names = [field.name for field in self.schema.fields]
+        other_field_names = [field.name for field in other.schema.fields]
+        if len(self_field_names) != len(set(self_field_names)):
+            raise Exception(
+                "Found duplicate column(s) in the left attributes: {0}".format(
+                    name for name, count in Counter(self_field_names).items() if count > 1
+                )
+            )
+
+        if len(other_field_names) != len(set(other_field_names)):
+            raise Exception(
+                "Found duplicate column(s) in the right attributes: {0}".format(
+                    name for name, count in Counter(other_field_names).items() if count > 1
+                )
+            )
+
+        if len(self_field_names) != len(other_field_names):
+            raise Exception(
+                "Union can only be performed on tables with the same number "
+                "of columns, but the first table has {0} columns and the "
+                "second table has {1} columns".format(
+                    len(self_field_names),
+                    len(other_field_names)
+                )
+            )
+
+        def change_col_order(row):
+            return row_from_keyed_values([
+                (field.name, row[field.name]) for field in self.schema.fields
+            ])
+
+        # This behavior (keeping the column of self) is the same as in PySpark
         return self._with_rdd(
-            self._rdd.union(other.rdd()),
+            self._rdd.union(other.rdd().map(change_col_order)),
             self.schema
         )
 
