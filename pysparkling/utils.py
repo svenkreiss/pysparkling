@@ -197,13 +197,20 @@ def pad_cell(cell, truncate, col_width):
     """
     if cell is None:
         cell = "null"
-    if not isinstance(cell, str):
+    elif isinstance(cell, dict):
+        cell = "[{0}]".format(
+            ", ".join(
+                "{0} -> {1}".format(key, value) for key, value in cell.items()
+            )
+        )
+    elif not isinstance(cell, str):
         cell = str(cell)
     cell_width = col_width - str_half_width(cell) + len(cell)
     if truncate > 0:
         return cell.rjust(cell_width)
     else:
         return cell.ljust(cell_width)
+
 
 # todo: store random-related utils in a separated module
 class XORShiftRandom(object):

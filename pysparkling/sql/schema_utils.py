@@ -15,8 +15,9 @@ def infer_schema_from_list(data, names=None):
     first = data[0]
     if type(first) is dict:
         raise NotImplementedError(
-            "Inferring schema from dict is deprecated in Spark and not implemented in Pyspark. "
-            "Please use pyspark.sql.Row instead"
+            "Inferring schema from dict is deprecated in Spark "
+            "and not implemented in pysparkling. "
+            "Please use .sql.Row instead"
         )
     schema = reduce(_merge_type, (_infer_schema(row, names) for row in data))
     if _has_nulltype(schema):

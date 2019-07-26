@@ -11,6 +11,7 @@ from pysparkling.sql.conf import RuntimeConfig
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.readwriter import DataFrameReader
+from pysparkling.sql.schema_utils import infer_schema_from_list
 
 if sys.version >= '3':
     basestring = unicode = str
@@ -99,26 +100,6 @@ class SparkSession(object):
         # from pysparkling.sql.udf import UDFRegistration
         # return UDFRegistration(self)
 
-    def _inferSchemaFromList(self, data, names=None):
-        """
-        Infer schema from list of Row or tuple.
-
-        :param data: list of Row or tuple
-        :param names: list of column names
-        :return: :class:`pyspark.sql.types.StructType`
-        """
-        if not data:
-            raise ValueError("can not infer schema from empty dataset")
-        first = data[0]
-        if type(first) is dict:
-            raise NotImplementedError("Inferring schema from dict is deprecated in pyspark "
-                                      "and not implemented in pysparkling. "
-                                      "Use .sql.Row instead")
-        schema = reduce(_merge_type, (_infer_schema(row, names) for row in data))
-        if _has_nulltype(schema):
-            raise ValueError("Some of types cannot be determined after inferring")
-        return schema
-
     def _inferSchema(self, rdd, samplingRatio=None, names=None):
         """
         Infer schema from an RDD of Row or tuple.
@@ -132,9 +113,11 @@ class SparkSession(object):
             raise ValueError("The first row in RDD is empty, "
                              "can not infer schema")
         if type(first) is dict:
-            raise NotImplementedError("Using RDD of dict to inferSchema is deprecated in pyspark "
-                                      "and not implemented in pysparkling. "
-                                      "Use .sql.Row instead")
+            raise NotImplementedError(
+                "Using RDD of dict to inferSchema is deprecated in Spark "
+                "and not implemented in pysparkling. "
+                "Please use .sql.Row instead"
+            )
 
         if samplingRatio is None:
             schema = _infer_schema(first, names=names)
@@ -183,7 +166,7 @@ class SparkSession(object):
             data = list(data)
 
         if schema is None or isinstance(schema, (list, tuple)):
-            struct = self._inferSchemaFromList(data, names=schema)
+            struct = infer_schema_from_list(data, names=schema)
             converter = _create_converter(struct)
             data = map(converter, data)
             if isinstance(schema, (list, tuple)):
@@ -219,7 +202,7 @@ class SparkSession(object):
 
     def _convert_from_pandas(self, pdf, schema, timezone):
         if timezone is not None:
-            raise NotImplementedError("Pandas respect session timezone is not supported")
+            raise NotImplementedError("Pandas with session timezone respect is not supported")
 
         # Convert pandas.DataFrame to list of numpy records
         np_records = pdf.to_records(index=False)
