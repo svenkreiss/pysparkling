@@ -143,6 +143,32 @@ class DataFrame(object):
         |  5|  Bob|
         |  2|Alice|
         +---+-----+
+        >>> from pysparkling.sql.functions import map_from_arrays, array
+        >>> df = spark.range(3)
+        >>> df.select(array(df.id, df.id * 2)).show()
+        +-------------------+
+        |array(id, (id * 2))|
+        +-------------------+
+        |             [0, 0]|
+        |             [1, 2]|
+        |             [2, 4]|
+        +-------------------+
+        >>> df.select(map_from_arrays(array(df.id), array(df.id))).show()
+        +-------------------------------------+
+        |map_from_arrays(array(id), array(id))|
+        +-------------------------------------+
+        |                             [0 -> 0]|
+        |                             [1 -> 1]|
+        |                             [2 -> 2]|
+        +-------------------------------------+
+        >>> df.select(map_from_arrays(array(df.id, df.id * 2), array(df.id, df.id * 2))).show()
+        +---------------------------------------------------------+
+        |map_from_arrays(array(id, (id * 2)), array(id, (id * 2)))|
+        +---------------------------------------------------------+
+        |                                                 [0 -> 0]|
+        |                                         [1 -> 1, 2 -> 2]|
+        |                                         [2 -> 2, 4 -> 4]|
+        +---------------------------------------------------------+
         """
         if truncate is True:
             print(self._jdf.showString(n, 20, vertical))
@@ -539,7 +565,7 @@ class DataFrame(object):
 
     def alias(self, alias):
         assert isinstance(alias, basestring), "alias should be a string"
-        raise NotImplementedError
+        raise NotImplementedError("Pysparkling does not currently support SQL catalog")
 
     def crossjoin(self, other):
         jdf = self._jdf.crossJoin(other)

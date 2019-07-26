@@ -303,8 +303,16 @@ class Column(object):
         ... )
         >>> df.select(df.age.alias("age2")).collect()
         [Row(age2=2), Row(age2=5)]
-        >>> df.select(df.age.alias("age3", metadata={'max': 99})).schema['age3'].metadata['max']
-        99
+        >>> from pysparkling.sql.functions import map_from_arrays, array
+        >>> spark.range(3).select(map_from_arrays(array("id"), array("id"))).show()
+        +-------------------------------------+
+        |map_from_arrays(array(id), array(id))|
+        +-------------------------------------+
+        |                             [0 -> 0]|
+        |                             [1 -> 1]|
+        |                             [2 -> 2]|
+        +-------------------------------------+
+
         """
 
         metadata = kwargs.pop('metadata', None)
@@ -454,7 +462,11 @@ class Column(object):
             field_name = format_field(expr, show_id=show_id)
             matches = set(i for i, field in enumerate(schema.fields) if expr is field)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                "Expression type '{0}' is not supported. "
+                "As a user you should not see this error, feel free to report a bug at "
+                "https://github.com/svenkreiss/pysparkling/issues".format(type(expr))
+            )
 
         return get_checked_matches(matches, field_name, schema, show_id)
 

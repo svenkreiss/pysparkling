@@ -57,7 +57,10 @@ class MapColumn(Expression):
         self.values = columns[1::2]
 
     def eval(self, row, schema):
-        return dict((key.eval(row, schema), value.eval(row, schema)) for key, value in zip(self.keys, self.values))
+        return dict(
+            (key.eval(row, schema), value.eval(row, schema))
+            for key, value in zip(self.keys, self.values)
+        )
 
     def __str__(self):
         return "map({0})".format(", ".join(str(col) for col in self.columns))
@@ -70,7 +73,9 @@ class MapFromArraysColumn(Expression):
         self.values = values
 
     def eval(self, row, schema):
-        return dict(zip(self.keys.eval(row, schema), self.values.eval(row, schema)))
+        return dict(
+            zip(self.keys.eval(row, schema), self.values.eval(row, schema))
+        )
 
     def __str__(self):
         return "map_from_arrays({0}, {1})".format(
@@ -82,9 +87,12 @@ class MapFromArraysColumn(Expression):
 class Size(UnaryExpression):
     def eval(self, row, schema):
         column_value = self.column.eval(row, schema)
-        if isinstance(column_value, (list, set, dict)):
+        if isinstance(column_value, (list, dict)):
             return len(column_value)
-        raise Expression("{0} value should be a list, set or a dict, got {1}".format(self.column, type(column_value)))
+        raise Expression("{0} value should be an array or a map, got {1}".format(
+            self.column,
+            type(column_value)
+        ))
 
     def __str__(self):
         return "size({0})".format(self.column)
@@ -245,5 +253,3 @@ class ArrayExcept(Expression):
 
     def __str__(self):
         return "array_except({0}, {1})".format(self.col1, self.col2)
-
-

@@ -487,7 +487,7 @@ class DataFrameInternal(object):
             if contains_more:
                 output += "only showing top {0} row{1}\n".format(n, "s" if len(rows) > 1 else "")
         else:
-            pass
+            raise NotImplementedError
             # todo: *
             # """
             #       {
