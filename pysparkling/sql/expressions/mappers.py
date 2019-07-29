@@ -129,7 +129,7 @@ class Pow(Expression):
         self.arg2 = arg2
 
     def eval(self, row, schema):
-        return self.arg1.eval(row, schema) ** self.arg2.eval(row, schema)
+        return float(self.arg1.eval(row, schema) ** self.arg2.eval(row, schema))
 
     def __str__(self):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
