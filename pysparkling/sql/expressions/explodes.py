@@ -13,7 +13,21 @@ class Explode(UnaryExpression):
         return True
 
     def eval(self, row, schema):
-        return [[value] for value in self.column.eval(row, schema)]
+        values = self.column.eval(row, schema)
+        if not values:
+            return []
+        return [[value] for value in values]
+
+    def __str__(self):
+        return "col"
+
+
+class ExplodeOuter(Explode):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        if not values:
+            return [[None]]
+        return [[value] for value in values]
 
     def __str__(self):
         return "col"
@@ -22,6 +36,8 @@ class Explode(UnaryExpression):
 class PosExplode(UnaryExpression):
     def eval(self, row, schema):
         values = self.column.eval(row, schema)
+        if not values:
+            return []
         return list(enumerate(values))
 
     def __str__(self):
@@ -40,3 +56,14 @@ class PosExplode(UnaryExpression):
             StructField("pos", IntegerType(), False),
             StructField("col", DataType(), False)
         ]
+
+
+class PosExplodeOuter(PosExplode):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        if not values:
+            return [[None, None]]
+        return list(enumerate(values))
+
+    def __str__(self):
+        return "posexplode_outer"
