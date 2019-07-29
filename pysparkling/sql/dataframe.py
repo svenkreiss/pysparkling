@@ -169,6 +169,16 @@ class DataFrame(object):
         |                                         [1 -> 1, 2 -> 2]|
         |                                         [2 -> 2, 4 -> 4]|
         +---------------------------------------------------------+
+        >>> c = col("id")
+        >>> spark.range(9, 11).select(c, c*2, c**2).show(vertical=True)# doctest: +NORMALIZE_WHITESPACE
+        -RECORD 0-------------
+         id           | 9
+         (id * 2)     | 18
+         POWER(id, 2) | 81.0
+        -RECORD 1-------------
+         id           | 10
+         (id * 2)     | 20
+         POWER(id, 2) | 100.0
         """
         if truncate is True:
             print(self._jdf.showString(n, 20, vertical))
@@ -828,7 +838,7 @@ class DataFrame(object):
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> from pysparkling.sql.functions import explode, split, posexplode
+        >>> from pysparkling.sql.functions import explode, split, posexplode, posexplode_outer
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
@@ -873,7 +883,26 @@ class DataFrame(object):
         |  0|  a|a,b|1,2|a,b|
         |  1|  b|a,b|1,2|a,b|
         +---+---+---+---+---+
-
+        >>> from pyspark.sql.types import StructType, StructField, ArrayType, StringType
+        >>> df = spark.createDataFrame(
+        ...     [Row(a=[], b=None, c=[None])],
+        ...     schema=StructType([
+        ...         StructField("a", ArrayType(StringType(), True), True),
+        ...         StructField("b", ArrayType(StringType(), True), True),
+        ...         StructField("c", ArrayType(StringType(), True), True)
+        ...     ])
+        ... )
+        >>> df.select(posexplode_outer(df.b)).show()
+        +----+----+
+        | pos| col|
+        +----+----+
+        |null|null|
+        +----+----+
+        >>> df.select(posexplode(df.b)).show()
+        +---+---+
+        |pos|col|
+        +---+---+
+        +---+---+
         """
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
