@@ -1477,7 +1477,7 @@ def sort_array(e, asc=True):
     """
     :rtype: Column
     """
-    return col(SortArray(e, asc))
+    return col(SortArray(parse(e), asc))
 
 
 def array_min(e):
@@ -1512,21 +1512,25 @@ def flatten(e):
     """
     :rtype: Column
     """
-    return col(Flatten(e))
+    return col(Flatten(parse(e)))
 
 
 def sequence(start, stop, step=None):
     """
     :rtype: Column
     """
-    return col(Sequence(start, stop, step))
+    return col(Sequence(
+        parse(start),
+        parse(stop),
+        parse(step) if step is not None else None
+    ))
 
 
 def array_repeat(e, count):
     """
     :rtype: Column
     """
-    return col(ArrayRepeat(e, count))
+    return col(ArrayRepeat(parse(e), count))
 
 
 def map_keys(e):
@@ -1561,7 +1565,7 @@ def arrays_zip(*exprs):
     """
     :rtype: Column
     """
-    return col(ArraysZip(exprs))
+    return col(ArraysZip([parse(e) for e in exprs]))
 
 
 def map_concat(*cols):

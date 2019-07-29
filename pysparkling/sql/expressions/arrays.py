@@ -136,6 +136,57 @@ class Slice(Expression):
         return "slice({0}, {1}, {2})".format(self.x, self.start, self.length)
 
 
+class ArrayRepeat(Expression):
+    def __init__(self, col, count):
+        super().__init__(col)
+        self.col = col
+        self.count = count
+
+    def eval(self, row, schema):
+        value = self.col.eval(row, schema)
+        return [value for _ in range(self.count)]
+
+    def __str__(self):
+        return "array_repeat({0}, {1})".format(self.col, self.count)
+
+
+class Sequence(Expression):
+    def __init__(self, start, stop, step):
+        super().__init__(start, stop, step)
+        self.start = start
+        self.stop = stop
+        self.step = step
+
+    def eval(self, row, schema):
+        start_value = self.start.eval(row, schema)
+        stop_value = self.stop.eval(row, schema)
+        if self.step is not None:
+            step_value = self.step.eval(row, schema)
+            if ((step_value < stop_value and step_value <= 0) or
+                    (step_value > stop_value and step_value >= 0)):
+                raise Exception(
+                    "requirement failed: Illegal sequence boundaries: "
+                    "{0} to {1} by {2}".format(
+                        start_value,
+                        stop_value,
+                        step_value
+                    )
+                )
+        else:
+            step_value = 1 if start_value < stop_value else -1
+
+        return list(range(start_value, stop_value, step_value))
+
+    def __str__(self):
+        return "array_join({0}, {1}{2})".format(
+            self.start,
+            self.stop,
+            # Spark use the same logic of not displaying step
+            # if it is None, even if it was explicitly set
+            ", {0}".format(self.step) if self.step is not None else ""
+        )
+
+
 class ArrayJoin(Expression):
     def __init__(self, column, delimiter, nullReplacement):
         super().__init__(column)
@@ -153,10 +204,55 @@ class ArrayJoin(Expression):
         return "array_join({0}, {1}{2})".format(
             self.column,
             self.delimiter,
-            # Spark use the same logic of not display nullReplacement
+            # Spark use the same logic of not displaying nullReplacement
             # if it is None, even if it was explicitly set
-            " {0}".format(self.nullReplacement) if self.nullReplacement is not None else ""
+            ", {0}".format(self.nullReplacement) if self.nullReplacement is not None else ""
         )
+
+
+class SortArray(Expression):
+    def __init__(self, col, asc):
+        super().__init__(col)
+        self.col = col
+        self.asc = asc
+
+    def eval(self, row, schema):
+        return sorted(self.col.eval(row, schema), reverse=not self.asc)
+
+    def __str__(self):
+        return "sort_array({0}, {1})".format(
+            self.col,
+            self.asc
+        )
+
+
+class ArraysZip(Expression):
+    def __init__(self, cols):
+        super().__init__(self.cols)
+        self.cols = cols
+
+    def eval(self, row, schema):
+        return [
+            list(combination)
+            for combination in zip(
+                *(c.eval(row, schema) for c in self.cols)
+            )
+        ]
+
+    def __str__(self):
+        return "arrays_zip({0})".format(", ".join(self.cols))
+
+
+class Flatten(UnaryExpression):
+    def eval(self, row, schema):
+        return [
+            value
+            for array in self.column.eval(row, schema)
+            for value in array
+        ]
+
+    def __str__(self):
+        return "flatten({0})".format(self.column)
 
 
 class ArrayPosition(Expression):
