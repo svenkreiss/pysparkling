@@ -6,7 +6,6 @@ import warnings
 from collections import Counter
 from copy import deepcopy
 from functools import partial
-from itertools import product
 
 from pyspark import StorageLevel, Row
 from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
@@ -17,7 +16,7 @@ from pysparkling.sql.functions import parse, count
 from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
-    row_from_keyed_values, str_half_width, pad_cell, merge_rows
+    row_from_keyed_values, str_half_width, pad_cell, merge_rows, format_cell
 
 if sys.version >= '3':
     basestring = str
@@ -458,7 +457,7 @@ class DataFrameInternal(object):
 
     def showString(self, n, truncate=20, vertical=False):
         n = max(0, n)
-        if truncate:
+        if n:
             sample = self.take(n + 1)
             rows = sample[:n]
             contains_more = len(sample) == n + 1
@@ -468,7 +467,7 @@ class DataFrameInternal(object):
 
         min_col_width = 3
 
-        cols = rows[0].__fields__ if len(rows) > 0 else []
+        cols = [field.name for field in self.schema.fields]
         output = ""
         if not vertical:
             col_widths = [max(min_col_width, str_half_width(col)) for col in cols]
@@ -488,55 +487,37 @@ class DataFrameInternal(object):
             output += sep
             output += "|{0}|\n".format("|".join(padded_header))
             output += sep
-            output += "\n".join(
-                "|{0}|".format("|".join(padded_row)) for padded_row in padded_rows
-            ) + "\n"
+            body = "\n".join("|{0}|".format("|".join(padded_row)) for padded_row in padded_rows)
+            if body:
+                output += body + "\n"
             output += sep
-            if contains_more:
-                output += "only showing top {0} row{1}\n".format(n, "s" if len(rows) > 1 else "")
         else:
-            raise NotImplementedError
-            # todo: *
-            # """
-            #       {
-            #           // Extended display mode enabled
-            #           val fieldNames = rows.head
-            #           val dataRows = rows.tail
-            #
-            #           // Compute the width of field name and data columns
-            #           val fieldNameColWidth = fieldNames.foldLeft(minimumColWidth) { case (curMax, fieldName) =>
-            #             math.max(curMax, Utils.stringHalfWidth(fieldName))
-            #           }
-            #           val dataColWidth = dataRows.foldLeft(minimumColWidth) { case (curMax, row) =>
-            #             math.max(curMax, row.map(cell => Utils.stringHalfWidth(cell)).max)
-            #           }
-            #
-            #           dataRows.zipWithIndex.foreach { case (row, i) =>
-            #             // "+ 5" in size means a character length except for padded names and data
-            #             val rowHeader = StringUtils.rightPad(
-            #               s"-RECORD $i", fieldNameColWidth + dataColWidth + 5, "-")
-            #             sb.append(rowHeader).append("\n")
-            #             row.zipWithIndex.map { case (cell, j) =>
-            #               val fieldName = StringUtils.rightPad(fieldNames(j),
-            #                 fieldNameColWidth - Utils.stringHalfWidth(fieldNames(j)) + fieldNames(j).length)
-            #               val data = StringUtils.rightPad(cell,
-            #                 dataColWidth - Utils.stringHalfWidth(cell) + cell.length)
-            #               s" $fieldName | $data "
-            #             }.addString(sb, "", "\n", "\n")
-            #           }
-            #         }
-            #
-            #         // Print a footer
-            #         if (vertical && rows.tail.isEmpty) {
-            #           // In a vertical mode, print an empty row set explicitly
-            #           sb.append("(0 rows)\n")
-            #         } else if (hasMoreData) {
-            #           // For Data that has more than "numRows" records
-            #           val rowsString = if (numRows == 1) "row" else "rows"
-            #           sb.append(s"only showing top $numRows $rowsString\n")
-            #         }
-            #       """
-            # todo: above
+            field_names = [field.name for field in self.schema.fields]
+
+            field_names_col_width = max(
+                min_col_width,
+                *(str_half_width(field_name) for field_name in field_names)
+            )
+            data_col_width = max(
+                min_col_width,
+                *(str_half_width(cell) for data_row in rows for cell in data_row)
+            )
+
+            for i, row in enumerate(rows):
+                row_header = "-RECORD {0}".format(i).ljust(field_names_col_width + data_col_width + 5, "-")
+                output += row_header + "\n"
+                for j, cell in enumerate(row):
+                    field_name = field_names[j]
+                    formatted_field_name = field_name.ljust(
+                        field_names_col_width-str_half_width(field_name) + len(field_name)
+                    )
+                    data = format_cell(cell).ljust(data_col_width - str_half_width(cell))
+                    output += " {0} | {1} \n".format(formatted_field_name, data)
+
+        if len(rows[1:]) == 0 and vertical:
+            output += "(0 rows)\n"
+        elif contains_more:
+            output += "only showing top {0} row{1}\n".format(n, "s" if len(rows) > 1 else "")
 
         # Last \n will be added by print()
         return output[:-1]

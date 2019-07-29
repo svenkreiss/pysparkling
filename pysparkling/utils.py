@@ -176,10 +176,11 @@ FULL_WIDTH_REGEX = fullWidthRegex = re.compile(
 )
 
 
-def str_half_width(string):
+def str_half_width(value):
     """
     Compute string length with full width characters counting for 2 normal ones
     """
+    string = format_cell(value)
     if string is None:
         return 0
     if not isinstance(string, str):
@@ -188,28 +189,24 @@ def str_half_width(string):
 
 
 def pad_cell(cell, truncate, col_width):
-    """
-    if (truncate > 0) {
-    StringUtils.leftPad(cell, colWidths(i) - Utils.stringHalfWidth(cell) + cell.length)
-  } else {
-    StringUtils.rightPad(cell, colWidths(i) - Utils.stringHalfWidth(cell) + cell.length)
-  }
-    """
-    if cell is None:
-        cell = "null"
-    elif isinstance(cell, dict):
-        cell = "[{0}]".format(
-            ", ".join(
-                "{0} -> {1}".format(key, value) for key, value in cell.items()
-            )
-        )
-    elif not isinstance(cell, str):
-        cell = str(cell)
+    cell = format_cell(cell)
     cell_width = col_width - str_half_width(cell) + len(cell)
     if truncate > 0:
         return cell.rjust(cell_width)
     else:
         return cell.ljust(cell_width)
+
+
+def format_cell(value):
+    if value is None:
+        return "null"
+    if isinstance(value, dict):
+        return "[{0}]".format(
+            ", ".join(
+                "{0} -> {1}".format(format_cell(key), format_cell(value)) for key, value in value.items()
+            )
+        )
+    return str(value)
 
 
 # todo: store random-related utils in a separated module
