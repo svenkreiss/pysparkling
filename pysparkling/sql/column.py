@@ -556,13 +556,10 @@ def resolve_column(col, row, schema):
 
     output_values = col.eval(row, schema)
 
-    if col.may_output_multiple_cols:
-        output_values = list(output_values)
-    else:
-        output_values = [output_values]
-
     if not col.may_output_multiple_rows:
-        output_values = [[row_content] for row_content in output_values]
+        output_values = [output_values]
+        if not col.may_output_multiple_cols:
+            output_values = [output_values]
 
     return output_cols, output_values
 

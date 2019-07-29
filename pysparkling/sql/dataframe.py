@@ -825,39 +825,36 @@ class DataFrame(object):
             If one of the column names is '*', that column is expanded to include all columns
             in the current DataFrame.
 
-
-        # >>> df = spark.createDataFrame(
-        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        # ... )
-        # >>> df.select('*').show()
-        # +---+-----+
-        # |age| name|
-        # +---+-----+
-        # |  2|Alice|
-        # |  5|  Bob|
-        # +---+-----+
-        # >>> df.select('name', 'age').show()
-        # +-----+---+
-        # | name|age|
-        # +-----+---+
-        # |Alice|  2|
-        # |  Bob|  5|
-        # +-----+---+
-        # >>> df.select('name').show()
-        # +-----+
-        # | name|
-        # +-----+
-        # |Alice|
-        # |  Bob|
-        # +-----+
-        # >>> df.select(df.name, (df.age + 10).alias('age')).collect()
-        # [Row(name='Alice', age=12), Row(name='Bob', age=15)]
-
-
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> from pysparkling.sql.functions import explode, split
+        >>> from pysparkling.sql.functions import explode, split, posexplode
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select('*').show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        >>> df.select('name', 'age').show()
+        +-----+---+
+        | name|age|
+        +-----+---+
+        |Alice|  2|
+        |  Bob|  5|
+        +-----+---+
+        >>> df.select('name').show()
+        +-----+
+        | name|
+        +-----+
+        |Alice|
+        |  Bob|
+        +-----+
+        >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+        [Row(name='Alice', age=12), Row(name='Bob', age=15)]
         >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
         +---+---+---+
         |col| _1| _2|
@@ -865,6 +862,17 @@ class DataFrame(object):
         |  a|a,b|1,2|
         |  b|a,b|1,2|
         +---+---+---+
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(
+        ...     posexplode(split("_1", ",")),
+        ...     "*",
+        ...     col("_1").alias("c")
+        ... ).show()
+        +---+---+---+---+---+
+        |pos|col| _1| _2|  c|
+        +---+---+---+---+---+
+        |  0|  a|a,b|1,2|a,b|
+        |  1|  b|a,b|1,2|a,b|
+        +---+---+---+---+---+
 
         """
         jdf = self._jdf.select(*cols)
