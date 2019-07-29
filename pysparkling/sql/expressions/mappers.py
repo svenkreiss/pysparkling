@@ -640,7 +640,7 @@ class Signum(UnaryExpression):
             return -1.0
 
     def __str__(self):
-        return "ROUND({0})".format(self.column)
+        return "SIGNUM({0})".format(self.column)
 
 
 class ToDegrees(UnaryExpression):
