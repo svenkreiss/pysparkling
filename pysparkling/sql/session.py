@@ -1,5 +1,4 @@
 import sys
-from functools import reduce
 from threading import RLock
 
 from pyspark.sql.types import _parse_datatype_string, StructType, _make_type_verifier, DataType, \
@@ -281,7 +280,7 @@ class SparkSession(object):
             col_type.name if hasattr(col_type, "name") else "_" + str(i)
             for i, col_type in enumerate(schema)
         ]
-        df = DataFrame(DataFrameInternal(self._sc, rdd, cols, True), self._wrapped)
+        df = DataFrame(DataFrameInternal(self._sc, rdd, cols, True, schema), self._wrapped)
         df._schema = schema
         return df
 
