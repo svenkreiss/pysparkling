@@ -548,7 +548,7 @@ class Column(object):
         return True
 
     def __repr__(self):
-        return 'Column<%s>' % self._jc.toString().encode('utf8')
+        return "Column<{0!r}>".format(self.expr)
 
 
 def resolve_column(col, row, schema):

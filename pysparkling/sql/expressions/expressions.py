@@ -11,6 +11,9 @@ class Expression(object):
     def __str__(self):
         raise NotImplementedError
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     def output_fields(self, schema):
         return [StructField(
             name=str(self),
