@@ -1,7 +1,9 @@
-from pysparkling.sql.expressions.expressions import Expression
+from pyspark.sql.types import StructField, IntegerType, DataType
+
+from pysparkling.sql.expressions.expressions import UnaryExpression
 
 
-class Explode(Expression):
+class Explode(UnaryExpression):
     def __init__(self, column):
         super().__init__(column)
         self.column = column
@@ -11,7 +13,30 @@ class Explode(Expression):
         return True
 
     def eval(self, row, schema):
-        return list(sub_value for sub_value in self.column.eval(row, schema))
+        return [[value] for value in self.column.eval(row, schema)]
 
     def __str__(self):
         return "col"
+
+
+class PosExplode(UnaryExpression):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        return list(enumerate(values))
+
+    def __str__(self):
+        return "posexplode"
+
+    @property
+    def may_output_multiple_rows(self):
+        return True
+
+    @property
+    def may_output_multiple_cols(self):
+        return True
+
+    def output_fields(self, schema):
+        return [
+            StructField("pos", IntegerType(), False),
+            StructField("col", DataType(), False)
+        ]

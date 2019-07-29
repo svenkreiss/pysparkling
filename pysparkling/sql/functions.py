@@ -2,7 +2,7 @@ from pyspark.sql.types import StringType
 
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.aggregate.collectors import SumDistinct
-from pysparkling.sql.expressions.explodes import Explode
+from pysparkling.sql.expressions.explodes import *
 from pysparkling.sql.expressions.arrays import *
 from pysparkling.sql.expressions.mappers import *
 from pysparkling.sql.expressions.literals import Literal

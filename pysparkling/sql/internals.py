@@ -265,6 +265,7 @@ class DataFrameInternal(object):
             # Initialize non deterministic functions make them reproducible
             initialized_cols = [col.initialize(partition_index) for col in cols]
             generators = [col for col in initialized_cols if col.may_output_multiple_rows]
+            non_generators = [col for col in initialized_cols if not col.may_output_multiple_rows]
             number_of_generators = len(generators)
             if number_of_generators > 1:
                 raise Exception(
@@ -276,16 +277,23 @@ class DataFrameInternal(object):
 
             output_field_lists = []
             for row in partition:
-                row_cols = []
-                rows = []
-                for col in initialized_cols:
+                base_row = []
+                for col in non_generators:
                     output_cols, output_values = resolve_column(col, row, schema=self.schema)
-                    row_cols += output_cols
-                    rows += output_values
-                for row_values in list(product(*rows)):
-                    output_field_lists.append(
-                        list(zip(row_cols, row_values))
-                    )
+                    base_row += zip(output_cols, output_values[0])
+
+                if number_of_generators == 1:
+                    generator = generators[0]
+                    generator_position = initialized_cols.index(generator)
+                    generated_cols, generated_sub_rows = resolve_column(generator, row, schema=self.schema)
+                    for generated_sub_row in generated_sub_rows:
+                        sub_row = list(zip(generated_cols, generated_sub_row))
+                        output_field_lists.append(
+                            base_row[:generator_position]+sub_row+base_row[generator_position:]
+                        )
+                else:
+                    output_field_lists.append(base_row)
+
             return list(
                 row_from_keyed_values(output_row_fields)
                 for output_row_fields in output_field_lists
