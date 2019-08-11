@@ -536,19 +536,6 @@ class Column(object):
         return "Column<{0!r}>".format(self.expr)
 
 
-def resolve_column(col, row, schema):
-    output_cols = [field.name for field in col.output_fields(schema)]
-
-    output_values = col.eval(row, schema)
-
-    if not col.may_output_multiple_rows:
-        output_values = [output_values]
-        if not col.may_output_multiple_cols:
-            output_values = [output_values]
-
-    return output_cols, output_values
-
-
 def parse(arg):
     """
     :rtype: Column

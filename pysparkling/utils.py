@@ -157,7 +157,7 @@ def row_from_keyed_values(keyed_values):
     return new_row
 
 
-FULL_WIDTH_REGEX = fullWidthRegex = re.compile(
+FULL_WIDTH_REGEX = re.compile(
     "[" +
     "\u1100-\u115F" +
     "\u2E80-\uA4CF" +

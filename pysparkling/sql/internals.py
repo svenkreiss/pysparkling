@@ -12,8 +12,8 @@ from pyspark import StorageLevel, Row
 from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
-from pysparkling.sql.column import resolve_column
-from pysparkling.sql.functions import parse, count, lit
+from pysparkling.sql.internal_utils.column import resolve_column
+from pysparkling.sql.functions import parse, count, lit, struct
 from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
@@ -339,7 +339,7 @@ class DataFrameInternal(object):
                     for generated_sub_row in generated_sub_rows:
                         sub_row = list(zip(generated_cols, generated_sub_row))
                         output_field_lists.append(
-                            base_row[:generator_position]+sub_row+base_row[generator_position:]
+                            base_row[:generator_position] + sub_row + base_row[generator_position:]
                         )
                 else:
                     output_field_lists.append(base_row)
@@ -561,7 +561,7 @@ class DataFrameInternal(object):
                 for j, cell in enumerate(row):
                     field_name = field_names[j]
                     formatted_field_name = field_name.ljust(
-                        field_names_col_width-str_half_width(field_name) + len(field_name)
+                        field_names_col_width - str_half_width(field_name) + len(field_name)
                     )
                     data = format_cell(cell).ljust(data_col_width - str_half_width(cell))
                     output += " {0} | {1} \n".format(formatted_field_name, data)
@@ -670,6 +670,7 @@ class DataFrameInternal(object):
 
         :type other: DataFrameInternal
         """
+
         def condition(couple):
             left, right = couple
             merged_rows = merge_rows(left, right)
