@@ -81,7 +81,8 @@ class DataFrameInternal(object):
     @classmethod
     def _bind_schema(cls, schema):
         for field in schema.fields:
-            field.id = FieldIdGenerator.next()
+            if not hasattr(field, "id"):
+                field.id = FieldIdGenerator.next()
             if isinstance(field, StructType):
                 cls._bind_schema(field)
         return schema
