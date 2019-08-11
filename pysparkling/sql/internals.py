@@ -9,7 +9,6 @@ from copy import deepcopy
 from functools import partial
 
 from pyspark import StorageLevel, Row
-from pyspark.rdd import portable_hash
 from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
@@ -71,7 +70,9 @@ class DataFrameInternal(object):
         if schema is not None:
             self._set_schema(schema)
         else:
-            self._set_schema(infer_schema_from_list(self._rdd.takeSample(withReplacement=False, num=200)))
+            self._set_schema(
+                infer_schema_from_list(self._rdd.takeSample(withReplacement=False, num=200))
+            )
 
     def _set_schema(self, schema):
         bound_schema = self._bind_schema(deepcopy(schema))
@@ -653,6 +654,7 @@ class DataFrameInternal(object):
         return schema, table
 
     def join(self, other, on, how):
+        # todo: add support of how
         if isinstance(on, basestring):
             new_schema = merge_schemas(self.bound_schema, other.bound_schema, field_not_to_duplicate=on)
             output_rdd = self.join_on_values(other, on, new_schema)
@@ -700,22 +702,11 @@ class DataFrameInternal(object):
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
 
+    def crossJoin(self, other):
+        return self.join(other, on=lit(True), how="left")
+
     def exceptAll(self, other):
-        num_partitions = max(self.rdd().getNumPartitions(), 200)
-
-        if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
-            raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
-
-        def value_hash(item):
-            return hash(item) & 0xffffffff
-
-        def prepare_rdd(rdd):
-            return rdd.partitionBy(num_partitions, value_hash).mapPartitions(sorted)
-
-        self_repartitioned_by_hash = prepare_rdd(self.rdd())
-        other_repartitioned_by_hash = prepare_rdd(other.rdd())
-
-        def except_all_on_partition(self_partition, other_partition):
+        def except_all_within_partition(self_partition, other_partition):
             min_other = next(other_partition, None)
             for item in self_partition:
                 if min_other is None or min_other > item:
@@ -726,21 +717,67 @@ class DataFrameInternal(object):
                 else:
                     min_other = next(other_partition, None)
 
-        def filter_partition(partition_id, self_partition):
-            other_partition = other_repartitioned_by_hash.partitions()[partition_id].x()
-            return except_all_on_partition(iter(self_partition), iter(other_partition))
-
-        filtered_rdd = self_repartitioned_by_hash.mapPartitionsWithIndex(filter_partition)
-        return self._with_rdd(filtered_rdd, self.bound_schema)
-
-    def crossJoin(self, other):
-        return self.join(other, on=lit(True), how="left")
-
-    def intersect(self, other):
-        pass
+        return self.applyFunctionOnHashPartitionedRdds(other, except_all_within_partition)
 
     def intersectAll(self, other):
-        pass
+        def intersect_all_within_partition(self_partition, other_partition):
+            min_other = next(other_partition, None)
+            for item in self_partition:
+                if min_other is None:
+                    return
+                elif min_other > item:
+                    continue
+                elif min_other < item:
+                    while min_other < item or min_other is None:
+                        min_other = next(other_partition, None)
+                else:
+                    yield item
+                    min_other = next(other_partition, None)
+
+        return self.applyFunctionOnHashPartitionedRdds(other, intersect_all_within_partition)
+
+    def intersect(self, other):
+        def intersect_within_partition(self_partition, other_partition):
+            min_other = next(other_partition, None)
+            for item in self_partition:
+                if min_other is None:
+                    return
+                elif min_other > item:
+                    continue
+                elif min_other < item:
+                    while min_other < item or min_other is None:
+                        min_other = next(other_partition, None)
+                else:
+                    yield item
+                    while min_other == item:
+                        min_other = next(other_partition, None)
+
+        return self.applyFunctionOnHashPartitionedRdds(other, intersect_within_partition)
+
+    def applyFunctionOnHashPartitionedRdds(self, other, func):
+        self_prepared_rdd, other_prepared_rdd = self.hash_partition_and_sort(other)
+
+        def filter_partition(partition_id, self_partition):
+            other_partition = other_prepared_rdd.partitions()[partition_id].x()
+            return func(iter(self_partition), iter(other_partition))
+
+        filtered_rdd = self_prepared_rdd.mapPartitionsWithIndex(filter_partition)
+        return self._with_rdd(filtered_rdd, self.bound_schema)
+
+    def hash_partition_and_sort(self, other):
+        num_partitions = max(self.rdd().getNumPartitions(), 200)
+        if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
+            raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
+
+        def value_hash(item):
+            return hash(item) & 0xffffffff
+
+        def prepare_rdd(rdd):
+            return rdd.partitionBy(num_partitions, value_hash).mapPartitions(sorted)
+
+        self_prepared_rdd = prepare_rdd(self.rdd())
+        other_prepared_rdd = prepare_rdd(other.rdd())
+        return self_prepared_rdd, other_prepared_rdd
 
     def dropDuplicates(self, cols):
         pass
@@ -776,6 +813,7 @@ class InternalGroupedDataFrame(object):
 
     def agg(self, stats):
         init = GroupedStats(self.grouping_cols, stats)
+        # noinspection PyProtectedMember
         aggregated_stats = self.df._jdf.aggregate(
             init,
             lambda grouped_stats, row: grouped_stats.merge(
@@ -791,12 +829,14 @@ class InternalGroupedDataFrame(object):
         for group_key in aggregated_stats.group_keys:
             key = [(str(key), value) for key, value in zip(self.grouping_cols, group_key)]
             key_as_row = row_from_keyed_values(key)
+            # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
                 key + [
                     (str(stat), stat.eval(key_as_row, self.df._jdf.bound_schema))
                     for stat in aggregated_stats.groups[group_key]
                 ]
             ))
+        # noinspection PyProtectedMember
         new_schema = StructType(
             [
                 field for col in self.grouping_cols for field in
