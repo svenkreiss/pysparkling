@@ -2007,6 +2007,24 @@ class RDD(object):
             preservesPartitioning=True,
         )
 
+    def toDF(self, schema=None, sampleRatio=None):
+        """
+        Converts current :class:`RDD` into a :class:`DataFrame`
+
+        This is a shorthand for ``spark.createDataFrame(rdd, schema, sampleRatio)``
+
+        :param schema: a :class:`pyspark.sql.types.StructType` or list of names of columns
+        :param samplingRatio: the sample ratio of rows used for inferring
+        :return: a DataFrame
+
+        >>> rdd.toDF().collect()
+        [Row(name=u'Alice', age=1)]
+        """
+        from pysparkling import Context
+        from pysparkling.sql.session import SparkSession
+        sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
+        return sparkSession.createDataFrame(self, schema, sampleRatio)
+
 
 class MapPartitionsRDD(RDD):
     def __init__(self, prev, f, preservesPartitioning=False):
