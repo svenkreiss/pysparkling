@@ -327,3 +327,7 @@ def merge_rows(left, right, on=_sentinel):
         zip(left.__fields__, left),
         ((key, value) for key, value in zip(right.__fields__, right) if key != on)
     ))
+
+
+def portable_hash(item):
+    return hash(item) & 0xffffffff
