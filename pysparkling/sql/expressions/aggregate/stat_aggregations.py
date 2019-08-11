@@ -11,7 +11,7 @@ class SimpleStatAggregation(Aggregation):
     def merge(self, row, schema):
         self.stat_helper.merge(row, schema)
 
-    def mergeStats(self, other):
+    def mergeStats(self, other, schema):
         self.stat_helper.mergeStats(other.expr.stat_helper)
 
     def eval(self, row, schema):

@@ -12,7 +12,7 @@ class CovarianceStatAggregation(Aggregation):
     def merge(self, row, schema):
         self.stat_helper.add(row.eval(self.column1, schema), row.eval(self.column2, schema))
 
-    def mergeStats(self, other):
+    def mergeStats(self, other, schema):
         self.stat_helper.merge(other)
 
     def eval(self, row, schema):

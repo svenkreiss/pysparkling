@@ -4,14 +4,13 @@ import warnings
 from pyspark import StorageLevel
 # noinspection PyProtectedMember
 from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
-    IntegerType, FloatType, Row, _parse_datatype_json_value
+    IntegerType, FloatType, Row
 
 from pysparkling.sql.column import Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.functions import col
 from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
 from pysparkling.sql.readwriter import DataFrameWriter
-from pysparkling.sql.streaming import DataStreamWriter
 
 if sys.version >= '3':
     basestring = str
@@ -62,7 +61,7 @@ class DataFrame(object):
         >>> df.toJSON().collect()
         ['{"id": 0}', '{"id": 1}']
         """
-        return self._jdf.toJSON()
+        return self._jdf.toJSON(use_unicode)
 
     def createTempView(self, name):
         self._jdf.createTempView(name)
@@ -86,7 +85,7 @@ class DataFrame(object):
 
     @property
     def schema(self):
-        return self._jdf.schema
+        return self._jdf.unbound_schema
 
     def printSchema(self):
         print(self.schema.treeString())
@@ -820,7 +819,7 @@ class DataFrame(object):
         elif isinstance(item, (list, tuple)):
             return self.select(*item)
         elif isinstance(item, int):
-            return Column(FieldAsExpression(self.schema[item]))
+            return Column(FieldAsExpression(self._jdf.bound_schema[item]))
         else:
             raise TypeError("unexpected item type: %s" % type(item))
 

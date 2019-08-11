@@ -5,7 +5,7 @@ class Aggregation(Expression):
     def merge(self, row, schema):
         raise NotImplementedError
 
-    def mergeStats(self, other):
+    def mergeStats(self, other, schema):
         raise NotImplementedError
 
     def eval(self, row, schema):

@@ -195,10 +195,16 @@ def pad_cell(cell, truncate, col_width):
 def format_cell(value):
     if value is None:
         return "null"
+    if isinstance(value, bool):
+        return str(value).lower()
+    if isinstance(value, Row):
+        return "[{0}]".format(
+            ", ".join(format_cell(sub_value) for sub_value in value)
+        )
     if isinstance(value, dict):
         return "[{0}]".format(
             ", ".join(
-                "{0} -> {1}".format(format_cell(key), format_cell(value)) for key, value in value.items()
+                "{0} -> {1}".format(format_cell(key), format_cell(sub_value)) for key, sub_value in value.items()
             )
         )
     return str(value)
