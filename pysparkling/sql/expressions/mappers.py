@@ -324,28 +324,28 @@ class EndsWith(Expression):
         return "endswith({0}, {1})".format(self.arg1, self.substr)
 
 
-class Substr(Expression):
-    def __init__(self, expr, start, end):
-        super().__init__(expr, start, end)
+class Substring(Expression):
+    def __init__(self, expr, start, length):
+        super().__init__(expr)
         self.expr = expr
         self.start = start
-        self.end = end
+        self.length = length
 
     def eval(self, row, schema):
-        return str(self.expr.eval(row, schema))[self.start:self.end]
+        return str(self.expr.eval(row, schema))[self.start-1:self.start-1+self.length]
 
     def __str__(self):
-        return "substring({0}, {1}, {2})".format(self.expr, self.start, self.end)
+        return "substring({0}, {1}, {2})".format(self.expr, self.start, self.length)
 
 
 class IsIn(Expression):
     def __init__(self, arg1, cols):
-        super().__init__(arg1, cols)
+        super().__init__(arg1)
         self.arg1 = arg1
         self.cols = cols
 
     def eval(self, row, schema):
-        return str(self.arg1.eval(row, schema)) in [col.eval(row, schema) for col in self.cols]
+        return self.arg1.eval(row, schema) in self.cols
 
     def __str__(self):
         return "({0} IN ({1}))".format(

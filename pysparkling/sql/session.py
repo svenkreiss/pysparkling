@@ -1,7 +1,7 @@
 import sys
 from threading import RLock
 
-from pyspark.sql.types import _parse_datatype_string, StructType, _make_type_verifier, DataType, \
+from pyspark.sql.types import _make_type_verifier, DataType, StructType, \
     _create_converter, _infer_schema, _has_nulltype, _merge_type
 
 import pysparkling
@@ -222,7 +222,7 @@ class SparkSession(object):
             raise TypeError("data is already a DataFrame")
 
         if isinstance(schema, basestring):
-            schema = _parse_datatype_string(schema)
+            schema = StructType.fromDDL(schema)
         elif isinstance(schema, (list, tuple)):
             # Must re-encode any unicode strings to be consistent with StructField names
             schema = [x.encode('utf-8') if not isinstance(x, str) else x for x in schema]
@@ -281,7 +281,6 @@ class SparkSession(object):
             for i, col_type in enumerate(schema)
         ]
         df = DataFrame(DataFrameInternal(self._sc, rdd, cols, True, schema), self._wrapped)
-        df._schema = schema
         return df
 
     def range(self, start, end=None, step=1, numPartitions=None):

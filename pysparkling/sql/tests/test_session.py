@@ -6,6 +6,8 @@ from pysparkling.sql.session import SparkSession
 from pysparkling import Context
 from unittest import TestCase
 
+from pysparkling.utils import row_from_keyed_values
+
 
 class SessionTests(TestCase):
     spark = SparkSession(sparkContext=Context())
@@ -80,9 +82,11 @@ class SessionTests(TestCase):
         self.assertEqual(df.count(), 3)
         self.assertListEqual(
             df.collect(),
-            [Row(label=0.0, features=[1.0, 0.8]),
-             Row(label=1.0, features=[0.0, 0.0]),
-             Row(label=2.0, features=[0.5, 0.5])]
+            [
+                row_from_keyed_values([("label", 0.0), ("features", [1.0, 0.8])]),
+                row_from_keyed_values([("label", 1.0), ("features", [0.0, 0.0])]),
+                row_from_keyed_values([("label", 2.0), ("features", [0.5, 0.5])]),
+            ]
         )
 
         self.assertEqual(

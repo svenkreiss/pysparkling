@@ -225,7 +225,7 @@ class Column(object):
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
         >>> df.select(df.name.substr(1, 3).alias("col")).collect()
-        [Row(col=u'Ali'), Row(col=u'Bob')]
+        [Row(col='Ali'), Row(col='Bob')]
         """
         if type(startPos) != type(length):
             raise TypeError(
@@ -235,7 +235,7 @@ class Column(object):
                     startPos_t=type(startPos),
                     length_t=type(length),
                 ))
-        return Column(Substr(self, parse(startPos), parse(length)))
+        return Column(Substring(self, startPos, length))
 
     def isin(self, *exprs):
         """
@@ -249,14 +249,13 @@ class Column(object):
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
         >>> df[df.name.isin("Bob", "Mike")].collect()
-        [Row(age=5, name=u'Bob')]
+        [Row(age=5, name='Bob')]
         >>> df[df.age.isin([1, 2, 3])].collect()
-        [Row(age=2, name=u'Alice')]
+        [Row(age=2, name='Alice')]
         """
         if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
             exprs = exprs[0]
-        cols = [parse(e) for e in exprs]
-        return Column(IsIn(self, cols))
+        return Column(IsIn(self, exprs))
 
     # todo: Ordering
     # def asc(self):
@@ -336,6 +335,7 @@ class Column(object):
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
+        >>> from pyspark.sql.types import StringType
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -390,7 +390,7 @@ class Column(object):
         :param condition: a boolean :class:`Column` expression.
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pyspark.sql import functions as F
+        >>> from pysparkling.sql import functions as F
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
@@ -420,7 +420,7 @@ class Column(object):
 
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pyspark.sql import functions as F
+        >>> from pysparkling.sql import functions as F
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
@@ -457,15 +457,20 @@ class Column(object):
             show_id = False
             field_name = expr
             matches = set(i for i, field in enumerate(schema.fields) if field_name == field.name)
-        elif isinstance(expr, StructField):
+        elif isinstance(expr, StructField) and hasattr(expr, "id"):
             show_id = True
             field_name = format_field(expr, show_id=show_id)
-            matches = set(i for i, field in enumerate(schema.fields) if expr is field)
+            matches = set(i for i, field in enumerate(schema.fields) if expr.id == field.id)
         else:
+            if isinstance(expr, StructField):
+                expression = "Unbound field {0}".format(expr.name)
+            else:
+                expression = "Expression type '{0}'".format(type(expr))
+
             raise NotImplementedError(
-                "Expression type '{0}' is not supported. "
+                "{0} is not supported. "
                 "As a user you should not see this error, feel free to report a bug at "
-                "https://github.com/svenkreiss/pysparkling/issues".format(type(expr))
+                "https://github.com/svenkreiss/pysparkling/issues".format(expression)
             )
 
         return get_checked_matches(matches, field_name, schema, show_id)
