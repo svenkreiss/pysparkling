@@ -1322,6 +1322,32 @@ class DataFrame(object):
         return DataFrame(self._jdf.withColumnRenamed(existing, new), self.sql_ctx)
 
     def drop(self, *cols):
+        """
+        Returns a DataFrame without the specified columns
+        If some column to drop are not in the DataFrame they are ignored
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([
+        ...   Row(age=2, name='Alice'),
+        ...   Row(age=5, name='Bob')
+        ... ])
+        >>> df2 = spark.createDataFrame([
+        ...   Row(name='Tom', height=80),
+        ...   Row(name='Bob', height=85)
+        ... ])
+        >>> df.drop('age').collect()
+        [Row(name='Alice'), Row(name='Bob')]
+        >>> df.drop(df.age).collect()
+        [Row(name='Alice'), Row(name='Bob')]
+        >>> df.join(df2, df.name == df2.name, 'inner').drop(df.name).collect()
+        [Row(age=5, height=85, name='Bob')]
+        >>> df.join(df2, df.name == df2.name, 'inner').drop(df2.name).collect()
+        [Row(age=5, name='Bob', height=85)]
+        >>> df.join(df2, 'name', 'inner').drop('age', 'height').collect()
+        [Row(name='Bob')]
+        """
         if len(cols) == 1:
             col = cols[0]
             if isinstance(col, basestring) or isinstance(col, Column):
