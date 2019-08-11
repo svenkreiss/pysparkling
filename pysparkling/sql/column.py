@@ -2,6 +2,7 @@ import sys
 
 from pyspark.sql.types import DataType, StructField
 
+from pysparkling.sql.expressions.fields import find_position_in_schema
 from pysparkling.sql.expressions.mappers import *
 from pysparkling.sql.expressions.literals import Literal
 
@@ -452,28 +453,7 @@ class Column(object):
             return [schema[self.find_position_in_schema(schema)]]
 
     def find_position_in_schema(self, schema):
-        expr = self.expr
-        if isinstance(expr, str):
-            show_id = False
-            field_name = expr
-            matches = set(i for i, field in enumerate(schema.fields) if field_name == field.name)
-        elif isinstance(expr, StructField) and hasattr(expr, "id"):
-            show_id = True
-            field_name = format_field(expr, show_id=show_id)
-            matches = set(i for i, field in enumerate(schema.fields) if expr.id == field.id)
-        else:
-            if isinstance(expr, StructField):
-                expression = "Unbound field {0}".format(expr.name)
-            else:
-                expression = "Expression type '{0}'".format(type(expr))
-
-            raise NotImplementedError(
-                "{0} is not supported. "
-                "As a user you should not see this error, feel free to report a bug at "
-                "https://github.com/svenkreiss/pysparkling/issues".format(expression)
-            )
-
-        return get_checked_matches(matches, field_name, schema, show_id)
+        return find_position_in_schema(schema, self.expr)
 
     @property
     def may_output_multiple_cols(self):
@@ -581,31 +561,3 @@ def parse(arg):
         return Column(arg)
     return Literal(value=arg)
 
-
-def get_checked_matches(matches, field_name, schema, show_id):
-    if len(matches) == 0:
-        raise ValueError("Unable to find the column '{0}' among {1}".format(
-            field_name,
-            format_schema(schema, show_id)
-        )) from None
-
-    if len(matches) > 1:
-        raise ValueError(
-            "Reference '{0}' is ambiguous, found {1} columns matching it.".format(
-                field_name,
-                len(matches)
-            )
-        )
-
-    return matches.pop()
-
-
-def format_schema(schema, show_id):
-    return [format_field(field, show_id=show_id) for field in schema.fields]
-
-
-def format_field(field, show_id):
-    if show_id:
-        return "{0}#{1}".format(field.name, id(field))
-    else:
-        return field.name
