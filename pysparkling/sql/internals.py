@@ -17,7 +17,7 @@ from pysparkling.sql.functions import parse, count, lit, struct
 from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
-    row_from_keyed_values, str_half_width, pad_cell, merge_rows, format_cell
+    row_from_keyed_values, str_half_width, pad_cell, merge_rows, format_cell, portable_hash
 
 if sys.version >= '3':
     basestring = str
@@ -756,6 +756,26 @@ class DataFrameInternal(object):
 
         return self.applyFunctionOnHashPartitionedRdds(other, intersect_within_partition)
 
+    def dropDuplicates(self, cols):
+        key_column = (struct(*cols) if cols else struct("*")).alias("key")
+        value_column = struct("*").alias("value")
+        self_prepared_rdd = self.select(key_column, value_column).rdd()
+
+        def drop_duplicate_within_partition(self_partition):
+            def unique_generator():
+                seen = set()
+                for key, value in self_partition:
+                    if key not in seen:
+                        seen.add(key)
+                        yield value
+
+            return unique_generator()
+
+        unique_rdd = (self_prepared_rdd.partitionBy(200)
+                      .mapPartitions(drop_duplicate_within_partition))
+
+        return self._with_rdd(unique_rdd, self.bound_schema)
+
     def applyFunctionOnHashPartitionedRdds(self, other, func):
         self_prepared_rdd, other_prepared_rdd = self.hash_partition_and_sort(other)
 
@@ -771,18 +791,12 @@ class DataFrameInternal(object):
         if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
             raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
 
-        def value_hash(item):
-            return hash(item) & 0xffffffff
-
         def prepare_rdd(rdd):
-            return rdd.partitionBy(num_partitions, value_hash).mapPartitions(sorted)
+            return rdd.partitionBy(num_partitions, portable_hash).mapPartitions(sorted)
 
         self_prepared_rdd = prepare_rdd(self.rdd())
         other_prepared_rdd = prepare_rdd(other.rdd())
         return self_prepared_rdd, other_prepared_rdd
-
-    def dropDuplicates(self, cols):
-        pass
 
     def na(self):
         pass

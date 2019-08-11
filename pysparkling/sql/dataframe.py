@@ -1089,6 +1089,30 @@ class DataFrame(object):
         return DataFrame(getattr(self._jdf, "except")(other._jdf), self.sql_ctx)
 
     def dropDuplicates(self, subset=None):
+        """Return a new DataFrame without any duplicate values between rows or between rows for a subset of fields
+
+        >>> from pyspark.sql import Row
+        >>> from pysparkling import Context
+        >>> sc = Context()
+        >>> df = sc.parallelize([ \\
+        ...     Row(name='Alice', age=5, height=80), \\
+        ...     Row(name='Alice', age=5, height=80), \\
+        ...     Row(name='Alice', age=10, height=80)]).toDF()
+        >>> df.dropDuplicates().show()
+        +---+------+-----+
+        |age|height| name|
+        +---+------+-----+
+        | 10|    80|Alice|
+        |  5|    80|Alice|
+        +---+------+-----+
+
+        >>> df.dropDuplicates(['name', 'height']).show()
+        +---+------+-----+
+        |age|height| name|
+        +---+------+-----+
+        |  5|    80|Alice|
+        +---+------+-----+
+        """
         jdf = self._jdf.dropDuplicates(cols=subset)
         return DataFrame(jdf, self.sql_ctx)
 
