@@ -6,9 +6,8 @@ from pyspark import StorageLevel
 from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
     IntegerType, FloatType, Row
 
-from pysparkling.sql.column import Column
+from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
-from pysparkling.sql.functions import col
 from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
 from pysparkling.sql.readwriter import DataFrameWriter
 
@@ -102,10 +101,8 @@ class DataFrame(object):
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> df1 = spark.createDataFrame(
-        ...         [("a", 1), ("a", 1), ("a", 1), ("a", 2), ("b",  3), ("c", 4)], ["C1", "C2"])
+        >>> df1 = spark.createDataFrame([("a", 1), ("a", 1), ("a", 1), ("a", 2), ("b",  3), ("c", 4)], ["C1", "C2"])
         >>> df2 = spark.createDataFrame([("a", 1), ("b", 3)], ["C1", "C2"])
-
         >>> df1.exceptAll(df2).show()
         +---+---+
         | C1| C2|
@@ -118,6 +115,7 @@ class DataFrame(object):
 
         Also as standard in SQL, this function resolves columns by position (not by name).
         """
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.exceptAll(other._jdf), self.sql_ctx)
 
     def isLocal(self):
@@ -142,7 +140,7 @@ class DataFrame(object):
         |  5|  Bob|
         |  2|Alice|
         +---+-----+
-        >>> from pysparkling.sql.functions import map_from_arrays, array
+        >>> from pysparkling.sql.functions import map_from_arrays, array, col
         >>> df = spark.range(3)
         >>> df.select(array(df.id, df.id * 2)).show()
         +-------------------+
@@ -210,7 +208,8 @@ class DataFrame(object):
                     "all parameters should be in {0}, got {1} of type {2}".format(
                         allowed_types, p, type(p)))
 
-        jdf = self._jdf.hint(name, parameters)
+        # No hint are supported by pysparkling hence nothing is done here
+        jdf = self._jdf
         return DataFrame(jdf, self.sql_ctx)
 
     def count(self):
@@ -417,14 +416,12 @@ class DataFrame(object):
                 return DataFrame(self._jdf.repartition(numPartitions), self.sql_ctx)
             else:
                 def partitioner(row: Row):
-                    return sum(hash(row[col]) for col in cols)
+                    return sum(hash(row[c]) for c in cols)
 
                 repartitioned_jdf = self._jdf.partitionValues(numPartitions, partitioner)
                 return DataFrame(repartitioned_jdf, self.sql_ctx)
         elif isinstance(numPartitions, (basestring, Column)):
-            # todo: rely on conf only
-            newNumPartitions = self.sql_ctx.sparkSession.conf.get("numShufflePartitions", "200")
-            return self.repartition(int(newNumPartitions), numPartitions, *cols)
+            return self.repartition(200, numPartitions, *cols)
         else:
             raise TypeError("numPartitions should be an int, str or Column")
 
@@ -467,9 +464,7 @@ class DataFrame(object):
                 repartitioned_jdf = self._jdf.repartitionByRange(numPartitions, *cols)
                 return DataFrame(repartitioned_jdf, self.sql_ctx)
         elif isinstance(numPartitions, (basestring, Column)):
-            # todo: rely on conf only
-            newNumPartitions = self.sql_ctx.sparkSession.conf.get("numShufflePartitions", "200")
-            return self.repartitionByRange(int(newNumPartitions), numPartitions, *cols)
+            return self.repartitionByRange(200, numPartitions, *cols)
         else:
             raise TypeError("numPartitions should be an int, str or Column")
 
@@ -576,8 +571,38 @@ class DataFrame(object):
         assert isinstance(alias, basestring), "alias should be a string"
         raise NotImplementedError("Pysparkling does not currently support SQL catalog")
 
-    def crossjoin(self, other):
-        jdf = self._jdf.crossJoin(other)
+    def crossJoin(self, other):
+        """
+        Returns the cartesian product of self and other
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([
+        ...   Row(age=2, name='Alice'),
+        ...   Row(age=5, name='Bob')
+        ... ])
+        >>> df2 = spark.createDataFrame([
+        ...   Row(name='Tom', height=80),
+        ...   Row(name='Bob', height=85)
+        ... ])
+        >>> df.select("age", "name").collect()
+        [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        >>> df2.select("name", "height").collect()
+        [Row(name='Tom', height=80), Row(name='Bob', height=85)]
+        >>> df.crossJoin(df2.select("height")).select("age", "name", "height").show()
+        +---+-----+------+
+        |age| name|height|
+        +---+-----+------+
+        |  2|Alice|    80|
+        |  2|Alice|    85|
+        |  5|  Bob|    80|
+        |  5|  Bob|    85|
+        +---+-----+------+
+
+        """
+        # noinspection PyProtectedMember
+        jdf = self._jdf.crossJoin(other._jdf)
         return DataFrame(jdf, self.sql_ctx)
 
     def join(self, other, on=None, how=None):
@@ -585,7 +610,7 @@ class DataFrame(object):
 
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import length
+        >>> from pysparkling.sql.functions import length, col
         >>> spark = SparkSession(Context())
         >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
         >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
@@ -613,6 +638,7 @@ class DataFrame(object):
         |   o|1479441846|   b|
         +----+----------+----+
         """
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
     def sortWithinPartitions(self, *cols, ascending=True):
@@ -837,7 +863,7 @@ class DataFrame(object):
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> from pysparkling.sql.functions import explode, split, posexplode, posexplode_outer
+        >>> from pysparkling.sql.functions import explode, split, posexplode, posexplode_outer, col
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
@@ -938,7 +964,7 @@ class DataFrame(object):
 
     def filter(self, condition):
         if isinstance(condition, basestring):
-            jdf = self._jdf.filter(col(condition))
+            jdf = self._jdf.filter(parse(condition))
         elif isinstance(condition, Column):
             jdf = self._jdf.filter(condition)
         else:
@@ -983,6 +1009,7 @@ class DataFrame(object):
         |  2|Alice|
         +---+-----+
         """
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.union(other._jdf), self.sql_ctx)
 
     def unionAll(self, other):
@@ -1013,15 +1040,19 @@ class DataFrame(object):
         |  2|Alice|
         +---+-----+
         """
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.unionByName(other._jdf), self.sql_ctx)
 
     def intersect(self, other):
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.intersect(other._jdf), self.sql_ctx)
 
     def intersectAll(self, other):
+        # noinspection PyProtectedMember
         return DataFrame(self._jdf.intersectAll(other._jdf), self.sql_ctx)
 
     def subtract(self, other):
+        # noinspection PyProtectedMember
         return DataFrame(getattr(self._jdf, "except")(other._jdf), self.sql_ctx)
 
     def dropDuplicates(self, subset=None):
@@ -1042,7 +1073,7 @@ class DataFrame(object):
         if thresh is None:
             thresh = len(subset) if how == 'any' else 1
 
-        return DataFrame(self._jdf.na().drop(thresh, self._jseq(subset)), self.sql_ctx)
+        return DataFrame(self._jdf.dropna(thresh, subset), self.sql_ctx)
 
     def fillna(self, value, subset=None):
         if not isinstance(value, (float, int, long, basestring, bool, dict)):
@@ -1055,16 +1086,16 @@ class DataFrame(object):
             value = float(value)
 
         if isinstance(value, dict):
-            return DataFrame(self._jdf.na().fill(value), self.sql_ctx)
+            return DataFrame(self._jdf.fillna(value), self.sql_ctx)
         elif subset is None:
-            return DataFrame(self._jdf.na().fill(value), self.sql_ctx)
+            return DataFrame(self._jdf.fillna(value), self.sql_ctx)
         else:
             if isinstance(subset, basestring):
                 subset = [subset]
             elif not isinstance(subset, (list, tuple)):
                 raise ValueError("subset should be a list or tuple of column names")
 
-            return DataFrame(self._jdf.na().fill(value, self._jseq(subset)), self.sql_ctx)
+            return DataFrame(self._jdf.fillna(value, subset), self.sql_ctx)
 
     def replace(self, to_replace, value=_NoValue, subset=None):
         if value is _NoValue:
@@ -1086,7 +1117,7 @@ class DataFrame(object):
 
         # Validate input types
         valid_types = (bool, float, int, long, basestring, list, tuple)
-        if not isinstance(to_replace, valid_types + (dict,)):
+        if not isinstance(to_replace, valid_types) and not isinstance(to_replace, dict):
             raise ValueError(
                 "to_replace should be a bool, float, int, long, string, list, tuple, or dict. "
                 "Got {0}".format(type(to_replace)))
@@ -1260,10 +1291,8 @@ class DataFrame(object):
     def drop(self, *cols):
         if len(cols) == 1:
             col = cols[0]
-            if isinstance(col, basestring):
-                jdf = self._jdf.drop(col)
-            elif isinstance(col, Column):
-                jdf = self._jdf.drop(col._jc)
+            if isinstance(col, basestring) or isinstance(col, Column):
+                jdf = self._jdf.drop([col])
             else:
                 raise TypeError("col should be a string or a Column")
         else:

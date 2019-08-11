@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import random
 import sys
 import warnings
@@ -8,11 +9,12 @@ from copy import deepcopy
 from functools import partial
 
 from pyspark import StorageLevel, Row
+from pyspark.rdd import portable_hash
 from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
 from pysparkling.sql.column import resolve_column
-from pysparkling.sql.functions import parse, count
+from pysparkling.sql.functions import parse, count, lit
 from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
@@ -180,7 +182,7 @@ class DataFrameInternal(object):
     def is_cached(self):
         return hasattr(self._rdd, "storageLevel")
 
-    def partitionValues(self, numPartitions, partitioner):
+    def partitionValues(self, numPartitions, partitioner=None):
         return self._with_rdd(
             self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values(),
             self.bound_schema
@@ -697,6 +699,66 @@ class DataFrameInternal(object):
 
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
+
+    def exceptAll(self, other):
+        num_partitions = max(self.rdd().getNumPartitions(), 200)
+
+        if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
+            raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
+
+        def value_hash(item):
+            return hash(item) & 0xffffffff
+
+        def prepare_rdd(rdd):
+            return rdd.partitionBy(num_partitions, value_hash).mapPartitions(sorted)
+
+        self_repartitioned_by_hash = prepare_rdd(self.rdd())
+        other_repartitioned_by_hash = prepare_rdd(other.rdd())
+
+        def except_all_on_partition(self_partition, other_partition):
+            min_other = next(other_partition, None)
+            for item in self_partition:
+                if min_other is None or min_other > item:
+                    yield item
+                elif min_other < item:
+                    while min_other < item or min_other is None:
+                        min_other = next(other_partition, None)
+                else:
+                    min_other = next(other_partition, None)
+
+        def filter_partition(partition_id, self_partition):
+            other_partition = other_repartitioned_by_hash.partitions()[partition_id].x()
+            return except_all_on_partition(iter(self_partition), iter(other_partition))
+
+        filtered_rdd = self_repartitioned_by_hash.mapPartitionsWithIndex(filter_partition)
+        return self._with_rdd(filtered_rdd, self.bound_schema)
+
+    def crossJoin(self, other):
+        return self.join(other, on=lit(True), how="left")
+
+    def intersect(self, other):
+        pass
+
+    def intersectAll(self, other):
+        pass
+
+    def dropDuplicates(self, cols):
+        pass
+
+    def na(self):
+        pass
+
+    def freqItems(self, cols, support):
+        pass
+
+    def drop(self, col):
+        pass
+
+    def dropna(self, thresh, subset):
+        pass
+
+    def fillna(self, value, subset):
+        pass
 
 
 class InternalGroupedDataFrame(object):
