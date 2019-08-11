@@ -323,9 +323,7 @@ _sentinel = object()
 
 
 def merge_rows(left, right, on=_sentinel):
-    key = dict() if on is _sentinel else dict(on=on)
     return row_from_keyed_values(itertools.chain(
-        key.items(),
         zip(left.__fields__, left),
-        zip(right.__fields__, right)
+        ((key, value) for key, value in zip(right.__fields__, right) if key != on)
     ))

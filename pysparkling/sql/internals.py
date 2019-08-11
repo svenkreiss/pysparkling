@@ -685,10 +685,10 @@ class DataFrameInternal(object):
         return output_rdd
 
     def join_on_values(self, other, on, new_schema):
-        on = parse(on)
+        on_column = parse(on)
 
         def add_key(row):
-            return on.eval(row, new_schema), row
+            return on_column.eval(row, new_schema), row
 
         keyed_self = self.rdd().map(add_key)
         keyed_other = other.rdd().map(add_key)
@@ -697,7 +697,7 @@ class DataFrameInternal(object):
         def format_output(entry):
             key, (left, right) = entry
 
-            return merge_rows(left, right, key)
+            return merge_rows(left, right, on)
 
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
