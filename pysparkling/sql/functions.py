@@ -125,7 +125,7 @@ def count(e):
     """
     :rtype: Column
     """
-    return col(Count(column=parse(e)))
+    return col(Count(column=e))
 
 
 def countDistinct(*exprs):
