@@ -20,6 +20,23 @@ class StarOperator(Expression):
         return "*"
 
 
+class GetField(Expression):
+    def __init__(self, item, field):
+        super().__init__(item, field)
+        self.item = item
+        self.field = field
+
+    def eval(self, row, schema):
+        item_value = self.item.eval(row, schema)
+        field_value = self.field.eval(row, schema)
+        return item_value.get(field_value)
+
+    def __str__(self):
+        if not isinstance(self.item.expr, CreateStruct) or isinstance(self.field, Literal):
+            return "{0}[{1}]".format(self.item, self.field)
+        return "{0}.{1}".format(self.item, self.field)
+
+
 class IsNull(UnaryExpression):
     def eval(self, row, schema):
         return self.column.eval(row, schema) is None
