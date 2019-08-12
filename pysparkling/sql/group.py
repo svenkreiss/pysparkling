@@ -2,7 +2,7 @@ from pyspark.sql import Row
 
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
-from pysparkling.sql.functions import count, mean, parse, avg, max, min, sum
+from pysparkling.sql.functions import count, mean, parse, avg, max, min, sum, lit
 
 
 class GroupedData(object):
@@ -50,7 +50,7 @@ class GroupedData(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def count(self):
-        return self.agg(count(1).alias("count"))
+        return self.agg(count(lit(1)).alias("count"))
 
     # todo: avg, max, etc should work when cols is left empty
     def mean(self, *cols):
