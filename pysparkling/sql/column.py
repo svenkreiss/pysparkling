@@ -177,8 +177,9 @@ class Column(object):
         |  1|
         +---+
         """
-        sys.exit(name)
-        return self[name]
+        if not isinstance(name, Column):
+            name = Literal(name)
+        return Column(GetField(self, name))
 
     def __getattr__(self, item):
         if item.startswith("__"):
@@ -191,7 +192,7 @@ class Column(object):
                 raise ValueError("slice with step is not supported.")
             return self.substr(k.start, k.stop)
         else:
-            return self.apply(k)
+            return self.getField(k)
 
     def __iter__(self):
         raise TypeError("Column is not iterable")
