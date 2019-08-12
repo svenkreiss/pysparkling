@@ -267,18 +267,12 @@ class DataFrameInternal(object):
         return dict(sketched_rdd_content)
 
     def sampleBy(self, col, fractions, seed):
-        if seed is None:
-            seed = random.random()
+        from pysparkling.sql.functions import rand, map_from_arrays, array
 
-        random.seed(seed)
-
-        def sample_row(row):
-            key = row[col]
-            if key in fractions and random.random() < fractions[key]:
-                return True
+        fractions_as_col = map_from_arrays(array(*(map(lit, fractions.keys()))), array(*map(lit, fractions.values())))
 
         return self._with_rdd(
-            self._rdd.filter(sample_row),
+            self.filter(rand(seed) < fractions_as_col[col]),
             self.bound_schema
         )
 
