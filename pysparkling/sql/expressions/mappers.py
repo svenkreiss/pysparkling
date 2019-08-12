@@ -1,8 +1,30 @@
 import math
+import random
 
+from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.utils import XORShiftRandom, row_from_keyed_values
+
+
+class NullUnsafeBinaryOperation(Expression):
+    def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
+        self.arg1 = arg1
+        self.arg2 = arg2
+
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+        return self.null_safe_eval(value_1, value_2)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def null_safe_eval(self, value_1, value_2):
+        raise NotImplementedError
 
 
 class StarOperator(Expression):
@@ -152,23 +174,6 @@ class Pow(Expression):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
 
 
-class Equal(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        value_1 = self.arg1.eval(row, schema)
-        value_2 = self.arg2.eval(row, schema)
-        if value_1 is None or value_2 is None:
-            return None
-        return value_1 == value_2
-
-    def __str__(self):
-        return "({0} = {1})".format(self.arg1, self.arg2)
-
-
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
         super().__init__(arg1, arg2)
@@ -182,79 +187,57 @@ class EqNullSafe(Expression):
         return "({0} <=> {1})".format(self.arg1, self.arg2)
 
 
-class LessThan(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
+class Equal(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 == value_2
 
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) < self.arg2.eval(row, schema)
+    def __str__(self):
+        return "({0} = {1})".format(self.arg1, self.arg2)
+
+
+class LessThan(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 < value_2
 
     def __str__(self):
         return "({0} < {1})".format(self.arg1, self.arg2)
 
 
-class LessThanOrEqual(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) <= self.arg2.eval(row, schema)
+class LessThanOrEqual(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 <= value_2
 
     def __str__(self):
         return "({0} <= {1})".format(self.arg1, self.arg2)
 
 
-class GreaterThan(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) > self.arg2.eval(row, schema)
+class GreaterThan(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 > value_2
 
     def __str__(self):
         return "({0} > {1})".format(self.arg1, self.arg2)
 
 
-class GreaterThanOrEqual(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) >= self.arg2.eval(row, schema)
+class GreaterThanOrEqual(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 >= value_2
 
     def __str__(self):
         return "({0} >= {1})".format(self.arg1, self.arg2)
 
 
-class And(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) and self.arg2.eval(row, schema)
+class And(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 and value_2
 
     def __str__(self):
         return "({0} AND {1})".format(self.arg1, self.arg2)
 
 
-class Or(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) or self.arg2.eval(row, schema)
+class Or(NullUnsafeBinaryOperation):
+    def null_safe_eval(self, value_1, value_2):
+        return value_1 or value_2
 
     def __str__(self):
         return "({0} OR {1})".format(self.arg1, self.arg2)
@@ -262,7 +245,10 @@ class Or(Expression):
 
 class Invert(UnaryExpression):
     def eval(self, row, schema):
-        return not self.column.eval(row, schema)
+        value = self.column.eval(row, schema)
+        if value is None:
+            return None
+        return not value
 
     def __str__(self):
         return "(NOT {0})".format(self.column)
@@ -679,7 +665,7 @@ class ToRadians(UnaryExpression):
 class Rand(Expression):
     def __init__(self, seed=None):
         super().__init__()
-        self.seed = seed
+        self.seed = seed if seed is not None else random.random()
         self.random_generator = None
 
     def eval(self, row, schema):
