@@ -557,9 +557,24 @@ def struct(*exprs):
 
 def when(condition, value):
     """
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame(
+    ...    [Row(age=2, name='Alice'), Row(age=5, name='Bob'), Row(age=4, name='Lisa')]
+    ... )
+    >>> df.select(df.name, when(df.age > 4, -1).when(df.age < 3, 1).otherwise(0)).show()
+    +-----+--------------------------------------+
+    | name|when((age > 4), -1).when((age < 3), 1)|
+    +-----+--------------------------------------+
+    |Alice|                                     1|
+    |  Bob|                                    -1|
+    | Lisa|                                     0|
+    +-----+--------------------------------------+
+
     :rtype: Column
     """
-    CaseWhen(parse(condition), parse(value))
+    return CaseWhen(parse(condition), parse(value))
 
 
 def bitwiseNOT(e):
@@ -1015,6 +1030,17 @@ def ltrim(e, trimString=" "):
 
 def regexp_extract(e, exp, groupIdx):
     """
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([('100-200',)], ['str'])
+    >>> df.collect()
+    [Row(str='100-200')]
+    >>> df.select(Column('str').alias('range')).collect()
+    [Row(range='100-200')]
+    >>> df.select(regexp_extract(df.str, r'(\d+)-(\d+)', 1).alias('d')).collect()
+    [Row(d='100')]
+
     :rtype: Column
     """
     return col(RegExpExtract(e, exp, groupIdx))
@@ -1022,9 +1048,20 @@ def regexp_extract(e, exp, groupIdx):
 
 def regexp_replace(e, pattern, replacement):
     """
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([('100-200',)], ['str'])
+    >>> df.collect()
+    [Row(str='100-200')]
+    >>> df.select(Column('str').alias('range')).collect()
+    [Row(range='100-200')]
+    >>> df.select(regexp_replace(df.str, r'-(\d+)', '-300').alias('d')).collect()
+    [Row(d='100-300')]
+
     :rtype: Column
     """
-    return col(RegExpReplace(e, parse(pattern), replacement))
+    return col(RegExpReplace(e, pattern, replacement))
 
 
 def unbase64(e):
