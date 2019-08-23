@@ -1,6 +1,8 @@
 import math
 import random
 
+from pyspark.sql.types import StructType, MapType
+
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
@@ -49,7 +51,13 @@ class GetField(Expression):
         self.field = field
 
     def eval(self, row, schema):
-        item_value = self.item.eval(row, schema)
+        idx = schema.names.index(self.item.col_name)
+        if isinstance(schema.fields[idx].dataType, StructType):
+            item_value = dict(list(zip(schema.fields[idx].dataType.names, self.item.eval(row, schema))))
+        elif isinstance(schema.fields[idx].dataType, MapType):
+            item_value = self.item.eval(row, schema)
+        else:
+            item_value = dict(enumerate(self.item.eval(row, schema)))
         field_value = self.field.eval(row, schema)
         return item_value.get(field_value)
 
@@ -73,6 +81,114 @@ class IsNotNull(UnaryExpression):
 
     def __str__(self):
         return "({0} IS NOT NULL)".format(self.column)
+
+
+class Cast(Expression):
+    def __init__(self, e, dtype):
+        super().__init__(e, dtype)
+
+        self.e = e
+        if not isinstance(dtype, str):
+            try:
+                dtype = dtype.typeName()
+            except AttributeError:
+                pass
+        self.dtype = dtype
+        self.dtype_str = dtype
+        if self.dtype_str == 'string':
+            self.dtype = str
+        elif self.dtype_str == 'integer':
+            self.dtype = int
+        elif self.dtype_str == 'boolean':
+            self.dtype = bool
+        elif self.dtype_str in ['str', 'int', 'float', 'bool']:
+            self.dtype = eval(self.dtype_str)
+        else:
+            raise NotImplementedError("Unknown cast type: {}".format(dtype))
+
+    def eval(self, row, schema):
+        return self.dtype(self.e.eval(row, schema))
+
+    def __str__(self):
+        return "cast({0})".format(self.dtype_str)
+
+
+class CaseWhen(Expression):
+    def __init__(self, condition, function):
+        super().__init__(condition, function)
+
+        self.conditions = [condition]
+        self.functions = [function]
+        self.function_b = None
+
+    def otherwise(self, function):
+        self.function_b = function
+        return self
+
+    def when(self, condition, function):
+        self.conditions.append(condition)
+        self.functions.append(function)
+        return self
+
+    def eval(self, row, schema):
+        for condition, function in zip(self.conditions, self.functions):
+            trueth = condition.eval(row, schema)
+            if trueth:
+                return function
+                # self.function.eval(row, schema)
+        if self.function_b is not None:
+            return self.function_b
+            # self.function_b.eval(row, schema)
+
+    def __str__(self):
+        return ".".join(["when({0}, {1})".format(condition, function)
+                         for condition, function in zip(self.conditions, self.functions)])
+
+
+class RegExpExtract(Expression):
+    def __init__(self, e, exp, groupIdx):
+        super().__init__(e, exp, groupIdx)
+
+        import re
+        regexp = re.compile(exp)
+
+        def fn(x):
+            match = regexp.search(x)
+            ret = match.group(groupIdx)
+            return ret
+
+        self.fn = fn
+        self.exp = exp
+        self.groupIdx = groupIdx
+        self.e = e
+
+    def eval(self, row, schema):
+        return self.fn(self.e.eval(row, schema))
+
+    def __str__(self):
+        return "RegExpExtract({0}, {1})".format(self.exp, self.groupIdx)
+
+
+class RegExpReplace(Expression):
+    def __init__(self, e, exp, replacement):
+        super().__init__(e, exp, replacement)
+
+        import re
+        regexp = re.compile(exp)
+
+        def fn(x):
+            return regexp.sub(replacement, x)
+
+        self.fn = fn
+        self.exp = exp
+        self.replacement = replacement
+        self.e = e
+
+    def eval(self, row, schema):
+        return self.fn(self.e.eval(row, schema))
+
+    def __str__(self):
+        return "RegExpReplace({0}, {1})".format(self.exp, self.replacement)
 
 
 class Contains(Expression):
