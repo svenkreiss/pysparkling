@@ -334,5 +334,39 @@ def merge_rows(left, right, on=_sentinel):
     ))
 
 
+def strhash(string):
+    """
+    Old python hash function as described in PEP 456, excluding prefix, suffix and mask.
+
+    :param string: string to hash
+    :return: hash
+    """
+    if string == "":
+        return 0
+
+    x = ord(string[0]) << 7
+    for c in string[1:]:
+        x = ((1000003 * x) ^ ord(c)) & (1 << 32)
+    x = (x ^ len(string))
+    return x
+
+
+def tuplehash(tuple):
+    """
+    Old python hash function for tuples.
+
+    :param tuple: tuple to hash
+    :return: hash
+    """
+    if isinstance(tuple, int):
+        return tuple
+    mult = 1000003
+    x = 0x345678
+    for index, item in enumerate(tuple):
+        x = ((x ^ hash(item)) * mult) & (1<<32)
+        mult += (82520 + (len(tuple)-index)*2)
+    return x + 97531
+
+
 def portable_hash(item):
-    return hash(item) & 0xffffffff
+    return strhash(item) & 0xffffffff
