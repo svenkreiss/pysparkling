@@ -1,4 +1,4 @@
-from pyspark.sql.types import StructField, DataType
+from pysparkling.sql.types import StructField, DataType
 
 
 class Expression(object):

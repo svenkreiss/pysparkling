@@ -14,7 +14,7 @@ def test_column_stat_helper():
     """
     Expected quantile values come from use of org.apache.spark.sql.catalyst.util.QuantileSummaries
     """
-    from pyspark.sql.types import Row, StructType, StructField, IntegerType
+    from pysparkling.sql.types import Row, StructType, StructField, IntegerType
     from pysparkling.sql.functions import col
     schema = StructType([StructField("value", IntegerType())])
     helper = ColumnStatHelper(col("value"))

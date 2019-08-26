@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from pyspark.sql.types import StructType
+from pysparkling.sql.types import StructType
 
 from pysparkling.sql.dataframe import DataFrame
 

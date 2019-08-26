@@ -3,8 +3,8 @@ import warnings
 
 from pyspark import StorageLevel
 # noinspection PyProtectedMember
-from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
-    IntegerType, FloatType, Row
+from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
+    IntegerType, FloatType, Row, _check_series_convert_timestamps_local_tz
 
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
@@ -908,7 +908,7 @@ class DataFrame(object):
         |  0|  a|a,b|1,2|a,b|
         |  1|  b|a,b|1,2|a,b|
         +---+---+---+---+---+
-        >>> from pyspark.sql.types import StructType, StructField, ArrayType, StringType
+        >>> from pysparkling.sql.types import StructType, StructField, ArrayType, StringType
         >>> df = spark.createDataFrame(
         ...     [Row(a=[], b=None, c=[None])],
         ...     schema=StructType([
@@ -1097,8 +1097,7 @@ class DataFrame(object):
     def dropDuplicates(self, subset=None):
         """Return a new DataFrame without any duplicate values between rows or between rows for a subset of fields
 
-        >>> from pyspark.sql import Row
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> sc = Context()
         >>> df = sc.parallelize([ \\
         ...     Row(name='Alice', age=5, height=80), \\
@@ -1223,10 +1222,9 @@ class DataFrame(object):
             raise ValueError("Mixed type replacements are not supported")
 
         if subset is None:
-            return DataFrame(self._jdf.na().replace('*', rep_dict), self.sql_ctx)
+            return DataFrame(self._jdf.replace('*', rep_dict), self.sql_ctx)
         else:
-            return DataFrame(
-                self._jdf.na().replace(subset, rep_dict), self.sql_ctx)
+            return DataFrame(self._jdf.replace(subset, rep_dict), self.sql_ctx)
 
     def approxQuantile(self, col, probabilities, relativeError):
         """
@@ -1454,7 +1452,6 @@ class DataFrame(object):
         if timezone is None:
             return pdf
         else:
-            from pyspark.sql.types import _check_series_convert_timestamps_local_tz
             for field in self.schema:
                 # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
                 if isinstance(field.dataType, TimestampType):

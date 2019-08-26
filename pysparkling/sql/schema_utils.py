@@ -1,5 +1,9 @@
 from functools import reduce
-from pyspark.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType
+from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType
+
+
+def infer_schema_from_rdd(rdd):
+    return infer_schema_from_list(rdd.takeSample(withReplacement=False, num=200))
 
 
 def infer_schema_from_list(data, names=None):
@@ -8,7 +12,7 @@ def infer_schema_from_list(data, names=None):
 
     :param data: list of Row or tuple
     :param names: list of column names
-    :return: :class:`pyspark.sql.types.StructType`
+    :return: :class:`pysparkling.sql.types.StructType`
     """
     if not data:
         raise ValueError("can not infer schema from empty dataset")

@@ -2112,7 +2112,7 @@ class RDD(object):
 
         This is a shorthand for ``spark.createDataFrame(rdd, schema, sampleRatio)``
 
-        :param schema: a :class:`pyspark.sql.types.StructType` or list of names of columns
+        :param schema: a :class:`pysparkling.sql.types.StructType` or list of names of columns
         :param samplingRatio: the sample ratio of rows used for inferring
         :return: a DataFrame
 

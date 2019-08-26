@@ -1,20 +1,19 @@
 import json
 import math
 import os
-import random
 import sys
 import warnings
 from collections import Counter
 from copy import deepcopy
 from functools import partial
 
-from pyspark import StorageLevel, Row
-from pyspark.sql.types import StructField, LongType, StructType, StringType, DataType
+from pyspark import StorageLevel
+from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.functions import parse, count, lit, struct
-from pysparkling.sql.schema_utils import infer_schema_from_list, merge_schemas, get_schema_from_cols
+from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
     row_from_keyed_values, str_half_width, pad_cell, merge_rows, format_cell, portable_hash
@@ -70,9 +69,7 @@ class DataFrameInternal(object):
         if schema is not None:
             self._set_schema(schema)
         else:
-            self._set_schema(
-                infer_schema_from_list(self._rdd.takeSample(withReplacement=False, num=200))
-            )
+            self._set_schema(infer_schema_from_rdd(self._rdd))
 
     def _set_schema(self, schema):
         bound_schema = self._bind_schema(deepcopy(schema))
@@ -792,12 +789,6 @@ class DataFrameInternal(object):
         other_prepared_rdd = prepare_rdd(other.rdd())
         return self_prepared_rdd, other_prepared_rdd
 
-    def na(self):
-        pass
-
-    def freqItems(self, cols, support):
-        pass
-
     def drop(self, cols):
         positions_to_drop = []
         for col in cols:
@@ -825,10 +816,16 @@ class DataFrameInternal(object):
             new_schema
         )
 
+    def freqItems(self, cols, support):
+        pass
+
     def dropna(self, thresh, subset):
         pass
 
     def fillna(self, value, subset):
+        pass
+
+    def replace(self, to_replace, value, subset=None):
         pass
 
 

@@ -6,7 +6,7 @@ import random
 import re
 from operator import itemgetter
 
-from pyspark import Row
+from pysparkling.sql.types import Row
 
 
 WILDCARD_START_PATTERN = re.compile(r'(?P<previous_character>^|[^\\])(?P<wildcard_start>[*?[])')
