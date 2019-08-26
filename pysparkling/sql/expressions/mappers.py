@@ -66,9 +66,9 @@ class GetField(Expression):
         return item_value.get(field_value)
 
     def __str__(self):
-        if not isinstance(self.item.expr, CreateStruct) or isinstance(self.field, Literal):
-            return "{0}[{1}]".format(self.item, self.field)
-        return "{0}.{1}".format(self.item, self.field)
+        if isinstance(self.item.expr.field.dataType, StructType):
+            return "{0}.{1}".format(self.item, self.field)
+        return "{0}[{1}]".format(self.item, self.field)
 
 
 class IsNull(UnaryExpression):
@@ -145,8 +145,9 @@ class CaseWhen(Expression):
             # self.function_b.eval(row, schema)
 
     def __str__(self):
-        return ".".join(["when({0}, {1})".format(condition, function)
-                         for condition, function in zip(self.conditions, self.functions)])
+        return "CASE "+" ".join(["WHEN {0} THEN {1}".format(condition, function)
+                                for condition, function in zip(self.conditions, self.functions)]) + \
+               (" ELSE {}".format(self.function_b) if self.function_b is not None else "") + " END"
 
 
 class RegExpExtract(Expression):

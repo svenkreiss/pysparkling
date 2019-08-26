@@ -342,21 +342,14 @@ class Column(object):
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
+        >>> df.select(df.name, df.age.between(2, 4).alias('taapero')).collect()
+        [Row(name='Alice', taapero=True), Row(name='Bob', taapero=False)]
         >>> df.select(df.age.cast("string").alias('ages')).collect()
         [Row(ages=u'2'), Row(ages=u'5')]
         >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
         [Row(ages=u'2'), Row(ages=u'5')]
         """
-        if isinstance(dataType, basestring):
-            jc = self._jc.cast(dataType)
-        elif isinstance(dataType, DataType):
-            from pyspark.sql import SparkSession
-            spark = SparkSession.builder.getOrCreate()
-            jdt = spark._jsparkSession.parseDataType(dataType.json())
-            jc = self._jc.cast(jdt)
-        else:
-            raise TypeError("unexpected type: %s" % type(dataType))
-        return Column(jc)
+        return Column(Cast(self, dataType))
 
     def astype(self, dataType):
         return self.cast(dataType)
@@ -436,6 +429,7 @@ class Column(object):
         |Alice|                                    0|
         |  Bob|                                    1|
         +-----+-------------------------------------+
+
         """
         v = value._jc if isinstance(value, Column) else value
         jc = self._jc.otherwise(v)

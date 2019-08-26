@@ -167,6 +167,9 @@ class Catalog(object):
         Note that, the return type of this method was None in Spark 2.0, but changed to Boolean
         in Spark 2.1.
 
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
         >>> spark.createDataFrame([(1, 1)]).createTempView("my_table")
         >>> spark.table("my_table").collect()
         [Row(_1=1, _2=1)]
@@ -183,6 +186,9 @@ class Catalog(object):
         If the view has been cached before, then it will also be uncached.
         Returns true if this view is dropped successfully, false otherwise.
 
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
         >>> spark.createDataFrame([(1, 1)]).createGlobalTempView("my_table")
         >>> spark.table("global_temp.my_table").collect()
         [Row(_1=1, _2=1)]

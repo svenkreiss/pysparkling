@@ -8,8 +8,6 @@ from pyspark.sql.types import TimestampType, IntegralType, ByteType, ShortType, 
 
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
-from pysparkling.sql.internals import DataFrameInternal, InternalGroupedDataFrame
-from pysparkling.sql.readwriter import DataFrameWriter
 
 if sys.version >= '3':
     basestring = str
@@ -20,7 +18,7 @@ _NoValue = object()
 
 # noinspection PyMethodMayBeStatic
 class DataFrame(object):
-    def __init__(self, jdf: DataFrameInternal, sql_ctx):
+    def __init__(self, jdf, sql_ctx):
         self._jdf = jdf
         self.sql_ctx = sql_ctx
         # noinspection PyProtectedMember
@@ -76,6 +74,8 @@ class DataFrame(object):
 
     @property
     def write(self):
+        from pysparkling.sql.readwriter import DataFrameWriter
+
         return DataFrameWriter(self)
 
     @property
@@ -972,16 +972,22 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def groupBy(self, *cols):
+        from pysparkling.sql.internals import InternalGroupedDataFrame
+
         jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.GROUP_BY_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
+        from pysparkling.sql.internals import InternalGroupedDataFrame
+
         jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.ROLLUP_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
+        from pysparkling.sql.internals import InternalGroupedDataFrame
+
         jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.CUBE_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
@@ -1102,8 +1108,8 @@ class DataFrame(object):
         +---+------+-----+
         |age|height| name|
         +---+------+-----+
-        | 10|    80|Alice|
         |  5|    80|Alice|
+        | 10|    80|Alice|
         +---+------+-----+
 
         >>> df.dropDuplicates(['name', 'height']).show()
