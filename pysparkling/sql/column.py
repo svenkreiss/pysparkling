@@ -1,6 +1,6 @@
 import sys
 
-from pyspark.sql.types import DataType, StructField
+from pysparkling.sql.types import DataType, StructField
 
 from pysparkling.sql.expressions.fields import find_position_in_schema
 from pysparkling.sql.expressions.mappers import *
@@ -159,8 +159,7 @@ class Column(object):
         """
         An expression that gets a field by name in a StructField.
 
-        >>> from pyspark.sql import Row
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([Row(r=Row(a=1, b="b"))])
@@ -337,7 +336,7 @@ class Column(object):
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
-        >>> from pyspark.sql.types import StringType
+        >>> from pysparkling.sql.types import StringType
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]

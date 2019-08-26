@@ -1,7 +1,7 @@
 import sys
 from threading import RLock
 
-from pyspark.sql.types import _make_type_verifier, DataType, StructType, \
+from pysparkling.sql.types import _make_type_verifier, DataType, StructType, \
     _create_converter, _infer_schema, _has_nulltype, _merge_type
 
 import pysparkling
@@ -105,7 +105,7 @@ class SparkSession(object):
 
         :param rdd: an RDD of Row or tuple
         :param samplingRatio: sampling ratio, or no sampling (default)
-        :return: :class:`pyspark.sql.types.StructType`
+        :return: :class:`pysparkling.sql.types.StructType`
         """
         first = rdd.first()
         if not first:

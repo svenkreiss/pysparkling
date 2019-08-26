@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType
+from pysparkling.sql.types import StringType
 
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.aggregate.collectors import SumDistinct

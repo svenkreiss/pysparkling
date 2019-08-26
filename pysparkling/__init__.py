@@ -1,6 +1,6 @@
 """pysparkling module"""
 # flake8: noqa
-from pyspark import Row
+from .sql.types import Row
 
 __version__ = '0.6.0'
 

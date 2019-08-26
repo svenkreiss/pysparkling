@@ -4,7 +4,7 @@ import random
 import re
 from operator import itemgetter
 
-from pyspark import Row
+from pysparkling.sql.types import Row
 
 
 class Tokenizer(object):

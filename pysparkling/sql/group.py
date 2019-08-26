@@ -1,4 +1,4 @@
-from pyspark.sql import Row
+from pysparkling.sql.types import Row
 
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
