@@ -28,6 +28,7 @@ from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
+from .utils import tuplehash
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
@@ -35,7 +36,7 @@ log = logging.getLogger(__name__)
 
 
 def _hash(v):
-    return hash(v) & 0xffffffff
+    return tuplehash(v) & 0xffffffff
 
 
 class RDD(object):
@@ -2017,8 +2018,10 @@ class RDD(object):
         :param samplingRatio: the sample ratio of rows used for inferring
         :return: a DataFrame
 
+        >>> from pysparkling import Context
+        >>> rdd = Context().parallelize([(1, 2), (3, 4)])
         >>> rdd.toDF().collect()
-        [Row(name=u'Alice', age=1)]
+        [Row(_1=1, _2=2), Row(_1=3, _2=4)]
         """
         from pysparkling import Context
         from pysparkling.sql.session import SparkSession
