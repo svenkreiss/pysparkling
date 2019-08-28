@@ -593,7 +593,6 @@ def expr(expression):
 
 
 # noinspection PyShadowingBuiltins
-# noinspection PyShadowingBuiltins
 def abs(e):
     """
     :rtype: Column
