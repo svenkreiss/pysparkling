@@ -347,6 +347,13 @@ class Column(object):
         [Row(ages=u'2'), Row(ages=u'5')]
         >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
         [Row(ages=u'2'), Row(ages=u'5')]
+        >>> df.select(df.age.cast('float')).show()
+        +---+
+        |age|
+        +---+
+        |2.0|
+        |5.0|
+        +---+
         """
         return Column(Cast(self, dataType))
 

@@ -91,13 +91,22 @@ class Cast(Expression):
     def __init__(self, e, dtype):
         super().__init__(e, dtype)
 
+        typemapping = {
+            'string': str,
+            'str': str,
+            'integer': int,
+            'int': int,
+            'boolean': bool,
+            'bool': bool,
+            'float': float
+        }
+
         self.e = e
         if not isinstance(dtype, str):
             try:
                 dtype = dtype.typeName()
             except AttributeError:
                 pass
-        self.dtype = dtype
         self.dtype_str = dtype
         if self.dtype_str == 'string':
             self.dtype = str
@@ -105,8 +114,8 @@ class Cast(Expression):
             self.dtype = int
         elif self.dtype_str == 'boolean':
             self.dtype = bool
-        elif self.dtype_str in ['str', 'int', 'float', 'bool']:
-            self.dtype = eval(self.dtype_str)
+        elif self.dtype_str in typemapping:
+            self.dtype = typemapping[self.dtype_str]
         else:
             raise NotImplementedError("Unknown cast type: {}".format(dtype))
 
@@ -114,7 +123,7 @@ class Cast(Expression):
         return self.dtype(self.e.eval(row, schema))
 
     def __str__(self):
-        return "cast({0})".format(self.dtype_str)
+        return "{0}".format(self.e)
 
 
 class CaseWhen(Expression):
@@ -171,7 +180,7 @@ class RegExpExtract(Expression):
         return self.fn(self.e.eval(row, schema))
 
     def __str__(self):
-        return "RegExpExtract({0}, {1})".format(self.exp, self.groupIdx)
+        return "regexp_extract({0}, {1}, {2})".format(self.e, self.exp, self.groupIdx)
 
 
 class RegExpReplace(Expression):
@@ -193,7 +202,7 @@ class RegExpReplace(Expression):
         return self.fn(self.e.eval(row, schema))
 
     def __str__(self):
-        return "RegExpReplace({0}, {1})".format(self.exp, self.replacement)
+        return "regexp_replace({0}, {1}, {2})".format(self.e, self.exp, self.replacement)
 
 
 class Contains(Expression):
