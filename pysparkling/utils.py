@@ -373,4 +373,6 @@ def portable_hash(x):
         if h == -1:
             h = -2
         return int(h)
-    return strhash(str(x))
+    elif isinstance(x, str):
+        return strhash(x)
+    return hash(x)
