@@ -2,6 +2,7 @@ import itertools
 import math
 import random
 import re
+import sys
 from operator import itemgetter
 
 from pysparkling.sql.types import Row
@@ -346,22 +347,30 @@ def strhash(string):
     return x
 
 
-def tuplehash(tuple):
+def portable_hash(x):
     """
-    Old python hash function for tuples.
-
-    :param tuple: tuple to hash
-    :return: hash
+    This function returns consistent hash code for builtin types, especially
+    for None and tuple with None.
+    The algorithm is similar to that one used by CPython 2.7
+    >>> portable_hash(None)
+    0
+    >>> portable_hash((None, 1)) & 0xffffffff
+    219750521
     """
-    if isinstance(tuple, int):
-        return tuple
-    mult = 1000003
-    x = 0x345678
-    for index, item in enumerate(tuple):
-        x = ((x ^ hash(item)) * mult) & (1<<32)
-        mult += (82520 + (len(tuple)-index)*2)
-    return x + 97531
 
+#    if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
+#        raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
 
-def portable_hash(item):
-    return strhash(item) & 0xffffffff
+    if x is None:
+        return 0
+    if isinstance(x, tuple):
+        h = 0x345678
+        for i in x:
+            h ^= portable_hash(i)
+            h *= 1000003
+            h &= sys.maxsize
+        h ^= len(x)
+        if h == -1:
+            h = -2
+        return int(h)
+    return strhash(str(x))

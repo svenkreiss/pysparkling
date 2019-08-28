@@ -28,7 +28,7 @@ from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
-from .utils import tuplehash
+from .utils import portable_hash
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 
 def _hash(v):
-    return tuplehash(v) & 0xffffffff
+    return portable_hash(v) & 0xffffffff
 
 
 class RDD(object):
