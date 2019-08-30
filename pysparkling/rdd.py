@@ -24,7 +24,6 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .utils import portable_hash
 from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
