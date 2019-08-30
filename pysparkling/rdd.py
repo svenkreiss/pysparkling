@@ -23,12 +23,11 @@ try:
 except ImportError:
     numpy = None
 
-from . import fileio
-from .exceptions import FileAlreadyExistsException, ContextIsLockedException
-from .samplers import (BernoulliSampler, PoissonSampler,
+from pysparkling import fileio
+from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
+from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
-from .stat_counter import StatCounter
-from .utils import portable_hash
+from pysparkling.stat_counter import StatCounter
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
@@ -2018,10 +2017,10 @@ class RDD(object):
         :param samplingRatio: the sample ratio of rows used for inferring
         :return: a DataFrame
 
-        >>> from pysparkling import Context
-        >>> rdd = Context().parallelize([(1, 2), (3, 4)])
+        >>> from pysparkling import Context, Row
+        >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
         >>> rdd.toDF().collect()
-        [Row(_1=1, _2=2), Row(_1=3, _2=4)]
+        [Row(age=1, name='Alice')]
         """
         from pysparkling import Context
         from pysparkling.sql.session import SparkSession
