@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from pysparkling.sql.casts import identity, cast_from_none, cast_to_string, cast_to_boolean, cast_to_float, \
     cast_to_byte, FloatType, cast_to_short, cast_to_int, cast_to_long, cast_to_binary, cast_to_date, cast_to_timestamp, \
-    cast_to_decimal, cast_to_array, cast_to_map
+    cast_to_decimal, cast_to_array, cast_to_map, cast_to_struct
 from pysparkling.sql.types import DataType, NullType, DateType, TimestampType, ArrayType, MapType, IntegerType, \
     StringType, BooleanType, StructType, StructField, Row, DoubleType, LongType, DecimalType, ByteType
 
@@ -19,7 +19,7 @@ class CastTests(TestCase):
 
     def test_identity(self):
         x = object()
-        self.assertEqual(identity(x, DataType()), x)
+        self.assertEqual(identity(x), x)
 
     def test_cast_from_none(self):
         self.assertEqual(cast_from_none(None, DataType()), None)
@@ -388,7 +388,7 @@ class CastTests(TestCase):
     def test_cast_int_to_timestamp(self):
         self.assertEqual(
             cast_to_timestamp(
-                86400*365,
+                86400 * 365,
                 IntegerType()
             ),
             datetime.datetime(1971, 1, 1, 1, 0, 0, 0)
@@ -497,3 +497,22 @@ class CastTests(TestCase):
             {'1': 1.0, '2': 2.0}
         )
 
+    def test_cast_to_struct(self):
+        self.assertEqual(
+            cast_to_struct(
+                Row(character='Alice', day='28', month='8', year='2019'),
+                from_type=StructType(fields=[
+                    StructField("character", StringType()),
+                    StructField("day", StringType()),
+                    StructField("month", StringType()),
+                    StructField("year", StringType()),
+                ]),
+                to_type=StructType(fields=[
+                    StructField("character", StringType()),
+                    StructField("day", IntegerType()),
+                    StructField("month", IntegerType()),
+                    StructField("year", IntegerType()),
+                ])
+            ),
+            Row(character='Alice', day=28, month=8, year=2019),
+        )
