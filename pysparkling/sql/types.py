@@ -32,7 +32,6 @@ if sys.version >= "3":
     long = int
     basestring = unicode = str
 
-
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
     "TimestampType", "DecimalType", "DoubleType", "FloatType", "ByteType", "IntegerType",
@@ -252,6 +251,7 @@ class FloatType(FractionalType):
 class ByteType(IntegralType):
     """Byte data type, i.e. a signed integer in a single byte.
     """
+
     def simpleString(self):
         return 'tinyint'
 
@@ -259,6 +259,7 @@ class ByteType(IntegralType):
 class IntegerType(IntegralType):
     """Int data type, i.e. a signed 32-bit integer.
     """
+
     def simpleString(self):
         return 'int'
 
@@ -269,6 +270,7 @@ class LongType(IntegralType):
     If the values are beyond the range of [-9223372036854775808, 9223372036854775807],
     please use :class:`DecimalType`.
     """
+
     def simpleString(self):
         return 'bigint'
 
@@ -276,6 +278,7 @@ class LongType(IntegralType):
 class ShortType(IntegralType):
     """Short data type, i.e. a signed 16-bit integer.
     """
+
     def simpleString(self):
         return 'smallint'
 
@@ -294,7 +297,7 @@ class ArrayType(DataType):
         >>> ArrayType(StringType(), False) == ArrayType(StringType())
         False
         """
-        assert isinstance(elementType, DataType),\
+        assert isinstance(elementType, DataType), \
             "elementType %s should be an instance of %s" % (elementType, DataType)
         self.elementType = elementType
         self.containsNull = containsNull
@@ -350,9 +353,9 @@ class MapType(DataType):
         ...        == MapType(StringType(), FloatType()))
         False
         """
-        assert isinstance(keyType, DataType),\
+        assert isinstance(keyType, DataType), \
             "keyType %s should be an instance of %s" % (keyType, DataType)
-        assert isinstance(valueType, DataType),\
+        assert isinstance(valueType, DataType), \
             "valueType %s should be an instance of %s" % (valueType, DataType)
         self.keyType = keyType
         self.valueType = valueType
@@ -412,7 +415,7 @@ class StructField(DataType):
         ...      == StructField("f2", StringType(), True))
         False
         """
-        assert isinstance(dataType, DataType),\
+        assert isinstance(dataType, DataType), \
             "dataType %s should be an instance of %s" % (dataType, DataType)
         assert isinstance(name, basestring), "field name %s should be string" % name
         if not isinstance(name, str):
@@ -472,6 +475,7 @@ class StructType(DataType):
     >>> struct1[0]
     StructField(f1,StringType,true)
     """
+
     def __init__(self, fields=None):
         """
         >>> struct1 = StructType([StructField("f1", StringType(), True)])
@@ -490,7 +494,7 @@ class StructType(DataType):
         else:
             self.fields = fields
             self.names = [f.name for f in fields]
-            assert all(isinstance(f, StructField) for f in fields),\
+            assert all(isinstance(f, StructField) for f in fields), \
                 "fields should be a list of StructField"
         # Precalculated list of fields that need conversion with fromInternal/toInternal functions
         self._needConversion = [f.needConversion() for f in self]
@@ -743,7 +747,7 @@ class UserDefinedType(DataType):
         pyUDT = str(json["pyClass"])  # convert unicode to str
         split = pyUDT.rfind(".")
         pyModule = pyUDT[:split]
-        pyClass = pyUDT[split+1:]
+        pyClass = pyUDT[split + 1:]
         m = __import__(pyModule, globals(), locals(), [pyClass])
         if not hasattr(m, pyClass):
             s = base64.b64decode(json['serializedClass'].encode('utf-8'))
@@ -762,7 +766,6 @@ _atomic_types = [StringType, BinaryType, BooleanType, DecimalType, FloatType, Do
 _all_atomic_types = dict((t.typeName(), t) for t in _atomic_types)
 _all_complex_types = dict((v.typeName(), v)
                           for v in [ArrayType, MapType, StructType])
-
 
 _FIXED_DECIMAL = re.compile(r"decimal\(\s*(\d+)\s*,\s*(-?\d+)\s*\)")
 
@@ -1256,6 +1259,7 @@ def _make_type_verifier(dataType, nullable=True, name=None):
         # StringType can work with any types
         def no_check(value):
             return value
+
         verify_value = no_check
 
     elif isinstance(dataType, UserDefinedType):
@@ -1352,6 +1356,7 @@ def _make_type_verifier(dataType, nullable=True, name=None):
             else:
                 raise TypeError(new_msg("StructType can not accept object %r in type %s"
                                         % (obj, type(obj))))
+
         verify_value = verify_struct
 
     else:
@@ -1380,7 +1385,6 @@ def _create_row(fields, values):
 
 
 class Row(tuple):
-
     """
     A row in L{DataFrame}.
     The fields in it can be accessed:
@@ -1464,6 +1468,7 @@ class Row(tuple):
                     return dict((k, conv(v)) for k, v in obj.items())
                 else:
                     return obj
+
             return dict(zip(self.__fields__, (conv(o) for o in self)))
         else:
             return dict(zip(self.__fields__, self))
