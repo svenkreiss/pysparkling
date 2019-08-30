@@ -7,11 +7,12 @@ from dateutil import tz
 from pysparkling.sql.types import UserDefinedType, NumericType
 from pysparkling.sql.utils import AnalysisException
 from pysparkling.sql.types import *
+from pysparkling.utils import row_from_keyed_values
 
 TIME_REGEX = re.compile("^([0-9]+):([0-9]+)?(?::([0-9]+))?(?:\\.([0-9]+))?(Z|[+-][0-9]+(?::(?:[0-9]+)?)?)?$")
 
 
-def identity(value, from_type):
+def identity(value):
     return value
 
 
@@ -255,7 +256,7 @@ def cast_to_array(value, from_type, to_type):
     if isinstance(from_type, ArrayType):
         caster = get_caster(from_type=from_type.elementType, to_type=to_type.elementType)
         return [
-            caster(sub_value, from_type.elementType) if sub_value is not None else None
+            caster(sub_value) if sub_value is not None else None
             for sub_value in value
         ]
     raise AnalysisException("Cannot cast type {0} to array".format(from_type))
@@ -263,18 +264,21 @@ def cast_to_array(value, from_type, to_type):
 
 def cast_to_map(value, from_type, to_type):
     if isinstance(from_type, MapType):
-        key_type = to_type.keyType
-        value_type = to_type.valueType
-        key_caster = get_caster(from_type=from_type.keyType, to_type=key_type)
-        value_caster = get_caster(from_type=from_type.valueType, to_type=value_type)
+        key_caster = get_caster(from_type=from_type.keyType, to_type= to_type.keyType)
+        value_caster = get_caster(from_type=from_type.valueType, to_type=to_type.valueType)
         return {
-            key_caster(key, key_type): (value_caster(sub_value, value_type) if sub_value is not None else None)
+            key_caster(key): (value_caster(sub_value) if sub_value is not None else None)
             for key, sub_value in value.items()
         }
     raise AnalysisException("Cannot cast type {0} to map".format(from_type))
 
 
 def cast_to_struct(value, from_type, to_type):
+    if isinstance(from_type, StructType):
+        return row_from_keyed_values([
+            (to_field.name, get_caster(from_field.dataType, to_field.dataType)(sub_value))
+            for from_field, to_field, sub_value in zip(from_type.fields, to_type.fields, value)
+        ])
     raise NotImplementedError("Pysparkling does not support yet cast to struct")
 
 
@@ -314,9 +318,9 @@ def get_caster(from_type, to_type):
     if from_type == to_type:
         return identity
     if to_type_class == NullType:
-        return cast_from_none
+        return partial(cast_from_none, from_type=from_type)
     if to_type_class in DESTINATION_DEPENDENT_CASTERS:
-        return partial(DESTINATION_DEPENDENT_CASTERS[to_type_class], to_type=to_type)
+        return partial(DESTINATION_DEPENDENT_CASTERS[to_type_class], from_type=from_type, to_type=to_type)
     if to_type_class in CASTERS:
-        return CASTERS[to_type_class]
+        return partial(CASTERS[to_type_class], from_type=from_type)
     raise AnalysisException("Cannot cast from {0} to {1}".format(from_type, to_type))
