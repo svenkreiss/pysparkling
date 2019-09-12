@@ -301,7 +301,7 @@ CASTERS = {
     BinaryType: cast_to_binary,
     DateType: cast_to_date,
     TimestampType: cast_to_timestamp,
-    # The ticket to expost CalendarIntervalType, in pyspark is SPARK-28492
+    # The ticket to expose CalendarIntervalType, in pyspark is SPARK-28492
     # It is open as this function is written, so we do not support it at the moment.
     # CalendarIntervalType: cast_to_interval,
     BooleanType: cast_to_boolean,
