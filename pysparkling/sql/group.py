@@ -46,6 +46,7 @@ class GroupedData(object):
             raise ValueError("exprs should not be empty")
 
         if len(exprs) == 1 and isinstance(exprs[0], dict):
+            # todo implement agg_dict
             jdf = self._jgd.agg_dict(exprs[0])
         else:
             # Columns
