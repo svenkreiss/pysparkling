@@ -28,6 +28,8 @@ from array import array
 import ctypes
 import platform
 
+from pysparkling.sql.utils import ParseException
+
 if sys.version >= "3":
     long = int
     basestring = unicode = str
@@ -1662,3 +1664,38 @@ def _check_series_convert_timestamps_tz_local(s, timezone):
     :return pandas.Series where if it is a timestamp, has been converted to tz-naive
     """
     return _check_series_convert_timestamps_localize(s, timezone, None)
+
+
+# As defined with visitPrimitiveDataType in spark master sql/catalyst/src/main/scala/
+# org/apache/spark/sql/catalyst/parser/AstBuilder.scala
+STRING_TO_TYPE = dict(
+    boolean=BooleanType(),
+    tinyint=ByteType(),
+    byte=ByteType(),
+    smallint=ShortType(),
+    short=ShortType(),
+    int=IntegerType(),
+    integer=IntegerType(),
+    bigint=LongType(),
+    long=LongType(),
+    float=FloatType(),
+    double=DoubleType(),
+    date=DateType(),
+    timestamp=TimestampType(),
+    string=StringType(),
+    binary=BinaryType(),
+    decimal=DecimalType()
+)
+
+
+def string_to_type(string):
+    if string in STRING_TO_TYPE:
+        return STRING_TO_TYPE[string]
+    if string.startswith("decimal("):
+        arguments = string[8:-1]
+        if arguments.count(",") == 1:
+            precision, scale = arguments.split(",")
+        else:
+            precision, scale = arguments, 0
+        return DecimalType(precision=int(precision), scale=int(scale))
+    raise ParseException("Unable to parse data type {0}".format(string))
