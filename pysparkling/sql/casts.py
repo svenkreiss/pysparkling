@@ -1,6 +1,6 @@
 import datetime
 import re
-import time
+import time as _time
 from functools import partial
 
 from pysparkling.sql.types import UserDefinedType, NumericType
@@ -11,7 +11,7 @@ from pysparkling.utils import row_from_keyed_values
 TIME_REGEX = re.compile("^([0-9]+):([0-9]+)?(?::([0-9]+))?(?:\\.([0-9]+))?(Z|[+-][0-9]+(?::(?:[0-9]+)?)?)?$")
 
 tz_utc = datetime.timezone(datetime.timedelta(seconds=0))
-tz_local = datetime.timezone(datetime.timedelta(seconds=-(time.altzone if time.daylight else time.timezone)))
+tz_local = datetime.timezone(datetime.timedelta(seconds=-(_time.altzone if _time.daylight else _time.timezone)))
 
 
 def identity(value):
