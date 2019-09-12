@@ -29,20 +29,32 @@ def cast_from_none(value, from_type):
     return None
 
 
-def cast_to_string(value, from_type, date_format="%Y-%m-%d", timestamp_format="%Y-%m-%d %H:%M:%S"):
+def default_date_formatter(date):
+    return date.strftime("%Y-%m-%d")
+
+
+def default_timestamp_formatter(timestamp):
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def cast_to_string(value, from_type,
+                   date_format=default_date_formatter,
+                   timestamp_format=default_timestamp_formatter):
     if value is None:
         return "null"
     if isinstance(from_type, DateType):
-        return value.strftime(date_format)
+        return date_format(value)
     if isinstance(from_type, TimestampType):
-        return value.strftime(timestamp_format)
+        return timestamp_format(value)
     if isinstance(from_type, ArrayType) or isinstance(from_type, StructType):
         if isinstance(from_type, StructType):
             types = [field.dataType for field in from_type.fields]
         else:
             types = [from_type.elementType] * len(value)
         casted_values = [
-            cast_to_string(sub_value, sub_value_type) if sub_value is not None else None
+            cast_to_string(
+                sub_value, sub_value_type, date_format, timestamp_format
+            ) if sub_value is not None else None
             for sub_value, sub_value_type in zip(value, types)
         ]
         return "[{0}]".format(",".join(
@@ -51,8 +63,9 @@ def cast_to_string(value, from_type, date_format="%Y-%m-%d", timestamp_format="%
         ))
     if isinstance(from_type, MapType):
         casted_values = [
-            (cast_to_string(key, from_type.keyType),
-             cast_to_string(sub_value, from_type.valueType) if sub_value is not None else None)
+            (cast_to_string(key, from_type.keyType, date_format, timestamp_format),
+             (cast_to_string(sub_value, from_type.valueType, date_format, timestamp_format)
+              if sub_value is not None else None))
             for key, sub_value in value.items()
         ]
         return "[{0}]".format(
@@ -333,8 +346,8 @@ FORMAT_MAPPING = {
     "EE": "%a",
     "E": "%a",
     "e": "%w",
-    "dd": "%-d",
-    "d": "%d",
+    "dd": "%d",
+    "d": "%-d",
     "MMMM": "%B",
     "MMM": "%b",
     "MM": "%m",
@@ -366,26 +379,36 @@ def convert_token_to_python(group):
     token, letter = group
 
     if token in FORMAT_MAPPING:
-        return FORMAT_MAPPING[token]
+        return lambda value: value.strftime(FORMAT_MAPPING[token])
 
     if token in ("'", "[", "]"):
-        return ""
+        return lambda value: ""
 
-    return token
+    if "S" in token:
+        number_of_digits = len(token)
+        return lambda value: value.strftime("%f")[:number_of_digits]
+
+    if token == "XXX":
+        def timezone_formatter(value):
+            tz = value.strftime("%z")
+            return "{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
+        return timezone_formatter
+
+    return lambda value: token
 
 
-def convert_time_format_to_python(java_time_format):
+def get_time_formatter(java_time_format):
     """
     Convert a Java time format to a Python time format.
 
     This function currently only support a small subset of Java time formats.
-
-    Example:
-    >>> convert_time_format_to_python("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    %Y-%m-%-dT%H:%M:%S.oops
     """
     r = re.compile("(([a-zA-Z])\\2*|[^a-zA-Z]+)")
-    return "".join(
+    sub_formatters = [
         convert_token_to_python(token)
         for token in r.findall(java_time_format)
-    )
+    ]
+
+    def time_formatter(value):
+        return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
+    return time_formatter

@@ -1,7 +1,7 @@
 import csv
 import os
 
-from pysparkling.sql.casts import cast_to_string, convert_time_format_to_python
+from pysparkling.sql.casts import cast_to_string, get_time_formatter
 from pysparkling.sql.functions import Aggregation, col, StarOperator
 from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
 from pysparkling.sql.utils import AnalysisException
@@ -209,13 +209,13 @@ class CSVWriter(DataWriter):
 
     @property
     def dateFormat(self):
-        return convert_time_format_to_python(
+        return get_time_formatter(
             self.options.get("dateformat", "yyyy-MM-dd")
         )
 
     @property
     def timestampFormat(self):
-        return convert_time_format_to_python(
+        return get_time_formatter(
             self.options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
         )
 
