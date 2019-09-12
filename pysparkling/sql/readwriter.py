@@ -1,14 +1,15 @@
 import sys
 from pysparkling import RDD
-from pysparkling.sql.internal_utils.readers import CSVReader, JSONReader, InternalReader
-from pysparkling.sql.internal_utils.readwrite import OptionUtils, to_option_stored_value
-from pysparkling.sql.internal_utils.writers import CSVWriter
+from pysparkling.sql.internal_utils.readers import InternalReader
+from pysparkling.sql.internal_utils.readwrite import OptionUtils
+from pysparkling.sql.internal_utils.writers import CSVWriter, InternalWriter
 from pysparkling.sql.utils import IllegalArgumentException
 
 WRITE_MODES = ("overwrite", "append", "ignore", "error", "errorifexists")
 DATA_WRITERS = dict(
     csv=CSVWriter,
 )
+
 if sys.version >= '3':
     basestring = unicode = str
 
@@ -88,81 +89,6 @@ class DataFrameReader(OptionUtils):
             raise TypeError("path can be only string, list or RDD")
 
 
-class InternalWriter(object):
-    def __init__(self, df):
-        self._df = df
-        self._source = "parquet"
-        self._mode = "errorifexists"
-        self._options = {}
-        self._partitioning_col_names = None
-        self._num_buckets = None
-        self._bucket_col_names = None
-        self._sort_col_names = None
-
-    def option(self, k, v):
-        self._options[k.lower()] = to_option_stored_value(v)
-
-    def mode(self, mode):
-        if mode not in WRITE_MODES:
-            raise IllegalArgumentException(
-                "Unknown save mode: . Accepted save modes are {0}.".format(
-                    "', '".join(WRITE_MODES)
-                )
-            )
-        self._mode = mode
-
-    def format(self, source):
-        self._source = source
-        return self
-
-    def partitionBy(self, partitioning_col_names):
-        self._partitioning_col_names = partitioning_col_names
-
-    def bucketBy(self, num_buckets, *bucket_cols):
-        self._num_buckets = num_buckets
-        self._bucket_col_names = bucket_cols
-
-    def sortBy(self, sort_cols):
-        self._sort_col_names = sort_cols
-
-    def save(self, path=None):
-        Writer = DATA_WRITERS[self._source]
-        self.option("path", path)
-        Writer(
-            self._df,
-            self._mode,
-            self._options,
-            self._partitioning_col_names,
-            self._num_buckets,
-            self._bucket_col_names,
-            self._sort_col_names
-        ).save()
-
-    def insertInto(self, tableName=None):
-        raise NotImplementedError("Pysparkling does not implement write to table yet")
-
-    def saveAsTable(self, name):
-        raise NotImplementedError("Pysparkling does not implement write to table yet")
-
-    def json(self, path):
-        return self.format("json").save(path)
-
-    def parquet(self, path):
-        raise NotImplementedError("Pysparkling does not implement write to parquet yet")
-
-    def text(self, path):
-        raise NotImplementedError("Pysparkling does not implement write to text yet")
-
-    def csv(self, path):
-        return self.format("csv").save(path)
-
-    def orc(self, path):
-        raise NotImplementedError("Pysparkling does not implement write to ORC")
-
-    def jdbc(self, path):
-        raise NotImplementedError("Pysparkling does not implement write to JDBC")
-
-
 class DataFrameWriter(OptionUtils):
     def __init__(self, df):
         self._df = df
@@ -170,10 +96,16 @@ class DataFrameWriter(OptionUtils):
         self._jwrite = InternalWriter(self._df)
 
     def mode(self, saveMode):
-        # At the JVM side, the default value of mode is already set to "error".
-        # So, if the given saveMode is None, we will not call JVM-side's mode method.
-        if saveMode is not None:
-            self._jwrite = self._jwrite.mode(saveMode)
+        if saveMode is None:
+            saveMode = "error"
+        if saveMode not in WRITE_MODES:
+            raise IllegalArgumentException(
+                "Unknown save mode: {0}. Accepted save modes are {1}.".format(
+                    saveMode,
+                    "', '".join(WRITE_MODES)
+                )
+            )
+        self._jwrite = self._jwrite.mode(saveMode)
         return self
 
     def format(self, source):
@@ -232,10 +164,11 @@ class DataFrameWriter(OptionUtils):
             self.partitionBy(partitionBy)
         if format is not None:
             self.format(format)
+        writer_class = DATA_WRITERS[self._jwrite._source]
         if path is None:
-            self._jwrite.save()
+            self._jwrite.save(writer_class)
         else:
-            self._jwrite.save(path)
+            self._jwrite.save(writer_class, path)
 
     def json(self, path, mode=None, compression=None, dateFormat=None, timestampFormat=None,
              lineSep=None, encoding=None):
@@ -243,7 +176,7 @@ class DataFrameWriter(OptionUtils):
         self._set_opts(
             compression=compression, dateFormat=dateFormat, timestampFormat=timestampFormat,
             lineSep=lineSep, encoding=encoding)
-        self._jwrite.json(path)
+        self.format("json").save(path)
 
     def csv(self, path, mode=None, compression=None, sep=None, quote=None, escape=None,
             header=None, nullValue=None, escapeQuotes=None, quoteAll=None, dateFormat=None,
@@ -257,7 +190,7 @@ class DataFrameWriter(OptionUtils):
                        ignoreTrailingWhiteSpace=ignoreTrailingWhiteSpace,
                        charToEscapeQuoteEscaping=charToEscapeQuoteEscaping,
                        encoding=encoding, emptyValue=emptyValue, lineSep=lineSep)
-        self._jwrite.csv(path)
+        self.format("csv").save(path)
 
     def insertInto(self, tableName=None):
         raise NotImplementedError("Pysparkling does not implement write to table yet")
