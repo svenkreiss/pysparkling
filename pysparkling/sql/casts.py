@@ -325,3 +325,67 @@ def get_caster(from_type, to_type):
     if to_type_class in CASTERS:
         return partial(CASTERS[to_type_class], from_type=from_type)
     raise AnalysisException("Cannot cast from {0} to {1}".format(from_type, to_type))
+
+
+FORMAT_MAPPING = {
+    "EEEE": "%A",
+    "EEE": "%a",
+    "EE": "%a",
+    "E": "%a",
+    "e": "%w",
+    "dd": "%-d",
+    "d": "%d",
+    "MMMM": "%B",
+    "MMM": "%b",
+    "MM": "%m",
+    "M": "%-m",
+    "yyyy": "%Y",
+    "yy": "%y",
+    "y": "%Y",
+    "HH": "%H",
+    "H": "%-H",
+    "hh": "%I",
+    "h": "%-I",
+    "a": "%p",
+    "mm": "%M",
+    "m": "%-M",
+    "ss": "%S",
+    "s": "%-S",
+    "S": "%f",
+    "xxxx": "%z",
+    "xx": "%z",
+    "ZZZ": "%z",
+    "ZZ": "%z",
+    "Z": "%z",
+    "DDD": "%j",
+    "D": "%-j",
+}
+
+
+def convert_token_to_python(group):
+    token, letter = group
+
+    if token in FORMAT_MAPPING:
+        return FORMAT_MAPPING[token]
+
+    if token in ("'", "[", "]"):
+        return ""
+
+    return token
+
+
+def convert_time_format_to_python(java_time_format):
+    """
+    Convert a Java time format to a Python time format.
+
+    This function currently only support a small subset of Java time formats.
+
+    Example:
+    >>> convert_time_format_to_python("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    %Y-%m-%-dT%H:%M:%S.oops
+    """
+    r = re.compile("(([a-zA-Z])\\2*|[^a-zA-Z]+)")
+    return "".join(
+        convert_token_to_python(token)
+        for token in r.findall(java_time_format)
+    )
