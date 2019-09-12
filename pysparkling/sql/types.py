@@ -27,7 +27,6 @@ import platform
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
-
 if sys.version >= "3":
     long = int
     basestring = unicode = str
