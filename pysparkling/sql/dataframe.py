@@ -983,21 +983,21 @@ class DataFrame(object):
     def groupBy(self, *cols):
         from pysparkling.sql.internals import InternalGroupedDataFrame
 
-        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.GROUP_BY_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.GROUP_BY_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
         from pysparkling.sql.internals import InternalGroupedDataFrame
 
-        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.ROLLUP_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.ROLLUP_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
         from pysparkling.sql.internals import InternalGroupedDataFrame
 
-        jgd = InternalGroupedDataFrame(self, cols, InternalGroupedDataFrame.CUBE_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.CUBE_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
