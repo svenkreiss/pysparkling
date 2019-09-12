@@ -866,7 +866,7 @@ class DataFrame(object):
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
-        >>> from pysparkling.sql.functions import explode, split, posexplode, posexplode_outer, col
+        >>> from pysparkling.sql.functions import explode, split, posexplode, posexplode_outer, col, avg
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
@@ -891,6 +891,12 @@ class DataFrame(object):
         |Alice|
         |  Bob|
         +-----+
+        >>> df.select(avg('age')).show()
+        +--------+
+        |avg(age)|
+        +--------+
+        |     3.5|
+        +--------+
         >>> df.select(df.name, (df.age + 10).alias('age')).collect()
         [Row(name='Alice', age=12), Row(name='Bob', age=15)]
         >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
