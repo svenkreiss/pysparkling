@@ -850,6 +850,9 @@ class DataFrame(object):
             raise TypeError("unexpected item type: %s" % type(item))
 
     def __getattr__(self, name):
+        if name.startswith("_"):
+            raise AttributeError(name)
+
         field_position = Column(name).find_position_in_schema(self.schema)
         return self[field_position]
 
