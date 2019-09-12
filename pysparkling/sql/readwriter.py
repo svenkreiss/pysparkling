@@ -23,7 +23,10 @@ class OptionUtils(object):
         raise NotImplementedError
 
     def schema(self, schema):
-        raise NotImplementedError
+        # By default OptionUtils subclass do not support schema
+        raise IllegalArgumentException(
+            "schema is not a valid argument for {0}".format(self.__class__)
+        )
 
 
 class DataFrameReader(OptionUtils):
