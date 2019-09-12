@@ -3,7 +3,7 @@ import random
 
 from pyspark.sql.types import StructType, MapType
 
-from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.utils import XORShiftRandom, row_from_keyed_values
@@ -88,42 +88,17 @@ class IsNotNull(UnaryExpression):
 
 
 class Cast(Expression):
-    def __init__(self, e, dtype):
-        super().__init__(e, dtype)
-
-        typemapping = {
-            'string': str,
-            'str': str,
-            'integer': int,
-            'int': int,
-            'boolean': bool,
-            'bool': bool,
-            'float': float
-        }
-
-        self.e = e
-        if not isinstance(dtype, str):
-            try:
-                dtype = dtype.typeName()
-            except AttributeError:
-                pass
-        self.dtype_str = dtype
-        if self.dtype_str == 'string':
-            self.dtype = str
-        elif self.dtype_str == 'integer':
-            self.dtype = int
-        elif self.dtype_str == 'boolean':
-            self.dtype = bool
-        elif self.dtype_str in typemapping:
-            self.dtype = typemapping[self.dtype_str]
-        else:
-            raise NotImplementedError("Unknown cast type: {}".format(dtype))
+    def __init__(self, column, destination_type):
+        super().__init__(column)
+        self.column = column
+        self.destination_type = destination_type
+        self.caster = get_caster(from_type=self.column.data_type, to_type=destination_type)
 
     def eval(self, row, schema):
-        return self.dtype(self.e.eval(row, schema))
+        return self.caster(self.column.eval(row, schema))
 
     def __str__(self):
-        return "{0}".format(self.e)
+        return "{0}".format(self.column)
 
 
 class CaseWhen(Expression):
