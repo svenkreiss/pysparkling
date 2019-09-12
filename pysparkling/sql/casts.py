@@ -29,13 +29,13 @@ def cast_from_none(value, from_type):
     return None
 
 
-def cast_to_string(value, from_type):
+def cast_to_string(value, from_type, date_format="%Y-%m-%d", timestamp_format="%Y-%m-%d %H:%M:%S"):
     if value is None:
         return "null"
     if isinstance(from_type, DateType):
-        return value.strftime("%Y-%m-%d")
+        return value.strftime(date_format)
     if isinstance(from_type, TimestampType):
-        return value.strftime("%Y-%m-%d %H:%M:%S")
+        return value.strftime(timestamp_format)
     if isinstance(from_type, ArrayType) or isinstance(from_type, StructType):
         if isinstance(from_type, StructType):
             types = [field.dataType for field in from_type.fields]
