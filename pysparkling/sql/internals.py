@@ -1,6 +1,5 @@
 import json
 import math
-import os
 import sys
 import warnings
 from collections import Counter
@@ -8,6 +7,8 @@ from copy import deepcopy
 from functools import partial
 
 from pyspark import StorageLevel
+
+from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
 from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
@@ -300,6 +301,12 @@ class DataFrameInternal(object):
 
     def select(self, *exprs):
         cols = [parse(e) for e in exprs]
+
+        # todo: test if aggregation
+        if any(isinstance(col.expr, Aggregation) for col in cols):
+            df_as_group = InternalGroupedDataFrame(self, [])
+            return df_as_group.agg(exprs)
+
         new_schema = get_schema_from_cols(cols, self.bound_schema)
 
         def mapper(partition_index, partition):
@@ -834,26 +841,26 @@ class InternalGroupedDataFrame(object):
     ROLLUP_TYPE = 1
     CUBE_TYPE = 2
 
-    def __init__(self, df, grouping_exprs, group_type):
+    def __init__(self, jdf, grouping_exprs, group_type):
         """
         :type df: pysparkling.sql.dataframe.DataFrame
         """
-        self.df = df
+        self.jdf = jdf
         self.grouping_cols = [parse(e) for e in grouping_exprs]
         self.group_type = group_type
 
     def agg(self, stats):
         init = GroupedStats(self.grouping_cols, stats)
         # noinspection PyProtectedMember
-        aggregated_stats = self.df._jdf.aggregate(
+        aggregated_stats = self.jdf.aggregate(
             init,
             lambda grouped_stats, row: grouped_stats.merge(
                 row,
-                self.df._jdf.bound_schema
+                self.jdf.bound_schema
             ),
             lambda grouped_stats_1, grouped_stats_2: grouped_stats_1.mergeStats(
                 grouped_stats_2,
-                self.df._jdf.bound_schema
+                self.jdf.bound_schema
             )
         )
         data = []
@@ -863,7 +870,7 @@ class InternalGroupedDataFrame(object):
             # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
                 key + [
-                    (str(stat), stat.eval(key_as_row, self.df._jdf.bound_schema))
+                    (str(stat), stat.eval(key_as_row, self.jdf.bound_schema))
                     for stat in aggregated_stats.groups[group_key]
                 ]
             ))
@@ -871,7 +878,7 @@ class InternalGroupedDataFrame(object):
         new_schema = StructType(
             [
                 field for col in self.grouping_cols for field in
-                col.find_fields_in_schema(self.df._jdf.bound_schema)
+                col.find_fields_in_schema(self.jdf.bound_schema)
             ] + [
                 StructField(
                     str(stat),
@@ -881,7 +888,7 @@ class InternalGroupedDataFrame(object):
             ]
         )
         # noinspection PyProtectedMember
-        return self.df._jdf._with_rdd(self.df._sc.parallelize(data), schema=new_schema)
+        return self.jdf._with_rdd(self.jdf._sc.parallelize(data), schema=new_schema)
 
 
 class GroupedStats(object):
