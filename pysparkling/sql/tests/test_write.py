@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+import time as _time
 from unittest import TestCase
 
 from pysparkling import Context, Row
@@ -8,6 +9,7 @@ from pysparkling.sql.session import SparkSession
 from pysparkling.sql.utils import AnalysisException
 
 spark = SparkSession(Context())
+tz_local = datetime.timezone(datetime.timedelta(seconds=-(_time.altzone if _time.daylight else _time.timezone)))
 
 
 def get_folder_content(folder_path):
@@ -35,16 +37,16 @@ class DataFrameWriterTests(TestCase):
 
     def test_write_to_csv(self):
         df = spark.createDataFrame(
-            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1), ),
-             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2))]
+            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tz_local), ),
+             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tz_local))]
         )
         df.write.csv(".tmp/wonderland/")
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
             {'_SUCCESS': [],
-             'part-00000-3432532549516755848.csv': [
-                 '2,Alice\n',
-                 '5,Bob\n'
+             'part-00000-384289621793791622.csv': [
+                 '2,Alice,2016-12-31T23:00:00.000+01:00\n',
+                 '5,Bob,2014-03-01T23:00:00.000+01:00\n'
              ]}
         )
 

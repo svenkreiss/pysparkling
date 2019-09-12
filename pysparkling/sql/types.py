@@ -20,7 +20,6 @@ import sys
 import decimal
 import time
 import datetime
-import calendar
 import json
 import re
 import base64
@@ -29,6 +28,7 @@ import ctypes
 import platform
 
 from pysparkling.sql.utils import ParseException
+tz_local = datetime.timezone(datetime.timedelta(seconds=-(time.altzone if time.daylight else time.timezone)))
 
 if sys.version >= "3":
     long = int
@@ -73,9 +73,7 @@ class DataType(object):
 
     def needConversion(self):
         """
-        This method is not used by pysparkling
-
-        Does this type need to conversion between Python object and internal SQL object.
+        Return whether or not value of this type is converted by Spark between DF definition and internal SQL object.
 
         This is used to avoid the unnecessary conversion for ArrayType/MapType/StructType.
         """
@@ -172,15 +170,7 @@ class DateType(AtomicType):
     EPOCH_ORDINAL = datetime.datetime(1970, 1, 1).toordinal()
 
     def needConversion(self):
-        return True
-
-    def toInternal(self, d):
-        if d is not None:
-            return d.toordinal() - self.EPOCH_ORDINAL
-
-    def fromInternal(self, v):
-        if v is not None:
-            return datetime.date.fromordinal(v + self.EPOCH_ORDINAL)
+        return False
 
 
 class TimestampType(AtomicType):
@@ -192,17 +182,10 @@ class TimestampType(AtomicType):
     def needConversion(self):
         return True
 
-    # noinspection PyShadowingNames
     def toInternal(self, dt):
-        if dt is not None:
-            seconds = (calendar.timegm(dt.utctimetuple()) if dt.tzinfo
-                       else time.mktime(dt.timetuple()))
-            return int(seconds) * 1000000 + dt.microsecond
-
-    def fromInternal(self, ts):
-        if ts is not None:
-            # using int to avoid precision loss in float
-            return datetime.datetime.fromtimestamp(ts // 1000000).replace(microsecond=ts % 1000000)
+        if dt.tzinfo is not None:
+            return dt.astimezone()
+        return dt
 
 
 class DecimalType(FractionalType):
@@ -498,6 +481,9 @@ class StructType(DataType):
             self.names = [f.name for f in fields]
             assert all(isinstance(f, StructField) for f in fields), \
                 "fields should be a list of StructField"
+        # Precalculated list of fields that need conversion with fromInternal/toInternal functions
+        self._needConversion = [f.needConversion() for f in self]
+        self._needSerializeAnyField = any(self._needConversion)
 
     def add(self, field, data_type=None, nullable=True, metadata=None):
         """
@@ -542,6 +528,9 @@ class StructType(DataType):
                 data_type_f = data_type
             self.fields.append(StructField(field, data_type_f, nullable, metadata))
             self.names.append(field)
+        # Precalculated list of fields that need conversion with fromInternal/toInternal functions
+        self._needConversion = [f.needConversion() for f in self]
+        self._needSerializeAnyField = any(self._needConversion)
         return self
 
     def __iter__(self):
@@ -603,17 +592,32 @@ class StructType(DataType):
         if obj is None:
             return
 
-        if isinstance(obj, dict):
-            return tuple(obj.get(n) for n in self.names)
-        elif isinstance(obj, Row) and getattr(obj, "__from_dict__", False):
-            return tuple(obj[n] for n in self.names)
-        elif isinstance(obj, (list, tuple)):
-            return tuple(obj)
-        elif hasattr(obj, "__dict__"):
-            d = obj.__dict__
-            return tuple(d.get(n) for n in self.names)
+        if self._needSerializeAnyField:
+            # Only calling toInternal function for fields that need conversion
+            if isinstance(obj, dict):
+                return tuple(f.toInternal(obj.get(n)) if c else obj.get(n)
+                             for n, f, c in zip(self.names, self.fields, self._needConversion))
+            elif isinstance(obj, (tuple, list)):
+                return tuple(f.toInternal(v) if c else v
+                             for f, v, c in zip(self.fields, obj, self._needConversion))
+            elif hasattr(obj, "__dict__"):
+                d = obj.__dict__
+                return tuple(f.toInternal(d.get(n)) if c else d.get(n)
+                             for n, f, c in zip(self.names, self.fields, self._needConversion))
+            else:
+                raise ValueError("Unexpected tuple %r with StructType" % obj)
         else:
-            raise ValueError("Unexpected tuple %r with StructType" % obj)
+            if isinstance(obj, dict):
+                return tuple(obj.get(n) for n in self.names)
+            elif isinstance(obj, Row) and getattr(obj, "__from_dict__", False):
+                return tuple(obj[n] for n in self.names)
+            elif isinstance(obj, (list, tuple)):
+                return tuple(obj)
+            elif hasattr(obj, "__dict__"):
+                d = obj.__dict__
+                return tuple(d.get(n) for n in self.names)
+            else:
+                raise ValueError("Unexpected tuple %r with StructType" % obj)
 
     def fromInternal(self, obj):
         if obj is None:
@@ -621,7 +625,13 @@ class StructType(DataType):
         if isinstance(obj, Row):
             # it's already converted by pickler
             return obj
-        return _create_row(self.names, obj)
+        if self._needSerializeAnyField:
+            # Only calling fromInternal function for fields that need conversion
+            values = [f.fromInternal(v) if c else v
+                      for f, v, c in zip(self.fields, obj, self._needConversion)]
+        else:
+            values = obj
+        return _create_row(self.names, values)
 
 
 class UserDefinedType(DataType):
