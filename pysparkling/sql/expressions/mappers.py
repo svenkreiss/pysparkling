@@ -154,9 +154,13 @@ class CaseWhen(Expression):
             # self.function_b.eval(row, schema)
 
     def __str__(self):
-        return "CASE "+" ".join(["WHEN {0} THEN {1}".format(condition, function)
-                                for condition, function in zip(self.conditions, self.functions)]) + \
-               (" ELSE {}".format(self.function_b) if self.function_b is not None else "") + " END"
+        return "CASE {0}{1} END".format(
+            " ".join(
+                "WHEN {0} THEN {1}".format(condition, function)
+                for condition, function in zip(self.conditions, self.functions)
+            ),
+            " ELSE {}".format(self.function_b) if self.function_b is not None else ""
+        )
 
 
 class RegExpExtract(Expression):
