@@ -18,6 +18,7 @@ class GroupedData(object):
 
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col, avg
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -25,7 +26,14 @@ class GroupedData(object):
         >>> gdf = df.groupBy(df.name)
         >>> from pysparkling.sql import functions as F
         >>> sorted(gdf.agg(F.min(df.age)).collect())
-        [Row(name=u'Alice', min(age)=2), Row(name=u'Bob', min(age)=5)]
+        [Row(name='Alice', min(age)=2), Row(name='Bob', min(age)=5)]
+        >>> df.groupBy("age").agg(avg("age"), col("age")).show()
+        +---+--------+---+
+        |age|avg(age)|age|
+        +---+--------+---+
+        |  2|     2.0|  2|
+        |  5|     5.0|  5|
+        +---+--------+---+
 
         >>> from pyspark.sql.functions import pandas_udf, PandasUDFType
         >>> @pandas_udf('int', PandasUDFType.GROUPED_AGG)  # doctest: +SKIP
