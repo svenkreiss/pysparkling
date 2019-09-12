@@ -841,7 +841,7 @@ class InternalGroupedDataFrame(object):
     ROLLUP_TYPE = 1
     CUBE_TYPE = 2
 
-    def __init__(self, jdf, grouping_exprs, group_type):
+    def __init__(self, jdf, grouping_exprs, group_type=GROUP_BY_TYPE):
         """
         :type df: pysparkling.sql.dataframe.DataFrame
         """

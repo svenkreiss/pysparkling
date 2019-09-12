@@ -983,7 +983,7 @@ class DataFrame(object):
     def groupBy(self, *cols):
         from pysparkling.sql.internals import InternalGroupedDataFrame
 
-        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.GROUP_BY_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, cols)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
