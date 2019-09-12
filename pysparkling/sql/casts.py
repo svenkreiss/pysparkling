@@ -231,7 +231,7 @@ def cast_to_decimal(value, from_type, to_type):
     value_as_float = cast_to_float(value, from_type)
     if value_as_float is None:
         return None
-    if value_as_float >= 10**(to_type.precision - to_type.scale):
+    if value_as_float >= 10 ** (to_type.precision - to_type.scale):
         return None
     if to_type.scale == 0:
         return int(value_as_float)
@@ -266,7 +266,7 @@ def cast_to_array(value, from_type, to_type):
 
 def cast_to_map(value, from_type, to_type):
     if isinstance(from_type, MapType):
-        key_caster = get_caster(from_type=from_type.keyType, to_type= to_type.keyType)
+        key_caster = get_caster(from_type=from_type.keyType, to_type=to_type.keyType)
         value_caster = get_caster(from_type=from_type.valueType, to_type=to_type.valueType)
         return {
             key_caster(key): (value_caster(sub_value) if sub_value is not None else None)
@@ -294,7 +294,6 @@ DESTINATION_DEPENDENT_CASTERS = {
     MapType: cast_to_map,
     StructType: cast_to_struct,
 }
-
 
 CASTERS = {
     StringType: cast_to_string,
