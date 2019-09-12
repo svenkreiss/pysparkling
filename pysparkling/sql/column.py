@@ -1,6 +1,6 @@
 import sys
 
-from pysparkling.sql.types import DataType, StructField
+from pysparkling.sql.types import DataType, StructField, string_to_type
 
 from pysparkling.sql.expressions.fields import find_position_in_schema
 from pysparkling.sql.expressions.mappers import *
@@ -354,7 +354,15 @@ class Column(object):
         |2.0|
         |5.0|
         +---+
+        >>> df.select(df.age.cast('decimal(5, 0)')).show()
+        todo: test above line
         """
+
+        if isinstance(dataType, str):
+            dataType = string_to_type(dataType)
+        elif not isinstance(dataType, DataType):
+            raise NotImplementedError("Unknown cast type: {}".format(dataType))
+
         return Column(Cast(self, dataType))
 
     def astype(self, dataType):
