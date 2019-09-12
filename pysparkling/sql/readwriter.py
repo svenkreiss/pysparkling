@@ -8,6 +8,14 @@ if sys.version >= '3':
     basestring = unicode = str
 
 
+def to_option_stored_value(value):
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return str(value).lower()
+    return str(value)
+
+
 class OptionUtils(object):
     def _set_opts(self, schema=None, **options):
         """
@@ -109,7 +117,7 @@ class InternalReader(OptionUtils):
         self._schema = schema
 
     def option(self, k, v):
-        self._options[k] = v
+        self._options[k.lower()] = to_option_stored_value(v)
 
     def __init__(self, spark):
         """
