@@ -1,0 +1,225 @@
+import csv
+import os
+
+from pysparkling.sql.casts import cast_to_string, convert_time_format_to_python
+from pysparkling.sql.functions import Aggregation, col, StarOperator
+from pysparkling.sql.utils import AnalysisException
+from pysparkling.utils import portable_hash
+
+
+class WriteInFolder(Aggregation):
+    def __init__(self, writer):
+        super().__init__()
+        self.column = col(StarOperator())
+        self.writer = writer
+        self.items = []
+
+    def merge(self, row, schema):
+        self.items.append(
+            self.writer.preformat(
+                self.column.eval(row, schema), schema
+            )
+        )
+
+    def mergeStats(self, other, schema):
+        self.items += other.items
+
+    def eval(self, row, schema):
+        return self.writer.write(self.items, schema)
+
+    def __str__(self):
+        return "write_in_folder({0})".format(self.column)
+
+
+class DataWriter(object):
+    def __init__(self, df, mode, options, partitioning_col_names, num_buckets,
+                 bucket_col_names, sort_col_names):
+        """
+
+        :param df: pysparkling.sql.DataFrame
+        :param mode: str
+        :param options: Dict[str, Optional[str]]
+        :param partitioning_col_names: Optional[List[str]]
+        :param num_buckets: Optional[int]
+        :param bucket_col_names: Optional[List[str]]
+        :param sort_col_names: Optional[List[str]]
+        """
+        self.mode = mode
+        self.options = options
+        self.partitioning_col_names = partitioning_col_names if partitioning_col_names else []
+        self.num_buckets = num_buckets
+        self.bucket_col_names = bucket_col_names if partitioning_col_names else []
+        self.sort_col_names = sort_col_names if partitioning_col_names else []
+        if self.partitioning_col_names:
+            self.apply_on_aggregated_data = df.groupBy(*self.partitioning_col_names).agg
+        else:
+            self.apply_on_aggregated_data = df.select
+
+    @property
+    def path(self):
+        return self.options["path"].rstrip("/")
+
+    @property
+    def compression(self):
+        return None
+
+    @property
+    def encoding(self):
+        return None
+
+    def save(self):
+        output_path = self.path
+        mode = self.mode
+        if os.path.exists(output_path):
+            if mode == "ignore":
+                return
+            if mode == "error" or mode == "errorifexists":
+                raise AnalysisException("path {0} already exists.;".format(output_path))
+            if mode == "overwrite":
+                os.rmdir(output_path)
+                os.makedirs(output_path)
+        else:
+            os.makedirs(output_path)
+
+        self.apply_on_aggregated_data(col(WriteInFolder(writer=self))).collect()
+
+        success_path = os.path.join(output_path, "_SUCCESS")
+
+        with open(success_path, "w"):
+            pass
+
+    def preformat(self, row, schema):
+        raise NotImplementedError
+
+    def write(self, items, schema):
+        """
+        Write a list of rows (items) which have a given schema
+
+        Returns the number of rows written
+        """
+        raise NotImplementedError
+
+
+class CSVWriter(DataWriter):
+    def check_options(self):
+        pass
+
+    def preformat_cell(self, value, field):
+        if value is None:
+            value = self.nullValue
+        else:
+            value = cast_to_string(
+                value,
+                from_type=field.dataType,
+                date_format=self.dateFormat,
+                timestamp_format=self.timestampFormat
+            )
+        if self.ignoreLeadingWhiteSpace:
+            value = value.rstrip()
+        if self.ignoreTrailingWhiteSpace:
+            value = value.lstrip()
+        if value == "":
+            return self.emptyValue
+        return value
+
+    def preformat(self, row, schema):
+        return tuple(
+            self.preformat_cell(value, field)
+            for value, field in zip(row, schema.fields)
+        )
+
+    @property
+    def sep(self):
+        return self.options.get("sep", ",")
+
+    @property
+    def quote(self):
+        quote = self.options.get("quote", '"')
+        return "\u0000" if quote == "" else quote
+
+    @property
+    def escape(self):
+        return self.options.get("escape", "\\")
+
+    @property
+    def header(self):
+        return self.options.get("header", "false") != "false"
+
+    @property
+    def nullValue(self):
+        return self.options.get("nullvalue", "")
+
+    @property
+    def escapeQuotes(self):
+        return self.options.get("escapequotes", "true") != "false"
+
+    @property
+    def quoteAll(self):
+        return self.options.get("quoteall", "false") != "false"
+
+    @property
+    def dateFormat(self):
+        return convert_time_format_to_python(
+            self.options.get("dateformat", "yyyy-MM-dd")
+        )
+
+    @property
+    def timestampFormat(self):
+        return convert_time_format_to_python(
+            self.options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        )
+
+    @property
+    def ignoreLeadingWhiteSpace(self):
+        return self.options.get("ignoreleadingwhiteSpace", 'false') != "false"
+
+    @property
+    def ignoreTrailingWhiteSpace(self):
+        return self.options.get("ignoretrailingwhiteSpace", 'false') != "false"
+
+    @property
+    def charToEscapeQuoteEscaping(self):
+        return None
+
+    @property
+    def emptyValue(self):
+        return self.options.get("emptyvalue", '""')
+
+    @property
+    def lineSep(self):
+        return self.options.get("linesep", "\n")
+
+    def write(self, items, schema):
+        self.check_options()
+        output_path = self.path
+
+        if not items:
+            return 0
+
+        row = items[0]
+
+        partition_parts = ["{0}={1}".format(col_name, row[col_name]) for col_name in self.partitioning_col_names]
+        file_path = "/".join(
+            [output_path, *partition_parts, "part-00000-{0}.csv".format(portable_hash(row))]
+        )
+
+        # todo: Add support of:
+        #  - all files systems (not only local)
+        #  - compression
+        #  - encoding
+        #  - charToEscapeQuoteEscaping
+        #  - escape
+        #  - escapeQuotes
+
+        with open(file_path, "w") as f:
+            writer = csv.writer(
+                f,
+                delimiter=self.sep,
+                quotechar=self.quote,
+                quoting=csv.QUOTE_ALL if self.quoteAll else csv.QUOTE_MINIMAL,
+                lineterminator=self.lineSep
+            )
+            if self.header:
+                writer.writerow(schema.names)
+            writer.writerows(items)
+        return len(items)
