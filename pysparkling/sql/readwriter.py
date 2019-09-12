@@ -97,7 +97,7 @@ class DataFrameWriter(OptionUtils):
 
     def mode(self, saveMode):
         if saveMode is None:
-            saveMode = "error"
+            return self
         if saveMode not in WRITE_MODES:
             raise IllegalArgumentException(
                 "Unknown save mode: {0}. Accepted save modes are {1}.".format(
