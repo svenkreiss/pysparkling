@@ -1,7 +1,7 @@
 import sys
 import warnings
 
-from pyspark import StorageLevel
+from pysparkling.storagelevel import StorageLevel
 # noinspection PyProtectedMember
 from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
     IntegerType, FloatType, Row, _check_series_convert_timestamps_local_tz

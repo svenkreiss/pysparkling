@@ -10,11 +10,12 @@ from pysparkling.broadcast import Broadcast
 from pysparkling.accumulators import  Accumulator, AccumulatorParam
 from pysparkling.stat_counter import StatCounter
 from pysparkling.cache_manager import CacheManager, TimedCacheManager
+from pysparkling.storagelevel import StorageLevel
 
 from pysparkling import fileio
 from pysparkling import streaming
 from pysparkling import exceptions
 
 __all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager', 'Row',
-           'TimedCacheManager',
+           'TimedCacheManager', 'StorageLevel',
            'exceptions', 'fileio', 'streaming']
