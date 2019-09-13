@@ -1,2 +1,1 @@
-from .dataframe import DataFrame
-from pyspark.sql import Window
+from pysparkling.sql.dataframe import DataFrame
