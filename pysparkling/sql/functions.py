@@ -98,6 +98,16 @@ def avg(e):
 def collect_list(e):
     """
     :rtype: Column
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5)
+    >>> df.repartition(2).select(collect_list("id").alias("all_ids")).show()
+    +---------------+
+    |        all_ids|
+    +---------------+
+    |[0, 1, 2, 3, 4]|
+    +---------------+
     """
     from pysparkling.sql.expressions.aggregate.collectors import CollectList
     return col(CollectList(column=parse(e)))
