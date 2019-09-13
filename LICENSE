@@ -24,9 +24,9 @@ SOFTWARE.
 -----------------------------------------------------------------------------
 
 
-Parts of the files pysparkling/accumulators.py, pysparkling/broadcast.py and
-pysparkling/rdd.py were extracted from their PySpark counterparts under the
-following license:
+Parts of the files pysparkling/accumulators.py, pysparkling/broadcast.py,
+pysparkling/rdd.py, pysparkling/storagelevel.py and pysparkling/sql were
+extracted from their PySpark counterparts under the following license:
 
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements.  See the NOTICE file distributed with
