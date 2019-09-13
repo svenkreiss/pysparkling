@@ -64,8 +64,12 @@ class Expression(object):
         pass
 
     def recursive_merge_stats(self, other, schema):
-        self.mergeStats(other, schema)
-        self.children_merge_stats(self.children, other, schema)
+        from pysparkling.sql.expressions.mappers import Alias
+        if isinstance(other.expr, Alias):
+            self.recursive_merge_stats(other.expr.expr, schema)
+        else:
+            self.mergeStats(other.expr, schema)
+            self.children_merge_stats(self.children, other, schema)
 
     @staticmethod
     def children_merge_stats(children, other, schema):
