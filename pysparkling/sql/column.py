@@ -476,6 +476,10 @@ class Column(object):
             return self.expr.may_output_multiple_rows
         return False
 
+    @property
+    def is_an_aggregation(self):
+        return self.expr.is_an_aggregation
+
     def output_fields(self, schema):
         if isinstance(self.expr, Expression):
             return self.expr.output_fields(schema)

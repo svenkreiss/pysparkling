@@ -480,6 +480,10 @@ class Alias(Expression):
     def may_output_multiple_rows(self):
         return self.expr.may_output_multiple_rows
 
+    @property
+    def is_an_aggregation(self):
+        return self.expr.is_an_aggregation
+
     def eval(self, row, schema):
         return self.expr.eval(row, schema)
 

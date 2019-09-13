@@ -6,9 +6,8 @@ from collections import Counter
 from copy import deepcopy
 from functools import partial
 
-from pyspark import StorageLevel
+from pysparkling.storagelevel import StorageLevel
 
-from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
 from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
 
 from pysparkling import RDD
@@ -302,8 +301,7 @@ class DataFrameInternal(object):
     def select(self, *exprs):
         cols = [parse(e) for e in exprs]
 
-        # todo: test if aggregation
-        if any(isinstance(col.expr, Aggregation) for col in cols):
+        if any(col.is_an_aggregation for col in cols):
             df_as_group = InternalGroupedDataFrame(self, [])
             return df_as_group.agg(exprs)
 

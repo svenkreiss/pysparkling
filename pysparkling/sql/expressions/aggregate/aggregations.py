@@ -2,6 +2,10 @@ from pysparkling.sql.expressions.expressions import Expression
 
 
 class Aggregation(Expression):
+    @property
+    def is_an_aggregation(self):
+        return True
+
     def merge(self, row, schema):
         raise NotImplementedError
 

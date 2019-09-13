@@ -38,6 +38,10 @@ class Expression(object):
     def may_output_multiple_rows(self):
         return False
 
+    @property
+    def is_an_aggregation(self):
+        return False
+
     def merge(self, row, schema):
         pass
 
