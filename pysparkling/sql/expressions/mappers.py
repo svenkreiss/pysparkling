@@ -1,7 +1,7 @@
 import math
 import random
 
-from pyspark.sql.types import StructType, MapType
+from pysparkling.sql.types import StructType, MapType
 
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
