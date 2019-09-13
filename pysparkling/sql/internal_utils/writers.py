@@ -153,7 +153,20 @@ class DataWriter(object):
 
 class CSVWriter(DataWriter):
     def check_options(self):
-        pass
+        unsupported_options = {
+            "compression",
+            "encoding",
+            "chartoescapequoteescaping",
+            "escape",
+            "escapequotes"
+        }
+        options_requested_but_not_supported = set(self.options) & unsupported_options
+        if options_requested_but_not_supported:
+            raise NotImplementedError(
+                "Pysparkling does not support yet the following options: {0}".format(
+                    options_requested_but_not_supported
+                )
+            )
 
     def preformat_cell(self, value, field):
         if value is None:
