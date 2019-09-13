@@ -1,5 +1,6 @@
 import csv
 import os
+import shutil
 
 from pysparkling.sql.casts import cast_to_string, get_time_formatter
 from pysparkling.sql.functions import Aggregation, col, StarOperator
@@ -126,7 +127,7 @@ class DataWriter(object):
             if mode == "error" or mode == "errorifexists":
                 raise AnalysisException("path {0} already exists.;".format(output_path))
             if mode == "overwrite":
-                os.rmdir(output_path)
+                shutil.rmtree(output_path)
                 os.makedirs(output_path)
         else:
             os.makedirs(output_path)
