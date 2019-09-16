@@ -312,10 +312,20 @@ class JSONWriter(DataWriter):
         timestamp_formatter = self.timestampFormat
 
         class CustomJSONEncoder(json.JSONEncoder):
+            def encode(self, o):
+                def encode_rows(item):
+                    if isinstance(item, Row):
+                        return dict(zip(item.__fields__, item))
+                    if isinstance(item, list):
+                        return [encode_rows(e) for e in item]
+                    if isinstance(item, dict):
+                        return {key: encode_rows(value) for key, value in item.items()}
+                    else:
+                        return item
+                return super(CustomJSONEncoder, self).encode(encode_rows(o))
+
             def default(self, o):
-                if isinstance(o, Row):
-                    return dict(zip(o.__fields__, o))
-                elif isinstance(o, datetime.date):
+                if isinstance(o, datetime.date):
                     return timestamp_formatter(o)
                 elif isinstance(o, datetime.datetime):
                     return date_formatter(o)
