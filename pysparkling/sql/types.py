@@ -597,6 +597,8 @@ class StructType(DataType):
             if isinstance(obj, dict):
                 return tuple(f.toInternal(obj.get(n)) if c else obj.get(n)
                              for n, f, c in zip(self.names, self.fields, self._needConversion))
+            elif isinstance(obj, Row):
+                return obj
             elif isinstance(obj, (tuple, list)):
                 return tuple(f.toInternal(v) if c else v
                              for f, v, c in zip(self.fields, obj, self._needConversion))
@@ -609,7 +611,7 @@ class StructType(DataType):
         else:
             if isinstance(obj, dict):
                 return tuple(obj.get(n) for n in self.names)
-            elif isinstance(obj, Row) and getattr(obj, "__from_dict__", False):
+            elif isinstance(obj, Row):
                 return tuple(obj[n] for n in self.names)
             elif isinstance(obj, (list, tuple)):
                 return tuple(obj)
@@ -1122,6 +1124,15 @@ def _create_converter(dataType):
         if obj is None:
             return
 
+        if isinstance(obj, Row):
+            if convert_fields:
+                return _create_row(
+                    obj.__fields__,
+                    [converter(value) for converter, value in zip(converters, obj)]
+                )
+            else:
+                return obj
+
         if isinstance(obj, (tuple, list)):
             if convert_fields:
                 return tuple(c(v) for v, c in zip(obj, converters))
@@ -1323,7 +1334,7 @@ def _make_type_verifier(dataType, nullable=True, name=None):
             if isinstance(obj, dict):
                 for f, verifier in verifiers:
                     verifier(obj.get(f))
-            elif isinstance(obj, Row) and getattr(obj, "__from_dict__", False):
+            elif isinstance(obj, Row):
                 # the order in obj could be different than dataType.fields
                 for f, verifier in verifiers:
                     verifier(obj[f])
