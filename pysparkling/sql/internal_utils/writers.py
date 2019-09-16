@@ -59,6 +59,18 @@ class InternalWriter(object):
 
 
 class WriteInFolder(Aggregation):
+    """
+    This use the computation engine of pysparkling to write the values in a folder.
+
+    It's behaviour is similar to a collect_list except that items are written
+    in a folder instead of being returned:
+
+    Its evaluation only return the number of items written while writing them
+    using the writer given in the constructor, more specifically its write method.
+
+    Pre-formatting is done as defined by writer.preformat during the merge phase.
+
+    """
     def __init__(self, writer):
         super().__init__()
         self.column = col(StarOperator())
