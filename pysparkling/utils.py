@@ -363,6 +363,8 @@ def portable_hash(x):
 
     if x is None:
         return 0
+    if isinstance(x, list):
+        return portable_hash(tuple(x))
     if isinstance(x, tuple):
         h = 0x345678
         for i in x:
