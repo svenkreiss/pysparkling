@@ -2,12 +2,13 @@ import sys
 from pysparkling import RDD
 from pysparkling.sql.internal_utils.readers import InternalReader
 from pysparkling.sql.internal_utils.readwrite import OptionUtils
-from pysparkling.sql.internal_utils.writers import CSVWriter, InternalWriter
+from pysparkling.sql.internal_utils.writers import CSVWriter, JSONWriter, InternalWriter
 from pysparkling.sql.utils import IllegalArgumentException
 
 WRITE_MODES = ("overwrite", "append", "ignore", "error", "errorifexists")
 DATA_WRITERS = dict(
     csv=CSVWriter,
+    json=JSONWriter,
 )
 
 if sys.version >= '3':

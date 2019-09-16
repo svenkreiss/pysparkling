@@ -1,7 +1,10 @@
 import csv
+import datetime
+import json
 import os
 import shutil
 
+from pysparkling import Row
 from pysparkling.sql.casts import cast_to_string, get_time_formatter
 from pysparkling.sql.functions import Aggregation, col, StarOperator
 from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
@@ -298,4 +301,65 @@ class CSVWriter(DataWriter):
             if self.header:
                 writer.writerow(schema.names)
             writer.writerows(items)
+        return len(items)
+
+
+class JSONWriter(DataWriter):
+    def __init__(self, df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names):
+        super().__init__(df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names)
+
+        date_formatter = self.dateFormat
+        timestamp_formatter = self.timestampFormat
+
+        class CustomJSONEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, Row):
+                    return dict(zip(o.__fields__, o))
+                elif isinstance(o, datetime.date):
+                    return timestamp_formatter(o)
+                elif isinstance(o, datetime.datetime):
+                    return date_formatter(o)
+                else:
+                    return super(CustomJSONEncoder, self).default(o)
+
+        self.encoder = CustomJSONEncoder
+
+    def check_options(self):
+        unsupported_options = {
+            "compression",
+            "encoding",
+            "chartoescapequoteescaping",
+            "escape",
+            "escapequotes"
+        }
+        options_requested_but_not_supported = set(self.options) & unsupported_options
+        if options_requested_but_not_supported:
+            raise NotImplementedError(
+                "Pysparkling does not support yet the following options: {0}".format(
+                    options_requested_but_not_supported
+                )
+            )
+
+    @property
+    def lineSep(self):
+        return self.options.get("linesep", "\n")
+
+    def preformat(self, row, schema):
+        return json.dumps(dict(zip(schema.names, row)), cls=self.encoder) + self.lineSep
+
+    def write(self, items, schema):
+        self.check_options()
+        output_path = self.path
+
+        if not items:
+            return 0
+
+        row = items[0]
+        partition_parts = ["{0}={1}".format(col_name, row[col_name]) for col_name in self.partitioning_col_names]
+        file_path = "/".join(
+            [output_path, *partition_parts, "part-00000-{0}.json".format(portable_hash(row))]
+        )
+
+        with open(file_path, "a") as f:
+            f.writelines(items)
         return len(items)
