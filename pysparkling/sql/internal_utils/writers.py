@@ -78,20 +78,26 @@ class WriteInFolder(Aggregation):
         super().__init__()
         self.column = col(StarOperator())
         self.writer = writer
+        self.ref_value = None
         self.items = []
 
     def merge(self, row, schema):
+        row_value = self.column.eval(row, schema)
+        if self.ref_value is None:
+            ref_value = Row(*row_value)
+            ref_value.__fields__ = schema.names
+            self.ref_value = ref_value
         self.items.append(
-            self.writer.preformat(
-                self.column.eval(row, schema), schema
-            )
+            self.writer.preformat(row_value, schema)
         )
 
     def mergeStats(self, other, schema):
         self.items += other.items
+        if self.ref_value is None:
+            self.ref_value = other.ref_value
 
     def eval(self, row, schema):
-        return self.writer.write(self.items, schema)
+        return self.writer.write(self.items, self.ref_value, schema)
 
     def __str__(self):
         return "write_in_folder({0})".format(self.column)
@@ -169,7 +175,7 @@ class DataWriter(object):
     def preformat(self, row, schema):
         raise NotImplementedError
 
-    def write(self, items, schema):
+    def write(self, items, ref_value, schema):
         """
         Write a list of rows (items) which have a given schema
 
@@ -268,18 +274,16 @@ class CSVWriter(DataWriter):
     def lineSep(self):
         return self.options.get("linesep", "\n")
 
-    def write(self, items, schema):
+    def write(self, items, ref_value, schema):
         self.check_options()
         output_path = self.path
 
         if not items:
             return 0
 
-        row = items[0]
-
-        partition_parts = ["{0}={1}".format(col_name, row[col_name]) for col_name in self.partitioning_col_names]
+        partition_parts = ["{0}={1}".format(col_name, ref_value[col_name]) for col_name in self.partitioning_col_names]
         file_path = "/".join(
-            [output_path, *partition_parts, "part-00000-{0}.csv".format(portable_hash(row))]
+            [output_path, *partition_parts, "part-00000-{0}.csv".format(portable_hash(ref_value))]
         )
 
         # todo: Add support of:
@@ -357,18 +361,18 @@ class JSONWriter(DataWriter):
     def preformat(self, row, schema):
         return json.dumps(dict(zip(schema.names, row)), cls=self.encoder) + self.lineSep
 
-    def write(self, items, schema):
+    def write(self, items, ref_value, schema):
         self.check_options()
         output_path = self.path
 
         if not items:
             return 0
 
-        row = items[0]
-        partition_parts = ["{0}={1}".format(col_name, row[col_name]) for col_name in self.partitioning_col_names]
-        file_path = "/".join(
-            [output_path, *partition_parts, "part-00000-{0}.json".format(portable_hash(row))]
-        )
+        partition_parts = ["{0}={1}".format(col_name, ref_value[col_name]) for col_name in self.partitioning_col_names]
+        partition_folder = "/".join([output_path, *partition_parts])
+        file_path = "{0}/part-00000-{1}.json".format(partition_folder, portable_hash(ref_value))
+
+        os.makedirs(partition_folder)
 
         with open(file_path, "a") as f:
             f.writelines(items)
