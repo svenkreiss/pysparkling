@@ -130,6 +130,18 @@ class DataWriter(object):
     def encoding(self):
         return None
 
+    @property
+    def dateFormat(self):
+        return get_time_formatter(
+            self.options.get("dateformat", "yyyy-MM-dd")
+        )
+
+    @property
+    def timestampFormat(self):
+        return get_time_formatter(
+            self.options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        )
+
     def save(self):
         output_path = self.path
         mode = self.mode
@@ -232,18 +244,6 @@ class CSVWriter(DataWriter):
     @property
     def quoteAll(self):
         return self.options.get("quoteall", "false") != "false"
-
-    @property
-    def dateFormat(self):
-        return get_time_formatter(
-            self.options.get("dateformat", "yyyy-MM-dd")
-        )
-
-    @property
-    def timestampFormat(self):
-        return get_time_formatter(
-            self.options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-        )
 
     @property
     def ignoreLeadingWhiteSpace(self):
