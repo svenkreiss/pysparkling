@@ -114,6 +114,14 @@ def resolve_partitions(patterns):
         else:
             partitions[file_path] = None
 
+    if any(value is None for value in partitions.values()):
+        raise AnalysisException(
+            "Unable to parse those malformed folders: {1}".format(
+                file_paths,
+                [path for path, value in partitions.items() if value is None]
+            )
+        )
+
     partitioning_field_sets = set(p.__fields__ for p in partitions.values())
     if len(partitioning_field_sets) > 1:
         raise Exception(
