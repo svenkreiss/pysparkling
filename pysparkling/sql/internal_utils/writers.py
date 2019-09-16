@@ -74,6 +74,7 @@ class WriteInFolder(Aggregation):
     Pre-formatting is done as defined by writer.preformat during the merge phase.
 
     """
+
     def __init__(self, writer):
         super().__init__()
         self.column = col(StarOperator())
@@ -326,6 +327,7 @@ class JSONWriter(DataWriter):
                         return {key: encode_rows(value) for key, value in item.items()}
                     else:
                         return item
+
                 return super(CustomJSONEncoder, self).encode(encode_rows(o))
 
             def default(self, o):
@@ -376,7 +378,8 @@ class JSONWriter(DataWriter):
         partition_folder = "/".join([output_path, *partition_parts])
         file_path = "{0}/part-00000-{1}.json".format(partition_folder, portable_hash(ref_value))
 
-        os.makedirs(partition_folder)
+        if not os.path.exists(partition_folder):
+            os.makedirs(partition_folder)
 
         with open(file_path, "a") as f:
             f.writelines(items)
