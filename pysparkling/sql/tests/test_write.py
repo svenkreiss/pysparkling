@@ -77,7 +77,7 @@ class DataFrameWriterTests(TestCase):
         )
         df.write.csv(".tmp/wonderland/")
         with self.assertRaises(AnalysisException) as ctx:
-           df.write.csv(".tmp/wonderland/")
+            df.write.csv(".tmp/wonderland/")
         self.assertEqual(ctx.exception.args[0], 'path .tmp/wonderland already exists.;')
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
@@ -85,5 +85,20 @@ class DataFrameWriterTests(TestCase):
              'part-00000-3432532549516755848.csv': [
                  '2,Alice\n',
                  '5,Bob\n'
+             ]}
+        )
+
+    def test_write_to_json(self):
+        df = spark.createDataFrame(
+            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tz_local), ),
+             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tz_local))]
+        )
+        df.write.json(".tmp/wonderland/")
+        self.assertDictEqual(
+            get_folder_content(".tmp/wonderland"),
+            {'_SUCCESS': [],
+             'part-00000-4294967365.json': [
+                 '{"age": 2, "name": "Alice", "time": "2016-12-31T23:00:00.000+01:00"}\n',
+                 '{"age": 5, "name": "Bob", "time": "2014-03-01T23:00:00.000+01:00"}\n'
              ]}
         )
