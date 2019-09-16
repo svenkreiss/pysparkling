@@ -359,7 +359,11 @@ class JSONWriter(DataWriter):
         return self.options.get("linesep", "\n")
 
     def preformat(self, row, schema):
-        return json.dumps(dict(zip(schema.names, row)), cls=self.encoder) + self.lineSep
+        return json.dumps(
+            dict(zip(schema.names, row)),
+            cls=self.encoder,
+            separators=(',', ':')
+        ) + self.lineSep
 
     def write(self, items, ref_value, schema):
         self.check_options()
