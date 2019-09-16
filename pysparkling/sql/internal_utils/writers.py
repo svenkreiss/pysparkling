@@ -321,7 +321,7 @@ class JSONWriter(DataWriter):
                 def encode_rows(item):
                     if isinstance(item, Row):
                         return dict(zip(item.__fields__, item))
-                    if isinstance(item, list):
+                    if isinstance(item, (list, tuple)):
                         return [encode_rows(e) for e in item]
                     if isinstance(item, dict):
                         return {key: encode_rows(value) for key, value in item.items()}
