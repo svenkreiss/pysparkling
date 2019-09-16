@@ -24,6 +24,8 @@ def get_folder_content(folder_path):
 
 
 class DataFrameWriterTests(TestCase):
+    maxDiff = None
+
     @staticmethod
     def clean():
         if os.path.exists(".tmp"):
