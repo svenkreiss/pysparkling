@@ -24,6 +24,7 @@ except ImportError:
     numpy = None
 
 from pysparkling import fileio
+from pysparkling.utils import portable_hash
 from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
 from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
