@@ -407,6 +407,7 @@ def convert_token_to_python(group):
         def timezone_formatter(value):
             tz = value.strftime("%z")
             return "{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
+
         return timezone_formatter
 
     return lambda value: token
@@ -426,4 +427,5 @@ def get_time_formatter(java_time_format):
 
     def time_formatter(value):
         return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
+
     return time_formatter
