@@ -91,8 +91,11 @@ def cast_to_binary(value, from_type):
 def cast_to_date(value, from_type):
     if isinstance(from_type, StringType):
         # Spark cast only considers the first non empty part before a ' ' or a 'T'
-        cleaned_value = value.strip().split(" ")[0].split("T")[0]
-        date_components = cleaned_value.split("-")
+        if ' ' in value:
+            value = value.strip().split(" ")[0]
+        if 'T' in value:
+            value = value.split("T")[0]
+        date_components = value.split("-")
         if len(date_components) > 3 or len(date_components[0]) != 4:
             return None
         # default month and day to 1
