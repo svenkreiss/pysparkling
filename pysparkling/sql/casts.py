@@ -3,10 +3,9 @@ import re
 import time as _time
 from functools import partial
 
-from pysparkling.sql.types import UserDefinedType, NumericType
+from pysparkling.sql.types import UserDefinedType, NumericType, _create_row
 from pysparkling.sql.utils import AnalysisException
 from pysparkling.sql.types import *
-from pysparkling.utils import row_from_keyed_values
 
 TIME_REGEX = re.compile("^([0-9]+):([0-9]+)?(?::([0-9]+))?(?:\\.([0-9]+))?(Z|[+-][0-9]+(?::(?:[0-9]+)?)?)?$")
 
@@ -293,11 +292,24 @@ def cast_to_map(value, from_type, to_type):
 
 def cast_to_struct(value, from_type, to_type):
     if isinstance(from_type, StructType):
-        return row_from_keyed_values([
-            (to_field.name, get_caster(from_field.dataType, to_field.dataType)(sub_value))
-            for from_field, to_field, sub_value in zip(from_type.fields, to_type.fields, value)
-        ])
+        return get_struct_caster(from_type, to_type)(value)
     raise NotImplementedError("Pysparkling does not support yet cast to struct")
+
+
+def get_struct_caster(from_type, to_type):
+    names = [to_field.name for to_field in to_type.fields]
+    casters = [
+        get_caster(from_field.dataType, to_field.dataType)
+        for from_field, to_field in zip(from_type.fields, to_type.fields)
+    ]
+
+    def do_cast_to_struct(value):
+        return _create_row(
+            names,
+            tuple(caster(sub_value) for caster, sub_value in zip(casters, value))
+        )
+
+    return do_cast_to_struct
 
 
 def cast_to_user_defined_type(value, from_type):
