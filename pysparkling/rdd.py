@@ -1772,24 +1772,24 @@ class RDD(object):
         if num == 0:
             return []
 
-        initialCount = self.count()
-        if initialCount == 0:
+        initial_sample = self.take(num)
+        initial_count = len(initial_sample)
+        if initial_count == 0:
             return []
 
         rand = random.Random(seed)
 
-        if (not withReplacement) and num >= initialCount:
+        if (not withReplacement) and num >= initial_count:
             # shuffle current RDD and return
-            samples = self.collect()
-            rand.shuffle(samples)
-            return samples
+            rand.shuffle(initial_sample)
+            return initial_sample
 
         maxSampleSize = sys.maxsize - int(numStDev * math.sqrt(sys.maxsize))
         if num > maxSampleSize:
             raise ValueError(
                 "Sample size cannot be greater than %d." % maxSampleSize)
 
-        fraction = RDD._computeFractionForSampleSize(num, initialCount, withReplacement)
+        fraction = RDD._computeFractionForSampleSize(num, initial_count, withReplacement)
         samples = self.sample(withReplacement, fraction, seed).collect()
 
         # If the first sample didn't turn out large enough, keep trying to take samples;
