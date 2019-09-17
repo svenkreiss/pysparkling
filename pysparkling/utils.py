@@ -153,7 +153,7 @@ def row_from_keyed_values(keyed_values):
     # keyed_values might be an iterable
     keyed_values = tuple(keyed_values)
     # Preserve Row column order which is modified when calling Row(dict)
-    new_row = Row(*(value for key, value in keyed_values))
+    new_row = tuple.__new__(Row, (value for key, value in keyed_values))
     new_row.__fields__ = tuple(key for key, value in keyed_values)
     return new_row
 
