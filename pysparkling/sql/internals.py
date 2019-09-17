@@ -654,7 +654,7 @@ class DataFrameInternal(object):
         # todo: add support of how
         if isinstance(on, basestring):
             new_schema = merge_schemas(self.bound_schema, other.bound_schema, field_not_to_duplicate=on)
-            output_rdd = self.join_on_values(other, on, new_schema)
+            output_rdd = self.join_on_values(other, on)
         else:
             new_schema = merge_schemas(self.bound_schema, other.bound_schema)
             output_rdd = self.join_on_condition(other, on, new_schema)
@@ -682,7 +682,7 @@ class DataFrameInternal(object):
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
 
-    def join_on_values(self, other, on, new_schema):
+    def join_on_values(self, other, on):
         on_column = parse(on)
 
         def add_key(row, schema):
