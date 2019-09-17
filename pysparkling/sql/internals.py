@@ -685,11 +685,11 @@ class DataFrameInternal(object):
     def join_on_values(self, other, on, new_schema):
         on_column = parse(on)
 
-        def add_key(row):
-            return on_column.eval(row, new_schema), row
+        def add_key(row, schema):
+            return on_column.eval(row, schema), row
 
-        keyed_self = self.rdd().map(add_key)
-        keyed_other = other.rdd().map(add_key)
+        keyed_self = self.rdd().map(partial(add_key, schema=self.bound_schema))
+        keyed_other = other.rdd().map(partial(add_key, schema=other.bound_schema))
         joined_rdd = keyed_self.join(keyed_other)
 
         def format_output(entry):
