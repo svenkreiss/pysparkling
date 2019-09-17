@@ -232,7 +232,7 @@ class XORShiftRandom(object):
 
     def nextGaussian(self):
         if self.haveNextNextGaussian:
-            self.haveNextNextGaussian= False
+            self.haveNextNextGaussian = False
             return self.nextNextGaussian
 
         v1 = 0
@@ -241,9 +241,9 @@ class XORShiftRandom(object):
         while not 0 < s < 1:
             v1 = 2.0 * self.nextDouble() - 1
             v2 = 2.0 * self.nextDouble() - 1
-            s = v1*v1 + v2*v2
+            s = v1 * v1 + v2 * v2
 
-        multiplier = math.sqrt(-2*math.log(s) / s)
+        multiplier = math.sqrt(-2 * math.log(s) / s)
         self.nextNextGaussian = v2 * multiplier
         self.haveNextNextGaussian = True
         return v1 * multiplier
