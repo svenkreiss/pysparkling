@@ -27,7 +27,7 @@ from pysparkling import fileio
 from pysparkling.utils import portable_hash
 from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
 from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
-                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
+                                  BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from pysparkling.stat_counter import StatCounter
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
@@ -165,6 +165,7 @@ class RDD(object):
         >>> (r['a'], r['b'])
         (4, 2)
         """
+
         def seqFuncByKey(tc, i):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
             for k, v in i:
@@ -461,11 +462,13 @@ class RDD(object):
         >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
         2
         """
+
         def map_func(tc, x):
             r = defaultdict(int)
             for v in x:
                 r[v] += 1
             return r
+
         return self.context.runJob(self, map_func,
                                    resultHandler=sum_counts_by_keys)
 
@@ -763,7 +766,7 @@ class RDD(object):
         h = [0 for _ in buckets]
         for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
-                if  b[0] <= x < b[1]:
+                if b[0] <= x < b[1]:
                     h[i] += 1
             # make the last bin inclusive on the right
             if x == buckets[-1]:
@@ -1254,8 +1257,8 @@ class RDD(object):
         """
         return (
             self
-            .groupByKey(numPartitions)
-            .mapValues(lambda x: functools.reduce(f, x))
+                .groupByKey(numPartitions)
+                .mapValues(lambda x: functools.reduce(f, x))
         )
 
     def reduceByKeyLocally(self, f):
@@ -1344,8 +1347,8 @@ class RDD(object):
 
         return (
             self
-            .partitionBy(numPartitions, partitionFunc)
-            .mapPartitions(partition_sort)
+                .partitionBy(numPartitions, partitionFunc)
+                .mapPartitions(partition_sort)
         )
 
     def rightOuterJoin(self, other, numPartitions=None):
@@ -2129,7 +2132,7 @@ class PartitionwiseSampledRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         if seed is None:
-            seed = random.randint(0, 2**31)
+            seed = random.randint(0, 2 ** 31)
 
         self.prev = prev
         self.sampler = sampler
