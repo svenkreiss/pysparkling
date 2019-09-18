@@ -7,7 +7,10 @@ import re
 import sys
 from operator import itemgetter
 
-from pysparkling.sql.types import Row
+from pysparkling.sql.internal_utils.joins import *
+from pysparkling.sql.schema_utils import get_on_fields
+from pysparkling.sql.types import Row, _create_row
+from pysparkling.sql.utils import IllegalArgumentException
 
 
 WILDCARD_START_PATTERN = re.compile(r'(?P<previous_character>^|[^\\])(?P<wildcard_start>[*?[])')
@@ -325,14 +328,44 @@ class MurmurHash3(object):
         return i << distance
 
 
-_sentinel = object()
+def merge_rows(left, right):
+    return _create_row(
+        left.__fields__ + right.__fields__,
+        left + right
+    )
 
 
-def merge_rows(left, right, on=_sentinel):
-    return row_from_keyed_values(itertools.chain(
-        zip(left.__fields__, left),
-        ((key, value) for key, value in zip(right.__fields__, right) if key != on)
-    ))
+def merge_rows_joined_on_values(left, right, left_schema, right_schema, how, on):
+    left_names = left_schema.names
+    right_names = right_schema.names
+
+    left_on_fields, right_on_fields = get_on_fields(left_schema, right_schema, on)
+
+    on_parts = [(on_field, left[on_field] if left is not None else right[on_field]) for on_field in on]
+
+    if left is None and how in (FULL_JOIN, RIGHT_JOIN):
+        left = _create_row(left_names, [None for _ in left_names])
+    if right is None and how in (LEFT_JOIN, FULL_JOIN):
+        right = _create_row(right_names, [None for _ in right_names])
+
+    left_parts = (
+        (field.name, value)
+        for field, value in zip(left_schema.fields, left)
+        if field not in left_on_fields
+    )
+
+    if how in (INNER_JOIN, CROSS_JOIN, LEFT_JOIN, FULL_JOIN, RIGHT_JOIN):
+        right_parts = (
+            (field.name, value)
+            for field, value in zip(right_schema.fields, right)
+            if field not in right_on_fields
+        )
+    elif how in (LEFT_SEMI_JOIN, LEFT_ANTI_JOIN):
+        right_parts = ()
+    else:
+        raise IllegalArgumentException("Argument 'how' cannot be '{0}'".format(how))
+
+    return row_from_keyed_values(itertools.chain(on_parts, left_parts, right_parts))
 
 
 def strhash(string):
