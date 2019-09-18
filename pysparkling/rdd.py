@@ -316,19 +316,26 @@ class RDD(object):
         number_of_big_groups = current_num_partitions % new_num_partitions
         number_of_small_groups = new_num_partitions - number_of_big_groups
 
-        def slice_partition_content(partitions, start, end):
-            return itertools.chain(*(p.x() for p in partitions[start:end]))
+        partition_mapping = [
+            p for p in range(number_of_big_groups)
+            for _ in range(big_group_size)
+        ] + [
+            p for p in range(number_of_small_groups)
+            for _ in range(small_group_size)
+        ]
+
+        new_partitions = {i: [] for i in range(new_num_partitions)}
 
         def partitioned():
-            start = 0
-            for _ in range(number_of_big_groups):
-                end = start + big_group_size
-                yield slice_partition_content(self._p, start, end)
-                start = end
-            for _ in range(number_of_small_groups):
-                end = start + small_group_size
-                yield slice_partition_content(self._p, start, end)
-                start = end
+            def move_partition_content(partition_index, partition):
+                new_partitions[partition_mapping[partition_index]] += partition
+                return []
+
+            # trigger an evaluation with count
+            self.mapPartitionsWithIndex(move_partition_content).count()
+
+            for p in list(new_partitions.values()):
+                yield p
 
         # noinspection PyProtectedMember
         return self.context._parallelize_partitions(partitioned())
