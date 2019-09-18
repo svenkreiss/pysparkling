@@ -478,7 +478,14 @@ class Column(object):
 
     @property
     def is_an_aggregation(self):
-        return self.expr.is_an_aggregation
+        if isinstance(self.expr, Expression):
+            return self.expr.is_an_aggregation
+        elif isinstance(self.expr, str):
+            return False
+        else:
+            raise NotImplementedError(
+                "Not implemented column expression type: {0}".format(type(self.expr))
+            )
 
     def output_fields(self, schema):
         if isinstance(self.expr, Expression):
