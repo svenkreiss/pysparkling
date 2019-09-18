@@ -385,6 +385,27 @@ class DataFrame(object):
         1
         >>> spark.range(4, numPartitions=2).coalesce(4).rdd.getNumPartitions()
         2
+        >>> spark.range(3).coalesce(1).collect()
+        [Row(id=0), Row(id=1), Row(id=2)]
+        >>> df = spark.range(200).repartition(300)
+        >>> df = df.filter(df.id % 2 == 0).select(df.id * 2)
+        >>> df = df.coalesce(299)
+        >>> df.rdd.getNumPartitions()
+        299
+        >>> df = df.coalesce(298)
+        >>> df.rdd.getNumPartitions()
+        298
+        >>> df = df.coalesce(174)
+        >>> df.rdd.getNumPartitions()
+        174
+        >>> df = df.coalesce(75)
+        >>> df.rdd.getNumPartitions()
+        75
+        >>> df = df.coalesce(1)
+        >>> df.rdd.getNumPartitions()
+        1
+        >>> df.count()
+        100
         """
         return DataFrame(self._jdf.coalesce(numPartitions), self.sql_ctx)
 
