@@ -888,6 +888,64 @@ class RDD(object):
             for v_other in (d_other[kv[0]] if kv[0] in d_other else [None])
         ])
 
+    def _leftSemiJoin(self, other):
+        """left semi join
+
+        This function is not part of the official Spark API hence its leading "_"
+
+        :param RDD other: The other RDD.
+        :rtype: RDD
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1._leftSemiJoin(rdd2).collect()
+        [(1, (1, ()))]
+        """
+
+        d_other = other.groupByKey().collectAsMap()
+
+        return self.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, ()))
+            for v_self in kv[1]
+            if kv[0] in d_other
+        ])
+
+    def _leftAntiJoin(self, other):
+        """left anti join
+
+        This function is not part of the official Spark API hence its leading "_"
+
+        :param RDD other: The other RDD.
+        :param int numPartitions: Number of partitions in the resulting RDD.
+        :rtype: RDD
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1._leftAntiJoin(rdd2).collect()
+        [(0, (1, None))]
+        """
+
+        d_other = other.groupByKey().collectAsMap()
+
+        return self.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, None))
+            for v_self in kv[1]
+            if kv[0] not in d_other
+        ])
+
     def lookup(self, key):
         """Return all the (key, value) pairs where the given key matches.
 
