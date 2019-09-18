@@ -6,6 +6,8 @@ from collections import Counter
 from copy import deepcopy
 from functools import partial
 
+from pysparkling.sql.internal_utils.joins import *
+from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.storagelevel import StorageLevel
 
 from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
@@ -16,7 +18,7 @@ from pysparkling.sql.functions import parse, count, lit, struct
 from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, get_keyfunc, \
-    row_from_keyed_values, str_half_width, pad_cell, merge_rows, format_cell, portable_hash
+    row_from_keyed_values, str_half_width, pad_cell, merge_rows_joined_on_values, format_cell, portable_hash, merge_rows
 
 if sys.version >= '3':
     basestring = str
@@ -651,17 +653,37 @@ class DataFrameInternal(object):
         return schema, table
 
     def join(self, other, on, how):
-        # todo: add support of how
-        if isinstance(on, basestring):
-            new_schema = merge_schemas(self.bound_schema, other.bound_schema, field_not_to_duplicate=on)
-            output_rdd = self.join_on_values(other, on)
+        how = how.lower().replace("_", "")
+        if how not in JOIN_TYPES:
+            raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
+        how = JOIN_TYPES[how]
+
+        if how == CROSS_JOIN and on is not None:
+            raise IllegalArgumentException("`on` must be None for a crossJoin")
+
+        if how != CROSS_JOIN and on is None:
+            raise IllegalArgumentException(
+                "Join condition is missing. "
+                "Use the CROSS JOIN syntax to allow cartesian products"
+            )
+
+        if isinstance(on, list) and all(isinstance(col, str) for col in on):
+            merged_schema = merge_schemas(
+                self.bound_schema,
+                other.bound_schema,
+                how,
+                on=on
+            )
+            output_rdd = self.join_on_values(other, on, how)
+        elif not isinstance(on, list):
+            merged_schema = merge_schemas(self.bound_schema, other.bound_schema, how)
+            output_rdd = self.join_on_condition(other, on, how, merged_schema)
         else:
-            new_schema = merge_schemas(self.bound_schema, other.bound_schema)
-            output_rdd = self.join_on_condition(other, on, new_schema)
+            raise NotImplementedError("Pysparkling only supports str, Column and list of str for on")
 
-        return self._with_rdd(output_rdd, schema=new_schema)
+        return self._with_rdd(output_rdd, schema=merged_schema)
 
-    def join_on_condition(self, other, on, new_schema):
+    def join_on_condition(self, other, on, how, new_schema):
         """
 
         :type other: DataFrameInternal
@@ -670,38 +692,55 @@ class DataFrameInternal(object):
         def condition(couple):
             left, right = couple
             merged_rows = merge_rows(left, right)
-            return on.eval(merged_rows, schema=new_schema)
+            condition_value = on.eval(merged_rows, schema=new_schema)
+            return condition_value
 
         joined_rdd = self.rdd().cartesian(other.rdd()).filter(condition)
 
         def format_output(entry):
             left, right = entry
 
-            return merge_rows(left, right)
+            return merge_rows(left, right)  # , self.bound_schema, other.bound_schema, how)
 
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
 
-    def join_on_values(self, other, on):
-        on_column = parse(on)
+    def join_on_values(self, other, on, how):
+        if how != CROSS_JOIN:
+            def add_key(row):
+                # When joining on value, no check on schema (and lack of duplicated col) is done
+                return tuple(row[on_column] for on_column in on), row
+        else:
+            def add_key(row):
+                return True, row
 
-        def add_key(row, schema):
-            return on_column.eval(row, schema), row
-
-        keyed_self = self.rdd().map(partial(add_key, schema=self.bound_schema))
-        keyed_other = other.rdd().map(partial(add_key, schema=other.bound_schema))
-        joined_rdd = keyed_self.join(keyed_other)
+        keyed_self = self.rdd().map(add_key)
+        keyed_other = other.rdd().map(add_key)
+        if how == LEFT_JOIN:
+            joined_rdd = keyed_self.leftOuterJoin(keyed_other)
+        elif how == RIGHT_JOIN:
+            joined_rdd = keyed_self.rightOuterJoin(keyed_other)
+        elif how == FULL_JOIN:
+            joined_rdd = keyed_self.fullOuterJoin(keyed_other)
+        elif how in (INNER_JOIN, CROSS_JOIN):
+            joined_rdd = keyed_self.join(keyed_other)
+        elif how == LEFT_ANTI_JOIN:
+            joined_rdd = keyed_self._leftAntiJoin(keyed_other)
+        elif how == LEFT_SEMI_JOIN:
+            joined_rdd = keyed_self._leftSemiJoin(keyed_other)
+        else:
+            raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
 
         def format_output(entry):
             key, (left, right) = entry
 
-            return merge_rows(left, right, on)
+            return merge_rows_joined_on_values(left, right, self.bound_schema, other.bound_schema, how, on)
 
         output_rdd = joined_rdd.map(format_output)
         return output_rdd
 
     def crossJoin(self, other):
-        return self.join(other, on=lit(True), how="left")
+        return self.join(other, on=None, how="inner")
 
     def exceptAll(self, other):
         def except_all_within_partition(self_partition, other_partition):

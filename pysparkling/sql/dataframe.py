@@ -626,40 +626,142 @@ class DataFrame(object):
         jdf = self._jdf.crossJoin(other._jdf)
         return DataFrame(jdf, self.sql_ctx)
 
-    def join(self, other, on=None, how=None):
+    def join(self, other, on=None, how="inner"):
         """
-
+        # >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
+        # >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
+        # >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).show()
+        # +----+----------+---+
+        # |name|      time|  n|
+        # +----+----------+---+
+        # |   o|1479441846|  a|
+        # |   o|1479441846|  b|
+        # |   o|1479441846|  o|
+        # +----+----------+---+
+        # >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
+        #
+        # >>> a.join(c, on=(a.name == c.name)).show()
+        # +----+----------+----+
+        # |name|      time|name|
+        # +----+----------+----+
+        # |   o|1479441846|   o|
+        # +----+----------+----+
+        # >>> a.join(c, on=(a.name != c.name)).show()
+        # +----+----------+----+
+        # |name|      time|name|
+        # +----+----------+----+
+        # |   o|1479441846|   a|
+        # |   o|1479441846|   b|
+        # +----+----------+----+
+        # >>> c.join(d, on="id", how="inner").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  2|
+        # +---+
+        # >>> c.join(d, on="id", how="left_outer").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  2|
+        # |  4|
+        # +---+
+        # >>> c.join(d, on="id", how="right_outer").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  1|
+        # |  2|
+        # +---+
+        # >>> c.join(d, on="id", how="full_outer").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  2|
+        # |  1|
+        # |  4|
+        # +---+
+        # >>> c.join(d, on="id", how="leftsemi").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  2|
+        # +---+
+        # >>> c.join(d, on="id", how="leftanti").show()
+        # +---+
+        # | id|
+        # +---+
+        # |  4|
+        # +---+
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import length, col
+        >>> from pysparkling.sql.functions import length, col, lit
         >>> spark = SparkSession(Context())
-        >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
-        >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
-        >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).show()
-        +----+----------+---+
-        |name|      time|  n|
-        +----+----------+---+
-        |   o|1479441846|  a|
-        |   o|1479441846|  b|
-        |   o|1479441846|  o|
-        +----+----------+---+
-        >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
+        >>> left_df = spark.range(1, 3).select(lit("test_value"), (col("id")*2).alias("id"), lit("left").alias("side"))
+        >>> right_df = spark.range(1, 3).select(lit("test_value"), col("id"), lit("right").alias("side"))
+        >>>
+        >>> left_df.join(right_df, on="id", how="inner").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  2|test_value|left|test_value|right|
+        +---+----------+----+----------+-----+
 
-        >>> a.join(c, on=(a.name == c.name)).show()
-        +----+----------+----+
-        |name|      time|name|
-        +----+----------+----+
-        |   o|1479441846|   o|
-        +----+----------+----+
-        >>> a.join(c, on=(a.name != c.name)).show()
-        +----+----------+----+
-        |name|      time|name|
-        +----+----------+----+
-        |   o|1479441846|   a|
-        |   o|1479441846|   b|
-        +----+----------+----+
+        >>> left_df.join(right_df, on="id", how="left_outer").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  2|test_value|left|test_value|right|
+        |  4|test_value|left|      null| null|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="right_outer").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  1|      null|null|test_value|right|
+        |  2|test_value|left|test_value|right|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="full_outer").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  2|test_value|left|test_value|right|
+        |  1|      null|null|test_value|right|
+        |  4|test_value|left|      null| null|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="leftsemi").show()
+        +---+----------+----+
+        | id|test_value|side|
+        +---+----------+----+
+        |  2|test_value|left|
+        +---+----------+----+
+
+        >>> left_df.join(right_df, on="id", how="leftanti").show()
+        +---+----------+----+
+        | id|test_value|side|
+        +---+----------+----+
+        |  4|test_value|left|
+        +---+----------+----+
+        >>> # Degenerated case:
+        >>> degen_left = left_df.select(left_df.id, (left_df.id*2).alias("id"))
+        >>> degen_right = right_df.select(right_df.id, (right_df.id*2).alias("id"))
+        >>> degen_left.join(degen_right, on="id", how="outer").show()
+        +---+----+----+
+        | id|  id|  id|
+        +---+----+----+
+        |  2|   4|   4|
+        |  1|null|   2|
+        |  4|   8|null|
+        +---+----+----+
+
         """
         # noinspection PyProtectedMember
+        if isinstance(on, str):
+            return self.join(other=other, on=[on], how=how)
+
         return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
     def sortWithinPartitions(self, *cols, ascending=True):

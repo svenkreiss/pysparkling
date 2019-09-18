@@ -1,5 +1,8 @@
 from functools import reduce
-from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType
+
+from pysparkling.sql.internal_utils.joins import *
+from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType, StructField
+from pysparkling.sql.utils import IllegalArgumentException
 
 
 def infer_schema_from_rdd(rdd):
@@ -29,11 +32,30 @@ def infer_schema_from_list(data, names=None):
     return schema
 
 
-def merge_schemas(first, second, field_not_to_duplicate=None):
-    fields = [field for field in first.fields] + [
-        field for field in second.fields if field.name != field_not_to_duplicate
-    ]
-    return StructType(fields)
+def merge_schemas(left_schema, right_schema, how, on=None):
+    if on is None:
+        on = []
+
+    left_on_fields, right_on_fields = get_on_fields(left_schema, right_schema, on)
+    other_left_fields = [field for field in left_schema.fields if field not in left_on_fields]
+    other_right_fields = [field for field in right_schema.fields if field not in right_on_fields]
+
+    if how in (INNER_JOIN, CROSS_JOIN, LEFT_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN):
+        on_fields = left_on_fields
+    elif how == RIGHT_JOIN:
+        on_fields = right_on_fields
+    elif how == FULL_JOIN:
+        on_fields = [StructField(field.name, field.dataType, nullable=True) for field in left_on_fields]
+    else:
+        raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
+
+    return StructType(fields=on_fields + other_left_fields + other_right_fields)
+
+
+def get_on_fields(left_schema, right_schema, on):
+    left_on_fields = [next(field for field in left_schema if field.name == c) for c in on]
+    right_on_fields = [next(field for field in right_schema if field.name == c) for c in on]
+    return left_on_fields, right_on_fields
 
 
 def get_schema_from_cols(cols, current_schema):
