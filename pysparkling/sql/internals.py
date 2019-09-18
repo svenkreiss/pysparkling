@@ -823,8 +823,6 @@ class DataFrameInternal(object):
 
     def hash_partition_and_sort(self, other):
         num_partitions = max(self.rdd().getNumPartitions(), 200)
-        # if sys.version_info >= (3, 2, 3) and 'PYTHONHASHSEED' not in os.environ:
-        #     raise Exception("Randomness of hash of string should be disabled via PYTHONHASHSEED")
 
         def prepare_rdd(rdd):
             return rdd.partitionBy(num_partitions, portable_hash).mapPartitions(sorted)
