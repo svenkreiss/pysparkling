@@ -1733,3 +1733,21 @@ INTERNAL_TYPE_ORDER = [
     bool,
     str
 ]
+
+PYTHON_TO_SPARK_TYPE = {
+    datetime.datetime: TimestampType(),
+    datetime.date: DateType(),
+    float: FloatType(),
+    int: IntegerType(),
+    bool: BooleanType(),
+    str: StringType()
+}
+
+
+def python_to_spark_type(python_type):
+    """
+    :type python_type: type
+    :rtype DataType
+    """
+    # todo: support Decimal
+    return PYTHON_TO_SPARK_TYPE[python_type]
