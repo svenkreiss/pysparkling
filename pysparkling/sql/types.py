@@ -1750,4 +1750,8 @@ def python_to_spark_type(python_type):
     :rtype DataType
     """
     # todo: support Decimal
-    return PYTHON_TO_SPARK_TYPE[python_type]
+    if python_type in PYTHON_TO_SPARK_TYPE:
+        return PYTHON_TO_SPARK_TYPE[python_type]
+    raise NotImplementedError(
+        "Pysparkling does not currently support type {0} for the requested operation".format(python_type)
+    )
