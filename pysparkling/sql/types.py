@@ -1726,21 +1726,21 @@ def string_to_type(string):
 # Lower order types are converted to first order type when performing operation
 # across multiple types (e.g. datetime.date(2019,1,1) == "2019-01-01")
 INTERNAL_TYPE_ORDER = [
-    datetime.datetime,
-    datetime.date,
     float,
     int,
+    str,
     bool,
-    str
+    datetime.datetime,
+    datetime.date,
 ]
 
 PYTHON_TO_SPARK_TYPE = {
-    datetime.datetime: TimestampType(),
-    datetime.date: DateType(),
     float: FloatType(),
     int: IntegerType(),
+    str: StringType(),
     bool: BooleanType(),
-    str: StringType()
+    datetime.datetime: TimestampType(),
+    datetime.date: DateType(),
 }
 
 
