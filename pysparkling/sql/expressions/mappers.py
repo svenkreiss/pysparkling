@@ -281,65 +281,40 @@ class Negate(UnaryExpression):
         return "(- {0})".format(self.column)
 
 
-class Add(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Add(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return self.arg1.eval(row, schema) + self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} + {1})".format(self.arg1, self.arg2)
 
 
-class Minus(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Minus(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return self.arg1.eval(row, schema) - self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} - {1})".format(self.arg1, self.arg2)
 
 
-class Time(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Time(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return self.arg1.eval(row, schema) * self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} * {1})".format(self.arg1, self.arg2)
 
 
-class Divide(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Divide(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return self.arg1.eval(row, schema) / self.arg2.eval(row, schema)
 
     def __str__(self):
         return "({0} / {1})".format(self.arg1, self.arg2)
 
 
-class Mod(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Mod(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return self.arg1.eval(row, schema) % self.arg2.eval(row, schema)
 
     def __str__(self):
