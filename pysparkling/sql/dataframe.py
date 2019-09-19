@@ -1,6 +1,8 @@
 import sys
 import warnings
 
+from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
+from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.storagelevel import StorageLevel
 # noinspection PyProtectedMember
 from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
@@ -761,6 +763,20 @@ class DataFrame(object):
         # noinspection PyProtectedMember
         if isinstance(on, str):
             return self.join(other=other, on=[on], how=how)
+
+        how = how.lower().replace("_", "")
+        if how not in JOIN_TYPES:
+            raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
+        how = JOIN_TYPES[how]
+
+        if how == CROSS_JOIN and on is not None:
+            raise IllegalArgumentException("`on` must be None for a crossJoin")
+
+        if how != CROSS_JOIN and on is None:
+            raise IllegalArgumentException(
+                "Join condition is missing. "
+                "Use the CROSS JOIN syntax to allow cartesian products"
+            )
 
         return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
