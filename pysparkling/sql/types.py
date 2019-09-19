@@ -1720,3 +1720,16 @@ def string_to_type(string):
             precision, scale = arguments, 0
         return DecimalType(precision=int(precision), scale=int(scale))
     raise ParseException("Unable to parse data type {0}".format(string))
+
+
+# Internal type hierarchy:
+# Lower order types are converted to first order type when performing operation
+# across multiple types (e.g. datetime.date(2019,1,1) == "2019-01-01")
+INTERNAL_TYPE_ORDER = [
+    datetime.datetime,
+    datetime.date,
+    float,
+    int,
+    bool,
+    str
+]
