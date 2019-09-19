@@ -37,85 +37,85 @@ class Column(object):
         return Column(Negate(self))
 
     def __add__(self, other):
-        return Column(Add(self, parse(other)))
+        return Column(Add(self, parse_operator(other)))
 
     def __sub__(self, other):
-        return Column(Minus(self, parse(other)))
+        return Column(Minus(self, parse_operator(other)))
 
     def __mul__(self, other):
-        return Column(Time(self, parse(other)))
+        return Column(Time(self, parse_operator(other)))
 
     def __div__(self, other):
-        return Column(Divide(self, parse(other)))
+        return Column(Divide(self, parse_operator(other)))
 
     def __truediv__(self, other):
-        return Column(Divide(self, parse(other)))
+        return Column(Divide(self, parse_operator(other)))
 
     def __mod__(self, other):
-        return Column(Mod(self, parse(other)))
+        return Column(Mod(self, parse_operator(other)))
 
     def __radd__(self, other):
-        return Column(Add(parse(other), self))
+        return Column(Add(parse_operator(other), self))
 
     def __rsub__(self, other):
-        return Column(Minus(parse(other), self))
+        return Column(Minus(parse_operator(other), self))
 
     def __rmul__(self, other):
-        return Column(Time(parse(other), self))
+        return Column(Time(parse_operator(other), self))
 
     def __rdiv__(self, other):
-        return Column(Divide(parse(other), self))
+        return Column(Divide(parse_operator(other), self))
 
     def __rtruediv__(self, other):
-        return Column(Divide(parse(other), self))
+        return Column(Divide(parse_operator(other), self))
 
     def __rmod__(self, other):
-        return Column(Mod(parse(other), self))
+        return Column(Mod(parse_operator(other), self))
 
     def __pow__(self, power):
-        return Column(Pow(self, parse(power)))
+        return Column(Pow(self, parse_operator(power)))
 
     def __rpow__(self, power):
-        return Column(Pow(parse(power), self))
+        return Column(Pow(parse_operator(power), self))
 
     # logistic operators
     def __eq__(self, other):
-        return Column(Equal(self, parse(other)))
+        return Column(Equal(self, parse_operator(other)))
 
     def __ne__(self, other):
-        return Column(Negate(Equal(self, parse(other))))
+        return Column(Negate(Equal(self, parse_operator(other))))
 
     def __lt__(self, other):
-        return Column(LessThan(self, parse(other)))
+        return Column(LessThan(self, parse_operator(other)))
 
     def __le__(self, other):
-        return Column(LessThanOrEqual(self, parse(other)))
+        return Column(LessThanOrEqual(self, parse_operator(other)))
 
     def __ge__(self, other):
-        return Column(GreaterThanOrEqual(self, parse(other)))
+        return Column(GreaterThanOrEqual(self, parse_operator(other)))
 
     def __gt__(self, other):
-        return Column(GreaterThan(self, parse(other)))
+        return Column(GreaterThan(self, parse_operator(other)))
 
     def eqNullSafe(self, other):
-        return Column(EqNullSafe(self, parse(other)))
+        return Column(EqNullSafe(self, parse_operator(other)))
 
     # `and`, `or`, `not` cannot be overloaded in Python,
     # so use bitwise operators as boolean operators
     def __and__(self, other):
-        return Column(And(self, parse(other)))
+        return Column(And(self, parse_operator(other)))
 
     def __or__(self, other):
-        return Column(Or(self, parse(other)))
+        return Column(Or(self, parse_operator(other)))
 
     def __invert__(self):
         return Column(Invert(self))
 
     def __rand__(self, other):
-        return Column(And(parse(other), self))
+        return Column(And(parse_operator(other), self))
 
     def __ror__(self, other):
-        return Column(Or(parse(other), self))
+        return Column(Or(parse_operator(other), self))
 
     # container operators
     def __contains__(self, item):
@@ -123,13 +123,13 @@ class Column(object):
                          "in a string column or 'array_contains' function for an array column.")
 
     def bitwiseOR(self, other):
-        return Column(BitwiseOr(self, parse(other)))
+        return Column(BitwiseOr(self, parse_operator(other)))
 
     def bitwiseAND(self, other):
-        return Column(BitwiseAnd(self, parse(other)))
+        return Column(BitwiseAnd(self, parse_operator(other)))
 
     def bitwiseXOR(self, other):
-        return Column(BitwiseXor(self, parse(other)))
+        return Column(BitwiseXor(self, parse_operator(other)))
 
     def getItem(self, key):
         """
@@ -197,20 +197,20 @@ class Column(object):
         raise TypeError("Column is not iterable")
 
     def contains(self, other):
-        return Column(Contains(self, parse(other)))
+        return Column(Contains(self, parse_operator(other)))
 
     # todo: Like
     # def rlike(self, other):
-    #     return Column(RegexLike(self, parse(other)))
+    #     return Column(RegexLike(self, parse_operator(other)))
     #
     # def like(self, other):
-    #     return Column(Like(self, parse(other)))
+    #     return Column(Like(self, parse_operator(other)))
 
     def startswith(self, substr):
-        return Column(StartsWith(self, parse(substr)))
+        return Column(StartsWith(self, parse_operator(substr)))
 
     def endswith(self, substr):
-        return Column(EndsWith(self, parse(substr)))
+        return Column(EndsWith(self, parse_operator(substr)))
 
     def substr(self, startPos, length):
         """
@@ -568,3 +568,15 @@ def parse(arg):
         return Column(arg)
     return Literal(value=arg)
 
+
+def parse_operator(arg):
+    """
+    Column operations such as df.name == "Alice" consider "Alice" as a lit, not a column
+
+    :rtype: Column
+    """
+    if isinstance(arg, Column):
+        return arg
+    if arg == "*":
+        return Column(StarOperator())
+    return Literal(value=arg)
