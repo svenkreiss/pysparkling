@@ -1,7 +1,8 @@
 from functools import reduce
 
 from pysparkling.sql.internal_utils.joins import *
-from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType, StructField
+from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType, StructField, NullType, \
+    _get_null_fields
 from pysparkling.sql.utils import IllegalArgumentException
 
 
@@ -28,7 +29,11 @@ def infer_schema_from_list(data, names=None):
         )
     schema = reduce(_merge_type, (_infer_schema(row, names) for row in data))
     if _has_nulltype(schema):
-        raise ValueError("Some of types cannot be determined after inferring")
+        raise ValueError(
+            "Type(s) of the following field(s) cannot be determined after inferring: '{0}'".format(
+                "', '".join(_get_null_fields(schema))
+            )
+        )
     return schema
 
 

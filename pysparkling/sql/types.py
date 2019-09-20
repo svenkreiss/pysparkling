@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import itertools
 import sys
 import decimal
 import time
@@ -1038,6 +1038,30 @@ def _has_nulltype(dt):
         return _has_nulltype(dt.keyType) or _has_nulltype(dt.valueType)
     else:
         return isinstance(dt, NullType)
+
+
+def _get_null_fields(field, prefix=""):
+    """ Return all field names which have a NullType in `field`"""
+    if isinstance(field, StructType):
+        return list(itertools.chain(*(
+            _get_null_fields(f) for f in field.fields
+        )))
+
+    if prefix:
+        prefixed_field_name = "{0}.{1}".format(prefix, field.name)
+    else:
+        prefixed_field_name = field.name
+
+    if isinstance(field, ArrayType):
+        return _get_null_fields(field.elementType, prefix=prefixed_field_name+".elements")
+
+    if isinstance(field, MapType):
+        return [
+            _get_null_fields(field.keyType, prefix=prefixed_field_name+".keys") +
+            _get_null_fields(field.valueType, prefix=prefixed_field_name+".values")
+        ]
+
+    return [prefixed_field_name] if isinstance(field.dataType, NullType) else []
 
 
 def _merge_type(a, b, name=None):
