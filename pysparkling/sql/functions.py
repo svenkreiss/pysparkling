@@ -1032,11 +1032,11 @@ def lpad(str, len, pad):
     return col(StringLPad(str, len, pad))
 
 
-def ltrim(e, trimString=" "):
+def ltrim(e):
     """
     :rtype: Column
     """
-    return col(StringLTrim(e, trimString))
+    return col(StringLTrim(e))
 
 
 def regexp_extract(e, exp, groupIdx):
@@ -1096,11 +1096,11 @@ def repeat(str, n):
     return col(StringRepeat(str, n))
 
 
-def rtrim(e, trimString=" "):
+def rtrim(e):
     """
     :rtype: Column
     """
-    return col(StringRTrim(e, trimString))
+    return col(StringRTrim(e))
 
 
 def soundex(e):
@@ -1138,11 +1138,11 @@ def translate(srcCol, matchingString, replaceString):
     return col(StringTranslate(srcCol, matchingString, replaceString))
 
 
-def trim(e, trimString=" "):
+def trim(e):
     """
     :rtype: Column
     """
-    return col(StringTrim(e, trimString))
+    return col(StringTrim(parse(e)))
 
 
 def upper(e):
