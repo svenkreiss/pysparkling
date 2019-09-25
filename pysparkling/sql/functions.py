@@ -1087,7 +1087,7 @@ def rpad(str, len, pad):
     """
     :rtype: Column
     """
-    return col(StringRPad(str, len, pad))
+    return col(StringRPad(parse(str), len, pad))
 
 
 def repeat(str, n):
