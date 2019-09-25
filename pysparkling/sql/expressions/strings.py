@@ -26,6 +26,23 @@ class StringRTrim(UnaryExpression):
         return "rtrim({0})".format(self.column)
 
 
+class StringInStr(Expression):
+    def __init__(self, substr, column):
+        super().__init__(column)
+        self.substr = substr
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        return int(self.substr in value)
+
+    def __str__(self):
+        return "instr({0}, {1})".format(
+            self.substr,
+            self.column
+        )
+
+
 class StringLocate(Expression):
     def __init__(self, substr, column, pos):
         super().__init__(column)
@@ -34,7 +51,7 @@ class StringLocate(Expression):
         self.start = pos - 1
 
     def eval(self, row, schema):
-        value = self.column.eval(row, schema)
+        value = self.column.cast(StringType()).eval(row, schema)
         if self.substr not in value[self.start:]:
             return 0
         return value.index(self.substr, self.start) + 1
