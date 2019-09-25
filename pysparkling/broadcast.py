@@ -55,6 +55,8 @@ if __name__ == "__main__":
     $ python -m pysparkling.broadcast -v
     """
     import doctest
+    import sys
+
     failure_count, _ = doctest.testmod()
     if failure_count:
-        exit(-1)
+        sys.exit(-1)
