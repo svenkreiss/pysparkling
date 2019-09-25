@@ -1580,7 +1580,7 @@ def _check_series_localize_timestamps(s, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.Series that have been converted to tz-naive
     """
-    from pyspark.sql.utils import require_minimum_pandas_version
+    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
     from pandas.api.types import is_datetime64tz_dtype
@@ -1600,7 +1600,7 @@ def _check_dataframe_localize_timestamps(pdf, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.DataFrame where any timezone aware columns have been converted to tz-naive
     """
-    from pyspark.sql.utils import require_minimum_pandas_version
+    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
     for column, series in pdf.iteritems():
@@ -1617,7 +1617,7 @@ def _check_series_convert_timestamps_internal(s, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.Series where if it is a timestamp, has been UTC normalized without a time zone
     """
-    from pyspark.sql.utils import require_minimum_pandas_version
+    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
     from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
@@ -1670,7 +1670,7 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
     :param to_timezone: the timezone to convert to. if None then use local timezone
     :return pandas.Series where if it is a timestamp, has been converted to tz-naive
     """
-    from pyspark.sql.utils import require_minimum_pandas_version
+    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
     import pandas as pd

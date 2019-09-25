@@ -234,7 +234,7 @@ class SparkSession(object):
             has_pandas = False
 
         if has_pandas and isinstance(data, pandas.DataFrame):
-            from pyspark.sql.utils import require_minimum_pandas_version
+            from pysparkling.sql.utils import require_minimum_pandas_version
             require_minimum_pandas_version()
 
             # todo: Add support of pandasRespectSessionTimeZone

@@ -1566,7 +1566,7 @@ class DataFrame(object):
         return result
 
     def toPandas(self):
-        from pyspark.sql.utils import require_minimum_pandas_version
+        from pysparkling.sql.utils import require_minimum_pandas_version
         require_minimum_pandas_version()
 
         import pandas as pd
