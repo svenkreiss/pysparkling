@@ -1023,7 +1023,7 @@ def locate(substr, str, pos=1):
     """
     :rtype: Column
     """
-    return col(StringLocate(substr, str, pos))
+    return col(StringLocate(substr, parse(str), pos))
 
 
 def lpad(str, len, pad):
