@@ -23,3 +23,15 @@ class StringLTrim(Expression):
 
     def __str__(self):
         return "ltrim({0})".format(self.column)
+
+
+class StringRTrim(Expression):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+
+    def eval(self, row, schema):
+        return self.column.eval(row, schema).rstrip()
+
+    def __str__(self):
+        return "rtrim({0})".format(self.column)
