@@ -183,7 +183,7 @@ class RDDTest(unittest.TestCase):
                           (1, r[1::3]),
                           (2, r[2::3]))
 
-        grouped_dict = {k: v for k, v in actual_group}
+        grouped_dict = dict(actual_group)
 
         for k, v in expected_group:
             self.assertIn(k, grouped_dict)
@@ -216,7 +216,7 @@ class RDDTest(unittest.TestCase):
                           (1, IncomparableValueAddable(5)),
                           (2, IncomparableValueAddable(7)))
 
-        grouped_dict = {k: v for k, v in actual_group}
+        grouped_dict = dict(actual_group)
 
         # Keep this order-agnostic
         for k, v in expected_group:
@@ -247,7 +247,7 @@ class RDDTest(unittest.TestCase):
                           (1, IncomparableValueAddable(5)),
                           (2, IncomparableValueAddable(7)))
 
-        grouped_dict = {k: v for k, v in actual_group}
+        grouped_dict = dict(actual_group)
 
         # Keep this order-agnostic
         for k, v in expected_group:
