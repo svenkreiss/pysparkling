@@ -1,4 +1,5 @@
 from pysparkling.sql.expressions.dates import *
+from pysparkling.sql.expressions.strings import *
 from pysparkling.sql.types import StringType
 
 from pysparkling.sql.column import parse, Column
