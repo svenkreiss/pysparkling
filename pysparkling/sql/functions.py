@@ -1156,7 +1156,7 @@ def add_months(startDate, numMonths):
     """
     :rtype: Column
     """
-    return col(AddMonths(startDate, numMonths))
+    return col(AddMonths(parse(startDate), numMonths))
 
 
 def current_date():
