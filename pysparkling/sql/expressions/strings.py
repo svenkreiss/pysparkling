@@ -11,3 +11,15 @@ class StringTrim(Expression):
 
     def __str__(self):
         return "trim({0})".format(self.column)
+
+
+class StringLTrim(Expression):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+
+    def eval(self, row, schema):
+        return self.column.eval(row, schema).lstrip()
+
+    def __str__(self):
+        return "ltrim({0})".format(self.column)
