@@ -1,4 +1,5 @@
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
+from pysparkling.sql.types import StringType
 
 
 class StringTrim(UnaryExpression):
@@ -43,4 +44,25 @@ class StringLocate(Expression):
             self.substr,
             self.column,
             ", {0}".format(self.start) if self.start is not None else ""
+        )
+
+
+class StringLPad(Expression):
+    def __init__(self, column, length, pad):
+        super().__init__(column)
+        self.column = column
+        self.length = length
+        self.pad = pad
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        delta = self.length - len(value)
+        padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
+        return "{0}{1}".format(padding, value)
+
+    def __str__(self):
+        return "lpad({0}, {1}, {2})".format(
+            self.column,
+            self.length,
+            self.pad
         )

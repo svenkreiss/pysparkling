@@ -1030,7 +1030,7 @@ def lpad(str, len, pad):
     """
     :rtype: Column
     """
-    return col(StringLPad(str, len, pad))
+    return col(StringLPad(parse(str), len, pad))
 
 
 def ltrim(e):
