@@ -1094,7 +1094,7 @@ def repeat(str, n):
     """
     :rtype: Column
     """
-    return col(StringRepeat(str, n))
+    return col(StringRepeat(parse(str), n))
 
 
 def rtrim(e):
