@@ -3,6 +3,7 @@
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
+import math
 from builtins import range, zip
 from collections import defaultdict
 import copy
@@ -27,8 +28,6 @@ from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
-
-maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
 log = logging.getLogger(__name__)
 
@@ -1609,63 +1608,129 @@ class RDD(object):
             )),
         )
 
-    def takeSample(self, n):
-        """take sample
-
-        Assumes samples are evenly distributed between partitions.
-        Only evaluates the partitions that are necessary to return n elements.
-
-        :param int n: The number of elements to sample.
-        :rtype: list
-
-
-        Example:
-
-        >>> from pysparkling import Context
-        >>> Context().parallelize([4, 7, 2]).takeSample(1)[0] in [4, 7, 2]
-        True
-
-
-        Another example where only one partition is computed
-        (check the debug logs):
-
-        >>> from pysparkling import Context
-        >>> d = [4, 9, 7, 3, 2, 5]
-        >>> Context().parallelize(d, 3).takeSample(1)[0] in d
-        True
+    def takeSample(self, withReplacement, num, seed=None):
+        # The code of this function is extracted from PySpark RDD counterpart at
+        # https://spark.apache.org/docs/1.5.0/api/python/_modules/pyspark/rdd.html
+        #
+        # Licensed to the Apache Software Foundation (ASF) under one or more
+        # contributor license agreements.  See the NOTICE file distributed with
+        # this work for additional information regarding copyright ownership.
+        # The ASF licenses this file to You under the Apache License, Version 2.0
+        # (the "License"); you may not use this file except in compliance with
+        # the License.  You may obtain a copy of the License at
+        #
+        #    http://www.apache.org/licenses/LICENSE-2.0
+        #
+        # Unless required by applicable law or agreed to in writing, software
+        # distributed under the License is distributed on an "AS IS" BASIS,
+        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        # See the License for the specific language governing permissions and
+        # limitations under the License.
+        #
         """
+        Return a fixed-size sampled subset of this RDD.
 
-        rnd_entries = sorted([random.random() for _ in range(n)])
-        num_partitions = self.getNumPartitions()
+        .. note:: This method should only be used if the resulting array is expected
+            to be small, as all the data is loaded into the driver's memory.
 
-        rnd_entries = [
-            (
-                int(e * num_partitions),  # partition number
-                e * num_partitions - int(e * num_partitions),  # e in partition
-            )
-            for e in rnd_entries
-        ]
-        partition_indices = [i for i, e in rnd_entries]
-        partitions = [p for i, p in enumerate(self.partitions())
-                      if i in partition_indices]
+        >>> from pysparkling import Context
+        >>> sc = Context()
+        >>> rdd = sc.parallelize(range(0, 10))
+        >>> len(rdd.takeSample(True, 20, 1))
+        20
+        >>> len(rdd.takeSample(False, 5, 2))
+        5
+        >>> len(rdd.takeSample(False, 15, 3))
+        10
+        """
+        numStDev = 10.0
 
-        def res_handler(l):
-            map_results = list(l)
-            entries = itertools.groupby(rnd_entries, lambda e: e[0])
-            r = []
-            for i, e_list in enumerate(entries):
-                p_result = map_results[i]
-                if not p_result:
-                    continue
-                for _, e in e_list[1]:
-                    e_num = int(e * len(p_result))
-                    r.append(p_result[e_num])
-            return r
+        if num < 0:
+            raise ValueError("Sample size cannot be negative.")
+        if num == 0:
+            return []
 
-        return self.context.runJob(
-            self, lambda tc, i: list(i), partitions=partitions,
-            resultHandler=res_handler,
-        )
+        initialCount = self.count()
+        if initialCount == 0:
+            return []
+
+        rand = random.Random(seed)
+
+        if (not withReplacement) and num >= initialCount:
+            # shuffle current RDD and return
+            samples = self.collect()
+            rand.shuffle(samples)
+            return samples
+
+        maxSampleSize = sys.maxsize - int(numStDev * math.sqrt(sys.maxsize))
+        if num > maxSampleSize:
+            raise ValueError(
+                "Sample size cannot be greater than %d." % maxSampleSize)
+
+        fraction = RDD._computeFractionForSampleSize(num, initialCount, withReplacement)
+        samples = self.sample(withReplacement, fraction, seed).collect()
+
+        # If the first sample didn't turn out large enough, keep trying to take samples;
+        # this shouldn't happen often because we use a big multiplier for their initial size.
+        # See: scala/spark/RDD.scala
+        while len(samples) < num:
+            seed = rand.randint(0, sys.maxsize)
+            samples = self.sample(withReplacement, fraction, seed).collect()
+
+        rand.shuffle(samples)
+
+        return samples[0:num]
+
+    @staticmethod
+    def _computeFractionForSampleSize(sampleSizeLowerBound, total, withReplacement):
+        # The code of this function is extracted from PySpark RDD counterpart at
+        # https://spark.apache.org/docs/1.5.0/api/python/_modules/pyspark/rdd.html
+        #
+        # Licensed to the Apache Software Foundation (ASF) under one or more
+        # contributor license agreements.  See the NOTICE file distributed with
+        # this work for additional information regarding copyright ownership.
+        # The ASF licenses this file to You under the Apache License, Version 2.0
+        # (the "License"); you may not use this file except in compliance with
+        # the License.  You may obtain a copy of the License at
+        #
+        #    http://www.apache.org/licenses/LICENSE-2.0
+        #
+        # Unless required by applicable law or agreed to in writing, software
+        # distributed under the License is distributed on an "AS IS" BASIS,
+        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        # See the License for the specific language governing permissions and
+        # limitations under the License.
+        #
+        """
+        Returns a sampling rate that guarantees a sample of
+        size >= sampleSizeLowerBound 99.99% of the time.
+
+        How the sampling rate is determined:
+        Let p = num / total, where num is the sample size and total is the
+        total number of data points in the RDD. We're trying to compute
+        q > p such that
+          - when sampling with replacement, we're drawing each data point
+            with prob_i ~ Pois(q), where we want to guarantee
+            Pr[s < num] < 0.0001 for s = sum(prob_i for i from 0 to
+            total), i.e. the failure rate of not having a sufficiently large
+            sample < 0.0001. Setting q = p + 5 * sqrt(p/total) is sufficient
+            to guarantee 0.9999 success rate for num > 12, but we need a
+            slightly larger q (9 empirically determined).
+          - when sampling without replacement, we're drawing each data point
+            with prob_i ~ Binomial(total, fraction) and our choice of q
+            guarantees 1-delta, or 0.9999 success rate, where success rate is
+            defined the same as in sampling with replacement.
+        """
+        fraction = float(sampleSizeLowerBound) / total
+        if withReplacement:
+            numStDev = 5
+            if sampleSizeLowerBound < 12:
+                numStDev = 9
+            return fraction + numStDev * math.sqrt(fraction / total)
+
+        delta = 0.00005
+        gamma = -math.log(delta) / total
+        return min(1, fraction + gamma + math.sqrt(gamma * gamma + 2 * gamma * fraction))
 
     def toLocalIterator(self):
         """Returns an iterator over the dataset.
@@ -1844,7 +1909,7 @@ class PartitionwiseSampledRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         if seed is None:
-            seed = random.randint(0, maxint)
+            seed = random.randint(0, 2**31)
 
         self.prev = prev
         self.sampler = sampler
