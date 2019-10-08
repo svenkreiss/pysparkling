@@ -121,3 +121,27 @@ class StringRepeat(Expression):
             self.column,
             self.n
         )
+
+
+class StringTranslate(Expression):
+    def __init__(self, column, matching_string, replace_string):
+        super().__init__(column)
+        self.column = column
+        self.matching_string = matching_string
+        self.replace_string = replace_string
+        self.translation_table = str.maketrans(
+            # Python's translate use an opposite importance order as Spark
+            # when there are duplicates in matching_string mapped to different chars
+            matching_string[::-1],
+            replace_string[::-1]
+        )
+
+    def eval(self, row, schema):
+        return self.column.cast(StringType()).eval(row, schema).translate(self.translation_table)
+
+    def __str__(self):
+        return "translate({0}, {1}, {2})".format(
+            self.column,
+            self.matching_string,
+            self.replace_string
+        )
