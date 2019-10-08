@@ -1030,7 +1030,7 @@ class Conv(Expression):
 
     def eval(self, row, schema):
         value = self.column.cast(StringType()).eval(row, schema)
-        return self.do_conv(
+        return self.convert(
             value,
             self.from_base,
             abs(self.to_base),
@@ -1045,7 +1045,7 @@ class Conv(Expression):
         )
 
     @staticmethod
-    def do_conv(from_string, from_base, to_base, positive_only=False):
+    def convert(from_string, from_base, to_base, positive_only=False):
         """
         from_string: from number as a string
         from_base: from base
@@ -1059,25 +1059,25 @@ class Conv(Expression):
         from_base must be positive
         If to_base is
 
-        >>> Conv.do_conv("1248", 10, 10)
+        >>> Conv.convert("1248", 10, 10)
         '1248'
-        >>> Conv.do_conv("1548", 10, 2)
+        >>> Conv.convert("1548", 10, 2)
         '11000001100'
-        >>> Conv.do_conv("44953", 10, 36)
+        >>> Conv.convert("44953", 10, 36)
         'YOP'
-        >>> Conv.do_conv("YOP", 36, 10)
+        >>> Conv.convert("YOP", 36, 10)
         '44953'
-        >>> Conv.do_conv("1234", 5, 10)
+        >>> Conv.convert("1234", 5, 10)
         '194'
-        >>> Conv.do_conv("-1", 36, 10)
+        >>> Conv.convert("-1", 36, 10)
         '-1'
-        >>> Conv.do_conv("-1", 36, 10, positive_only=True)
+        >>> Conv.convert("-1", 36, 10, positive_only=True)
         '18446744073709551615'
-        >>> Conv.do_conv("YOP", 1, 10)  # returns None if from_base < 2
-        >>> Conv.do_conv("YOP", 40, 10)  # returns None if from_base > 36
-        >>> Conv.do_conv("YOP", 36, 40)  # returns None if to_base > 36
-        >>> Conv.do_conv("YOP", 36, 0)  # returns None if to_base < 2
-        >>> Conv.do_conv("YOP", 10, 2)  # returns None if value is not in the from_base
+        >>> Conv.convert("YOP", 1, 10)  # returns None if from_base < 2
+        >>> Conv.convert("YOP", 40, 10)  # returns None if from_base > 36
+        >>> Conv.convert("YOP", 36, 40)  # returns None if to_base > 36
+        >>> Conv.convert("YOP", 36, 0)  # returns None if to_base < 2
+        >>> Conv.convert("YOP", 10, 2)  # returns None if value is not in the from_base
         """
         if not (2 <= from_base <= 36 and 2 <= to_base <= 36) or from_string is None or len(from_string) == 0:
             return None
