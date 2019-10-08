@@ -1136,7 +1136,7 @@ def translate(srcCol, matchingString, replaceString):
     """
     :rtype: Column
     """
-    return col(StringTranslate(srcCol, matchingString, replaceString))
+    return col(StringTranslate(parse(srcCol), matchingString, replaceString))
 
 
 def trim(e):
