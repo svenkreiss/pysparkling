@@ -1131,3 +1131,17 @@ class Unhex(UnaryExpression):
 
     def __str__(self):
         return "unhex({0})".format(self.column)
+
+
+class Ascii(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        if value is None:
+            return None
+        value_as_string = str(value)
+        if len(value_as_string) == 0:
+            return None
+        return ord(value_as_string[0])
+
+    def __str__(self):
+        return "ascii({0})".format(self.column)
