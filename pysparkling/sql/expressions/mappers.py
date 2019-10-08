@@ -1,7 +1,9 @@
 import math
 import random
+import string
 
-from pysparkling.sql.types import StructType, MapType, INTERNAL_TYPE_ORDER, python_to_spark_type, NumericType
+from pysparkling.sql.types import StructType, MapType, INTERNAL_TYPE_ORDER, python_to_spark_type, NumericType, \
+    StringType
 
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
@@ -1017,3 +1019,99 @@ class StringSplit(Expression):
             self.regex,
             ", {0}".format(self.limit) if self.limit is not None else ""
         )
+
+
+class Conv(Expression):
+    def __init__(self, column, from_base, to_base):
+        super().__init__(column)
+        self.column = column
+        self.from_base = from_base
+        self.to_base = to_base
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        return self.do_conv(
+            value,
+            self.from_base,
+            abs(self.to_base),
+            positive_only=self.to_base > 0
+        )
+
+    def __str__(self):
+        return "conv({0}, {1}, {2})".format(
+            self.column,
+            self.from_base,
+            self.to_base
+        )
+
+    @staticmethod
+    def do_conv(from_string, from_base, to_base, positive_only=False):
+        """
+        from_string: from number as a string
+        from_base: from base
+        raw_to_base: to base
+
+        Convert a string representation of a number in base from_base to base raw_to_base
+
+        Both base absolute values must be between 2 and 36
+        otherwise the function returns None.
+
+        from_base must be positive
+        If to_base is
+
+        >>> Conv.do_conv("1248", 10, 10)
+        '1248'
+        >>> Conv.do_conv("1548", 10, 2)
+        '11000001100'
+        >>> Conv.do_conv("44953", 10, 36)
+        'YOP'
+        >>> Conv.do_conv("YOP", 36, 10)
+        '44953'
+        >>> Conv.do_conv("1234", 5, 10)
+        '194'
+        >>> Conv.do_conv("-1", 36, 10)
+        '-1'
+        >>> Conv.do_conv("-1", 36, 10, positive_only=True)
+        '18446744073709551615'
+        >>> Conv.do_conv("YOP", 1, 10)  # returns None if from_base < 2
+        >>> Conv.do_conv("YOP", 40, 10)  # returns None if from_base > 36
+        >>> Conv.do_conv("YOP", 36, 40)  # returns None if to_base > 36
+        >>> Conv.do_conv("YOP", 36, 0)  # returns None if to_base < 2
+        >>> Conv.do_conv("YOP", 10, 2)  # returns None if value is not in the from_base
+        """
+        if not (2 <= from_base <= 36 and 2 <= to_base <= 36) or from_string is None or len(from_string) == 0:
+            return None
+
+        if from_string.startswith("-"):
+            value_is_negative = True
+            from_numbers = from_string[1:]
+        else:
+            value_is_negative = False
+            from_numbers = from_string
+
+        digits = string.digits + string.ascii_uppercase
+        if not set(digits[:from_base]).issuperset(set(from_numbers)):
+            return None
+
+        value = sum(
+            digits.index(digit) * (from_base ** i)
+            for i, digit in enumerate(from_numbers[::-1])
+        )
+
+        if value_is_negative and positive_only:
+            value = 2 ** 64 - value
+
+        returned_string = ""
+        for exp in range(int(math.log(value, to_base)) + 1, -1, -1):
+            factor = (to_base ** exp)
+            number = value // factor
+            value -= number * factor
+            returned_string += digits[number]
+
+        if len(returned_string) > 0:
+            returned_string = returned_string.lstrip("0")
+
+        if value_is_negative and not positive_only:
+            returned_string = "-" + returned_string
+
+        return returned_string
