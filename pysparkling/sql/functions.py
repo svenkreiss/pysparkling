@@ -460,6 +460,34 @@ def isnull(e):
 def monotonically_increasing_id():
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(10).repartition(1).select("id", monotonically_increasing_id()).show()
+    +---+-----------------------------+
+    | id|monotonically_increasing_id()|
+    +---+-----------------------------+
+    |  0|                            0|
+    |  1|                            1|
+    |  2|                            2|
+    |  3|                            3|
+    |  4|                            4|
+    |  5|                            5|
+    |  6|                            6|
+    |  7|                            7|
+    |  8|                            8|
+    |  9|                            9|
+    +---+-----------------------------+
+    >>> spark.range(3).repartition(5).select("id", monotonically_increasing_id()).show()
+    +---+-----------------------------+
+    | id|monotonically_increasing_id()|
+    +---+-----------------------------+
+    |  0|                            0|
+    |  1|                  17179869184|
+    |  2|                  34359738368|
+    +---+-----------------------------+
+
     """
     return col(MonotonicallyIncreasingID())
 
