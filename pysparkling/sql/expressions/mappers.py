@@ -9,7 +9,7 @@ from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, row_from_keyed_values
+from pysparkling.utils import XORShiftRandom, row_from_keyed_values, MonotonicallyIncreasingIDGenerator
 
 
 class BinaryOperation(Expression):
@@ -1145,3 +1145,18 @@ class Ascii(UnaryExpression):
 
     def __str__(self):
         return "ascii({0})".format(self.column)
+
+
+class MonotonicallyIncreasingID(Expression):
+    def __init__(self):
+        super().__init__()
+        self.generator = None
+
+    def eval(self, row, schema):
+        return self.generator.next()
+
+    def initialize(self, partition_index):
+        self.generator = MonotonicallyIncreasingIDGenerator(partition_index)
+
+    def __str__(self):
+        return "monotonically_increasing_id()"

@@ -219,6 +219,15 @@ def format_cell(value):
     return str(value)
 
 
+class MonotonicallyIncreasingIDGenerator(object):
+    def __init__(self, partition_index):
+        self.value = partition_index * 8589934592 - 1
+
+    def next(self):
+        self.value += 1
+        return self.value
+
+
 # todo: store random-related utils in a separated module
 class XORShiftRandom(object):
     # todo: align generated values with the ones in Spark
