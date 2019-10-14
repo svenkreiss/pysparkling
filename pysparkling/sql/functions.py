@@ -858,6 +858,23 @@ def round(e, scale=0):
 def bround(e, scale=0):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(
+    ...     bround(lit(9.1)),
+    ...     bround(lit(9.9)),
+    ...     bround(lit(9.5)),
+    ...     bround(lit(8.5)),
+    ...     bround(lit(15), -1),
+    ...     bround(lit(25), -1)
+    ... ).show()
+    +--------------+--------------+--------------+--------------+--------------+--------------+
+    |bround(9.1, 0)|bround(9.9, 0)|bround(9.5, 0)|bround(8.5, 0)|bround(15, -1)|bround(25, -1)|
+    +--------------+--------------+--------------+--------------+--------------+--------------+
+    |           9.0|          10.0|          10.0|           8.0|            20|            20|
+    +--------------+--------------+--------------+--------------+--------------+--------------+
     """
     return col(Bround(parse(e), scale))
 
