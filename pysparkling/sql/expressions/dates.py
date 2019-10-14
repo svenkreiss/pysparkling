@@ -23,3 +23,11 @@ class Year(UnaryExpression):
 
     def __str__(self):
         return "year({0})".format(self.column)
+
+
+class Month(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(DateType()).eval(row, schema).month
+
+    def __str__(self):
+        return "month({0})".format(self.column)
