@@ -31,3 +31,11 @@ class Month(UnaryExpression):
 
     def __str__(self):
         return "month({0})".format(self.column)
+
+
+class DayOfMonth(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(DateType()).eval(row, schema).day
+
+    def __str__(self):
+        return "dayofmonth({0})".format(self.column)
