@@ -375,6 +375,31 @@ class Round(NullSafeColumnOperation):
         return "round({0}, {1})".format(self.column, self.scale)
 
 
+class Bround(NullSafeColumnOperation):
+    def __init__(self, column, scale):
+        super().__init__(column)
+        self.scale = scale
+
+    def safe_eval(self, value):
+        # Python2's round comply with Spark's round()
+        # Python3's round comply with Spark's bround()
+        # hence we handle the "half" case so that it round even up and odd down
+        scaled_value = (value * (10 ** self.scale))
+        removed_part = scaled_value % 1
+        if removed_part == 0.5:
+            rounded_part = int(scaled_value)
+            is_even = rounded_part % 2 == 0
+            if is_even:
+                value -= 10 ** -(self.scale + 1)
+            else:
+                value += 10 ** -(self.scale + 1)
+
+        return round(value, self.scale)
+
+    def __str__(self):
+        return "bround({0}, {1})".format(self.column, self.scale)
+
+
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
         super().__init__(arg1, arg2)
