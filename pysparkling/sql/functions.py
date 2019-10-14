@@ -832,6 +832,25 @@ def rint(e):
 def round(e, scale=0):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(
+    ...     round(lit(9.1)),
+    ...     round(lit(9.9)),
+    ...     round(lit(9.5)),
+    ...     round(lit(8.5)),
+    ...     round(lit(15), -1),
+    ...     round(lit(25), -1)
+    ... ).show()
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+    |round(9.1, 0)|round(9.9, 0)|round(9.5, 0)|round(8.5, 0)|round(15, -1)|round(25, -1)|
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+    |          9.0|         10.0|         10.0|          9.0|           20|           30|
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+
+
     """
     return col(Round(parse(e), scale))
 
