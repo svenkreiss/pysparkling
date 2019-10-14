@@ -107,6 +107,22 @@ class NullSafeBinaryOperation(BinaryOperation):
         raise NotImplementedError
 
 
+class NullSafeColumnOperation(Expression):
+    def __init__(self, column, *args):
+        super().__init__(column, *args)
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        return self.safe_eval(value)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def safe_eval(self, value):
+        raise NotImplementedError
+
+
 class StarOperator(Expression):
     @property
     def may_output_multiple_cols(self):
