@@ -323,13 +323,8 @@ class Mod(NullSafeBinaryOperation):
         return "({0} % {1})".format(self.arg1, self.arg2)
 
 
-class Pow(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
+class Pow(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
         return float(self.arg1.eval(row, schema) ** self.arg2.eval(row, schema))
 
     def __str__(self):
