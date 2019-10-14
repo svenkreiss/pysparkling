@@ -336,6 +336,14 @@ class Pow(Expression):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
 
 
+class Pmod(NullSafeBinaryOperation):
+    def safe_eval(self, row, schema):
+        return self.arg1.eval(row, schema) % self.arg2.eval(row, schema)
+
+    def __str__(self):
+        return "pmod({0} % {1})".format(self.arg1, self.arg2)
+
+
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
         super().__init__(arg1, arg2)
