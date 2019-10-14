@@ -1051,6 +1051,16 @@ def format_string(format, *exprs):
 def initcap(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(initcap(lit("hello world:o_O"))).show()
+    +------------------------+
+    |initcap(hello world:o_O)|
+    +------------------------+
+    |         Hello World:o_o|
+    +------------------------+
     """
     return col(InitCap(parse(e)))
 
