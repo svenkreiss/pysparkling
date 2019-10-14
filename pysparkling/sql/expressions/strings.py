@@ -145,3 +145,18 @@ class StringTranslate(Expression):
             self.matching_string,
             self.replace_string
         )
+
+
+class InitCap(Expression):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        return " ".join(word.capitalize() for word in value.split())
+
+    def __str__(self):
+        return "initcap({0})".format(self.column)
+
+
