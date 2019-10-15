@@ -1324,7 +1324,7 @@ def dayofweek(e):
     +---+----------+---------+
 
     """
-    return col(DayOfWeek(e))
+    return col(DayOfWeek(parse(e)))
 
 
 def dayofmonth(e):
