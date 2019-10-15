@@ -63,3 +63,12 @@ class DayOfMonth(UnaryExpression):
 
     def __str__(self):
         return "dayofmonth({0})".format(self.column)
+
+
+class DayOfWeek(UnaryExpression):
+    def eval(self, row, schema):
+        date = self.column.eval(row, schema)
+        return date.isoweekday() + 1 if date.isoweekday() != 7 else 0
+
+    def __str__(self):
+        return "dayofweek({0})".format(self.column)
