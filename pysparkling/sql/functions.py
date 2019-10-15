@@ -437,10 +437,7 @@ def coalesce(*exprs):
 
 
 def input_file_name():
-    """
-    :rtype: Column
-    """
-    return col(InputFileName())
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def isnan(e):
@@ -950,51 +947,27 @@ def radians(e):
 
 
 def md5(e):
-    """
-    :rtype: Column
-    """
-    return col(Md5(parse(e)))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def sha1(e):
-    """
-    :rtype: Column
-    """
-    return col(Sha1(parse(e)))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def sha2(e, numBits):
-    """
-    :rtype: Column
-    """
-    if numBits not in (0, 224, 256, 384, 512):
-        raise Exception(
-            "numBits {0} is not in the permitted values (0, 224, 256, 384, 512)".format(numBits)
-        )
-    return col(Sha2(parse(e)))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def crc32(e):
-    """
-    :rtype: Column
-    """
-    return col(Crc32(parse(e)))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def hash(*exprs):
-    """
-    :rtype: Column
-    """
-    cols = [parse(e) for e in exprs]
-    return col(Hash(cols))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def xxhash64(*exprs):
-    """
-    :rtype: Column
-    """
-    cols = [parse(e) for e in exprs]
-    return col(XxHash64(cols))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def ascii(e):
@@ -1448,13 +1421,8 @@ def to_utc_timestamp(ts, tz):
     return col(ToUTCTimestamp(ts, parse(tz)))
 
 
-# def window(timeColumn, windowDuration, slideDuration=None, startTime="0 second"):
-#     """
-#     :rtype: Column
-#     """
-#     if slideDuration:
-#         slideDuration = windowDuration
-#     return
+def window(timeColumn, windowDuration, slideDuration=None, startTime="0 second"):
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def array_contains(column, value):
@@ -1783,7 +1751,4 @@ def udf(f, returnType=DataType()):
 
 
 def callUDF(udfName, *cols):
-    """
-    :rtype: Column
-    """
-    return col(UnresolvedFunction(udfName, cols))
+    raise NotImplementedError("Pysparkling does not support yet this function")
