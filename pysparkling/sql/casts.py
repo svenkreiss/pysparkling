@@ -88,6 +88,12 @@ def cast_to_binary(value, from_type):
 
 
 def cast_to_date(value, from_type):
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    if isinstance(from_type, TimestampType) or isinstance(from_type, DateType):
+        return None  # other values would have been handle in the lines above
     if isinstance(from_type, StringType):
         # Spark cast only considers the first non empty part before a ' ' or a 'T'
         if ' ' in value:
@@ -103,10 +109,7 @@ def cast_to_date(value, from_type):
             return datetime.date(*map(int, date_components))
         except ValueError:
             return None
-    if isinstance(from_type, TimestampType):
-        return value.date()
-    if isinstance(from_type, DateType):
-        return value
+
     raise AnalysisException("Cannot cast type {0} to date".format(from_type))
 
 
