@@ -1,7 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
-from pysparkling.sql.types import DateType
+from pysparkling.sql.types import DateType, TimestampType
 
 
 class AddMonths(Expression):
@@ -31,6 +31,14 @@ class Month(UnaryExpression):
 
     def __str__(self):
         return "month({0})".format(self.column)
+
+
+class Hour(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(TimestampType()).eval(row, schema).hour
+
+    def __str__(self):
+        return "hour({0})".format(self.column)
 
 
 class DayOfMonth(UnaryExpression):
