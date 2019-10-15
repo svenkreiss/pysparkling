@@ -1,6 +1,5 @@
 from pysparkling.sql.expressions.dates import *
 from pysparkling.sql.expressions.strings import *
-from pysparkling.sql.types import StringType
 
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.aggregate.collectors import SumDistinct
@@ -11,6 +10,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.expressions.aggregate.stat_aggregations import *
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
+from pysparkling.sql.userdefined import UserDefinedFunction
 
 
 def col(colName):
@@ -1719,11 +1719,44 @@ def to_csv(e, options=None):
     return col(StructsToCsv(options.asScala.toMap, e.expr))
 
 
-def udf(f, returnType=StringType()):
+def udf(f, returnType=DataType()):
     """
-    :rtype: Column
+    :rtype: function
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(3).select(udf(lambda x: x)("id")).show()
+    +------------+
+    |<lambda>(id)|
+    +------------+
+    |           0|
+    |           1|
+    |           2|
+    +------------+
+    >>> def my_pow(a, b):
+    ...   return a ** b
+    ...
+    >>> spark.range(3).select(udf(my_pow)("id", lit(2))).show()
+    +-------------+
+    |my_pow(id, 2)|
+    +-------------+
+    |            0|
+    |            1|
+    |            4|
+    +-------------+
+
+
     """
-    return col(UserDefinedFunction(f, returnType))
+    def wrapper(*args, **kwargs):
+        if kwargs:
+            raise TypeError("wrapper() got an unexpected keyword argument '{0}'".format(
+                list(kwargs.keys())
+            ))
+        exprs = [parse(arg) for arg in args]
+        return col(UserDefinedFunction(f, returnType, *exprs))
+
+    return wrapper
 
 
 def callUDF(udfName, *cols):
