@@ -65,6 +65,14 @@ class DayOfMonth(UnaryExpression):
         return "dayofmonth({0})".format(self.column)
 
 
+class WeekOfYear(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(DateType()).eval(row, schema).isocalendar()[1]
+
+    def __str__(self):
+        return "weekofyear({0})".format(self.column)
+
+
 class DayOfWeek(UnaryExpression):
     def eval(self, row, schema):
         date = self.column.eval(row, schema)
