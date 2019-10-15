@@ -41,6 +41,14 @@ class Hour(UnaryExpression):
         return "hour({0})".format(self.column)
 
 
+class Minute(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(TimestampType()).eval(row, schema).minute
+
+    def __str__(self):
+        return "minute({0})".format(self.column)
+
+
 class DayOfMonth(UnaryExpression):
     def eval(self, row, schema):
         return self.column.cast(DateType()).eval(row, schema).day
