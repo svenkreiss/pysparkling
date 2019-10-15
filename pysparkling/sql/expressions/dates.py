@@ -75,8 +75,8 @@ class WeekOfYear(UnaryExpression):
 
 class DayOfWeek(UnaryExpression):
     def eval(self, row, schema):
-        date = self.column.eval(row, schema)
-        return date.isoweekday() + 1 if date.isoweekday() != 7 else 0
+        date = self.column.cast(DateType()).eval(row, schema)
+        return date.isoweekday() + 1 if date.isoweekday() != 7 else 1
 
     def __str__(self):
         return "dayofweek({0})".format(self.column)

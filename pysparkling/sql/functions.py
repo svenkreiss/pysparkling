@@ -1300,6 +1300,29 @@ def month(e):
 def dayofweek(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 10).withColumn(
+    ...     "date", concat(lit("2019-01-0"), "id")
+    ... ).withColumn(
+    ...     "dayOfWeek", dayofweek("date")
+    ... ).show()
+    +---+----------+---------+
+    | id|      date|dayOfWeek|
+    +---+----------+---------+
+    |  1|2019-01-01|        3|
+    |  2|2019-01-02|        4|
+    |  3|2019-01-03|        5|
+    |  4|2019-01-04|        6|
+    |  5|2019-01-05|        7|
+    |  6|2019-01-06|        1|
+    |  7|2019-01-07|        2|
+    |  8|2019-01-08|        3|
+    |  9|2019-01-09|        4|
+    +---+----------+---------+
+
     """
     return col(DayOfWeek(e))
 
