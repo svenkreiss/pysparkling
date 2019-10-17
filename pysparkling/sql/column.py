@@ -55,7 +55,7 @@ class Column(object):
         return Column(Mod(self, parse_operator(other)))
 
     def __radd__(self, other):
-        return Column(Add(parse_operator(other), self))
+        return Column(Add(self, parse_operator(other)))
 
     def __rsub__(self, other):
         return Column(Minus(parse_operator(other), self))
