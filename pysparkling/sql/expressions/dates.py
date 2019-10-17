@@ -2,8 +2,9 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 
+from pysparkling.sql.casts import get_time_formatter
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
-from pysparkling.sql.types import DateType, TimestampType
+from pysparkling.sql.types import DateType, TimestampType, FloatType
 
 
 class AddMonths(Expression):
@@ -92,3 +93,18 @@ class DayOfWeek(UnaryExpression):
 
     def __str__(self):
         return "dayofweek({0})".format(self.column)
+
+
+class FromUnixTime(Expression):
+    def __init__(self, column, f):
+        super().__init__(column)
+        self.column = column
+        self.format = f
+        self.formatter = get_time_formatter(self.format)
+
+    def eval(self, row, schema):
+        timestamp = self.column.cast(FloatType()).eval(row, schema)
+        return self.formatter(datetime.datetime.fromtimestamp(timestamp))
+
+    def __str__(self):
+        return "fromunixtime({0}, {1})".format(self.column, self.format)
