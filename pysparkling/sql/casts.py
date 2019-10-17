@@ -257,14 +257,22 @@ def cast_to_decimal(value, from_type, to_type):
 
 
 def cast_to_float(value, from_type):
-    # pysparkling does not mimic the loss of accuracy of Spark nor value
+    # NB: pysparkling does not mimic the loss of accuracy of Spark nor value
     # bounding between float min&max values
-    if isinstance(from_type, DateType):
+
+    if isinstance(value, datetime.datetime):
+        return value.timestamp()
+    if isinstance(value, datetime.date):
         return None
-    if isinstance(from_type, TimestampType):
-        return float(value.timestamp())
-    if isinstance(from_type, (StringType, NumericType)):
+    if isinstance(value, (int, float)):
         return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    if isinstance(from_type, (DateType, TimestampType, NumericType, StringType)):
+        return None
     raise AnalysisException("Cannot cast type {0} to float".format(from_type))
 
 
