@@ -107,4 +107,20 @@ class FromUnixTime(Expression):
         return self.formatter(datetime.datetime.fromtimestamp(timestamp))
 
     def __str__(self):
-        return "fromunixtime({0}, {1})".format(self.column, self.format)
+        return "from_unixtime({0}, {1})".format(self.column, self.format)
+
+
+class CurrentTimestamp(Expression):
+    def __init__(self):
+        super().__init__()
+        self.current_timestamp = None
+
+    def eval(self, row, schema):
+        return self.current_timestamp
+
+    def initialize(self, partition_index):
+        super().initialize(partition_index)
+        self.current_timestamp = datetime.datetime.now()
+
+    def __str__(self):
+        return "currenttimestamp()"
