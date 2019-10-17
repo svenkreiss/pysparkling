@@ -1389,8 +1389,20 @@ def weekofyear(e):
 def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 4).select(from_unixtime(2000000000 + col("id"))).show()
+    +-----------------------------------------------------+
+    |from_unixtime((id + 2000000000), yyyy-MM-dd HH:mm:ss)|
+    +-----------------------------------------------------+
+    |                                  2033-05-18 05:33:21|
+    |                                  2033-05-18 05:33:22|
+    |                                  2033-05-18 05:33:23|
+    +-----------------------------------------------------+
     """
-    return col(FromUnixTime(ut, f))
+    return col(FromUnixTime(parse(ut), f))
 
 
 def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
