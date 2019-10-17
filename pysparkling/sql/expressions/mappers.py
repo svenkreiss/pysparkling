@@ -28,7 +28,7 @@ class BinaryOperation(Expression):
     def __str__(self):
         raise NotImplementedError
 
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
 
 
@@ -50,7 +50,7 @@ class TypeSafeBinaryOperation(BinaryOperation):
         type_1 = value_1.__class__
         type_2 = value_2.__class__
         if type_1 == type_2:
-            return self.safe_eval(value_1, value_2)
+            return self.unsafe_operation(value_1, value_2)
 
         order_1 = INTERNAL_TYPE_ORDER.index(type_1)
         order_2 = INTERNAL_TYPE_ORDER.index(type_2)
@@ -64,12 +64,12 @@ class TypeSafeBinaryOperation(BinaryOperation):
             caster = get_caster(from_type=spark_type_1, to_type=spark_type_2)
             value_1 = caster(value_1)
 
-        return self.safe_eval(value_1, value_2)
+        return self.unsafe_operation(value_1, value_2)
 
     def __str__(self):
         raise NotImplementedError
 
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
 
 
@@ -93,7 +93,7 @@ class NullSafeBinaryOperation(BinaryOperation):
                 isinstance(type_1, NumericType) and
                 isinstance(type_2, NumericType)
         ):
-            return self.safe_eval(value_1, value_2)
+            return self.unsafe_operation(value_1, value_2)
 
         raise AnalysisException(
             "Cannot resolve {0} due to data type mismatch, first value is {1}, second value is {2}."
@@ -103,7 +103,7 @@ class NullSafeBinaryOperation(BinaryOperation):
     def __str__(self):
         raise NotImplementedError
 
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
 
 
@@ -114,12 +114,12 @@ class NullSafeColumnOperation(Expression):
 
     def eval(self, row, schema):
         value = self.column.eval(row, schema)
-        return self.safe_eval(value)
+        return self.unsafe_operation(value)
 
     def __str__(self):
         raise NotImplementedError
 
-    def safe_eval(self, value):
+    def unsafe_operation(self, value):
         raise NotImplementedError
 
 
@@ -300,56 +300,56 @@ class Negate(UnaryExpression):
 
 
 class Add(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) + self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 + value2
 
     def __str__(self):
         return "({0} + {1})".format(self.arg1, self.arg2)
 
 
 class Minus(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) - self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 - value2
 
     def __str__(self):
         return "({0} - {1})".format(self.arg1, self.arg2)
 
 
 class Time(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) * self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 * value2
 
     def __str__(self):
         return "({0} * {1})".format(self.arg1, self.arg2)
 
 
 class Divide(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) / self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 / value2
 
     def __str__(self):
         return "({0} / {1})".format(self.arg1, self.arg2)
 
 
 class Mod(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) % self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 % value2
 
     def __str__(self):
         return "({0} % {1})".format(self.arg1, self.arg2)
 
 
 class Pow(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return float(self.arg1.eval(row, schema) ** self.arg2.eval(row, schema))
+    def unsafe_operation(self, value1, value2):
+        return float(value1 ** value2)
 
     def __str__(self):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
 
 
 class Pmod(NullSafeBinaryOperation):
-    def safe_eval(self, row, schema):
-        return self.arg1.eval(row, schema) % self.arg2.eval(row, schema)
+    def unsafe_operation(self, value1, value2):
+        return value1 % value2
 
     def __str__(self):
         return "pmod({0} % {1})".format(self.arg1, self.arg2)
@@ -360,7 +360,7 @@ class Round(NullSafeColumnOperation):
         super().__init__(column)
         self.scale = scale
 
-    def safe_eval(self, value):
+    def unsafe_operation(self, value):
         # Python2's round comply with Spark's round()
         # Python3's round comply with Spark's bround()
         # hence we handle the "half" case so that it is rounded up
@@ -380,7 +380,7 @@ class Bround(NullSafeColumnOperation):
         super().__init__(column)
         self.scale = scale
 
-    def safe_eval(self, value):
+    def unsafe_operation(self, value):
         # Python2's round comply with Spark's round()
         # Python3's round comply with Spark's bround()
         # hence we handle the "half" case so that it round even up and odd down
@@ -414,7 +414,7 @@ class EqNullSafe(Expression):
 
 
 class Equal(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 == value_2
 
     def __str__(self):
@@ -422,7 +422,7 @@ class Equal(TypeSafeBinaryOperation):
 
 
 class LessThan(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 < value_2
 
     def __str__(self):
@@ -430,7 +430,7 @@ class LessThan(TypeSafeBinaryOperation):
 
 
 class LessThanOrEqual(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 <= value_2
 
     def __str__(self):
@@ -438,7 +438,7 @@ class LessThanOrEqual(TypeSafeBinaryOperation):
 
 
 class GreaterThan(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 > value_2
 
     def __str__(self):
@@ -446,7 +446,7 @@ class GreaterThan(TypeSafeBinaryOperation):
 
 
 class GreaterThanOrEqual(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 >= value_2
 
     def __str__(self):
@@ -454,7 +454,7 @@ class GreaterThanOrEqual(TypeSafeBinaryOperation):
 
 
 class And(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 and value_2
 
     def __str__(self):
@@ -462,7 +462,7 @@ class And(TypeSafeBinaryOperation):
 
 
 class Or(TypeSafeBinaryOperation):
-    def safe_eval(self, value_1, value_2):
+    def unsafe_operation(self, value_1, value_2):
         return value_1 or value_2
 
     def __str__(self):
