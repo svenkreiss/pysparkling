@@ -139,3 +139,21 @@ class UnixTimestamp(Expression):
 
     def __str__(self):
         return "unix_timestamp({0}, {1})".format(self.column, self.format)
+
+
+class ParseToTimestamp(Expression):
+    def __init__(self, column, f):
+        super().__init__(column)
+        self.column = column
+        self.format = f
+        self.parser = get_unix_timestamp_parser(self.format)
+
+    def eval(self, row, schema):
+        datetime_as_string = self.column.eval(row, schema)
+        return datetime.datetime.fromtimestamp(self.parser(datetime_as_string))
+
+    def __str__(self):
+        return "to_timestamp('{0}'{1})".format(
+            self.column,
+            ", '{0}'".format(self.format) if self.format is not None else ""
+        )
