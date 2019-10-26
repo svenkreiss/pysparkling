@@ -123,4 +123,4 @@ class CurrentTimestamp(Expression):
         self.current_timestamp = datetime.datetime.now()
 
     def __str__(self):
-        return "currenttimestamp()"
+        return "current_timestamp()"
