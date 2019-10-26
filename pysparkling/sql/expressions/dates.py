@@ -2,7 +2,7 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 
-from pysparkling.sql.casts import get_time_formatter
+from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType, TimestampType, FloatType
 
@@ -124,3 +124,18 @@ class CurrentTimestamp(Expression):
 
     def __str__(self):
         return "current_timestamp()"
+
+
+class UnixTimestamp(Expression):
+    def __init__(self, column, f):
+        super().__init__(column)
+        self.column = column
+        self.format = f
+        self.parser = get_unix_timestamp_parser(self.format)
+
+    def eval(self, row, schema):
+        datetime_as_string = self.column.eval(row, schema)
+        return self.parser(datetime_as_string)
+
+    def __str__(self):
+        return "unix_timestamp({0}, {1})".format(self.column, self.format)
