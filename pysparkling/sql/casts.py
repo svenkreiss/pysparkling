@@ -1,5 +1,6 @@
 import datetime
 import re
+import time
 import time as _time
 from functools import partial
 
@@ -403,7 +404,7 @@ FORMAT_MAPPING = {
 }
 
 
-def convert_token_to_python(group):
+def get_sub_formatter(group):
     token, letter = group
 
     if token in FORMAT_MAPPING:
@@ -441,3 +442,15 @@ def get_time_formatter(java_time_format):
         return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
 
     return time_formatter
+
+
+def get_unix_timestamp_parser(java_time_format):
+    python_pattern = ""
+    for token, letter in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format):
+        python_pattern += FORMAT_MAPPING.get(token, token)
+
+    def time_parser(value):
+        dt = datetime.datetime.strptime(value, python_pattern)
+        return int(time.mktime(dt.timetuple()))
+
+    return time_parser
