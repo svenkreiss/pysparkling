@@ -1370,8 +1370,26 @@ def months_between(end, start, roundOff=True):
 def next_day(date, dayOfWeek):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 10).select(next_day(concat(lit("2019-11-0"), col("id")), "Mon")).show()
+    +------------------------------------+
+    |next_day(concat(2019-11-0, id), Mon)|
+    +------------------------------------+
+    |                          2019-11-04|
+    |                          2019-11-04|
+    |                          2019-11-04|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    +------------------------------------+
     """
-    return col(NextDay(date, dayOfWeek))
+    return col(NextDay(parse(date), dayOfWeek))
 
 
 def second(e):
