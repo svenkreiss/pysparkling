@@ -1508,7 +1508,7 @@ def trunc(date, format):
 
 
     """
-    return col(TruncDate(date, format))
+    return col(TruncDate(parse(date), format))
 
 
 def date_trunc(format, timestamp):
