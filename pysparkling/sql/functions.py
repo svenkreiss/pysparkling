@@ -1433,6 +1433,22 @@ def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
 def to_timestamp(s, fmt=None):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(to_timestamp(lit("2033-05-18 05:33:21"))).show()
+    +-----------------------------------+
+    |to_timestamp('2033-05-18 05:33:21')|
+    +-----------------------------------+
+    |                2033-05-18 05:33:21|
+    +-----------------------------------+
+    >>> spark.range(1).select(to_timestamp(lit("2019-01-01"), "yyyy-MM-dd")).show()
+    +----------------------------------------+
+    |to_timestamp('2019-01-01', 'yyyy-MM-dd')|
+    +----------------------------------------+
+    |                     2019-01-01 00:00:00|
+    +----------------------------------------+
     """
     return col(ParseToTimestamp(s, fmt))
 
