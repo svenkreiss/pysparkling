@@ -1021,7 +1021,7 @@ class Concat(Expression):
         return "".join(str(col.eval(row, schema)) for col in self.columns)
 
     def __str__(self):
-        return "concat({0})".format(", ".join(col for col in self.columns))
+        return "concat({0})".format(", ".join(str(col) for col in self.columns))
 
 
 class Reverse(UnaryExpression):
