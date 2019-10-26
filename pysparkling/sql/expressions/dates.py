@@ -6,6 +6,8 @@ from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType, TimestampType, FloatType
 
+DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+
 
 class AddMonths(Expression):
     def __init__(self, start_date, num_months):
@@ -103,6 +105,29 @@ class DayOfWeek(UnaryExpression):
 
     def __str__(self):
         return "dayofweek({0})".format(self.column)
+
+
+class NextDay(Expression):
+    def __init__(self, column, day_of_week):
+        super().__init__(column)
+        self.column = column
+        self.day_of_week = day_of_week
+
+    def eval(self, row, schema):
+        value: datetime.datetime = self.column.cast(DateType()).eval(row, schema)
+
+        if self.day_of_week.upper() not in DAYS_OF_WEEK:
+            return None
+
+        today = value.isoweekday()
+        target = DAYS_OF_WEEK.index(self.day_of_week.upper()) + 1
+        delta = target - today
+        if delta <= 0:
+            delta += 7
+        return value + datetime.timedelta(days=delta)
+
+    def __str__(self):
+        return "next_day({0}, {1})".format(self.column, self.day_of_week)
 
 
 class FromUnixTime(Expression):
