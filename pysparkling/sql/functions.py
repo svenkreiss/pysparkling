@@ -872,21 +872,21 @@ def shiftLeft(e, numBits):
     """
     :rtype: Column
     """
-    return col(ShiftLeft(parse(e), numBits))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def shiftRight(e, numBits):
     """
     :rtype: Column
     """
-    return col(ShiftRight(parse(e), numBits))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def shiftRightUnsigned(e, numBits):
     """
     :rtype: Column
     """
-    return col(ShiftRightUnsigned(parse(e), numBits))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def signum(e):
