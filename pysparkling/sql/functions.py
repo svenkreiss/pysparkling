@@ -1456,6 +1456,24 @@ def to_timestamp(s, fmt=None):
 def to_date(e, fmt=None):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(to_date(lit("2033-05-18 05:33:21"))).show()
+    +------------------------------+
+    |to_date('2033-05-18 05:33:21')|
+    +------------------------------+
+    |                    2033-05-18|
+    +------------------------------+
+
+    >>> spark.range(1).select(to_date(lit("2019-01-01"), "yyyy-MM-dd")).show()
+    +-----------------------------------+
+    |to_date('2019-01-01', 'yyyy-MM-dd')|
+    +-----------------------------------+
+    |                         2019-01-01|
+    +-----------------------------------+
+
     """
     return col(ParseToDate(e, fmt))
 
