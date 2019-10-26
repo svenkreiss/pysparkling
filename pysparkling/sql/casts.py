@@ -7,6 +7,8 @@ from pysparkling.sql.types import UserDefinedType, NumericType, _create_row
 from pysparkling.sql.utils import AnalysisException
 from pysparkling.sql.types import *
 
+JAVA_TIME_FORMAT_TOKENS = re.compile("(([a-zA-Z])\\2*|[^a-zA-Z]+)")
+
 TIME_REGEX = re.compile("^([0-9]+):([0-9]+)?(?::([0-9]+))?(?:\\.([0-9]+))?(Z|[+-][0-9]+(?::(?:[0-9]+)?)?)?$")
 
 tz_utc = datetime.timezone(datetime.timedelta(seconds=0))
@@ -430,10 +432,9 @@ def get_time_formatter(java_time_format):
 
     This function currently only support a small subset of Java time formats.
     """
-    r = re.compile("(([a-zA-Z])\\2*|[^a-zA-Z]+)")
     sub_formatters = [
-        convert_token_to_python(token)
-        for token in r.findall(java_time_format)
+        get_sub_formatter(token)
+        for token in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format)
     ]
 
     def time_formatter(value):
