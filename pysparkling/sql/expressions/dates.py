@@ -175,3 +175,23 @@ class ParseToDate(Expression):
             self.column,
             ", '{0}'".format(self.format) if self.format is not None else ""
         )
+
+
+class TruncDate(Expression):
+    def __init__(self, column, f):
+        super().__init__(column)
+        self.column = column
+        self.format = f
+        self.parser = get_unix_timestamp_parser(self.format)
+
+    def eval(self, row, schema):
+        value = self.column.cast(DateType()).eval(row, schema)
+        if self.format in ('year', 'yyyy', 'yy'):
+            return datetime.date(value.year, 1, 1)
+        elif self.format in ('month', 'mon', 'mm'):
+            return datetime.date(value.year, value.month, 1)
+        else:
+            return None
+
+    def __str__(self):
+        return "trunc({0}, {1})".format(self.column, self.format)

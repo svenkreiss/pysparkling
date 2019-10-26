@@ -1481,6 +1481,32 @@ def to_date(e, fmt=None):
 def trunc(date, format):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "year")).show()
+    +-----------------------+
+    |trunc(2019-11-05, year)|
+    +-----------------------+
+    |             2019-01-01|
+    +-----------------------+
+
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "month")).show()
+    +------------------------+
+    |trunc(2019-11-05, month)|
+    +------------------------+
+    |              2019-11-01|
+    +------------------------+
+
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "quarter")).show()
+    +--------------------------+
+    |trunc(2019-11-05, quarter)|
+    +--------------------------+
+    |                      null|
+    +--------------------------+
+
+
     """
     return col(TruncDate(date, format))
 
