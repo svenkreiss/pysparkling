@@ -1514,8 +1514,33 @@ def trunc(date, format):
 def date_trunc(format, timestamp):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_trunc("hour", concat(lit("2019-11-05 04:55")))).show()
+    +------------------------------------------+
+    |date_trunc(hour, concat(2019-11-05 04:55))|
+    +------------------------------------------+
+    |                       2019-11-05 04:00:00|
+    +------------------------------------------+
+    >>> spark.range(1, 10).select(date_trunc("week", concat(lit("2019-11-0"), col("id")))).show()
+    +---------------------------------------+
+    |date_trunc(week, concat(2019-11-0, id))|
+    +---------------------------------------+
+    |                    2019-10-28 00:00:00|
+    |                    2019-10-28 00:00:00|
+    |                    2019-10-28 00:00:00|
+    |                    2019-11-04 00:00:00|
+    |                    2019-11-04 00:00:00|
+    |                    2019-11-04 00:00:00|
+    |                    2019-11-04 00:00:00|
+    |                    2019-11-04 00:00:00|
+    |                    2019-11-04 00:00:00|
+    +---------------------------------------+
+
     """
-    return col(TruncTimestamp(format, timestamp))
+    return col(TruncTimestamp(format, parse(timestamp)))
 
 
 def from_utc_timestamp(ts, tz):

@@ -194,3 +194,35 @@ class TruncDate(Expression):
 
     def __str__(self):
         return "trunc({0}, {1})".format(self.column, self.level)
+
+
+class TruncTimestamp(Expression):
+    def __init__(self, level, column):
+        super().__init__(column)
+        self.column = column
+        self.level = level
+
+    def eval(self, row, schema):
+        value = self.column.cast(TimestampType()).eval(row, schema)
+
+        if self.level in ('year', 'yyyy', 'yy'):
+            return datetime.datetime(value.year, 1, 1)
+        elif self.level in ('month', 'mon', 'mm'):
+            return datetime.datetime(value.year, value.month, 1)
+        elif self.level in ('day', 'dd'):
+            return datetime.datetime(value.year, value.month, value.day)
+        elif self.level in ('quarter', ):
+            return
+        elif self.level in ('week', ):
+            return datetime.datetime(value.year, value.month, value.day) - datetime.timedelta(days=value.isoweekday()-1)
+        elif self.level in ('hour', ):
+            return datetime.datetime(value.year, value.month, value.day, value.hour)
+        elif self.level in ('minute', ):
+            return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute)
+        elif self.level in ('second', ):
+            return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute, value.second)
+        else:
+            return None
+
+    def __str__(self):
+        return "date_trunc({0}, {1})".format(self.level, self.column)
