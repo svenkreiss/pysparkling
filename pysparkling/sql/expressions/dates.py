@@ -178,19 +178,19 @@ class ParseToDate(Expression):
 
 
 class TruncDate(Expression):
-    def __init__(self, column, f):
+    def __init__(self, column, level):
         super().__init__(column)
         self.column = column
-        self.format = f
+        self.level = level
 
     def eval(self, row, schema):
         value = self.column.cast(DateType()).eval(row, schema)
-        if self.format in ('year', 'yyyy', 'yy'):
+        if self.level in ('year', 'yyyy', 'yy'):
             return datetime.date(value.year, 1, 1)
-        elif self.format in ('month', 'mon', 'mm'):
+        elif self.level in ('month', 'mon', 'mm'):
             return datetime.date(value.year, value.month, 1)
         else:
             return None
 
     def __str__(self):
-        return "trunc({0}, {1})".format(self.column, self.format)
+        return "trunc({0}, {1})".format(self.column, self.level)
