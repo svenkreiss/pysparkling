@@ -503,14 +503,6 @@ def negate(e):
     return -parse(e)
 
 
-# todo: name should be not but the word is reserved. It is not exposed in Pyspark
-# def not(e):
-#     """
-#     :rtype: Column
-#     """
-#     return
-
-
 def rand(seed=None):
     """
 
