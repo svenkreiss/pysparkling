@@ -182,7 +182,6 @@ class TruncDate(Expression):
         super().__init__(column)
         self.column = column
         self.format = f
-        self.parser = get_unix_timestamp_parser(self.format)
 
     def eval(self, row, schema):
         value = self.column.cast(DateType()).eval(row, schema)
