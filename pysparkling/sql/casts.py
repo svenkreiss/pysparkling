@@ -445,12 +445,20 @@ def get_time_formatter(java_time_format):
 
 
 def get_unix_timestamp_parser(java_time_format):
-    python_pattern = ""
-    for token, letter in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format):
-        python_pattern += FORMAT_MAPPING.get(token, token)
+    datetime_parser = get_datetime_parser(java_time_format)
 
     def time_parser(value):
-        dt = datetime.datetime.strptime(value, python_pattern)
+        dt = datetime_parser(value)
         return int(time.mktime(dt.timetuple()))
 
     return time_parser
+
+
+def get_datetime_parser(java_time_format):
+    if java_time_format is None:
+        return lambda value: cast_to_timestamp(value, StringType())
+
+    python_pattern = ""
+    for token, letter in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format):
+        python_pattern += FORMAT_MAPPING.get(token, token)
+    return lambda value: datetime.datetime.strptime(value, python_pattern)
