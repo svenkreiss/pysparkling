@@ -164,7 +164,7 @@ def parse_timezone(tz_as_string):
 
 
 def cast_to_timestamp(value, from_type):
-    if isinstance(from_type, StringType):
+    if isinstance(value, str):
         date_as_string, time_as_string = split_datetime_as_string(value)
         date = cast_to_date(date_as_string, from_type)
         time = parse_time_as_string(time_as_string)
@@ -186,10 +186,12 @@ def cast_to_timestamp(value, from_type):
             month=value.month,
             day=value.day
         )
-    if isinstance(from_type, TimestampType):
+    if isinstance(from_type, datetime.datetime):
         return value
-    if isinstance(from_type, (NumericType, BooleanType)):
+    if isinstance(from_type, (int, float)):
         return datetime.datetime.fromtimestamp(value)
+    if isinstance(from_type, (StringType, TimestampType, NumericType, BooleanType)):
+        return None
     raise AnalysisException("Cannot cast type {0} to timestamp".format(from_type))
 
 
