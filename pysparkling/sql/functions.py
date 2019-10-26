@@ -1339,6 +1339,16 @@ def hour(e):
 def last_day(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(last_day(lit("2019-10-15"))).show()
+    +--------------------+
+    |last_day(2019-10-15)|
+    +--------------------+
+    |          2019-10-31|
+    +-------------------- +
     """
     return col(LastDay(e))
 
