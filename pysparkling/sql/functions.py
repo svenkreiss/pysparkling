@@ -979,6 +979,25 @@ def base64(e):
 def concat_ws(sep, *exprs):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(3).select(concat_ws("---", "id", lit(2), "id")).show()
+    +-------------------------+
+    |concat_ws(---, id, 2, id)|
+    +-------------------------+
+    |                0---2---0|
+    |                1---2---1|
+    |                2---2---2|
+    +-------------------------+
+    >>> spark.range(1).select(concat_ws("---")).show()
+    +--------------+
+    |concat_ws(---)|
+    +--------------+
+    |              |
+    +--------------+
+
     """
     cols = [parse(e) for e in exprs]
     return col(ConcatWs(sep, cols))
@@ -1238,7 +1257,7 @@ def datediff(end, start):
     """
     :rtype: Column
     """
-    return col(DateDiff(start, days))
+    return col(DateDiff(end, start))
 
 
 def year(e):
