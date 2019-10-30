@@ -8,6 +8,8 @@ from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType, TimestampType, FloatType
 from pysparkling.utils import parse_tz
 
+GMT_TIMEZONE = pytz.timezone("GMT")
+
 DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
 
@@ -277,7 +279,7 @@ class FromUTCTimestamp(Expression):
         value = self.column.cast(TimestampType()).eval(row, schema)
         if self.pytz is None:
             return value
-        gmt_date = pytz.timezone("GMT").localize(value)
+        gmt_date = GMT_TIMEZONE.localize(value)
         local_date = gmt_date.astimezone(self.pytz)
         return local_date.replace(tzinfo=None)
 
