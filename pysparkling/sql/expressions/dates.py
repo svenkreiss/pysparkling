@@ -165,6 +165,22 @@ class CurrentTimestamp(Expression):
         return "current_timestamp()"
 
 
+class CurrentDate(Expression):
+    def __init__(self):
+        super().__init__()
+        self.current_timestamp = None
+
+    def eval(self, row, schema):
+        return self.current_timestamp.date()
+
+    def initialize(self, partition_index):
+        super().initialize(partition_index)
+        self.current_timestamp = datetime.datetime.now()
+
+    def __str__(self):
+        return "current_date()"
+
+
 class UnixTimestamp(Expression):
     def __init__(self, column, f):
         super().__init__(column)
