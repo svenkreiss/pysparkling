@@ -286,3 +286,22 @@ class FromUTCTimestamp(Expression):
     def __str__(self):
         return "from_utc_timestamp({0}, {1})".format(self.column, self.tz)
 
+
+class ToUTCTimestamp(Expression):
+    def __init__(self, column, tz):
+        super().__init__(column)
+        self.column = column
+        self.tz = tz
+        self.pytz = parse_tz(tz)
+
+    def eval(self, row, schema):
+        value = self.column.cast(TimestampType()).eval(row, schema)
+        if self.pytz is None:
+            return value
+        local_date = self.pytz.localize(value)
+        gmt_date = local_date.astimezone(GMT_TIMEZONE)
+        return gmt_date.replace(tzinfo=None)
+
+    def __str__(self):
+        return "to_utc_timestamp({0}, {1})".format(self.column, self.tz)
+
