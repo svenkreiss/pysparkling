@@ -1,13 +1,12 @@
 import datetime
-import re
 
 import pytz
 from dateutil.relativedelta import relativedelta
-from pytz import UnknownTimeZoneError
 
 from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType, TimestampType, FloatType
+from pysparkling.utils import parse_tz
 
 DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
@@ -272,16 +271,7 @@ class FromUTCTimestamp(Expression):
         super().__init__(column)
         self.column = column
         self.tz = tz
-
-        try:
-            self.pytz = pytz.timezone(tz)
-        except UnknownTimeZoneError:
-            GMT_PATTERN = r'GMT(?P<sign>[+-])(?P<hours>[0-9]{1,2})(?::(?P<minutes>[0-9]{2}))?'
-            match = re.match(GMT_PATTERN, tz)
-            if match:
-                self.pytz = self.parse_gmt_based_offset(match)
-            else:
-                self.pytz = None
+        self.pytz = parse_tz(tz)
 
     def eval(self, row, schema):
         value = self.column.cast(TimestampType()).eval(row, schema)
@@ -294,19 +284,3 @@ class FromUTCTimestamp(Expression):
     def __str__(self):
         return "from_utc_timestamp({0}, {1})".format(self.column, self.tz)
 
-    @staticmethod
-    def parse_gmt_based_offset(match):
-        # GMT+2 or GMT+2:30 case
-        sign, hours, minutes = match.groups()
-        sign = -1 if sign == "-" else 1
-        try:
-            hours = int(hours)
-            minutes = int(minutes) if minutes else 0
-        except ValueError:
-            return None
-
-        if 0 <= hours < 24 and 0 <= minutes < 60:
-            offset = sign * (hours * 60 + minutes)
-            return pytz.FixedOffset(offset)
-        else:
-            return None
