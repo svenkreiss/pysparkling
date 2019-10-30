@@ -7,6 +7,9 @@ import re
 import sys
 from operator import itemgetter
 
+import pytz
+from pytz import UnknownTimeZoneError
+
 from pysparkling.sql.internal_utils.joins import *
 from pysparkling.sql.schema_utils import get_on_fields
 from pysparkling.sql.types import Row, _create_row
@@ -422,3 +425,48 @@ def portable_hash(x):
     elif isinstance(x, str):
         return strhash(x)
     return hash(x)
+
+
+def parse_tz(tz):
+    """
+    Parse a string referencing a timezone which is either supported by pytz or
+    in a GMT+1 or GMT+1:30 format.
+
+    Returns a datetime.tzinfo if it was able to parse the string, None otherwise
+
+    >>> parse_tz("GMT")
+    <StaticTzInfo 'GMT'>
+    >>> parse_tz("Europe/Paris")
+    <DstTzInfo 'Europe/Paris' LMT+0:09:00 STD>
+    >>> parse_tz("GMT+1")
+    pytz.FixedOffset(60)
+    >>> parse_tz("GMT+1:30")
+    pytz.FixedOffset(90)
+    >>> parse_tz("MalformedString")  # returns None
+    """
+    try:
+        return pytz.timezone(tz)
+    except UnknownTimeZoneError:
+        GMT_PATTERN = r'GMT(?P<sign>[+-])(?P<hours>[0-9]{1,2})(?::(?P<minutes>[0-9]{2}))?'
+        match = re.match(GMT_PATTERN, tz)
+        if match:
+            return parse_gmt_based_offset(match)
+        else:
+            return None
+
+
+def parse_gmt_based_offset(match):
+    # GMT+2 or GMT+2:30 case
+    sign, hours, minutes = match.groups()
+    sign = -1 if sign == "-" else 1
+    try:
+        hours = int(hours)
+        minutes = int(minutes) if minutes else 0
+    except ValueError:
+        return None
+
+    if 0 <= hours < 24 and 0 <= minutes < 60:
+        offset = sign * (hours * 60 + minutes)
+        return pytz.FixedOffset(offset)
+    else:
+        return None
