@@ -1566,8 +1566,30 @@ def date_trunc(format, timestamp):
 def from_utc_timestamp(ts, tz):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(from_utc_timestamp(lit("2019-11-05 04:55"), "Europe/Paris")).show()
+    +--------------------------------------------------+
+    |from_utc_timestamp(2019-11-05 04:55, Europe/Paris)|
+    +--------------------------------------------------+
+    |                               2019-11-05 05:55:00|
+    +--------------------------------------------------+
+    >>> spark.range(1).select(from_utc_timestamp(lit("2019-11-05 04:55"), "GMT+1")).show()
+    +-------------------------------------------+
+    |from_utc_timestamp(2019-11-05 04:55, GMT+1)|
+    +-------------------------------------------+
+    |                        2019-11-05 05:55:00|
+    +-------------------------------------------+
+    >>> spark.range(1).select(from_utc_timestamp(lit("2019-11-05 04:55"), "GMT-1:49")).show()
+    +----------------------------------------------+
+    |from_utc_timestamp(2019-11-05 04:55, GMT-1:49)|
+    +----------------------------------------------+
+    |                           2019-11-05 03:06:00|
+    +----------------------------------------------+
     """
-    return col(FromUTCTimestamp(ts, parse(tz)))
+    return col(FromUTCTimestamp(ts, tz))
 
 
 def to_utc_timestamp(ts, tz):

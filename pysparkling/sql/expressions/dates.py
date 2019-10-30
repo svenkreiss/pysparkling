@@ -1,6 +1,9 @@
 import datetime
+import re
 
+import pytz
 from dateutil.relativedelta import relativedelta
+from pytz import UnknownTimeZoneError
 
 from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
@@ -246,18 +249,64 @@ class TruncTimestamp(Expression):
             return datetime.datetime(value.year, value.month, 1)
         elif self.level in ('day', 'dd'):
             return datetime.datetime(value.year, value.month, value.day)
-        elif self.level in ('quarter', ):
+        elif self.level in ('quarter',):
             return
-        elif self.level in ('week', ):
-            return datetime.datetime(value.year, value.month, value.day) - datetime.timedelta(days=value.isoweekday()-1)
-        elif self.level in ('hour', ):
+        elif self.level in ('week',):
+            return datetime.datetime(value.year, value.month, value.day) - datetime.timedelta(
+                days=value.isoweekday() - 1)
+        elif self.level in ('hour',):
             return datetime.datetime(value.year, value.month, value.day, value.hour)
-        elif self.level in ('minute', ):
+        elif self.level in ('minute',):
             return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute)
-        elif self.level in ('second', ):
+        elif self.level in ('second',):
             return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute, value.second)
         else:
             return None
 
     def __str__(self):
         return "date_trunc({0}, {1})".format(self.level, self.column)
+
+
+class FromUTCTimestamp(Expression):
+    def __init__(self, column, tz):
+        super().__init__(column)
+        self.column = column
+        self.tz = tz
+
+        try:
+            self.pytz = pytz.timezone(tz)
+        except UnknownTimeZoneError:
+            GMT_PATTERN = r'GMT(?P<sign>[+-])(?P<hours>[0-9]{1,2})(?::(?P<minutes>[0-9]{2}))?'
+            match = re.match(GMT_PATTERN, tz)
+            if match:
+                self.pytz = self.parse_gmt_based_offset(match)
+            else:
+                self.pytz = None
+
+    def eval(self, row, schema):
+        value = self.column.cast(TimestampType()).eval(row, schema)
+        if self.pytz is None:
+            return value
+        gmt_date = pytz.timezone("GMT").localize(value)
+        local_date = gmt_date.astimezone(self.pytz)
+        return local_date.replace(tzinfo=None)
+
+    def __str__(self):
+        return "from_utc_timestamp({0}, {1})".format(self.column, self.tz)
+
+    @staticmethod
+    def parse_gmt_based_offset(match):
+        # GMT+2 or GMT+2:30 case
+        sign, hours, minutes = match.groups()
+        sign = -1 if sign == "-" else 1
+        try:
+            hours = int(hours)
+            minutes = int(minutes) if minutes else 0
+        except ValueError:
+            return None
+
+        if 0 <= hours < 24 and 0 <= minutes < 60:
+            offset = sign * (hours * 60 + minutes)
+            return pytz.FixedOffset(offset)
+        else:
+            return None

@@ -36,6 +36,7 @@ setup(
         'boto>=2.36.0',
         'future>=0.15',
         'requests>=2.6.0',
+        'pytz-2019.3'
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
