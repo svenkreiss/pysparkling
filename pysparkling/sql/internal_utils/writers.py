@@ -1,5 +1,4 @@
 import csv
-import datetime
 import json
 import os
 import shutil
@@ -9,7 +8,7 @@ from pysparkling.sql.casts import cast_to_string, get_time_formatter
 from pysparkling.sql.functions import Aggregation, col, StarOperator
 from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import portable_hash
+from pysparkling.utils import portable_hash, get_json_encoder
 
 
 class InternalWriter(object):
@@ -307,32 +306,6 @@ class CSVWriter(DataWriter):
                 writer.writerow(schema.names)
             writer.writerows(items)
         return len(items)
-
-
-def get_json_encoder(date_formatter, timestamp_formatter):
-    class CustomJSONEncoder(json.JSONEncoder):
-        def encode(self, o):
-            def encode_rows(item):
-                if isinstance(item, Row):
-                    return dict(zip(item.__fields__, item))
-                if isinstance(item, (list, tuple)):
-                    return [encode_rows(e) for e in item]
-                if isinstance(item, dict):
-                    return {key: encode_rows(value) for key, value in item.items()}
-                else:
-                    return item
-
-            return super(CustomJSONEncoder, self).encode(encode_rows(o))
-
-        def default(self, o):
-            if isinstance(o, datetime.date):
-                return timestamp_formatter(o)
-            elif isinstance(o, datetime.datetime):
-                return date_formatter(o)
-            else:
-                return super(CustomJSONEncoder, self).default(o)
-
-    return CustomJSONEncoder
 
 
 class JSONWriter(DataWriter):
