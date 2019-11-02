@@ -344,9 +344,9 @@ class Column(object):
         >>> df.select(df.name, df.age.between(2, 4).alias('taapero')).collect()
         [Row(name='Alice', taapero=True), Row(name='Bob', taapero=False)]
         >>> df.select(df.age.cast("string").alias('ages')).collect()
-        [Row(ages=u'2'), Row(ages=u'5')]
+        [Row(ages='2'), Row(ages='5')]
         >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
-        [Row(ages=u'2'), Row(ages=u'5')]
+        [Row(ages='2'), Row(ages='5')]
         >>> df.select(df.age.cast('float')).show()
         +---+
         |age|
@@ -355,7 +355,13 @@ class Column(object):
         |5.0|
         +---+
         >>> df.select(df.age.cast('decimal(5, 0)')).show()
-        todo: test above line
+        +---+
+        |age|
+        +---+
+        |  2|
+        |  5|
+        +---+
+
         """
 
         if isinstance(dataType, str):
