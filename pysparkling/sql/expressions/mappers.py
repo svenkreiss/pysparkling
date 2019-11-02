@@ -2,7 +2,7 @@ import math
 import random
 import string
 
-from pysparkling.sql.types import StructType, MapType, INTERNAL_TYPE_ORDER, python_to_spark_type, NumericType, \
+from pysparkling.sql.types import StructType, MapType, INTERNAL_TYPE_ORDER, python_to_spark_type, \
     StringType
 
 from pysparkling.sql.casts import get_caster
@@ -26,9 +26,6 @@ class BinaryOperation(Expression):
         raise NotImplementedError
 
     def __str__(self):
-        raise NotImplementedError
-
-    def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
 
 
