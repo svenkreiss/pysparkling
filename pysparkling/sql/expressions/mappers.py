@@ -377,6 +377,25 @@ class Bround(NullSafeColumnOperation):
         return "bround({0}, {1})".format(self.column, self.scale)
 
 
+class FormatNumber(Expression):
+    def __init__(self, column, digits):
+        super().__init__(column)
+        self.column = column
+        self.digits = digits
+
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        if self.digits < 0:
+            return None
+        if not isinstance(value, (int, float)):
+            return None
+        rounded_value = half_even_round(value, self.digits)
+        return "{0:,}".format(rounded_value)
+
+    def __str__(self):
+        return "format_number({0}, {1})".format(self.column, self.digits)
+
+
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
         super().__init__(arg1, arg2)
