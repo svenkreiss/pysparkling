@@ -972,6 +972,16 @@ def ascii(e):
 def base64(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(base64(lit("Hello world!"))).show()
+    +--------------------+
+    |base64(Hello world!)|
+    +--------------------+
+    |    SGVsbG8gd29ybGQh|
+    +--------------------+
     """
     return col(Base64(parse(e)))
 
