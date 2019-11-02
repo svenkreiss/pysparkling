@@ -1,6 +1,7 @@
 import datetime
 import sys
 import itertools
+import json
 import math
 import random
 import re
@@ -531,3 +532,29 @@ def levenshtein_distance(str1, str2):
         levenshtein_distance(str1[1:], str2) + 1,
         levenshtein_distance(str1, str2[1:]) + 1
     )
+
+
+def get_json_encoder(date_formatter, timestamp_formatter):
+    class CustomJSONEncoder(json.JSONEncoder):
+        def encode(self, o):
+            def encode_rows(item):
+                if isinstance(item, Row):
+                    return dict(zip(item.__fields__, item))
+                if isinstance(item, (list, tuple)):
+                    return [encode_rows(e) for e in item]
+                if isinstance(item, dict):
+                    return {key: encode_rows(value) for key, value in item.items()}
+                else:
+                    return item
+
+            return super(CustomJSONEncoder, self).encode(encode_rows(o))
+
+        def default(self, o):
+            if isinstance(o, datetime.date):
+                return timestamp_formatter(o)
+            elif isinstance(o, datetime.datetime):
+                return date_formatter(o)
+            else:
+                return super(CustomJSONEncoder, self).default(o)
+
+    return CustomJSONEncoder
