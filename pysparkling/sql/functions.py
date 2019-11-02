@@ -1017,14 +1017,14 @@ def decode(value, charset):
     """
     :rtype: Column
     """
-    return col(Decode(parse(value), charset))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def encode(value, charset):
     """
     :rtype: Column
     """
-    return col(Encode(parse(value), charset))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def format_number(x, d):
@@ -1048,8 +1048,7 @@ def format_string(format, *exprs):
     """
     :rtype: Column
     """
-    cols = [parse(e) for e in exprs]
-    return col(FormatString(format, cols))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def initcap(e):
@@ -1157,6 +1156,12 @@ def regexp_replace(e, pattern, replacement):
 def unbase64(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(unbase64(lit("SGVsbG8gd29ybGQh"))).collect()
+    [Row(unbase64(SGVsbG8gd29ybGQh)=bytearray(b'Hello world!'))]
     """
     return col(UnBase64(parse(e)))
 
