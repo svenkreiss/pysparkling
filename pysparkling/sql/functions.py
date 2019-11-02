@@ -1020,6 +1020,16 @@ def encode(value, charset):
 def format_number(x, d):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(format_number(lit(1000000.8725), 3)).show()
+    +------------------------------+
+    |format_number(1000000.8725, 3)|
+    +------------------------------+
+    |                 1,000,000.873|
+    +------------------------------+
     """
     return col(FormatNumber(parse(x), d))
 
