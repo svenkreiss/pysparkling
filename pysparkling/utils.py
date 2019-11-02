@@ -470,3 +470,52 @@ def parse_gmt_based_offset(match):
         return pytz.FixedOffset(offset)
     else:
         return None
+
+
+def half_up_round(value, scale):
+    """
+    >>> half_up_round(7.5, 0)
+    8.0
+    >>> half_up_round(6.5, 0)
+    7.0
+    >>> half_up_round(-7.5, 0)
+    -8.0
+    >>> half_up_round(-6.5, 0)
+    -7.0
+    """
+    # Python2 and Python3's round behavior differs for rounding e.g. 0.5
+    # hence we handle the "half" case so that it is rounded up
+    scaled_value = (value * (10 ** scale))
+    removed_part = scaled_value % 1
+    if removed_part == 0.5:
+        sign = -1 if value < 0 else 1
+        value += 10 ** -(scale + 1) * sign
+    return round(value, scale)
+
+
+def half_even_round(value, scale):
+    """
+    >>> half_even_round(7.5, 0)
+    8.0
+    >>> half_even_round(6.5, 0)
+    6.0
+    >>> half_even_round(-7.5, 0)
+    -8.0
+    >>> half_even_round(-6.5, 0)
+    -6.0
+    """
+    # Python2 and Python3's round behavior differs for rounding e.g. 0.5
+    # hence we handle the "half" case so that it round even up and odd down
+    if scale > 0:
+        return round(value, scale)
+    scaled_value = (value * (10 ** scale))
+    removed_part = scaled_value % 1
+    if removed_part == 0.5:
+        rounded_part = int(scaled_value)
+        is_even = (rounded_part + max(0, scale)) % 2 == 0
+        sign = -1 if value < 0 else 1
+        if is_even:
+            value -= 10 ** -(scale + 1) * sign
+        else:
+            value += 10 ** -(scale + 1) * sign
+    return round(value, scale)
