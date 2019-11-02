@@ -309,36 +309,40 @@ class CSVWriter(DataWriter):
         return len(items)
 
 
+def get_json_encoder(date_formatter, timestamp_formatter):
+    class CustomJSONEncoder(json.JSONEncoder):
+        def encode(self, o):
+            def encode_rows(item):
+                if isinstance(item, Row):
+                    return dict(zip(item.__fields__, item))
+                if isinstance(item, (list, tuple)):
+                    return [encode_rows(e) for e in item]
+                if isinstance(item, dict):
+                    return {key: encode_rows(value) for key, value in item.items()}
+                else:
+                    return item
+
+            return super(CustomJSONEncoder, self).encode(encode_rows(o))
+
+        def default(self, o):
+            if isinstance(o, datetime.date):
+                return timestamp_formatter(o)
+            elif isinstance(o, datetime.datetime):
+                return date_formatter(o)
+            else:
+                return super(CustomJSONEncoder, self).default(o)
+
+    return CustomJSONEncoder
+
+
 class JSONWriter(DataWriter):
     def __init__(self, df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names):
         super().__init__(df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names)
 
-        date_formatter = self.dateFormat
-        timestamp_formatter = self.timestampFormat
-
-        class CustomJSONEncoder(json.JSONEncoder):
-            def encode(self, o):
-                def encode_rows(item):
-                    if isinstance(item, Row):
-                        return dict(zip(item.__fields__, item))
-                    if isinstance(item, (list, tuple)):
-                        return [encode_rows(e) for e in item]
-                    if isinstance(item, dict):
-                        return {key: encode_rows(value) for key, value in item.items()}
-                    else:
-                        return item
-
-                return super(CustomJSONEncoder, self).encode(encode_rows(o))
-
-            def default(self, o):
-                if isinstance(o, datetime.date):
-                    return timestamp_formatter(o)
-                elif isinstance(o, datetime.datetime):
-                    return date_formatter(o)
-                else:
-                    return super(CustomJSONEncoder, self).default(o)
-
-        self.encoder = CustomJSONEncoder
+        self.encoder = get_json_encoder(
+            date_formatter=self.dateFormat,
+            timestamp_formatter=self.timestampFormat
+        )
 
     def check_options(self):
         unsupported_options = {
