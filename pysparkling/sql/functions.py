@@ -1202,7 +1202,7 @@ def soundex(e):
     """
     :rtype: Column
     """
-    return col(SoundEx(e))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def split(str, regex, limit=None):
@@ -1382,6 +1382,16 @@ def year(e):
 def quarter(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(quarter(lit("2019-04-01"))).show()
+    +-------------------+
+    |quarter(2019-04-01)|
+    +-------------------+
+    |                  2|
+    +-------------------+
     """
     return col(Quarter(e))
 
