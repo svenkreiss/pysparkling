@@ -1,5 +1,4 @@
 import datetime
-import sys
 import itertools
 import json
 import math
@@ -15,9 +14,6 @@ from pysparkling.sql.internal_utils.joins import *
 from pysparkling.sql.schema_utils import get_on_fields
 from pysparkling.sql.types import Row, _create_row
 from pysparkling.sql.utils import IllegalArgumentException
-
-
-WILDCARD_START_PATTERN = re.compile(r'(?P<previous_character>^|[^\\])(?P<wildcard_start>[*?[])')
 
 
 class Tokenizer(object):
