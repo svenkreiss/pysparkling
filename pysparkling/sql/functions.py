@@ -1272,8 +1272,18 @@ def current_timestamp():
 def date_format(dateExpr, format):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_format(lit("2019-10-31"), 'MM/dd/yyy')).show()
+    +----------------------------------+
+    |date_format(2019-10-31, MM/dd/yyy)|
+    +----------------------------------+
+    |                        10/31/2019|
+    +----------------------------------+
     """
-    return col(DateFormatClass(dateExpr, format))
+    return col(DateFormat(parse(dateExpr), format))
 
 
 def date_add(start, days):
