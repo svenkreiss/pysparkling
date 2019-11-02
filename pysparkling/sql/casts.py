@@ -384,6 +384,7 @@ FORMAT_MAPPING = {
     "MM": "%m",
     "M": "%-m",
     "yyyy": "%Y",
+    "yyy": "%Y",
     "yy": "%y",
     "y": "%Y",
     "HH": "%H",
