@@ -1092,8 +1092,19 @@ def lower(e):
 def levenshtein(l, r):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(levenshtein(lit("kitten"), lit("sitting"))).show()
+    +----------------------------+
+    |levenshtein(kitten, sitting)|
+    +----------------------------+
+    |                           3|
+    +----------------------------+
+
     """
-    return col(Levenshtein(l, r))
+    return col(Levenshtein(parse(l), parse(r)))
 
 
 def locate(substr, str, pos=1):

@@ -514,3 +514,15 @@ def half_even_round(value, scale):
         else:
             value += 10 ** -(scale + 1) * sign
     return round(value, scale)
+
+
+def levenshtein_distance(str1, str2):
+    if str1 == "":
+        return len(str2)
+    if str2 == "":
+        return len(str1)
+    return min(
+        levenshtein_distance(str1[1:], str2[1:]) + (str1[0] != str2[0]),
+        levenshtein_distance(str1[1:], str2) + 1,
+        levenshtein_distance(str1, str2[1:]) + 1
+    )
