@@ -564,6 +564,21 @@ class Substring(Expression):
         return "substring({0}, {1}, {2})".format(self.expr, self.start, self.length)
 
 
+class SubstringIndex(Expression):
+    def __init__(self, column, delim, count):
+        super().__init__(column)
+        self.column = column
+        self.delim = delim
+        self.count = count
+
+    def eval(self, row, schema):
+        parts = str(self.column.eval(row, schema)).split(self.delim)
+        return self.delim.join(parts[:self.count] if self.count > 0 else parts[self.count:])
+
+    def __str__(self):
+        return "substring_index({0}, {1}, {2})".format(self.column, self.delim, self.count)
+
+
 class IsIn(Expression):
     def __init__(self, arg1, cols):
         super().__init__(arg1)

@@ -1185,9 +1185,36 @@ def substring(str, pos, len):
 
 def substring_index(str, delim, count):
     """
+
+    Returns the substring from string str before count occurrences of the delimiter delim.
+    If count is positive, everything the left of the final delimiter (counting from left) is
+    returned. If count is negative, every to the right of the final delimiter (counting from the
+    right) is returned. substring_index performs a case-sensitive match when searching for delim.
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([["a.b.c.d"],["a.b"],["a"]], ["s"])
+    >>> df.select(substring_index(df.s, ".", 3)).show()
+    +------------------------+
+    |substring_index(s, ., 3)|
+    +------------------------+
+    |                   a.b.c|
+    |                     a.b|
+    |                       a|
+    +------------------------+
+    >>> df.select(substring_index(df.s, ".", -3)).show()
+    +-------------------------+
+    |substring_index(s, ., -3)|
+    +-------------------------+
+    |                    b.c.d|
+    |                      a.b|
+    |                        a|
+    +-------------------------+
+
     :rtype: Column
     """
-    return col(SubstringIndex(str, delim, count))
+    return col(SubstringIndex(parse(str), delim, count))
 
 
 def translate(srcCol, matchingString, replaceString):
