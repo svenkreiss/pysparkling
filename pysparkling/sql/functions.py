@@ -1304,6 +1304,24 @@ def date_sub(start, days):
 def datediff(end, start):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(datediff(lit("2019-05-01"), lit("2019-04-01"))).show()
+    +--------------------------------+
+    |datediff(2019-05-01, 2019-04-01)|
+    +--------------------------------+
+    |                              30|
+    +--------------------------------+
+
+    >>> spark.range(1).select(datediff(lit("2018-05-01"), lit("2019-04-01"))).show()
+    +--------------------------------+
+    |datediff(2018-05-01, 2019-04-01)|
+    +--------------------------------+
+    |                            -335|
+    +--------------------------------+
+
     """
     return col(DateDiff(end, start))
 
