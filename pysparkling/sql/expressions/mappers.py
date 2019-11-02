@@ -1256,8 +1256,18 @@ class MonotonicallyIncreasingID(Expression):
 
 class Base64(UnaryExpression):
     def eval(self, row, schema):
-        encoded = base64.b64encode(bytes(self.column.eval(row, schema), encoding="utf-8"))
+        value = self.column.eval(row, schema)
+        encoded = base64.b64encode(bytes(value, encoding="utf-8"))
         return str(encoded)[2:-1]
 
     def __str__(self):
         return "base64({0})".format(self.column)
+
+
+class UnBase64(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        return bytearray(base64.b64decode(value))
+
+    def __str__(self):
+        return "unbase64({0})".format(self.column)
