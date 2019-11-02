@@ -9,7 +9,8 @@ from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, row_from_keyed_values, MonotonicallyIncreasingIDGenerator
+from pysparkling.utils import XORShiftRandom, row_from_keyed_values, MonotonicallyIncreasingIDGenerator, \
+    half_even_round, half_up_round
 
 
 class BinaryOperation(Expression):
@@ -358,15 +359,7 @@ class Round(NullSafeColumnOperation):
         self.scale = scale
 
     def unsafe_operation(self, value):
-        # Python2's round comply with Spark's round()
-        # Python3's round comply with Spark's bround()
-        # hence we handle the "half" case so that it is rounded up
-        scaled_value = (value * (10 ** self.scale))
-        removed_part = scaled_value % 1
-        if removed_part == 0.5:
-            value += 10 ** -(self.scale + 1)
-
-        return round(value, self.scale)
+        return half_up_round(value, self.scale)
 
     def __str__(self):
         return "round({0}, {1})".format(self.column, self.scale)
@@ -378,20 +371,7 @@ class Bround(NullSafeColumnOperation):
         self.scale = scale
 
     def unsafe_operation(self, value):
-        # Python2's round comply with Spark's round()
-        # Python3's round comply with Spark's bround()
-        # hence we handle the "half" case so that it round even up and odd down
-        scaled_value = (value * (10 ** self.scale))
-        removed_part = scaled_value % 1
-        if removed_part == 0.5:
-            rounded_part = int(scaled_value)
-            is_even = rounded_part % 2 == 0
-            if is_even:
-                value -= 10 ** -(self.scale + 1)
-            else:
-                value += 10 ** -(self.scale + 1)
-
-        return round(value, self.scale)
+        return half_even_round(value, self.scale)
 
     def __str__(self):
         return "bround({0}, {1})".format(self.column, self.scale)
