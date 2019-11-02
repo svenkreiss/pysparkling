@@ -203,6 +203,26 @@ class MonthsBetween(Expression):
         return "months_between({0}, {1}, {2})".format(self.column1, self.column2, str(self.round_off).lower())
 
 
+class DateDiff(Expression):
+    def __init__(self, column1, column2):
+        super().__init__(column1, column2)
+        self.column1 = column1
+        self.column2 = column2
+
+    def eval(self, row, schema):
+        value_1 = self.column1.cast(DateType()).eval(row, schema)
+        value_2 = self.column2.cast(DateType()).eval(row, schema)
+
+        if (not isinstance(value_1, datetime.date)
+                or not isinstance(value_2, datetime.date)):
+            return None
+
+        return (value_1-value_2).days
+
+    def __str__(self):
+        return "datediff({0}, {1})".format(self.column1, self.column2)
+
+
 class FromUnixTime(Expression):
     def __init__(self, column, f):
         super().__init__(column)
