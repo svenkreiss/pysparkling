@@ -2063,10 +2063,20 @@ def arrays_zip(*exprs):
     return col(ArraysZip([parse(e) for e in exprs]))
 
 
-def map_concat(*cols):
+def map_concat(*exprs):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([([1, 2], ['a', 'b'], [2, 3], ['c', 'd'])], ['k1', 'v1', 'k2', 'v2'])
+    >>> df2 = df.select(map_from_arrays(df.k1, df.v1).alias("m1"), map_from_arrays(df.k2, df.v2).alias("m2"))
+    >>> df2.select(map_concat("m1", "m2")).collect()
+    [Row(map_concat(m1, m2)={1: 'a', 2: 'c', 3: 'd'})]
+
     """
+    cols = [parse(e) for e in exprs]
     return col(MapConcat(cols))
 
 
