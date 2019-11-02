@@ -1242,8 +1242,19 @@ def date_format(dateExpr, format):
 def date_add(start, days):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_add(lit("2019-02-27"), 2)).show()
+    +-----------------------+
+    |date_add(2019-02-27, 2)|
+    +-----------------------+
+    |             2019-03-01|
+    +-----------------------+
+
     """
-    return col(DateAdd(start, days))
+    return col(DateAdd(parse(start), days))
 
 
 def date_sub(start, days):
