@@ -70,6 +70,15 @@ class Month(UnaryExpression):
         return "month({0})".format(self.column)
 
 
+class Quarter(UnaryExpression):
+    def eval(self, row, schema):
+        month = self.column.cast(DateType()).eval(row, schema).month
+        return 1 + int((month - 1) / 3)
+
+    def __str__(self):
+        return "quarter({0})".format(self.column)
+
+
 class Hour(UnaryExpression):
     def eval(self, row, schema):
         return self.column.cast(TimestampType()).eval(row, schema).hour
@@ -217,7 +226,7 @@ class DateDiff(Expression):
                 or not isinstance(value_2, datetime.date)):
             return None
 
-        return (value_1-value_2).days
+        return (value_1 - value_2).days
 
     def __str__(self):
         return "datediff({0}, {1})".format(self.column1, self.column2)
@@ -424,4 +433,3 @@ class ToUTCTimestamp(Expression):
 
     def __str__(self):
         return "to_utc_timestamp({0}, {1})".format(self.column, self.tz)
-
