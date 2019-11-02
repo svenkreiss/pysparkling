@@ -180,15 +180,15 @@ def cast_to_timestamp(value, from_type):
             day=date.day,
             **time
         ).astimezone(tz_local).replace(tzinfo=None)
-    if isinstance(from_type, DateType):
+    if isinstance(value, datetime.datetime):
+        return value
+    if isinstance(value, datetime.date):
         return datetime.datetime(
             year=value.year,
             month=value.month,
             day=value.day
         )
-    if isinstance(from_type, datetime.datetime):
-        return value
-    if isinstance(from_type, (int, float)):
+    if isinstance(value, (int, float)):
         return datetime.datetime.fromtimestamp(value)
     if isinstance(from_type, (StringType, TimestampType, NumericType, BooleanType)):
         return None
