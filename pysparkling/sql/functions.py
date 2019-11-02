@@ -1260,8 +1260,18 @@ def date_add(start, days):
 def date_sub(start, days):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_sub(lit("2019-03-01"), 2)).show()
+    +-----------------------+
+    |date_sub(2019-03-01, 2)|
+    +-----------------------+
+    |             2019-02-27|
+    +-----------------------+
     """
-    return col(DateSub(start, days))
+    return col(DateSub(parse(start), days))
 
 
 def datediff(end, start):
