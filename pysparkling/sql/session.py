@@ -85,12 +85,12 @@ class SparkSession(object):
 
         :return: :class:`Catalog`
         """
-        from pysparkling.sql.catalog import Catalog
-        if not hasattr(self, "_catalog"):
-            # Compatibility with Pyspark behavior
-            # noinspection PyAttributeOutsideInit
-            self._catalog = Catalog(self)
-        return self._catalog
+        # from pysparkling.sql.catalog import Catalog
+        # if not hasattr(self, "_catalog"):
+        #     # Compatibility with Pyspark behavior
+        #     # noinspection PyAttributeOutsideInit
+        #     self._catalog = Catalog(self)
+        # return self._catalog
 
     @property
     def udf(self):
