@@ -1,4 +1,7 @@
+from pysparkling.sql.column import Column
 from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
+from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.expressions.mappers import StarOperator
 
 
 class SimpleStatAggregation(Aggregation):
@@ -22,6 +25,14 @@ class SimpleStatAggregation(Aggregation):
 
 
 class Count(SimpleStatAggregation):
+    def __init__(self, column):
+        from pysparkling.stat_counter import ColumnStatHelper
+        if isinstance(column.expr, StarOperator):
+            column = Column(Literal(1))
+        super().__init__(column)
+        self.column = column
+        self.stat_helper = ColumnStatHelper(column)
+
     def eval(self, row, schema):
         return self.stat_helper.count
 
