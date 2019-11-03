@@ -891,8 +891,13 @@ class InternalGroupedDataFrame(object):
         self.group_type = group_type
 
     def agg(self, stats):
+        grouping_schema = StructType([
+            field
+            for col in self.grouping_cols
+            for field in col.find_fields_in_schema(self.jdf.bound_schema)
+        ])
+
         init = GroupedStats(self.grouping_cols, stats)
-        # noinspection PyProtectedMember
         aggregated_stats = self.jdf.aggregate(
             init,
             lambda grouped_stats, row: grouped_stats.merge(
@@ -911,20 +916,17 @@ class InternalGroupedDataFrame(object):
                    for key, value in zip(self.grouping_cols, group_key)]
             grouping = tuple(value is GROUPED for value in group_key)
             key_as_row = row_from_keyed_values(key).set_grouping(grouping)
-            # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
                 key + [
-                    (str(stat), stat.eval(key_as_row, self.jdf.bound_schema))
+                    (str(stat), stat.with_pre_evaluation_schema(
+                         self.jdf.bound_schema
+                     ).eval(key_as_row, grouping_schema))
                     for stat in all_stats.groups[group_key]
                 ]
             ))
 
-        # noinspection PyProtectedMember
         new_schema = StructType(
-            [
-                field for col in self.grouping_cols for field in
-                col.find_fields_in_schema(self.jdf.bound_schema)
-            ] + [
+            grouping_schema.fields + [
                 StructField(
                     str(stat),
                     DataType(),

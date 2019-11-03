@@ -4,6 +4,7 @@ from pysparkling.sql.types import StructField, DataType
 class Expression(object):
     def __init__(self, *children):
         self.children = children
+        self.pre_evaluation_schema = None
 
     def eval(self, row, schema):
         raise NotImplementedError
@@ -97,6 +98,25 @@ class Expression(object):
                 child.expr.recursive_initialize(partition_index)
             elif isinstance(child, (list, set, tuple)):
                 Expression.children_initialize(child, partition_index)
+
+    # Adding information about the schema that was defined in the step prior the evaluation
+    def with_pre_evaluation_schema(self, schema):
+        self.pre_evaluation_schema = schema
+
+    def recursive_pre_evaluation_schema(self, schema):
+        self.with_pre_evaluation_schema(schema)
+        self.children_pre_evaluation_schema(self.children, schema)
+
+    @staticmethod
+    def children_pre_evaluation_schema(children, schema):
+        from pysparkling.sql.column import Column
+        for child in children:
+            if isinstance(child, Expression):
+                child.recursive_pre_evaluation_schema(schema)
+            elif isinstance(child, Column) and isinstance(child.expr, Expression):
+                child.expr.recursive_pre_evaluation_schema(schema)
+            elif isinstance(child, (list, set, tuple)):
+                Expression.children_pre_evaluation_schema(child, schema)
 
     def initialize(self, partition_index):
         pass

@@ -520,6 +520,11 @@ class Column(object):
             self.expr.recursive_initialize(partition_index)
         return self
 
+    def with_pre_evaluation_schema(self, pre_evaluation_schema):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_pre_evaluation_schema(pre_evaluation_schema)
+        return self
+
     # todo: window functions
     # def over(self, window):
     #     """
