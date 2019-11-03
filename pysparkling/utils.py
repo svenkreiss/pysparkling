@@ -150,9 +150,17 @@ def get_keyfunc(cols):
 
     def key(row):
         """
-        Returns a tuple of a row column values in the requested column order
+        Returns a tuple designed for comparisons based on a row
+
+        Each requested columns is mapped to two columns:
+        - The first indicate whether the column value is not None
+        - The second is the column value
+
+        This prevent comparison between None and non-None values
         """
-        return tuple(row[col] for col in cols)
+        return tuple(
+            (row[col] is not None, row[col]) for col in cols
+        )
 
     return key
 
