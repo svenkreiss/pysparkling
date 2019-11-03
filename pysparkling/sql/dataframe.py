@@ -1120,6 +1120,28 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def groupBy(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col
+        >>> spark = SparkSession(Context())
+        >>> spark.range(5).groupBy(col("id")%2).count().show()
+        +--------+-----+
+        |(id % 2)|count|
+        +--------+-----+
+        |       0|    3|
+        |       1|    2|
+        +--------+-----+
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.groupBy("name", df.age).count().orderBy("name", "age").show()
+        +-----+---+-----+
+        | name|age|count|
+        +-----+---+-----+
+        |Alice|  2|    1|
+        |  Bob|  5|    1|
+        | Carl|  5|    1|
+        +-----+---+-----+
+        """
         from pysparkling.sql.internals import InternalGroupedDataFrame
 
         jgd = InternalGroupedDataFrame(self._jdf, cols)
@@ -1127,16 +1149,56 @@ class DataFrame(object):
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
-        from pysparkling.sql.internals import InternalGroupedDataFrame
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.rollup("name", df.age).count().orderBy("name", "age").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    3|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        | Carl|null|    1|
+        | Carl|   5|    1|
+        +-----+----+-----+
+        """
+        from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE
 
-        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.ROLLUP_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, cols, ROLLUP_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
-        from pysparkling.sql.internals import InternalGroupedDataFrame
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.cube("name", df.age).count().orderBy("name", "age").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    3|
+        | null|   2|    1|
+        | null|   5|    2|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        | Carl|null|    1|
+        | Carl|   5|    1|
+        +-----+----+-----+
 
-        jgd = InternalGroupedDataFrame(self._jdf, cols, InternalGroupedDataFrame.CUBE_TYPE)
+
+        """
+        from pysparkling.sql.internals import InternalGroupedDataFrame, CUBE_TYPE
+
+        jgd = InternalGroupedDataFrame(self._jdf, cols, CUBE_TYPE)
         from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
