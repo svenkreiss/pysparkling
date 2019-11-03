@@ -55,6 +55,23 @@ class FieldIdGenerator(object):
         cls._id += 1
         return cls._id
 
+    @classmethod
+    def bind_schema(cls, schema):
+        for field in schema.fields:
+            if not hasattr(field, "id"):
+                field.id = cls.next()
+            if isinstance(field, StructType):
+                cls.bind_schema(field)
+        return schema
+
+    @classmethod
+    def unbind_schema(cls, schema):
+        for field in schema.fields:
+            delattr(field, "id")
+            if isinstance(field, StructType):
+                cls.unbind_schema(field)
+        return schema
+
 
 class DataFrameInternal(object):
     def __init__(self, sc, rdd, cols=None, convert_to_row=False, schema=None):
@@ -80,30 +97,13 @@ class DataFrameInternal(object):
             self._set_schema(infer_schema_from_rdd(self._rdd))
 
     def _set_schema(self, schema):
-        bound_schema = self._bind_schema(deepcopy(schema))
+        bound_schema = FieldIdGenerator.bind_schema(deepcopy(schema))
         self.bound_schema = bound_schema
-
-    @classmethod
-    def _bind_schema(cls, schema):
-        for field in schema.fields:
-            if not hasattr(field, "id"):
-                field.id = FieldIdGenerator.next()
-            if isinstance(field, StructType):
-                cls._bind_schema(field)
-        return schema
-
-    @classmethod
-    def _unbind_schema(cls, schema):
-        for field in schema.fields:
-            delattr(field, "id")
-            if isinstance(field, StructType):
-                cls._unbind_schema(field)
-        return schema
 
     @property
     def unbound_schema(self):
         schema = deepcopy(self.bound_schema)
-        return self._unbind_schema(schema)
+        return FieldIdGenerator.unbind_schema(schema)
 
     def _with_rdd(self, rdd, schema):
         return DataFrameInternal(
