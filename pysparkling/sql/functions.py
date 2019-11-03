@@ -7,7 +7,6 @@ from pysparkling.sql.expressions.aggregate.collectors import SumDistinct
 from pysparkling.sql.expressions.explodes import *
 from pysparkling.sql.expressions.arrays import *
 from pysparkling.sql.expressions.mappers import *
-from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.expressions.aggregate.stat_aggregations import *
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
 from pysparkling.sql.userdefined import UserDefinedFunction
@@ -87,7 +86,7 @@ def approx_count_distinct(e, rsd=0.05):
     """
     :rtype: Column
     """
-    return col(HyperLogLogPlusPlus(parse(e), relativeSD=rsd))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def avg(e):
