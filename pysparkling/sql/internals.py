@@ -27,6 +27,7 @@ if sys.version >= '3':
 GROUP_BY_TYPE = 0
 ROLLUP_TYPE = 1
 CUBE_TYPE = 2
+GROUPED = object()
 
 
 def to_row(cols, record):
@@ -906,7 +907,8 @@ class InternalGroupedDataFrame(object):
         data = []
         all_stats = self.add_subtotals(aggregated_stats)
         for group_key in all_stats.group_keys:
-            key = [(str(key), value) for key, value in zip(self.grouping_cols, group_key)]
+            key = [(str(key), None if value is GROUPED else value)
+                   for key, value in zip(self.grouping_cols, group_key)]
             key_as_row = row_from_keyed_values(key)
             # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
@@ -962,17 +964,24 @@ class InternalGroupedDataFrame(object):
             )
 
     def get_subtotal_keys(self, group_key, nb_cols):
+        """
+        Returns a list of tuple
+
+        Each tuple contains:
+        - a subtotal key as a string
+        - a list of boolean corresponding to which groupings where performed
+        """
         if self.group_type == GROUP_BY_TYPE:
             return [group_key]
         if self.group_type == ROLLUP_TYPE:
             return [
-                tuple(itertools.chain(group_key[:i], [None] * (nb_cols - i)))
+                tuple(itertools.chain(group_key[:i], [GROUPED] * (nb_cols - i)))
                 for i in range(nb_cols + 1)
             ]
         if self.group_type == CUBE_TYPE:
             result = [
                 tuple(
-                    None if grouping else sub_key
+                    GROUPED if grouping else sub_key
                     for grouping, sub_key in zip(groupings, group_key)
                 )
                 for groupings in list(itertools.product([True, False], repeat=nb_cols))

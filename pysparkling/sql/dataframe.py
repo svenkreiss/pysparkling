@@ -1179,7 +1179,7 @@ class DataFrame(object):
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
-        >>> df.cube("name", df.age).count().orderBy("name", "age").show()
+        >>> df.cube("name", df.age).count().orderBy("name", "age", "count").show()
         +-----+----+-----+
         | name| age|count|
         +-----+----+-----+
@@ -1193,7 +1193,21 @@ class DataFrame(object):
         | Carl|null|    1|
         | Carl|   5|    1|
         +-----+----+-----+
-
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, None)], ["age", "name"])
+        >>> df.cube("name", df.age).count().orderBy("name", "age", "count").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    1|
+        | null|null|    3|
+        | null|   2|    1|
+        | null|   5|    1|
+        | null|   5|    2|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        +-----+----+-----+
 
         """
         from pysparkling.sql.internals import InternalGroupedDataFrame, CUBE_TYPE
