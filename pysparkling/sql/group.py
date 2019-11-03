@@ -35,12 +35,6 @@ class GroupedData(object):
         |  5|     5.0|  5|
         +---+--------+---+
 
-        >>> from pyspark.sql.functions import pandas_udf, PandasUDFType
-        >>> @pandas_udf('int', PandasUDFType.GROUPED_AGG)  # doctest: +SKIP
-        ... def min_udf(v):
-        ...     return v.min()
-        >>> sorted(gdf.agg(min_udf(df.age)).collect())  # doctest: +SKIP
-        [Row(name=u'Alice', min_udf(age)=2), Row(name=u'Bob', min_udf(age)=5)]
         """
         if not exprs:
             raise ValueError("exprs should not be empty")
