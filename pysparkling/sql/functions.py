@@ -190,8 +190,28 @@ def first(e, ignoreNulls=False):
 def grouping(e):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+    >>> df.cube("name", df.age).agg(count("*"), grouping(df.age)).orderBy("name", "age").show()
+    +-----+----+--------+-------------+
+    | name| age|count(1)|grouping(age)|
+    +-----+----+--------+-------------+
+    | null|null|       3|            1|
+    | null|   2|       1|            0|
+    | null|   5|       2|            0|
+    |Alice|null|       1|            1|
+    |Alice|   2|       1|            0|
+    |  Bob|null|       1|            1|
+    |  Bob|   5|       1|            0|
+    | Carl|null|       1|            1|
+    | Carl|   5|       1|            0|
+    +-----+----+--------+-------------+
+
     """
-    return col(Column(Grouping(parse(e))))
+    return col(Grouping(parse(e)))
 
 
 def grouping_id(*exprs):
