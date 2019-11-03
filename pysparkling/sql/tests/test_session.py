@@ -1,4 +1,4 @@
-from pyspark import StorageLevel
+from pysparkling import StorageLevel
 from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, ArrayType, MapType, IntegerType
 
 from pysparkling.sql.session import SparkSession
