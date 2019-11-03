@@ -1993,28 +1993,28 @@ def get_json_object(e, path):
     """
     :rtype: Column
     """
-    return col(GetJsonObject(e, path))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def json_tuple(json, *fields):
     """
     :rtype: Column
     """
-    return col(JsonTuple(json, fields))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def from_json(e, schema, options=None):
     """
     :rtype: Column
     """
-    return col(JsonToStructs(schema, options, e))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def schema_of_json(json, options=None):
     """
     :rtype: Column
     """
-    return col(SchemaOfJson(json))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def to_json(e, options=None):
