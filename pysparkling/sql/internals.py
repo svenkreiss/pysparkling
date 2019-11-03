@@ -972,10 +972,10 @@ class InternalGroupedDataFrame(object):
         if self.group_type == CUBE_TYPE:
             result = [
                 tuple(
-                    None if aggregate else sub_key
-                    for aggregate, sub_key in zip(aggregation, group_key)
+                    None if grouping else sub_key
+                    for grouping, sub_key in zip(groupings, group_key)
                 )
-                for aggregation in list(itertools.product([True, False], repeat=nb_cols))
+                for groupings in list(itertools.product([True, False], repeat=nb_cols))
             ]
             return result
         raise NotImplementedError("Unknown grouping type: {0}".format(self.group_type))
