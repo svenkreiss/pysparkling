@@ -35,15 +35,7 @@ def resolve_partitions(patterns):
         else:
             partitions[file_path] = None
 
-    if any(value is None for value in partitions.values()):
-        raise AnalysisException(
-            "Unable to parse those malformed folders: {1}".format(
-                file_paths,
-                [path for path, value in partitions.items() if value is None]
-            )
-        )
-
-    partitioning_field_sets = set(p.__fields__ for p in partitions.values())
+    partitioning_field_sets = set(p.__fields__ for p in partitions.values() if p is not None)
     if len(partitioning_field_sets) > 1:
         raise Exception(
             "Conflicting directory structures detected while reading {0}. "
@@ -56,6 +48,13 @@ def resolve_partitions(patterns):
         )
 
     if partitioning_field_sets:
+        if any(value is None for value in partitions.values()):
+            raise AnalysisException(
+                "Unable to parse those malformed folders: {1}".format(
+                    file_paths,
+                    [path for path, value in partitions.items() if value is None]
+                )
+            )
         partitioning_fields = partitioning_field_sets.pop()
         partition_schema = guess_schema_from_strings(partitioning_fields, partitions.values())
     else:
@@ -93,7 +92,6 @@ def guess_type_from_values_as_string(values):
         DecimalType(),
         DoubleType(),
         TimestampType(),
-        DateType(),
         StringType()
     )
     for tested_type in tested_types:
@@ -102,13 +100,13 @@ def guess_type_from_values_as_string(values):
         try:
             for value in values:
                 casted_value = type_caster(value)
-                if casted_value is None and value != "null":
+                if casted_value is None and value not in ("null", None):
                     raise ValueError
             return tested_type
         except ValueError:
             pass
     # Should never happen
-    raise AnalysisException("Unable to find a matching type for some partition, even StringType did not work")
+    raise AnalysisException("Unable to find a matching type for some fields, even StringType did not work")
 
 
 def get_records(f_name, linesep, encoding):

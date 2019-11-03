@@ -164,6 +164,8 @@ def parse_timezone(tz_as_string):
 
 
 def cast_to_timestamp(value, from_type):
+    if value == "" or value is None:
+        return None
     if isinstance(value, str):
         date_as_string, time_as_string = split_datetime_as_string(value)
         date = cast_to_date(date_as_string, from_type)
@@ -212,6 +214,8 @@ def split_datetime_as_string(value):
 
 
 def cast_to_boolean(value, from_type):
+    if value == "" or value is None:
+        return None
     if isinstance(from_type, StringType):
         return True if value.lower() == "true" else False if value.lower() == "false" else None
     if isinstance(from_type, (NumericType, BooleanType)):
@@ -220,6 +224,8 @@ def cast_to_boolean(value, from_type):
 
 
 def _cast_to_bounded_type(name, min_value, max_value, value, from_type):
+    if value == "" or value is None:
+        return None
     size = max_value - min_value + 1
     if isinstance(from_type, DateType):
         return None
@@ -264,7 +270,8 @@ def cast_to_decimal(value, from_type, to_type):
 def cast_to_float(value, from_type):
     # NB: pysparkling does not mimic the loss of accuracy of Spark nor value
     # bounding between float min&max values
-
+    if value == "":
+        return None
     if isinstance(value, datetime.datetime):
         return value.timestamp()
     if isinstance(value, datetime.date):
