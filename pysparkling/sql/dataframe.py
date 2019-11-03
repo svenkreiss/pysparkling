@@ -82,7 +82,7 @@ class DataFrame(object):
 
     @property
     def writeStream(self):
-        return DataStreamWriter(self)
+        raise NotImplementedError("Pysparkling does not support yet writing to stream")
 
     @property
     def schema(self):
