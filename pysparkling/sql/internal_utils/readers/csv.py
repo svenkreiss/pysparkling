@@ -38,7 +38,6 @@ class CSVReader(object):
             self.options
         ))
 
-        partitions_fields = partition_schema.fields if partition_schema is not None else []
         if self.schema is not None:
             schema = self.schema
         elif self.options.inferSchema:
@@ -49,7 +48,12 @@ class CSVReader(object):
         schema_with_string = StructType(fields=[
             StructField(field.name, StringType()) for field in schema.fields
         ])
-        full_schema = StructType(schema.fields[:-len(partitions_fields)] + partitions_fields)
+
+        if partition_schema:
+            partitions_fields = partition_schema.fields
+            full_schema = StructType(schema.fields[:-len(partitions_fields)] + partitions_fields)
+        else:
+            full_schema = schema
 
         cast_row = get_caster(from_type=schema_with_string, to_type=full_schema)
         casted_rdd = rdd.map(cast_row)
@@ -65,14 +69,23 @@ class CSVReader(object):
 def parse_csv_file(partitions, partition_schema, schema, options, f_name):
     f_content = TextFile(f_name).load(encoding=options.encoding).read()
     records = f_content.split(options.lineSep) if options.lineSep is not None else f_content.splitlines()
+    if options.header == "true":
+        header = records[0].split(options.sep)
+        records = records[1:]
+    else:
+        header = None
+
+    null_value = ""
     rows = []
     for record in records:
-        record_values = record.split(options.sep)
+        record_values = [val if val != null_value else None for val in record.split(options.sep)]
         if schema is not None:
             field_names = [f.name for f in schema.fields]
+        elif header is not None:
+            field_names = [f for f in header]
         else:
             field_names = ["_c{0}".format(i) for i, field in enumerate(record_values)]
-        partition_field_names = [f.name for f in partition_schema.fields]
+        partition_field_names = [f.name for f in partition_schema.fields] if partition_schema else []
         row = row_from_keyed_values(zip(
             itertools.chain(field_names, partition_field_names),
             itertools.chain(record_values, partitions[f_name])
