@@ -1,3 +1,4 @@
+import itertools
 import json
 import math
 import sys
@@ -22,6 +23,10 @@ from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percen
 
 if sys.version >= '3':
     basestring = str
+
+GROUP_BY_TYPE = 0
+ROLLUP_TYPE = 1
+CUBE_TYPE = 2
 
 
 def to_row(cols, record):
@@ -876,10 +881,6 @@ class DataFrameInternal(object):
 
 
 class InternalGroupedDataFrame(object):
-    GROUP_BY_TYPE = 0
-    ROLLUP_TYPE = 1
-    CUBE_TYPE = 2
-
     def __init__(self, jdf, grouping_exprs, group_type=GROUP_BY_TYPE):
         """
         :type df: pysparkling.sql.dataframe.DataFrame
@@ -903,16 +904,18 @@ class InternalGroupedDataFrame(object):
             )
         )
         data = []
-        for group_key in aggregated_stats.group_keys:
+        all_stats = self.add_subtotals(aggregated_stats)
+        for group_key in all_stats.group_keys:
             key = [(str(key), value) for key, value in zip(self.grouping_cols, group_key)]
             key_as_row = row_from_keyed_values(key)
             # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
                 key + [
                     (str(stat), stat.eval(key_as_row, self.jdf.bound_schema))
-                    for stat in aggregated_stats.groups[group_key]
+                    for stat in all_stats.groups[group_key]
                 ]
             ))
+
         # noinspection PyProtectedMember
         new_schema = StructType(
             [
@@ -929,15 +932,68 @@ class InternalGroupedDataFrame(object):
         # noinspection PyProtectedMember
         return self.jdf._with_rdd(self.jdf._sc.parallelize(data), schema=new_schema)
 
+    def add_subtotals(self, aggregated_stats):
+        """
+
+        :type aggregated_stats: GroupedStats
+        """
+        if self.group_type == GROUP_BY_TYPE:
+            return aggregated_stats
+        else:
+            grouping_cols = aggregated_stats.grouping_cols
+            nb_cols = len(grouping_cols)
+            all_stats = {}
+            for group_key, group_stats in aggregated_stats.groups.items():
+                for subtotal_key in self.get_subtotal_keys(group_key, nb_cols):
+                    if subtotal_key not in all_stats:
+                        all_stats[subtotal_key] = deepcopy(group_stats)
+                    else:
+                        all_stats[subtotal_key] = list(
+                            subtotal_stat.mergeStats(group_stat, self.jdf.bound_schema)
+                            for subtotal_stat, group_stat in zip(
+                                all_stats[subtotal_key],
+                                group_stats
+                            )
+                        )
+            return GroupedStats(
+                grouping_cols=grouping_cols,
+                stats=aggregated_stats.stats,
+                groups=all_stats
+            )
+
+    def get_subtotal_keys(self, group_key, nb_cols):
+        if self.group_type == GROUP_BY_TYPE:
+            return [group_key]
+        if self.group_type == ROLLUP_TYPE:
+            return [
+                tuple(itertools.chain(group_key[:i], [None] * (nb_cols - i)))
+                for i in range(nb_cols + 1)
+            ]
+        if self.group_type == CUBE_TYPE:
+            result = [
+                tuple(
+                    None if aggregate else sub_key
+                    for aggregate, sub_key in zip(aggregation, group_key)
+                )
+                for aggregation in list(itertools.product([True, False], repeat=nb_cols))
+            ]
+            return result
+        raise NotImplementedError("Unknown grouping type: {0}".format(self.group_type))
+
 
 class GroupedStats(object):
-    def __init__(self, grouping_cols, stats):
+    def __init__(self, grouping_cols, stats, groups=None):
         self.grouping_cols = grouping_cols
         self.stats = [stat for stat in stats]
-        self.groups = {}
-        # As python < 3.6 does not guarantee dict ordering
-        # we need to keep track of in which order the columns were
-        self.group_keys = []
+        if groups is None:
+            self.groups = {}
+            # As python < 3.6 does not guarantee dict ordering
+            # we need to keep track of in which order the columns were
+            self.group_keys = []
+        else:
+            self.groups = groups
+            # The order is not used when initialized directly
+            self.group_keys = list(groups.keys())
 
     def merge(self, row, schema):
         group_key = tuple(col.eval(row, schema) for col in self.grouping_cols)
