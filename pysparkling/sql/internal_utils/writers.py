@@ -97,7 +97,11 @@ class WriteInFolder(Aggregation):
             self.ref_value = other.ref_value
 
     def eval(self, row, schema):
-        return self.writer.write(self.items, self.ref_value, schema)
+        return self.writer.write(
+            self.items,
+            self.ref_value,
+            self.pre_evaluation_schema
+        )
 
     def __str__(self):
         return "write_in_folder({0})".format(self.column)
