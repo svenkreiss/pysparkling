@@ -1416,6 +1416,7 @@ class Row(tuple):
     >>> Person("Alice", 11)
     Row(name='Alice', age=11)
     """
+    _metadata = None
 
     def __new__(cls, *args, **kwargs):
         if args and kwargs:
@@ -1506,7 +1507,7 @@ class Row(tuple):
             raise AttributeError(item)
 
     def __setattr__(self, key, value):
-        if key != '__fields__' and key != "__from_dict__":
+        if key not in ('__fields__', "__from_dict__", "_metadata"):
             raise Exception("Row is read-only")
         self.__dict__[key] = value
 
@@ -1524,6 +1525,25 @@ class Row(tuple):
                                          for k, v in zip(self.__fields__, tuple(self)))
         else:
             return "<Row(%s)>" % ", ".join(self)
+
+    def set_grouping(self, grouping):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        if self._metadata is None:
+            self.set_metadata({})
+        self._metadata["grouping"] = grouping
+        return self
+
+    def set_metadata(self, metadata):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        self._metadata = metadata
+        return self
+
+    def get_metadata(self):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        return self._metadata
 
 
 def _get_local_timezone():
