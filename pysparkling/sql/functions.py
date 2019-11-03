@@ -305,6 +305,7 @@ def var_pop(e):
     """
     return col(VarPop(column=parse(e)))
 
+
 # //////////////////////////////////////////////////////////////////////////////////////////////
 # // Window functions
 # //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1993,7 +1994,7 @@ def shuffle(e):
     """
     :rtype: Column
     """
-    return col(Shuffle(e))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def reverse(e):
@@ -2130,6 +2131,7 @@ def udf(f, returnType=DataType()):
 
 
     """
+
     def wrapper(*args, **kwargs):
         if kwargs:
             raise TypeError("wrapper() got an unexpected keyword argument '{0}'".format(
@@ -2139,6 +2141,10 @@ def udf(f, returnType=DataType()):
         return col(UserDefinedFunction(f, returnType, *exprs))
 
     return wrapper
+
+
+def pandas_udf(f=None, returnType=None, functionType=None):
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def callUDF(udfName, *cols):
