@@ -1,4 +1,5 @@
 from pysparkling.sql.expressions.dates import *
+from pysparkling.sql.expressions.jsons import *
 from pysparkling.sql.expressions.strings import *
 
 from pysparkling.sql.column import parse, Column
@@ -1958,8 +1959,35 @@ def schema_of_json(json, options=None):
 def to_json(e, options=None):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> from pysparkling import Row
+    >>> df = spark.createDataFrame([(1, [Row(name='Alice', age=2), Row(name='Bob', age=3)])], ("key", "value"))
+    >>> df.select(to_json(df.value)).show(truncate=False)
+    +-------------------------------------------------+
+    |structstojson(value)                             |
+    +-------------------------------------------------+
+    |[{"age":2,"name":"Alice"},{"age":3,"name":"Bob"}]|
+    +-------------------------------------------------+
+    >>> df = spark.createDataFrame([(1, [{"name": "Alice"}, {"name": "Bob"}])], ("key", "value"))
+    >>> df.select(to_json(df.value)).show(truncate=False)
+    +---------------------------------+
+    |structstojson(value)             |
+    +---------------------------------+
+    |[{"name":"Alice"},{"name":"Bob"}]|
+    +---------------------------------+
+    >>> df = spark.createDataFrame([(1, ["Alice", "Bob"])], ("key", "value"))
+    >>> df.select(to_json("value")).show(truncate=False)
+    +--------------------+
+    |structstojson(value)|
+    +--------------------+
+    |["Alice","Bob"]     |
+    +--------------------+
+
     """
-    return col(StructsToJson(e, options))
+    return col(StructsToJson(parse(e), options))
 
 
 def size(e):
