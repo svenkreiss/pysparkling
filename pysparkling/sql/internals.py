@@ -909,7 +909,8 @@ class InternalGroupedDataFrame(object):
         for group_key in all_stats.group_keys:
             key = [(str(key), None if value is GROUPED else value)
                    for key, value in zip(self.grouping_cols, group_key)]
-            key_as_row = row_from_keyed_values(key)
+            grouping = tuple(value is GROUPED for value in group_key)
+            key_as_row = row_from_keyed_values(key).set_grouping(grouping)
             # noinspection PyProtectedMember
             data.append(row_from_keyed_values(
                 key + [

@@ -1572,6 +1572,25 @@ class Row(tuple):
         # user of the library who wants compatibility with PySpark
         return self._metadata
 
+    def set_grouping(self, grouping):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        if self._metadata is None:
+            self.set_metadata({})
+        self._metadata["grouping"] = grouping
+        return self
+
+    def set_metadata(self, metadata):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        self._metadata = metadata
+        return self
+
+    def get_metadata(self):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        return self._metadata
+
 
 def _get_local_timezone():
     """ Get local timezone using pytz with environment variable, or dateutil.

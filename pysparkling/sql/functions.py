@@ -186,10 +186,42 @@ def grouping(e):
 
 def grouping_id(*exprs):
     """
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([(2, 'Alice', 3), (5, 'Bob', 4), (5, None, 6)], ["age", "name", "id"])
+    >>> df.cube("name", df.age).agg(count("*"), grouping_id()).orderBy("name", "age", "count(1)").show()
+    +-----+----+--------+-------------+
+    | name| age|count(1)|grouping_id()|
+    +-----+----+--------+-------------+
+    | null|null|       1|            1|
+    | null|null|       3|            3|
+    | null|   2|       1|            2|
+    | null|   5|       1|            0|
+    | null|   5|       2|            2|
+    |Alice|null|       1|            1|
+    |Alice|   2|       1|            0|
+    |  Bob|null|       1|            1|
+    |  Bob|   5|       1|            0|
+    +-----+----+--------+-------------+
+    >>> df.rollup("name", df.age).agg(count("*"), grouping_id()).orderBy("name", "age", "count(1)").show()
+    +-----+----+--------+-------------+
+    | name| age|count(1)|grouping_id()|
+    +-----+----+--------+-------------+
+    | null|null|       1|            1|
+    | null|null|       3|            3|
+    | null|   5|       1|            0|
+    |Alice|null|       1|            1|
+    |Alice|   2|       1|            0|
+    |  Bob|null|       1|            1|
+    |  Bob|   5|       1|            0|
+    +-----+----+--------+-------------+
+
     :rtype: Column
     """
     cols = [parse(e) for e in exprs]
-    return col(Column(GroupingID(cols)))
+    return col(GroupingID(cols))
 
 
 def kurtosis(e):
