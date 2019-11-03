@@ -653,7 +653,10 @@ class DataFrameInternal(object):
         return schema, table
 
     def join(self, other, on, how):
-        if isinstance(on, list) and all(isinstance(col, str) for col in on):
+        if on is None and how == "cross":
+            merged_schema = merge_schemas(self.bound_schema, other.bound_schema, how)
+            output_rdd = self.cross_join(other)
+        elif isinstance(on, list) and all(isinstance(col, str) for col in on):
             merged_schema = merge_schemas(
                 self.bound_schema,
                 other.bound_schema,
@@ -682,6 +685,21 @@ class DataFrameInternal(object):
             return condition_value
 
         joined_rdd = self.rdd().cartesian(other.rdd()).filter(condition)
+
+        def format_output(entry):
+            left, right = entry
+
+            return merge_rows(left, right)  # , self.bound_schema, other.bound_schema, how)
+
+        output_rdd = joined_rdd.map(format_output)
+        return output_rdd
+
+    def cross_join(self, other):
+        """
+
+        :type other: DataFrameInternal
+        """
+        joined_rdd = self.rdd().cartesian(other.rdd())
 
         def format_output(entry):
             left, right = entry
@@ -726,7 +744,7 @@ class DataFrameInternal(object):
         return output_rdd
 
     def crossJoin(self, other):
-        return self.join(other, on=None, how="inner")
+        return self.join(other, on=None, how="cross")
 
     def exceptAll(self, other):
         def except_all_within_partition(self_partition, other_partition):
