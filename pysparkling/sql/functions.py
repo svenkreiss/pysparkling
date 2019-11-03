@@ -2174,21 +2174,21 @@ def from_csv(e, schema, options=None):
     """
     :rtype: Column
     """
-    return col(CsvToStructs(schema, options, e))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def schema_of_csv(csv, options=None):
     """
     :rtype: Column
     """
-    return col(SchemaOfCsv(csv.expr))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def to_csv(e, options=None):
     """
     :rtype: Column
     """
-    return col(StructsToCsv(options.asScala.toMap, e.expr))
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def udf(f, returnType=DataType()):
