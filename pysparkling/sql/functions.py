@@ -9,7 +9,7 @@ from pysparkling.sql.expressions.arrays import *
 from pysparkling.sql.expressions.mappers import *
 from pysparkling.sql.expressions.aggregate.stat_aggregations import *
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
-from pysparkling.sql.userdefined import UserDefinedFunction
+from pysparkling.sql.expressions.userdefined import UserDefinedFunction
 
 
 def col(colName):
