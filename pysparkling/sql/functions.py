@@ -7,7 +7,6 @@ from pysparkling.sql.expressions.aggregate.collectors import SumDistinct
 from pysparkling.sql.expressions.explodes import *
 from pysparkling.sql.expressions.arrays import *
 from pysparkling.sql.expressions.mappers import *
-from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.aggregate.HyperLogLogPlusPlus import HyperLogLogPlusPlus
 from pysparkling.sql.expressions.aggregate.stat_aggregations import *
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
@@ -138,7 +137,7 @@ def count(e):
     """
     :rtype: Column
     """
-    return col(Count(column=e))
+    return col(Count(column=parse(e)))
 
 
 def countDistinct(*exprs):
