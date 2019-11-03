@@ -46,7 +46,7 @@ class DataFrameWriterTests(TestCase):
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
             {'_SUCCESS': [],
-             'part-00000-384289621793791622.csv': [
+             'part-00000-4989273019908358400.csv': [
                  '2,Alice,2016-12-31T23:00:00.000+01:00\n',
                  '5,Bob,2014-03-01T23:00:00.000+01:00\n'
              ]}
@@ -63,7 +63,7 @@ class DataFrameWriterTests(TestCase):
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
             {'_SUCCESS': [],
-             'part-00000-384289621784791593.csv': [
+             'part-00000-4061950540148431296.csv': [
                  'age^name^occupation\n',
                  '2^Alice^null\n',
                  '5^Bob^\n'
@@ -82,7 +82,7 @@ class DataFrameWriterTests(TestCase):
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
             {'_SUCCESS': [],
-             'part-00000-3432532549516755848.csv': [
+             'part-00000-3434325560268771971.csv': [
                  '2,Alice\n',
                  '5,Bob\n'
              ]}
@@ -98,8 +98,8 @@ class DataFrameWriterTests(TestCase):
             get_folder_content(".tmp/wonderland"),
             {'_SUCCESS': [],
              'part-00000-4989273019908358400.json': [
-                 '{"age": 2, "name": "Alice", "time": "2016-12-31T23:00:00.000+01:00"}\n',
-                 '{"age": 5, "name": "Bob", "time": "2014-03-01T23:00:00.000+01:00"}\n'
+                 '{"age":2,"name":"Alice","time":"2016-12-31T23:00:00.000+01:00"}\n',
+                 '{"age":5,"name":"Bob","time":"2014-03-01T23:00:00.000+01:00"}\n'
              ]}
         )
 

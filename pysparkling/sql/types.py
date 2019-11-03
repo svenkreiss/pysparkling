@@ -598,7 +598,10 @@ class StructType(DataType):
                 return tuple(f.toInternal(obj.get(n)) if c else obj.get(n)
                              for n, f, c in zip(self.names, self.fields, self._needConversion))
             elif isinstance(obj, Row):
-                return obj
+                return _create_row(
+                    obj.__fields__,
+                    (f.toInternal(val) for f, val, c in zip(self.fields, obj, self._needConversion))
+                )
             elif isinstance(obj, (tuple, list)):
                 return tuple(f.toInternal(v) if c else v
                              for f, v, c in zip(self.fields, obj, self._needConversion))
@@ -612,7 +615,7 @@ class StructType(DataType):
             if isinstance(obj, dict):
                 return tuple(obj.get(n) for n in self.names)
             elif isinstance(obj, Row):
-                return tuple(obj[n] for n in self.names)
+                return obj
             elif isinstance(obj, (list, tuple)):
                 return tuple(obj)
             elif hasattr(obj, "__dict__"):
