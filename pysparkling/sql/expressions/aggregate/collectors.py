@@ -127,3 +127,21 @@ class CountDistinct(Aggregation):
     def __str__(self):
         return "count(DISTINCT {0})".format(",".join(self.columns))
 
+
+class ApproxCountDistinct(Aggregation):
+    def __init__(self, column):
+        super().__init__(column)
+        self.column = column
+        self.items = set()
+
+    def merge(self, row, schema):
+        self.items.add(self.column.eval(row, schema))
+
+    def mergeStats(self, other, schema):
+        self.items += other.items
+
+    def eval(self, row, schema):
+        return len(self.items)
+
+    def __str__(self):
+        return "approx_count_distinct({0})".format(self.column)
