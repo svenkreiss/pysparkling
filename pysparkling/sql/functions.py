@@ -85,8 +85,21 @@ def desc_nulls_last(columnName):
 def approx_count_distinct(e, rsd=0.05):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(100).select((col("id")%10).alias("n")).select(approx_count_distinct("n")).show()
+    +------------------------+
+    |approx_count_distinct(n)|
+    +------------------------+
+    |                      10|
+    +------------------------+
     """
-    raise NotImplementedError("Pysparkling does not support yet this function")
+    # NB: This function returns the exact number of distinct values in pysparkling
+    # as it does not rely on HyperLogLogPlusPlus or an other estimator
+    from pysparkling.sql.expressions.aggregate.collectors import ApproxCountDistinct
+    return col(ApproxCountDistinct(column=parse(e)))
 
 
 def avg(e):
