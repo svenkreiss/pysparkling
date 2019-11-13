@@ -87,7 +87,7 @@ def parse_csv_file(partitions, partition_schema, schema, options, f_name):
         if schema is not None:
             field_names = [f.name for f in schema.fields]
         elif header is not None:
-            field_names = [f for f in header]
+            field_names = header
         else:
             field_names = ["_c{0}".format(i) for i, field in enumerate(record_values)]
         partition_field_names = [

@@ -19,7 +19,7 @@ class StarOperator(Expression):
         return True
 
     def output_fields(self, schema):
-        return [field for field in schema.fields]
+        return schema.fields
 
     def eval(self, row, schema):
         return [row[col] for col in row.__fields__]

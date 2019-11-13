@@ -1071,7 +1071,7 @@ class InternalGroupedDataFrame(object):
 class GroupedStats(object):
     def __init__(self, grouping_cols, stats, groups=None):
         self.grouping_cols = grouping_cols
-        self.stats = [stat for stat in stats]
+        self.stats = stats
         if groups is None:
             self.groups = {}
             # As python < 3.6 does not guarantee dict ordering
