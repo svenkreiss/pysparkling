@@ -7,8 +7,8 @@ class InternalReader(OptionUtils):
     def schema(self, schema):
         self._schema = schema
 
-    def option(self, k, v):
-        self._options[k.lower()] = to_option_stored_value(v)
+    def option(self, key, value):
+        self._options[key.lower()] = to_option_stored_value(value)
 
     def __init__(self, spark):
         """
