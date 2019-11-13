@@ -193,7 +193,8 @@ class SparkSession(object):
         col_names = cur_dtypes.names
         record_type_list = []
         has_rec_fix = False
-        for i, curr_type in enumerate(cur_dtypes):
+        for i, field in enumerate(cur_dtypes.fields.values()):
+            curr_type = field[0]
             # If type is a datetime64 timestamp, convert to microseconds
             # NOTE: if dtype is datetime[ns] then np.record.tolist() will output values as longs,
             # conversion from [us] or lower will lead to py datetime objects, see SPARK-22417
@@ -211,7 +212,7 @@ class SparkSession(object):
         np_records = pdf.to_records(index=False)
 
         # Check if any columns need to be fixed for Spark to infer properly
-        if np_records:
+        if np_records.size > 0:
             record_dtype = self._get_numpy_record_dtype(np_records[0])
             if record_dtype is not None:
                 return [r.astype(record_dtype).tolist() for r in np_records]
