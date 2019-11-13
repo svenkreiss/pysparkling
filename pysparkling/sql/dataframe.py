@@ -1296,11 +1296,11 @@ class DataFrame(object):
         |  5|
         |  2|
         +---+
-        >>> df1.unionByName(df2).select(df2.age).show()  #doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> df1.unionByName(df2).select(df2.age).show() # doctest: +NORMALIZE_WHITESPACE
         Traceback (most recent call last):
           ...
-        pysparkling.sql.utils.AnalysisException: Unable to find the column 'age#3' among ['age#1', 'name#2']
-
+        pysparkling.sql.utils.AnalysisException: Unable to find the column 'age#3' \
+        among ['age#1', 'name#2']
         """
         # noinspection PyProtectedMember
         return DataFrame(self._jdf.unionByName(other._jdf), self.sql_ctx)
