@@ -163,7 +163,7 @@ class DataWriter(object):
         if os.path.exists(output_path):
             if mode == "ignore":
                 return
-            if mode == "error" or mode == "errorifexists":
+            if mode in ("error", "errorifexists"):
                 raise AnalysisException("path {0} already exists.;".format(output_path))
             if mode == "overwrite":
                 shutil.rmtree(output_path)
@@ -287,11 +287,15 @@ class CSVWriter(DataWriter):
         if not items:
             return 0
 
-        partition_parts = ["{0}={1}".format(col_name, ref_value[col_name]) for col_name in self.partitioning_col_names]
+        partition_parts = [
+            "{0}={1}".format(col_name, ref_value[col_name])
+            for col_name in self.partitioning_col_names
+        ]
         file_path = "/".join(
             [output_path, *partition_parts, "part-00000-{0}.csv".format(portable_hash(ref_value))]
         )
 
+        # pylint: disable=W0511
         # todo: Add support of:
         #  - all files systems (not only local)
         #  - compression
@@ -315,8 +319,10 @@ class CSVWriter(DataWriter):
 
 
 class JSONWriter(DataWriter):
-    def __init__(self, df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names):
-        super().__init__(df, mode, options, partitioning_col_names, num_buckets, bucket_col_names, sort_col_names)
+    def __init__(self, df, mode, options, partitioning_col_names,
+                 num_buckets, bucket_col_names, sort_col_names):
+        super().__init__(df, mode, options, partitioning_col_names,
+                         num_buckets, bucket_col_names, sort_col_names)
 
         self.encoder = get_json_encoder(
             date_formatter=self.dateFormat,
@@ -357,7 +363,10 @@ class JSONWriter(DataWriter):
         if not items:
             return 0
 
-        partition_parts = ["{0}={1}".format(col_name, ref_value[col_name]) for col_name in self.partitioning_col_names]
+        partition_parts = [
+            "{0}={1}".format(col_name, ref_value[col_name])
+            for col_name in self.partitioning_col_names
+        ]
         partition_folder = "/".join([output_path, *partition_parts])
         file_path = "{0}/part-00000-{1}.json".format(partition_folder, portable_hash(ref_value))
 
