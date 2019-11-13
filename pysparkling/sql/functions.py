@@ -306,6 +306,7 @@ def last(e, ignoreNulls=False):
 
 
 # noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def max(e):
     """
     :rtype: Column
@@ -322,6 +323,7 @@ def mean(e):
 
 
 # noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def min(e):
     """
     :rtype: Column
@@ -369,6 +371,8 @@ def stddev_pop(e):
     return col(StddevPop(column=parse(e)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def sum(e):
     """
     :rtype: Column
@@ -828,6 +832,8 @@ def greatest(*exprs):
     return col(Greatest(cols))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0621
 def hex(column):
     """
     :rtype: Column
@@ -835,6 +841,8 @@ def hex(column):
     return col(Hex(parse(column)))
 
 
+# noinspection PyShadowingNames
+# pylint: disable=W0621
 def unhex(column):
     """
     :rtype: Column
@@ -889,6 +897,8 @@ def log2(e):
     return col(Log2(parse(e)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def pow(l, r):
     """
     :rtype: Column
@@ -910,6 +920,8 @@ def rint(e):
     return col(Rint(parse(e)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def round(e, scale=0):
     """
     :rtype: Column
@@ -1046,6 +1058,8 @@ def crc32(e):
     raise NotImplementedError("Pysparkling does not support yet this function")
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def hash(*exprs):
     raise NotImplementedError("Pysparkling does not support yet this function")
 
@@ -1054,6 +1068,8 @@ def xxhash64(*exprs):
     raise NotImplementedError("Pysparkling does not support yet this function")
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def ascii(e):
     """
     :rtype: Column
@@ -1136,6 +1152,8 @@ def format_number(x, d):
     return col(FormatNumber(parse(x), d))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def format_string(format, *exprs):
     """
     :rtype: Column
@@ -1160,6 +1178,8 @@ def initcap(e):
     return col(InitCap(parse(e)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def instr(str, substring):
     """
     :rtype: Column
@@ -1199,6 +1219,8 @@ def levenshtein(l, r):
     return col(Levenshtein(parse(l), parse(r)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def locate(substr, str, pos=1):
     """
     :rtype: Column
@@ -1206,6 +1228,8 @@ def locate(substr, str, pos=1):
     return col(StringLocate(substr, parse(str), pos))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def lpad(str, len, pad):
     """
     :rtype: Column
@@ -1269,6 +1293,8 @@ def unbase64(e):
     return col(UnBase64(parse(e)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def rpad(str, len, pad):
     """
     :rtype: Column
@@ -1276,6 +1302,8 @@ def rpad(str, len, pad):
     return col(StringRPad(parse(str), len, pad))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def repeat(str, n):
     """
     :rtype: Column
@@ -1297,6 +1325,8 @@ def soundex(e):
     raise NotImplementedError("Pysparkling does not support yet this function")
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def split(str, regex, limit=None):
     """
     :rtype: Column
@@ -1304,6 +1334,8 @@ def split(str, regex, limit=None):
     return col(StringSplit(parse(str), regex, limit))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def substring(str, pos, len):
     """
     :rtype: Column
@@ -1311,6 +1343,8 @@ def substring(str, pos, len):
     return col(Substring(str, pos, len))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def substring_index(str, delim, count):
     """
 
@@ -1387,6 +1421,8 @@ def current_timestamp():
     return col(CurrentTimestamp())
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def date_format(dateExpr, format):
     """
     :rtype: Column
@@ -1778,6 +1814,8 @@ def to_date(e, fmt=None):
     return col(ParseToDate(e, fmt))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def trunc(date, format):
     """
     :rtype: Column
@@ -1811,6 +1849,8 @@ def trunc(date, format):
     return col(TruncDate(parse(date), format))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def date_trunc(format, timestamp):
     """
     :rtype: Column
@@ -1919,6 +1959,8 @@ def arrays_overlap(a1, a2):
     return col(ArraysOverlap(parse(a1), parse(a2)))
 
 
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
 def slice(x, start, length):
     """
     :rtype: Column
