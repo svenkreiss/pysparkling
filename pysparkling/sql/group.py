@@ -1,7 +1,6 @@
-from pysparkling.sql.types import Row
-
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
+# pylint: disable=W0622
 from pysparkling.sql.functions import count, mean, parse, avg, max, min, sum, lit
 
 
@@ -16,7 +15,7 @@ class GroupedData(object):
         # >>> sorted(gdf.agg({"*": "count"}).collect())
         # [Row(name=u'Alice', count(1)=1), Row(name=u'Bob', count(1)=1)]
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> from pysparkling.sql.functions import col, avg
         >>> spark = SparkSession(Context())
@@ -40,6 +39,7 @@ class GroupedData(object):
             raise ValueError("exprs should not be empty")
 
         if len(exprs) == 1 and isinstance(exprs[0], dict):
+            # pylint: disable=W0511
             # todo implement agg_dict
             jdf = self._jgd.agg_dict(exprs[0])
         else:
@@ -55,6 +55,7 @@ class GroupedData(object):
     def count(self):
         return self.agg(count(lit(1)).alias("count"))
 
+    # pylint: disable=W0511
     # todo: avg, max, etc should work when cols is left empty
     def mean(self, *cols):
         return self.agg(*(mean(parse(col)) for col in cols))
@@ -71,6 +72,7 @@ class GroupedData(object):
     def sum(self, *cols):
         return self.agg(*(sum(parse(col)) for col in cols))
 
+    # pylint: disable=W0511
     # todo: implement pivot()
     # def pivot(self, pivot_col, values=None):
     #     if values is None:
@@ -79,6 +81,7 @@ class GroupedData(object):
     #         jgd = self._jgd.pivot(pivot_col, values)
     #     return GroupedData(jgd, self._df)
 
+    # pylint: disable=W0511
     # todo: implement apply()
     # def apply(self, udf):
     #     # Columns are special because hasattr always return True
