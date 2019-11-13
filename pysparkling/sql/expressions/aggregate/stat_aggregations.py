@@ -6,6 +6,8 @@ from pysparkling.sql.expressions.mappers import StarOperator
 
 class SimpleStatAggregation(Aggregation):
     def __init__(self, column):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
         from pysparkling.stat_counter import ColumnStatHelper
         super().__init__(column)
         self.column = column
@@ -26,6 +28,8 @@ class SimpleStatAggregation(Aggregation):
 
 class Count(SimpleStatAggregation):
     def __init__(self, column):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
         from pysparkling.stat_counter import ColumnStatHelper
         if isinstance(column.expr, StarOperator):
             column = Column(Literal(1))

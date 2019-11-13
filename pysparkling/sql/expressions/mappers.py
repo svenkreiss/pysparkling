@@ -1,6 +1,7 @@
 import base64
 import math
 import random
+import re
 import string
 
 from pysparkling.sql.types import StringType
@@ -68,7 +69,6 @@ class RegExpExtract(Expression):
     def __init__(self, e, exp, groupIdx):
         super().__init__(e, exp, groupIdx)
 
-        import re
         regexp = re.compile(exp)
 
         def fn(x):
@@ -92,7 +92,6 @@ class RegExpReplace(Expression):
     def __init__(self, e, exp, replacement):
         super().__init__(e, exp, replacement)
 
-        import re
         regexp = re.compile(exp)
 
         def fn(x):
@@ -658,7 +657,6 @@ class MapConcat(Expression):
 
 class StringSplit(Expression):
     def __init__(self, column, regex, limit):
-        import re
         super().__init__(column)
         self.column = column
         self.regex = regex

@@ -1,8 +1,9 @@
 import sys
 import warnings
 
+from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE, CUBE_TYPE
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
-from pysparkling.sql.utils import IllegalArgumentException
+from pysparkling.sql.utils import IllegalArgumentException, require_minimum_pandas_version
 from pysparkling.storagelevel import StorageLevel
 # noinspection PyProtectedMember
 from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
@@ -76,6 +77,8 @@ class DataFrame(object):
 
     @property
     def write(self):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
         from pysparkling.sql.readwriter import DataFrameWriter
 
         return DataFrameWriter(self)
@@ -1162,10 +1165,11 @@ class DataFrame(object):
         | Carl|  5|    1|
         +-----+---+-----+
         """
-        from pysparkling.sql.internals import InternalGroupedDataFrame
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
+        from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols)
-        from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
@@ -1187,10 +1191,11 @@ class DataFrame(object):
         | Carl|   5|    1|
         +-----+----+-----+
         """
-        from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
+        from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols, ROLLUP_TYPE)
-        from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
@@ -1230,10 +1235,11 @@ class DataFrame(object):
         +-----+----+-----+
 
         """
-        from pysparkling.sql.internals import InternalGroupedDataFrame, CUBE_TYPE
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
+        from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols, CUBE_TYPE)
-        from pysparkling.sql.group import GroupedData
         return GroupedData(jgd, self)
 
     def agg(self, *exprs):
@@ -1676,9 +1682,10 @@ class DataFrame(object):
         return result
 
     def toPandas(self):
-        from pysparkling.sql.utils import require_minimum_pandas_version
         require_minimum_pandas_version()
 
+        # pandas is an optional dependency
+        # pylint: disable=C0415
         import pandas as pd
 
         # noinspection PyProtectedMember
@@ -1789,7 +1796,10 @@ def _to_corrected_pandas_type(dt):
     When converting Spark SQL records to Pandas DataFrame, the inferred data type may be wrong.
     This method gets the corrected data type for Pandas if that type may be inferred uncorrectly.
     """
+    # numpy is an optional dependency
+    # pylint: disable=C0415
     import numpy as np
+
     if isinstance(dt, ByteType):
         return np.int8
     if isinstance(dt, ShortType):

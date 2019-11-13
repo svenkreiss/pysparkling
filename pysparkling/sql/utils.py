@@ -1,3 +1,6 @@
+from distutils.version import LooseVersion
+
+
 class CapturedException(Exception):
     pass
 
@@ -19,7 +22,8 @@ def require_minimum_pandas_version():
     """
     minimum_pandas_version = "0.23.2"
 
-    from distutils.version import LooseVersion
+    # pandas is an optional dependency
+    # pylint: disable=C0415
     try:
         import pandas
         have_pandas = True

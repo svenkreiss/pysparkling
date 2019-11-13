@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import itertools
+import os
 import sys
 import decimal
 import time
@@ -25,7 +26,7 @@ from array import array
 import ctypes
 import platform
 
-from pysparkling.sql.utils import ParseException
+from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
 tz_local = datetime.timezone(
     datetime.timedelta(seconds=-(time.altzone if time.daylight else time.timezone))
@@ -1588,7 +1589,6 @@ def _get_local_timezone():
     - https://github.com/pandas-dev/pandas/blob/0.19.x/pandas/tslib.pyx#L1753
     - https://github.com/dateutil/dateutil/blob/2.6.1/dateutil/tz/tz.py#L1338
     """
-    import os
     return os.environ.get('TZ', 'dateutil/:')
 
 
@@ -1603,9 +1603,10 @@ def _check_series_localize_timestamps(s, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.Series that have been converted to tz-naive
     """
-    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
+    # pandas is an optional dependency
+    # pylint: disable=C0415
     from pandas.api.types import is_datetime64tz_dtype
     tz = timezone or _get_local_timezone()
     # pylint: disable=W0511
@@ -1623,7 +1624,6 @@ def _check_dataframe_localize_timestamps(pdf, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.DataFrame where any timezone aware columns have been converted to tz-naive
     """
-    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
     for column, series in pdf.iteritems():
@@ -1640,9 +1640,10 @@ def _check_series_convert_timestamps_internal(s, timezone):
     :param timezone: the timezone to convert. if None then use local timezone
     :return pandas.Series where if it is a timestamp, has been UTC normalized without a time zone
     """
-    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
+    # pandas is an optional dependency
+    # pylint: disable=C0415
     from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
     # pylint: disable=W0511
     # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
@@ -1693,9 +1694,10 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
     :param to_timezone: the timezone to convert to. if None then use local timezone
     :return pandas.Series where if it is a timestamp, has been converted to tz-naive
     """
-    from pysparkling.sql.utils import require_minimum_pandas_version
     require_minimum_pandas_version()
 
+    # pandas is an optional dependency
+    # pylint: disable=C0415
     import pandas as pd
     from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
     from_tz = from_timezone or _get_local_timezone()

@@ -6,11 +6,13 @@ from pysparkling.sql.types import _make_type_verifier, DataType, StructType, \
 
 import pysparkling
 from pysparkling import RDD
+from pysparkling.context import Context
 from pysparkling.sql.conf import RuntimeConfig
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.readwriter import DataFrameReader
 from pysparkling.sql.schema_utils import infer_schema_from_list
+from pysparkling.sql.utils import require_minimum_pandas_version
 
 if sys.version >= '3':
     basestring = unicode = str
@@ -28,7 +30,6 @@ class SparkSession(object):
 
         def getOrCreate(self):
             with self._lock:
-                from pysparkling.context import Context
                 session = SparkSession._instantiatedSession
                 if session is None:
                     session = SparkSession(Context())
@@ -40,6 +41,8 @@ class SparkSession(object):
     builder = Builder()
 
     def __init__(self, sparkContext, jsparkSession=None):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
         from pysparkling.sql.context import SQLContext
         self._sc = sparkContext
         self._wrapped = SQLContext(self._sc, self)
@@ -188,6 +191,8 @@ class SparkSession(object):
 
     # noinspection PyMethodMayBeStatic
     def _get_numpy_record_dtype(self, rec):
+        # numpy is an optional dependency
+        # pylint: disable=C0415
         import numpy as np
         cur_dtypes = rec.dtype
         col_names = cur_dtypes.names
@@ -233,6 +238,8 @@ class SparkSession(object):
             schema = [x.encode('utf-8') if not isinstance(x, str) else x for x in schema]
 
         try:
+            # pandas is an optional dependency
+            # pylint: disable=C0415
             import pandas
             has_pandas = True
         except ModuleNotFoundError:
@@ -277,7 +284,6 @@ class SparkSession(object):
         return df
 
     def parse_pandas_dataframe(self, data, schema):
-        from pysparkling.sql.utils import require_minimum_pandas_version
         require_minimum_pandas_version()
         # pylint: disable=W0511
         # todo: Add support of pandasRespectSessionTimeZone
