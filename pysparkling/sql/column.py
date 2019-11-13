@@ -1,9 +1,12 @@
 import sys
 
+from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.mappers import StarOperator
+from pysparkling.sql.expressions.operators import *
+
 from pysparkling.sql.types import DataType, StructField, string_to_type
 
 from pysparkling.sql.expressions.fields import find_position_in_schema
-from pysparkling.sql.expressions.mappers import *
 from pysparkling.sql.expressions.literals import Literal
 
 if sys.version >= '3':

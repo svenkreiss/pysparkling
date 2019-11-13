@@ -3,123 +3,13 @@ import math
 import random
 import string
 
-from pysparkling.sql.types import StructType, MapType, INTERNAL_TYPE_ORDER, python_to_spark_type, \
-    StringType
+from pysparkling.sql.types import StringType
 
-from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, NullSafeColumnOperation
 from pysparkling.sql.utils import AnalysisException
 from pysparkling.utils import XORShiftRandom, row_from_keyed_values, MonotonicallyIncreasingIDGenerator, \
     half_even_round, half_up_round
-
-
-class BinaryOperation(Expression):
-    """
-    Perform a binary operation but return None if any value is None
-    """
-
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        raise NotImplementedError
-
-    def __str__(self):
-        raise NotImplementedError
-
-
-class TypeSafeBinaryOperation(BinaryOperation):
-    """
-    Perform a type and null-safe binary operation using *comparison* type cast rules:
-
-    It converts values if they are of different types following PySpark rules:
-
-    lit(datetime.date(2019, 1, 1))==lit("2019-01-01") is True
-    """
-
-    def eval(self, row, schema):
-        value_1 = self.arg1.eval(row, schema)
-        value_2 = self.arg2.eval(row, schema)
-        if value_1 is None or value_2 is None:
-            return None
-
-        type_1 = value_1.__class__
-        type_2 = value_2.__class__
-        if type_1 == type_2:
-            return self.unsafe_operation(value_1, value_2)
-
-        order_1 = INTERNAL_TYPE_ORDER.index(type_1)
-        order_2 = INTERNAL_TYPE_ORDER.index(type_2)
-        spark_type_1 = python_to_spark_type(type_1)
-        spark_type_2 = python_to_spark_type(type_2)
-
-        if order_1 > order_2:
-            caster = get_caster(from_type=spark_type_2, to_type=spark_type_1)
-            value_2 = caster(value_2)
-        elif order_1 < order_2:
-            caster = get_caster(from_type=spark_type_1, to_type=spark_type_2)
-            value_1 = caster(value_1)
-
-        return self.unsafe_operation(value_1, value_2)
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def unsafe_operation(self, value_1, value_2):
-        raise NotImplementedError
-
-
-class NullSafeBinaryOperation(BinaryOperation):
-    """
-    Perform a null-safe binary operation
-
-    It does not converts values if they are of different types:
-    lit(datetime.date(2019, 1, 1)) - lit("2019-01-01") raises an error
-    """
-
-    def eval(self, row, schema):
-        value_1 = self.arg1.eval(row, schema)
-        value_2 = self.arg2.eval(row, schema)
-        if value_1 is None or value_2 is None:
-            return None
-
-        type_1 = value_1.__class__
-        type_2 = value_2.__class__
-        if type_1 == type_2 or (
-                isinstance(value_1, (int, float)) and
-                isinstance(value_2, (int, float))
-        ):
-            return self.unsafe_operation(value_1, value_2)
-
-        raise AnalysisException(
-            "Cannot resolve {0} due to data type mismatch, first value is {1}, second value is {2}."
-            "".format(self, type_1, type_2)
-        )
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def unsafe_operation(self, value_1, value_2):
-        raise NotImplementedError
-
-
-class NullSafeColumnOperation(Expression):
-    def __init__(self, column, *args):
-        super().__init__(column, *args)
-        self.column = column
-
-    def eval(self, row, schema):
-        value = self.column.eval(row, schema)
-        return self.unsafe_operation(value)
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def unsafe_operation(self, value):
-        raise NotImplementedError
 
 
 class StarOperator(Expression):
@@ -135,63 +25,6 @@ class StarOperator(Expression):
 
     def __str__(self):
         return "*"
-
-
-class GetField(Expression):
-    def __init__(self, item, field):
-        super().__init__(item, field)
-        self.item = item
-        self.field = field
-
-    def eval(self, row, schema):
-        try:
-            idx = schema.names.index(self.item.col_name)
-            if isinstance(schema.fields[idx].dataType, StructType):
-                item_value = dict(list(zip(schema.fields[idx].dataType.names, self.item.eval(row, schema))))
-            elif isinstance(schema.fields[idx].dataType, MapType):
-                item_value = self.item.eval(row, schema)
-            else:
-                item_value = dict(enumerate(self.item.eval(row, schema)))
-        except ValueError:
-            item_value = self.item.eval(row, schema)
-            pass
-        field_value = self.field.eval(row, schema)
-        return item_value.get(field_value)
-
-    def __str__(self):
-        if isinstance(self.item.expr.field.dataType, StructType):
-            return "{0}.{1}".format(self.item, self.field)
-        return "{0}[{1}]".format(self.item, self.field)
-
-
-class IsNull(UnaryExpression):
-    def eval(self, row, schema):
-        return self.column.eval(row, schema) is None
-
-    def __str__(self):
-        return "({0} IS NULL)".format(self.column)
-
-
-class IsNotNull(UnaryExpression):
-    def eval(self, row, schema):
-        return self.column.eval(row, schema) is not None
-
-    def __str__(self):
-        return "({0} IS NOT NULL)".format(self.column)
-
-
-class Cast(Expression):
-    def __init__(self, column, destination_type):
-        super().__init__(column)
-        self.column = column
-        self.destination_type = destination_type
-        self.caster = get_caster(from_type=self.column.data_type, to_type=destination_type)
-
-    def eval(self, row, schema):
-        return self.caster(self.column.eval(row, schema))
-
-    def __str__(self):
-        return "{0}".format(self.column)
 
 
 class CaseWhen(Expression):
@@ -277,83 +110,6 @@ class RegExpReplace(Expression):
         return "regexp_replace({0}, {1}, {2})".format(self.e, self.exp, self.replacement)
 
 
-class Contains(Expression):
-    def __init__(self, expr, value):
-        super().__init__(expr, value)
-        self.expr = expr
-        self.value = value
-
-    def eval(self, row, schema):
-        return self.value in self.expr.eval(row, schema)
-
-    def __str__(self):
-        return "contains({0}, {1})".format(self.expr, self.value)
-
-
-class Negate(UnaryExpression):
-    def eval(self, row, schema):
-        return not self.column.eval(row, schema)
-
-    def __str__(self):
-        return "(- {0})".format(self.column)
-
-
-class Add(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 + value2
-
-    def __str__(self):
-        return "({0} + {1})".format(self.arg1, self.arg2)
-
-
-class Minus(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 - value2
-
-    def __str__(self):
-        return "({0} - {1})".format(self.arg1, self.arg2)
-
-
-class Time(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 * value2
-
-    def __str__(self):
-        return "({0} * {1})".format(self.arg1, self.arg2)
-
-
-class Divide(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 / value2 if value2 != 0 else None
-
-    def __str__(self):
-        return "({0} / {1})".format(self.arg1, self.arg2)
-
-
-class Mod(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 % value2
-
-    def __str__(self):
-        return "({0} % {1})".format(self.arg1, self.arg2)
-
-
-class Pow(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return float(value1 ** value2)
-
-    def __str__(self):
-        return "POWER({0}, {1})".format(self.arg1, self.arg2)
-
-
-class Pmod(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 % value2
-
-    def __str__(self):
-        return "pmod({0} % {1})".format(self.arg1, self.arg2)
-
-
 class Round(NullSafeColumnOperation):
     def __init__(self, column, scale):
         super().__init__(column)
@@ -397,173 +153,6 @@ class FormatNumber(Expression):
         return "format_number({0}, {1})".format(self.column, self.digits)
 
 
-class EqNullSafe(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) == self.arg2.eval(row, schema)
-
-    def __str__(self):
-        return "({0} <=> {1})".format(self.arg1, self.arg2)
-
-
-class Equal(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 == value_2
-
-    def __str__(self):
-        return "({0} = {1})".format(self.arg1, self.arg2)
-
-
-class LessThan(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 < value_2
-
-    def __str__(self):
-        return "({0} < {1})".format(self.arg1, self.arg2)
-
-
-class LessThanOrEqual(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 <= value_2
-
-    def __str__(self):
-        return "({0} <= {1})".format(self.arg1, self.arg2)
-
-
-class GreaterThan(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 > value_2
-
-    def __str__(self):
-        return "({0} > {1})".format(self.arg1, self.arg2)
-
-
-class GreaterThanOrEqual(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 >= value_2
-
-    def __str__(self):
-        return "({0} >= {1})".format(self.arg1, self.arg2)
-
-
-class And(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 and value_2
-
-    def __str__(self):
-        return "({0} AND {1})".format(self.arg1, self.arg2)
-
-
-class Or(TypeSafeBinaryOperation):
-    def unsafe_operation(self, value_1, value_2):
-        return value_1 or value_2
-
-    def __str__(self):
-        return "({0} OR {1})".format(self.arg1, self.arg2)
-
-
-class Invert(UnaryExpression):
-    def eval(self, row, schema):
-        value = self.column.eval(row, schema)
-        if value is None:
-            return None
-        return not value
-
-    def __str__(self):
-        return "(NOT {0})".format(self.column)
-
-
-class BitwiseOr(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) | self.arg2.eval(row, schema)
-
-    def __str__(self):
-        return "({0} | {1})".format(self.arg1, self.arg2)
-
-
-class BitwiseAnd(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) & self.arg2.eval(row, schema)
-
-    def __str__(self):
-        return "({0} & {1})".format(self.arg1, self.arg2)
-
-
-class BitwiseXor(Expression):
-    def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) ^ self.arg2.eval(row, schema)
-
-    def __str__(self):
-        return "({0} ^ {1})".format(self.arg1, self.arg2)
-
-
-class BitwiseNot(UnaryExpression):
-    def eval(self, row, schema):
-        return ~(self.column.eval(row, schema))
-
-    def __str__(self):
-        return "~{0}".format(self.column)
-
-
-class StartsWith(Expression):
-    def __init__(self, arg1, substr):
-        super().__init__(arg1, substr)
-        self.arg1 = arg1
-        self.substr = substr
-
-    def eval(self, row, schema):
-        return str(self.arg1.eval(row, schema)).startswith(self.substr)
-
-    def __str__(self):
-        return "startswith({0}, {1})".format(self.arg1, self.substr)
-
-
-class EndsWith(Expression):
-    def __init__(self, arg1, substr):
-        super().__init__(arg1, substr)
-        self.arg1 = arg1
-        self.substr = substr
-
-    def eval(self, row, schema):
-        return str(self.arg1.eval(row, schema)).endswith(self.substr)
-
-    def __str__(self):
-        return "endswith({0}, {1})".format(self.arg1, self.substr)
-
-
-class Substring(Expression):
-    def __init__(self, expr, start, length):
-        super().__init__(expr)
-        self.expr = expr
-        self.start = start
-        self.length = length
-
-    def eval(self, row, schema):
-        return str(self.expr.eval(row, schema))[self.start - 1:self.start - 1 + self.length]
-
-    def __str__(self):
-        return "substring({0}, {1}, {2})".format(self.expr, self.start, self.length)
-
-
 class SubstringIndex(Expression):
     def __init__(self, column, delim, count):
         super().__init__(column)
@@ -577,47 +166,6 @@ class SubstringIndex(Expression):
 
     def __str__(self):
         return "substring_index({0}, {1}, {2})".format(self.column, self.delim, self.count)
-
-
-class IsIn(Expression):
-    def __init__(self, arg1, cols):
-        super().__init__(arg1)
-        self.arg1 = arg1
-        self.cols = cols
-
-    def eval(self, row, schema):
-        return self.arg1.eval(row, schema) in self.cols
-
-    def __str__(self):
-        return "({0} IN ({1}))".format(
-            self.arg1,
-            ", ".join(str(col) for col in self.cols)
-        )
-
-
-class Alias(Expression):
-    def __init__(self, expr, alias):
-        super().__init__(expr, alias)
-        self.expr = expr
-        self.alias = alias
-
-    @property
-    def may_output_multiple_cols(self):
-        return self.expr.may_output_multiple_cols
-
-    @property
-    def may_output_multiple_rows(self):
-        return self.expr.may_output_multiple_rows
-
-    @property
-    def is_an_aggregation(self):
-        return self.expr.is_an_aggregation
-
-    def eval(self, row, schema):
-        return self.expr.eval(row, schema)
-
-    def __str__(self):
-        return self.alias
 
 
 class Coalesce(Expression):
@@ -1318,3 +866,19 @@ class Grouping(UnaryExpression):
 
     def __str__(self):
         return "grouping({0})".format(self.column)
+
+
+__all__ = [
+    "Grouping", "GroupingID", "Coalesce", "IsNaN",
+    "MonotonicallyIncreasingID", "NaNvl", "Rand", "Randn", "SparkPartitionID", "Sqrt", "CreateStruct", "CaseWhen",
+    "Abs",
+    "Acos", "Asin", "Atan", "Atan2", "Bin", "Cbrt", "Ceil", "Conv", "Cos", "Cosh", "Exp", "ExpM1", "Factorial", "Floor",
+    "Greatest", "Hex", "Unhex",
+    "Hypot", "Least", "Log", "Log10", "Log1p", "Log2", "Rint", "Round", "Bround", "Signum", "Sin", "Sinh", "Tan",
+    "Tanh", "ToDegrees",
+    "ToRadians", "Ascii", "Base64", "ConcatWs", "FormatNumber", "Length", "Lower", "RegExpExtract", "RegExpReplace",
+    "UnBase64",
+    "StringSplit", "SubstringIndex", "Upper", "Concat", "Reverse", "MapKeys", "MapValues", "MapEntries",
+    "MapFromEntries",
+    "MapConcat", "StarOperator"
+]

@@ -349,3 +349,10 @@ class ArrayExcept(Expression):
 
     def __str__(self):
         return "array_except({0}, {1})".format(self.col1, self.col2)
+
+
+__all__ = [
+    "ArraysZip", "ArrayRepeat", "Flatten", "ArrayMax", "ArrayMin", "SortArray", "Size",
+    "ArrayExcept", "ArrayUnion", "ArrayIntersect", "ArrayDistinct", "ArrayRemove", "ArraySort", "ElementAt", "ArrayPosition", "ArrayJoin",
+    "ArraysOverlap", "ArrayContains", "MapFromArraysColumn", "MapColumn", "ArrayColumn", "Slice", "Sequence"
+]

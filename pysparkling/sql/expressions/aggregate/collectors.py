@@ -145,3 +145,6 @@ class ApproxCountDistinct(Aggregation):
 
     def __str__(self):
         return "approx_count_distinct({0})".format(self.column)
+
+
+__all__ = ["SumDistinct", "ApproxCountDistinct"]
