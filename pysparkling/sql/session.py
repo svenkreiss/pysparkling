@@ -16,7 +16,10 @@ if sys.version >= '3':
     basestring = unicode = str
     xrange = range
 else:
-    from itertools import izip as zip, imap as map
+    import itertools as _itertools
+
+    # pylint: disable=W0622
+    map = getattr(_itertools, "imap")
 
 
 class SparkSession(object):
@@ -49,7 +52,7 @@ class SparkSession(object):
         registered temporary views and UDFs, but shared SparkContext and
         table cache.
         """
-        return self.__class__(self._sc, self._jsparkSession.newSession())
+        return self.__class__(self._sc)
 
     @classmethod
     def getActiveSession(cls):
@@ -75,6 +78,7 @@ class SparkSession(object):
         if not hasattr(self, "_conf"):
             # Compatibility with Pyspark behavior
             # noinspection PyAttributeOutsideInit
+            # pylint: disable=W0201
             self._conf = RuntimeConfig()
         return self._conf
 
@@ -94,8 +98,9 @@ class SparkSession(object):
 
     @property
     def udf(self):
-        # todo: *
-        return ...
+        # pylint: disable=W0511
+        # todo: Add support of udf registration
+        raise NotImplementedError("Pysparkling does not support yet catalog")
         # from pysparkling.sql.udf import UDFRegistration
         # return UDFRegistration(self)
 
@@ -111,7 +116,7 @@ class SparkSession(object):
         if not first:
             raise ValueError("The first row in RDD is empty, "
                              "can not infer schema")
-        if type(first) is dict:
+        if isinstance(first, dict):
             raise NotImplementedError(
                 "Using RDD of dict to inferSchema is deprecated in Spark "
                 "and not implemented in pysparkling. "
@@ -188,8 +193,7 @@ class SparkSession(object):
         col_names = cur_dtypes.names
         record_type_list = []
         has_rec_fix = False
-        for i in xrange(len(cur_dtypes)):
-            curr_type = cur_dtypes[i]
+        for i, curr_type in enumerate(cur_dtypes):
             # If type is a datetime64 timestamp, convert to microseconds
             # NOTE: if dtype is datetime[ns] then np.record.tolist() will output values as longs,
             # conversion from [us] or lower will lead to py datetime objects, see SPARK-22417
@@ -207,7 +211,7 @@ class SparkSession(object):
         np_records = pdf.to_records(index=False)
 
         # Check if any columns need to be fixed for Spark to infer properly
-        if len(np_records) > 0:
+        if np_records:
             record_dtype = self._get_numpy_record_dtype(np_records[0])
             if record_dtype is not None:
                 return [r.astype(record_dtype).tolist() for r in np_records]
@@ -234,25 +238,11 @@ class SparkSession(object):
             has_pandas = False
 
         if has_pandas and isinstance(data, pandas.DataFrame):
-            from pysparkling.sql.utils import require_minimum_pandas_version
-            require_minimum_pandas_version()
+            data, schema = self.parse_pandas_dataframe(data, schema)
 
-            # todo: Add support of pandasRespectSessionTimeZone
-            # if self._wrapped._conf.pandasRespectSessionTimeZone():
-            #     timezone = self._wrapped._conf.sessionLocalTimeZone()
-            # else:
-            timezone = None
-
-            # If no schema supplied by user then get the names of columns only
-            if schema is None:
-                schema = [str(x) if not isinstance(x, basestring) else
-                          (x.encode('utf-8') if not isinstance(x, str) else x)
-                          for x in data.columns]
-
-            data = self._convert_from_pandas(data, schema, timezone)
-
+        no_check = lambda _: True
         if isinstance(schema, StructType):
-            verify_func = _make_type_verifier(schema) if verifySchema else lambda _: True
+            verify_func = _make_type_verifier(schema) if verifySchema else no_check
 
             def prepare(obj):
                 verify_func(obj)
@@ -262,11 +252,13 @@ class SparkSession(object):
             dataType = schema
             schema = StructType().add("value", schema)
 
-            verify_func = _make_type_verifier(dataType, name="field value") if verifySchema else lambda _: True
+            verify_func = _make_type_verifier(
+                dataType, name="field value"
+            ) if verifySchema else no_check
 
             def prepare(obj):
                 verify_func(obj)
-                return obj,
+                return tuple([obj])
         else:
             def prepare(obj):
                 return obj
@@ -282,6 +274,23 @@ class SparkSession(object):
         ]
         df = DataFrame(DataFrameInternal(self._sc, rdd, cols, True, schema), self._wrapped)
         return df
+
+    def parse_pandas_dataframe(self, data, schema):
+        from pysparkling.sql.utils import require_minimum_pandas_version
+        require_minimum_pandas_version()
+        # pylint: disable=W0511
+        # todo: Add support of pandasRespectSessionTimeZone
+        # if self._wrapped._conf.pandasRespectSessionTimeZone():
+        #     timezone = self._wrapped._conf.sessionLocalTimeZone()
+        # else:
+        timezone = None
+        # If no schema supplied by user then get the names of columns only
+        if schema is None:
+            schema = [str(x) if not isinstance(x, basestring) else
+                      (x.encode('utf-8') if not isinstance(x, str) else x)
+                      for x in data.columns]
+        data = self._convert_from_pandas(data, schema, timezone)
+        return data, schema
 
     def range(self, start, end=None, step=1, numPartitions=None):
         if numPartitions is None:
