@@ -16,8 +16,8 @@ if sys.version >= '3':
 
 
 class DataFrameReader(OptionUtils):
-    def option(self, k, v):
-        self._jreader.option(k, v)
+    def option(self, key, value):
+        self._jreader.option(key, value)
         return self
 
     def schema(self, schema):
@@ -36,6 +36,7 @@ class DataFrameReader(OptionUtils):
         from pysparkling.sql.dataframe import DataFrame
         return DataFrame(jdf, self._spark)
 
+    # pylint: disable=R0914
     def csv(self, path, schema=None, sep=None, encoding=None, quote=None, escape=None,
             comment=None, header=None, inferSchema=None, ignoreLeadingWhiteSpace=None,
             ignoreTrailingWhiteSpace=None, nullValue=None, nanValue=None, positiveInf=None,
@@ -57,13 +58,13 @@ class DataFrameReader(OptionUtils):
         )
         if isinstance(path, basestring):
             path = [path]
-        if type(path) == list:
+        if isinstance(path, list):
             return self._df(self._jreader.csv(path))
-        elif isinstance(path, RDD):
+        if isinstance(path, RDD):
             return self._df(self._jreader.csv(path.collect()))
-        else:
-            raise TypeError("path can be only string, list or RDD")
+        raise TypeError("path can be only string, list or RDD")
 
+    # pylint: disable=R0914
     def json(self, path, schema=None, primitivesAsString=None, prefersDecimal=None,
              allowComments=None, allowUnquotedFieldNames=None, allowSingleQuotes=None,
              allowNumericLeadingZero=None, allowBackslashEscapingAnyCharacter=None,
@@ -82,12 +83,11 @@ class DataFrameReader(OptionUtils):
             locale=locale)
         if isinstance(path, basestring):
             path = [path]
-        if type(path) == list:
+        if isinstance(path, list):
             return self._df(self._jreader.json(path))
-        elif isinstance(path, RDD):
+        if isinstance(path, RDD):
             return self._df(self._jreader.json(path.collect()))
-        else:
-            raise TypeError("path can be only string, list or RDD")
+        raise TypeError("path can be only string, list or RDD")
 
 
 class DataFrameWriter(OptionUtils):
@@ -153,12 +153,14 @@ class DataFrameWriter(OptionUtils):
 
             col, cols = col[0], col[1:]
 
-        if not all(isinstance(c, basestring) for c in cols) or not (isinstance(col, basestring)):
+        if not all(isinstance(c, basestring) for c in cols) or not isinstance(col, basestring):
             raise TypeError("all names should be `str`")
 
         self._jwrite = self._jwrite.sortBy(col, *cols)
         return self
 
+    # noinspection PyShadowingBuiltins
+    # pylint: disable=W0622
     def save(self, path=None, format=None, mode=None, partitionBy=None, **options):
         self.mode(mode).options(**options)
         if partitionBy is not None:
@@ -179,6 +181,7 @@ class DataFrameWriter(OptionUtils):
             lineSep=lineSep, encoding=encoding)
         self.format("json").save(path)
 
+    # pylint: disable=R0914
     def csv(self, path, mode=None, compression=None, sep=None, quote=None, escape=None,
             header=None, nullValue=None, escapeQuotes=None, quoteAll=None, dateFormat=None,
             timestampFormat=None, ignoreLeadingWhiteSpace=None, ignoreTrailingWhiteSpace=None,
