@@ -247,8 +247,14 @@ def grouping_id(*exprs):
     >>> from pysparkling import Context
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
-    >>> df = spark.createDataFrame([(2, 'Alice', 3), (5, 'Bob', 4), (5, None, 6)], ["age", "name", "id"])
-    >>> df.cube("name", df.age).agg(count("*"), grouping_id()).orderBy("name", "age", "count(1)").show()
+    >>> df = spark.createDataFrame(
+    ...     [(2, 'Alice', 3), (5, 'Bob', 4), (5, None, 6)],
+    ...     ["age", "name", "id"]
+    ... )
+    >>> (df.cube("name", df.age)
+    ...    .agg(count("*"), grouping_id())
+    ...     .orderBy("name", "age", "count(1)")
+    ... ).show()
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
@@ -262,7 +268,11 @@ def grouping_id(*exprs):
     |  Bob|null|       1|            1|
     |  Bob|   5|       1|            0|
     +-----+----+--------+-------------+
-    >>> df.rollup("name", df.age).agg(count("*"), grouping_id()).orderBy("name", "age", "count(1)").show()
+    >>> (df
+    ...   .rollup("name", df.age)
+    ...   .agg(count("*"), grouping_id())
+    ...   .orderBy("name", "age", "count(1)")
+    ...  ).show()
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
@@ -1615,19 +1625,26 @@ def months_between(end, start, roundOff=True):
     +---------------------------------------------+
     |                          0.06451612903225812|
     +---------------------------------------------+
-    >>> spark.range(1).select(months_between(lit("2019-05-01 01:23:45.678910"), lit("2019-04-01 12:00:00"))).show()
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-01 01:23:45.678910"),
+    ...   lit("2019-04-01 12:00:00"))
+    ... ).show()
     +---------------------------------------------------------------------+
     |months_between(2019-05-01 01:23:45.678910, 2019-04-01 12:00:00, true)|
     +---------------------------------------------------------------------+
     |                                                                  1.0|
     +---------------------------------------------------------------------+
-    >>> spark.range(1).select(months_between(lit("2019-05-02 01:23:45.678910"), lit("2019-04-01 12:00:00"))).show()
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-02 01:23:45.678910"), lit("2019-04-01 12:00:00"))
+    ... ).show()
     +---------------------------------------------------------------------+
     |months_between(2019-05-02 01:23:45.678910, 2019-04-01 12:00:00, true)|
     +---------------------------------------------------------------------+
     |                                                           1.01800515|
     +---------------------------------------------------------------------+
-    >>> spark.range(1).select(months_between(lit("2019-05-31 01:23:45.678910"), lit("2019-02-28 12:00:00"))).show()
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-31 01:23:45.678910"), lit("2019-02-28 12:00:00"))
+    ... ).show()
     +---------------------------------------------------------------------+
     |months_between(2019-05-31 01:23:45.678910, 2019-02-28 12:00:00, true)|
     +---------------------------------------------------------------------+
@@ -2051,7 +2068,13 @@ def to_json(e, options=None):
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
     >>> from pysparkling import Row
-    >>> df = spark.createDataFrame([(1, [Row(name='Alice', age=2), Row(name='Bob', age=3)])], ("key", "value"))
+    >>> df = spark.createDataFrame([(
+    ...   1,
+    ...   [Row(name='Alice', age=2),
+    ...    Row(name='Bob', age=3)]
+    ...  )],
+    ...  ("key", "value")
+    ... )
     >>> df.select(to_json(df.value)).show(truncate=False)
     +-------------------------------------------------+
     |structstojson(value)                             |
