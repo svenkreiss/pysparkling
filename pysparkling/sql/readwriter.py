@@ -1,5 +1,6 @@
 import sys
 from pysparkling import RDD
+from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.internal_utils.readers import InternalReader
 from pysparkling.sql.internal_utils.readwrite import OptionUtils
 from pysparkling.sql.internal_utils.writers import CSVWriter, JSONWriter, InternalWriter
@@ -33,7 +34,6 @@ class DataFrameReader(OptionUtils):
         self._spark = spark
 
     def _df(self, jdf):
-        from pysparkling.sql.dataframe import DataFrame
         return DataFrame(jdf, self._spark)
 
     # pylint: disable=R0914

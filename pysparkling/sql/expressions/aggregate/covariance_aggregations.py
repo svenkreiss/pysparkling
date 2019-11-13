@@ -3,6 +3,8 @@ from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
 
 class CovarianceStatAggregation(Aggregation):
     def __init__(self, column1, column2):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=C0415
         from pysparkling.stat_counter import CovarianceCounter
         super().__init__(column1, column2)
         self.column1 = column1

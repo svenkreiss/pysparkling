@@ -52,6 +52,8 @@ class SessionTests(TestCase):
         )
 
     def test_session_create_data_frame_from_pandas_data_frame(self):
+        # Pandas is an optional dependency
+        # pylint: disable=C0415
         import pandas as pd
 
         pdf = pd.DataFrame([

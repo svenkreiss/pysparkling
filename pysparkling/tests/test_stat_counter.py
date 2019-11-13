@@ -2,6 +2,8 @@ from __future__ import division
 
 import pysparkling
 from pysparkling.stat_counter import ColumnStatHelper
+from pysparkling.sql.types import Row, StructType, StructField, IntegerType
+from pysparkling.sql.functions import col
 
 
 def test_mean():
@@ -14,8 +16,6 @@ def test_column_stat_helper():
     """
     Expected quantile values come from use of org.apache.spark.sql.catalyst.util.QuantileSummaries
     """
-    from pysparkling.sql.types import Row, StructType, StructField, IntegerType
-    from pysparkling.sql.functions import col
     schema = StructType([StructField("value", IntegerType())])
     helper = ColumnStatHelper(col("value"))
     for i in range(1, 100001):

@@ -15,7 +15,7 @@ from pysparkling.storagelevel import StorageLevel
 from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
 
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.functions import parse, count, lit, struct
+from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array
 from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, \
@@ -301,8 +301,6 @@ class DataFrameInternal(object):
         return dict(sketched_rdd_content)
 
     def sampleBy(self, col, fractions, seed):
-        from pysparkling.sql.functions import rand, map_from_arrays, array
-
         fractions_as_col = map_from_arrays(
             array(*(map(lit, fractions.keys()))),
             array(*map(lit, fractions.values()))
