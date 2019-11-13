@@ -20,7 +20,7 @@ class OptionUtils(object):
             if v is not None:
                 self.option(k, v)
 
-    def option(self, k, v):
+    def option(self, key, value):
         raise NotImplementedError
 
     def schema(self, schema):
