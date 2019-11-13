@@ -225,7 +225,7 @@ class NullSafeBinaryOperation(BinaryOperation):
     def __str__(self):
         raise NotImplementedError
 
-    def unsafe_operation(self, value_1, value_2):
+    def unsafe_operation(self, value1, value2):
         raise NotImplementedError
 
 
