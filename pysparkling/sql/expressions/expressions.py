@@ -27,6 +27,7 @@ class Expression(object):
 
     @property
     def data_type(self):
+        # pylint: disable=W0511
         # todo: be more specific
         return DataType()
 
