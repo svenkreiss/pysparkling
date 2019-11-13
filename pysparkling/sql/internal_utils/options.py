@@ -31,9 +31,6 @@ class Options(dict):
     def setdefault(self, k, default=None):
         return super().setdefault(k.lower(), default)
 
-    def update(self, __m, **kwargs):
-        super().update(__m, **kwargs)
-
     @staticmethod
     def fromkeys(seq):
         return super().fromkeys(k.lower() for k in seq)
