@@ -6,10 +6,11 @@ import string
 from pysparkling.sql.types import StringType
 
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, NullSafeColumnOperation
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
+    NullSafeColumnOperation
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, row_from_keyed_values, MonotonicallyIncreasingIDGenerator, \
-    half_even_round, half_up_round
+from pysparkling.utils import XORShiftRandom, row_from_keyed_values, \
+    MonotonicallyIncreasingIDGenerator, half_even_round, half_up_round
 
 
 class StarOperator(Expression):
@@ -46,13 +47,12 @@ class CaseWhen(Expression):
 
     def eval(self, row, schema):
         for condition, function in zip(self.conditions, self.functions):
-            trueth = condition.eval(row, schema)
-            if trueth:
+            true = condition.eval(row, schema)
+            if true:
                 return function
-                # self.function.eval(row, schema)
         if self.function_b is not None:
             return self.function_b
-            # self.function_b.eval(row, schema)
+        return None
 
     def __str__(self):
         return "CASE {0}{1} END".format(
@@ -427,10 +427,9 @@ class Signum(UnaryExpression):
         column_value = self.column.eval(row, schema)
         if column_value == 0:
             return 0
-        elif column_value > 0:
+        if column_value > 0:
             return 1.0
-        else:
-            return -1.0
+        return -1.0
 
     def __str__(self):
         return "SIGNUM({0})".format(self.column)
@@ -736,7 +735,9 @@ class Conv(Expression):
         >>> Conv.convert("YOP", 36, 0)  # returns None if to_base < 2
         >>> Conv.convert("YOP", 10, 2)  # returns None if value is not in the from_base
         """
-        if not (2 <= from_base <= 36 and 2 <= to_base <= 36) or from_string is None or len(from_string) == 0:
+        if (not (2 <= from_base <= 36 and 2 <= to_base <= 36)
+                or from_string is None
+                or not from_string):
             return None
 
         if from_string.startswith("-"):
@@ -765,7 +766,7 @@ class Conv(Expression):
             value -= number * factor
             returned_string += digits[number]
 
-        if len(returned_string) > 0:
+        if returned_string:
             returned_string = returned_string.lstrip("0")
 
         if value_is_negative and not positive_only:
@@ -776,7 +777,12 @@ class Conv(Expression):
 
 class Hex(UnaryExpression):
     def eval(self, row, schema):
-        return Conv.convert(self.column.eval(row, schema), from_base=10, to_base=16, positive_only=True)
+        return Conv.convert(
+            self.column.eval(row, schema),
+            from_base=10,
+            to_base=16,
+            positive_only=True
+        )
 
     def __str__(self):
         return "hex({0})".format(self.column)
@@ -784,7 +790,12 @@ class Hex(UnaryExpression):
 
 class Unhex(UnaryExpression):
     def eval(self, row, schema):
-        return Conv.convert(self.column.eval(row, schema), from_base=16, to_base=10, positive_only=True)
+        return Conv.convert(
+            self.column.eval(row, schema),
+            from_base=16,
+            to_base=10,
+            positive_only=True
+        )
 
     def __str__(self):
         return "unhex({0})".format(self.column)
@@ -796,7 +807,7 @@ class Ascii(UnaryExpression):
         if value is None:
             return None
         value_as_string = str(value)
-        if len(value_as_string) == 0:
+        if not value_as_string:
             return None
         return ord(value_as_string[0])
 
@@ -847,7 +858,9 @@ class GroupingID(Expression):
         metadata = row.get_metadata()
         if metadata is None or "grouping" not in metadata:
             raise AnalysisException("grouping_id() can only be used with GroupingSets/Cube/Rollup")
-        id_binary_string_value = "".join("1" if grouping else "0" for grouping in metadata["grouping"])
+        id_binary_string_value = "".join(
+            "1" if grouping else "0" for grouping in metadata["grouping"]
+        )
         return int(id_binary_string_value, 2)
 
     def __str__(self):
@@ -869,16 +882,13 @@ class Grouping(UnaryExpression):
 
 
 __all__ = [
-    "Grouping", "GroupingID", "Coalesce", "IsNaN",
-    "MonotonicallyIncreasingID", "NaNvl", "Rand", "Randn", "SparkPartitionID", "Sqrt", "CreateStruct", "CaseWhen",
-    "Abs",
-    "Acos", "Asin", "Atan", "Atan2", "Bin", "Cbrt", "Ceil", "Conv", "Cos", "Cosh", "Exp", "ExpM1", "Factorial", "Floor",
-    "Greatest", "Hex", "Unhex",
-    "Hypot", "Least", "Log", "Log10", "Log1p", "Log2", "Rint", "Round", "Bround", "Signum", "Sin", "Sinh", "Tan",
-    "Tanh", "ToDegrees",
-    "ToRadians", "Ascii", "Base64", "ConcatWs", "FormatNumber", "Length", "Lower", "RegExpExtract", "RegExpReplace",
-    "UnBase64",
-    "StringSplit", "SubstringIndex", "Upper", "Concat", "Reverse", "MapKeys", "MapValues", "MapEntries",
-    "MapFromEntries",
+    "Grouping", "GroupingID", "Coalesce", "IsNaN", "MonotonicallyIncreasingID", "NaNvl", "Rand",
+    "Randn", "SparkPartitionID", "Sqrt", "CreateStruct", "CaseWhen", "Abs", "Acos", "Asin",
+    "Atan", "Atan2", "Bin", "Cbrt", "Ceil", "Conv", "Cos", "Cosh", "Exp", "ExpM1", "Factorial",
+    "Floor", "Greatest", "Hex", "Unhex", "Hypot", "Least", "Log", "Log10", "Log1p", "Log2",
+    "Rint", "Round", "Bround", "Signum", "Sin", "Sinh", "Tan", "Tanh", "ToDegrees",
+    "ToRadians", "Ascii", "Base64", "ConcatWs", "FormatNumber", "Length", "Lower",
+    "RegExpExtract", "RegExpReplace", "UnBase64", "StringSplit", "SubstringIndex", "Upper",
+    "Concat", "Reverse", "MapKeys", "MapValues", "MapEntries", "MapFromEntries",
     "MapConcat", "StarOperator"
 ]
