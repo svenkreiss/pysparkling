@@ -23,7 +23,7 @@ def resolve_partitions(patterns):
     """
     file_paths = File.get_content(patterns)
     if not file_paths:
-        raise AnalysisException('Path does not exist:'.format(patterns))
+        raise AnalysisException('Path does not exist: {0}'.format(patterns))
     partitions = {}
     for file_path in file_paths:
         if "=" in file_path:
@@ -51,7 +51,7 @@ def resolve_partitions(patterns):
     if partitioning_field_sets:
         if any(value is None for value in partitions.values()):
             raise AnalysisException(
-                "Unable to parse those malformed folders: {1}".format(
+                "Unable to parse those malformed folders: {1} of {0}".format(
                     file_paths,
                     [path for path, value in partitions.items() if value is None]
                 )
@@ -95,8 +95,8 @@ def guess_type_from_values_as_string(values):
         TimestampType(),
         StringType()
     )
+    string_type = StringType()
     for tested_type in tested_types:
-        string_type = StringType()
         type_caster = get_caster(from_type=string_type, to_type=tested_type)
         try:
             for value in values:
@@ -107,7 +107,9 @@ def guess_type_from_values_as_string(values):
         except ValueError:
             pass
     # Should never happen
-    raise AnalysisException("Unable to find a matching type for some fields, even StringType did not work")
+    raise AnalysisException(
+        "Unable to find a matching type for some fields, even StringType did not work"
+    )
 
 
 def get_records(f_name, linesep, encoding):
