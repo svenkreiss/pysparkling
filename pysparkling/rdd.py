@@ -317,14 +317,10 @@ class RDD(object):
         number_of_big_groups = current_num_partitions % new_num_partitions
         number_of_small_groups = new_num_partitions - number_of_big_groups
 
-        partition_mapping = [
-            p for p in range(number_of_big_groups)
-            for _ in range(big_group_size)
-        ] + [
-            p for p in range(number_of_small_groups)
-            for _ in range(small_group_size)
-        ]
-
+        partition_mapping = ([p for p in range(number_of_big_groups)
+                              for _ in range(big_group_size)] +
+                             [p for p in range(number_of_small_groups)
+                              for _ in range(small_group_size)])
         new_partitions = {i: [] for i in range(new_num_partitions)}
 
         def partitioned():
@@ -1255,11 +1251,9 @@ class RDD(object):
         >>> rdd.reduceByKey(lambda a, b: a+b).collect()
         [(0, 1), (1, 4)]
         """
-        return (
-            self
+        return (self
                 .groupByKey(numPartitions)
-                .mapValues(lambda x: functools.reduce(f, x))
-        )
+                .mapValues(lambda x: functools.reduce(f, x)))
 
     def reduceByKeyLocally(self, f):
         """reduce by key and return a dictionnary
@@ -1345,11 +1339,9 @@ class RDD(object):
         def partition_sort(data):
             return sorted(data, key=keyfunc, reverse=not ascending)
 
-        return (
-            self
+        return (self
                 .partitionBy(numPartitions, partitionFunc)
-                .mapPartitions(partition_sort)
-        )
+                .mapPartitions(partition_sort))
 
     def rightOuterJoin(self, other, numPartitions=None):
         """right outer join
@@ -1739,7 +1731,7 @@ class RDD(object):
         """
 
         def filter_func(pair):
-            key, (val1, val2) = pair
+            _, (val1, val2) = pair
             return val1 and not val2
 
         return self.cogroup(other, numPartitions).filter(filter_func).flatMapValues(lambda x: x[0])
@@ -2186,7 +2178,6 @@ class PersistedRDD(RDD):
             self._cache_manager.delete(self._cid)
 
         unpersisted_rdd = RDD(self.partitions(), self.context)
-        unpersisted_rdd.prev = self
         return unpersisted_rdd
 
 
