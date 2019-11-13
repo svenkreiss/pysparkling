@@ -147,4 +147,7 @@ class ApproxCountDistinct(Aggregation):
         return "approx_count_distinct({0})".format(self.column)
 
 
-__all__ = ["SumDistinct", "ApproxCountDistinct", "CollectList", "CollectSet", "First", "CountDistinct", "Last"]
+__all__ = [
+    "SumDistinct", "ApproxCountDistinct", "CollectList", "CollectSet",
+    "First", "CountDistinct", "Last"
+]
