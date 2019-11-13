@@ -9,12 +9,14 @@ from pysparkling.sql.session import SparkSession
 from pysparkling.sql.utils import AnalysisException
 
 spark = SparkSession(Context())
-tz_local = datetime.timezone(datetime.timedelta(seconds=-(_time.altzone if _time.daylight else _time.timezone)))
+tz_local = datetime.timezone(
+    datetime.timedelta(seconds=-(_time.altzone if _time.daylight else _time.timezone))
+)
 
 
 def get_folder_content(folder_path):
     folder_content = {}
-    for root, dirs, files in os.walk(folder_path):
+    for root, _, files in os.walk(folder_path):
         relative_path = root[len(folder_path):]
         for file in files:
             file_path = os.path.join(root, file)
