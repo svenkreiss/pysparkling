@@ -709,7 +709,7 @@ def bitwiseNOT(e):
     """
     :rtype: Column
     """
-    BitwiseNot(parse(e))
+    return col(BitwiseNot(parse(e)))
 
 
 # todo: replace parse with expr
