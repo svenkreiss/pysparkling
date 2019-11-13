@@ -709,7 +709,6 @@ def bitwiseNOT(e):
     return col(BitwiseNot(parse(e)))
 
 
-# todo: replace parse with expr
 def expr(expression):
     """
     :rtype: Column
