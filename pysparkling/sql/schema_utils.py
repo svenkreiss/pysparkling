@@ -1,8 +1,9 @@
 from functools import reduce
 
-from pysparkling.sql.internal_utils.joins import *
-from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, StructType, StructField, NullType, \
-    _get_null_fields
+from pysparkling.sql.internal_utils.joins import INNER_JOIN, CROSS_JOIN, LEFT_JOIN,\
+    LEFT_ANTI_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN, FULL_JOIN
+from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, \
+    StructType, StructField, _get_null_fields
 from pysparkling.sql.utils import IllegalArgumentException
 
 
@@ -21,7 +22,7 @@ def infer_schema_from_list(data, names=None):
     if not data:
         raise ValueError("can not infer schema from empty dataset")
     first = data[0]
-    if type(first) is dict:
+    if isinstance(first, dict):
         raise NotImplementedError(
             "Inferring schema from dict is deprecated in Spark "
             "and not implemented in pysparkling. "
@@ -50,7 +51,8 @@ def merge_schemas(left_schema, right_schema, how, on=None):
     elif how == RIGHT_JOIN:
         on_fields = right_on_fields
     elif how == FULL_JOIN:
-        on_fields = [StructField(field.name, field.dataType, nullable=True) for field in left_on_fields]
+        on_fields = [StructField(field.name, field.dataType, nullable=True)
+                     for field in left_on_fields]
     else:
         raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
 
