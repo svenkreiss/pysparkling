@@ -595,13 +595,6 @@ def nanvl(col1, col2):
     return col(NaNvl(parse(col1), parse(col2)))
 
 
-def negate(e):
-    """
-    :rtype: Column
-    """
-    return -parse(e)
-
-
 def rand(seed=None):
     """
 
