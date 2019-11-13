@@ -1,18 +1,34 @@
 import math
 
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.arrays import *
-from pysparkling.sql.expressions.dates import *
-from pysparkling.sql.expressions.explodes import *
-from pysparkling.sql.expressions.jsons import *
-from pysparkling.sql.expressions.literals import *
-
-from pysparkling.sql.expressions.aggregate.collectors import *
-from pysparkling.sql.expressions.aggregate.stat_aggregations import *
-from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
-from pysparkling.sql.expressions.mappers import *
-from pysparkling.sql.expressions.strings import *
-from pysparkling.sql.expressions.userdefined import *
+from pysparkling.sql.expressions.aggregate.collectors import SumDistinct, Last, First, \
+    CountDistinct, CollectSet, CollectList, ApproxCountDistinct
+from pysparkling.sql.expressions.aggregate.covariance_aggregations import CovarSamp, CovarPop, Corr
+from pysparkling.sql.expressions.aggregate.stat_aggregations import VarPop, VarSamp, Sum, \
+    StddevPop, StddevSamp, Skewness, Min, Avg, Max, Kurtosis, Count
+from pysparkling.sql.expressions.arrays import ArraysZip, ArrayRepeat, Flatten, ArrayMax, \
+    ArrayMin, SortArray, Size, ArrayExcept, ArrayUnion, ArrayIntersect, ArrayDistinct, \
+    ArrayRemove, ArraySort, ElementAt, ArrayPosition, ArrayJoin, ArraysOverlap, ArrayContains, \
+    MapFromArraysColumn, MapColumn, ArrayColumn, Sequence, Slice
+from pysparkling.sql.expressions.dates import ToUTCTimestamp, FromUTCTimestamp, TruncTimestamp, \
+    TruncDate, ParseToDate, ParseToTimestamp, UnixTimestamp, CurrentTimestamp, FromUnixTime, \
+    WeekOfYear, NextDay, MonthsBetween, LastDay, DayOfYear, DayOfMonth, DayOfWeek, Month, Quarter, \
+    Year, DateDiff, DateSub, DateAdd, DateFormat, CurrentDate, AddMonths, Hour, Minute, Second
+from pysparkling.sql.expressions.explodes import PosExplodeOuter, PosExplode, ExplodeOuter, Explode
+from pysparkling.sql.expressions.jsons import StructsToJson
+from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.expressions.mappers import MapConcat, MapFromEntries, MapEntries, MapValues, \
+    MapKeys, Reverse, Concat, Upper, SubstringIndex, StringSplit, UnBase64, RegExpReplace, \
+    RegExpExtract, Lower, Length, FormatNumber, ConcatWs, Base64, Ascii, ToRadians, ToDegrees, \
+    Tanh, Tan, Sinh, Sin, Signum, Bround, Round, Rint, Log2, Log1p, Log10, Least, Hypot, Unhex, \
+    Hex, Greatest, Floor, Factorial, ExpM1, Exp, Cosh, Cos, Conv, Ceil, Cbrt, Bin, Atan2, Atan, \
+    Asin, Acos, Abs, CaseWhen, CreateStruct, Sqrt, SparkPartitionID, Randn, Rand, NaNvl, \
+    MonotonicallyIncreasingID, IsNaN, Coalesce, GroupingID, Grouping, Log
+from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
+from pysparkling.sql.expressions.strings import StringTrim, StringTranslate, StringRTrim, \
+    StringRepeat, StringRPad, StringLTrim, StringLPad, StringLocate, Levenshtein, StringInStr, \
+    InitCap
+from pysparkling.sql.expressions.userdefined import UserDefinedFunction
 from pysparkling.sql.types import DataType
 
 
@@ -126,7 +142,6 @@ def collect_list(e):
     |[0, 1, 2, 3, 4]|
     +---------------+
     """
-    from pysparkling.sql.expressions.aggregate.collectors import CollectList
     return col(CollectList(column=parse(e)))
 
 
@@ -134,7 +149,6 @@ def collect_set(e):
     """
     :rtype: Column
     """
-    from pysparkling.sql.expressions.aggregate.collectors import CollectSet
     return col(CollectSet(column=parse(e)))
 
 
@@ -170,7 +184,6 @@ def countDistinct(*exprs):
     :rtype: Column
     """
     columns = [parse(e) for e in exprs]
-    from pysparkling.sql.expressions.aggregate.collectors import CountDistinct
     return col(CountDistinct(columns=columns))
 
 
@@ -198,7 +211,6 @@ def first(e, ignoreNulls=False):
     """
     :rtype: Column
     """
-    from pysparkling.sql.expressions.aggregate.collectors import First
     return col(First(parse(e), ignoreNulls))
 
 
@@ -280,7 +292,6 @@ def last(e, ignoreNulls=False):
     """
     :rtype: Column
     """
-    from pysparkling.sql.expressions.aggregate.collectors import Last
     return col(Last(parse(e), ignoreNulls))
 
 
@@ -2175,8 +2186,13 @@ def map_concat(*exprs):
     >>> from pysparkling import Context, Row
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
-    >>> df = spark.createDataFrame([([1, 2], ['a', 'b'], [2, 3], ['c', 'd'])], ['k1', 'v1', 'k2', 'v2'])
-    >>> df2 = df.select(map_from_arrays(df.k1, df.v1).alias("m1"), map_from_arrays(df.k2, df.v2).alias("m2"))
+    >>> df = spark.createDataFrame(
+    ...   [([1, 2], ['a', 'b'], [2, 3], ['c', 'd'])],
+    ...   ['k1', 'v1', 'k2', 'v2']
+    ... )
+    >>> df2 = df.select(
+    ...   map_from_arrays(df.k1, df.v1).alias("m1"), map_from_arrays(df.k2, df.v2).alias("m2")
+    ... )
     >>> df2.select(map_concat("m1", "m2")).collect()
     [Row(map_concat(m1, m2)={1: 'a', 2: 'c', 3: 'd'})]
 
