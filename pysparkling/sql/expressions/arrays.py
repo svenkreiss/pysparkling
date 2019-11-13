@@ -1,4 +1,5 @@
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
+from pysparkling.sql.utils import AnalysisException
 
 
 class ArraysOverlap(Expression):
@@ -13,7 +14,7 @@ class ArraysOverlap(Expression):
         overlap = set1 & set2
         if len(overlap) > 1 or (len(overlap) == 1 and None not in overlap):
             return True
-        if len(set1) > 0 and len(set2) > 0 and (None in set1 or None in set2):
+        if set1 and set2 and (None in set1 or None in set2):
             return None
         return False
 
@@ -34,7 +35,7 @@ class ArrayContains(Expression):
         return self.value in array_eval
 
     def __str__(self):
-        return "array_contains({0}, {1))".format(self.array, self.value)
+        return "array_contains({0}, {1})".format(self.array, self.value)
 
 
 class ArrayColumn(Expression):
@@ -89,10 +90,12 @@ class Size(UnaryExpression):
         column_value = self.column.eval(row, schema)
         if isinstance(column_value, (list, dict)):
             return len(column_value)
-        raise Expression("{0} value should be an array or a map, got {1}".format(
-            self.column,
-            type(column_value)
-        ))
+        raise AnalysisException(
+            "{0} value should be an array or a map, got {1}".format(
+                self.column,
+                type(column_value)
+            )
+        )
 
     def __str__(self):
         return "size({0})".format(self.column)
@@ -228,7 +231,7 @@ class SortArray(Expression):
 
 class ArraysZip(Expression):
     def __init__(self, cols):
-        super().__init__(self.cols)
+        super().__init__(*cols)
         self.cols = cols
 
     def eval(self, row, schema):
@@ -353,6 +356,7 @@ class ArrayExcept(Expression):
 
 __all__ = [
     "ArraysZip", "ArrayRepeat", "Flatten", "ArrayMax", "ArrayMin", "SortArray", "Size",
-    "ArrayExcept", "ArrayUnion", "ArrayIntersect", "ArrayDistinct", "ArrayRemove", "ArraySort", "ElementAt", "ArrayPosition", "ArrayJoin",
-    "ArraysOverlap", "ArrayContains", "MapFromArraysColumn", "MapColumn", "ArrayColumn", "Slice", "Sequence"
+    "ArrayExcept", "ArrayUnion", "ArrayIntersect", "ArrayDistinct", "ArrayRemove", "ArraySort",
+    "ElementAt", "ArrayPosition", "ArrayJoin", "ArraysOverlap", "ArrayContains",
+    "MapFromArraysColumn", "MapColumn", "ArrayColumn", "Slice", "Sequence"
 ]
