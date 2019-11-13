@@ -1296,7 +1296,7 @@ class DataFrame(object):
         |  5|
         |  2|
         +---+
-        >>> df1.unionByName(df2).select(df2.age).show() # doctest: +NORMALIZE_WHITESPACE
+        >>> df1.unionByName(df2).select(df2.age).show() # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
           ...
         pysparkling.sql.utils.AnalysisException: Unable to find the column 'age#3' \
