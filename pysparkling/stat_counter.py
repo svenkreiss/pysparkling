@@ -141,10 +141,8 @@ class StatCounter(object):
         return sqrt(self.sampleVariance())
 
     def __repr__(self):
-        return (
-                "(count: %s, mean: %s, stdev: %s, max: %s, min: %s)" %
-                (self.count(), self.mean(), self.stdev(), self.max(), self.min())
-        )
+        return ("(count: %s, mean: %s, stdev: %s, max: %s, min: %s)" %
+                (self.count(), self.mean(), self.stdev(), self.max(), self.min()))
 
 
 PercentileStats = namedtuple("PercentileStats", ["value", "g", "delta"])
@@ -229,12 +227,10 @@ class ColumnStatHelper(object):
         delta2 = delta * delta
         deltaN2 = deltaN * deltaN
         self.m3 = self.m3 - 3 * deltaN * self.m2 + delta * (delta2 - deltaN2)
-        self.m4 = (
-                self.m4 -
-                4 * deltaN * self.m3 -
-                6 * deltaN2 * self.m2 +
-                delta * (delta * delta2 - deltaN * deltaN2)
-        )
+        self.m4 = (self.m4 -
+                   4 * deltaN * self.m3 -
+                   6 * deltaN2 * self.m2 +
+                   delta * (delta * delta2 - deltaN * deltaN2))
 
     def update_sample(self, value):
         self.head_sampled.append(value)
@@ -245,7 +241,7 @@ class ColumnStatHelper(object):
                 self.compress()
 
     def add_head_to_sample(self):
-        if len(self.head_sampled) == 0:
+        if not self.head_sampled:
             return
 
         count_without_head = self.count - len(self.head_sampled)
@@ -262,7 +258,9 @@ class ColumnStatHelper(object):
                     break
 
             count_without_head += 1
-            if len(new_samples) == 0 or (sample_idx == len(self.sampled) and ops_idx == len(sorted_head) - 1):
+            if not new_samples or (
+                    sample_idx == len(self.sampled) and ops_idx == len(sorted_head) - 1
+            ):
                 delta = 0
             else:
                 delta = math.floor(2 * self.percentiles_relative_error * count_without_head)
@@ -297,7 +295,7 @@ class ColumnStatHelper(object):
         return 2 * self.percentiles_relative_error * self.count
 
     def finalize(self):
-        if len(self.head_sampled) > 0:
+        if self.head_sampled:
             self.add_head_to_sample()
         if not self.compressed:
             self.compress()
@@ -341,17 +339,13 @@ class ColumnStatHelper(object):
         deltaN = delta / new_count if new_count != 0 else 0
 
         new_m2 = self.m2 + other.m2 + delta * deltaN * n1 * n2
-        new_m3 = (
-                self.m3 + other.m3 +
-                deltaN * deltaN * delta * n1 * n2 * (n1 - n2) +
-                3 * deltaN * (n1 * other.m2 - n2 * self.m2)
-        )
-        self.m4 = (
-                self.m4 + other.m4 +
-                deltaN * deltaN * deltaN * delta * n1 * n2 * (n1 * n1 - n1 * n2 + n2 * n2) +
-                6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2) +
-                4 * deltaN * (n1 * other.m3 - n2 * self.m3)
-        )
+        new_m3 = (self.m3 + other.m3 +
+                  deltaN * deltaN * delta * n1 * n2 * (n1 - n2) +
+                  3 * deltaN * (n1 * other.m2 - n2 * self.m2))
+        self.m4 = (self.m4 + other.m4 +
+                   deltaN * deltaN * deltaN * delta * n1 * n2 * (n1 * n1 - n1 * n2 + n2 * n2) +
+                   6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2) +
+                   4 * deltaN * (n1 * other.m3 - n2 * self.m3))
         self.m2 = new_m2
         self.m3 = new_m3
 
@@ -359,7 +353,7 @@ class ColumnStatHelper(object):
         self.finalize()
         if not 0 <= quantile <= 1:
             raise ValueError("quantile must be between 0 and 1")
-        if len(self.sampled) == 0:
+        if not self.sampled:
             return None
         if quantile <= self.percentiles_relative_error:
             return self.sampled[0].value
@@ -369,7 +363,7 @@ class ColumnStatHelper(object):
         rank = math.ceil(quantile * self.count)
         target_error = self.percentiles_relative_error * self.count
         min_rank = 0
-        for i, cur_sample in enumerate(self.sampled):
+        for cur_sample in self.sampled:
             min_rank += cur_sample.g
             max_rank = min_rank + cur_sample.delta
             if max_rank - target_error <= rank <= min_rank + target_error:
@@ -479,7 +473,9 @@ class RowStatHelper(object):
         for col_name in other.col_names:
             counter = other.column_stat_helpers[col_name]
             if col_name in self.column_stat_helpers:
-                self.column_stat_helpers[col_name] = self.column_stat_helpers[col_name].mergeStats(counter)
+                self.column_stat_helpers[col_name] = (
+                    self.column_stat_helpers[col_name].mergeStats(counter)
+                )
             else:
                 self.column_stat_helpers[col_name] = counter
                 self.col_names.append(col_name)
@@ -488,7 +484,8 @@ class RowStatHelper(object):
 
     def get_as_rows(self, stats=("count", "mean", "stddev", "min", "max")):
         """
-        Provide a list of Row with the same format as the one in the Dataset returned by Dataset.stats()
+        Provide a list of Row with the same format as the one in the
+        Dataset returned by Dataset.stats()
         """
         return [
             row_from_keyed_values(
@@ -531,7 +528,8 @@ class CovarianceCounter(object):
     def __init__(self, method):
         if method != "pearson":
             raise ValueError(
-                "Currently only the calculation of the Pearson Correlation coefficient is supported."
+                "Currently only the calculation of the Pearson Correlation "
+                "coefficient is supported."
             )
         self.xAvg = 0.0  # the mean of all examples seen so far in col1
         self.yAvg = 0.0  # the mean of all examples seen so far in col2
