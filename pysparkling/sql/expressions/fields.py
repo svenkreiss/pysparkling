@@ -1,6 +1,7 @@
 from pysparkling.sql.types import StructField
 
 from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.utils import AnalysisException
 
 
 class FieldAsExpression(Expression):
@@ -46,13 +47,13 @@ def find_position_in_schema(schema, expr):
 
 def get_checked_matches(matches, field_name, schema, show_id):
     if len(matches) == 0:
-        raise ValueError("Unable to find the column '{0}' among {1}".format(
+        raise AnalysisException("Unable to find the column '{0}' among {1}".format(
             field_name,
             format_schema(schema, show_id)
         )) from None
 
     if len(matches) > 1:
-        raise ValueError(
+        raise AnalysisException(
             "Reference '{0}' is ambiguous, found {1} columns matching it.".format(
                 field_name,
                 len(matches)
