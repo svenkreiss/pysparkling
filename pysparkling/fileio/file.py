@@ -46,7 +46,8 @@ class File(object):
         """Return all files matching or in folder matching one of the given expression
 
         :param all_expr:
-            A list of expressions. The expressions can contain the wildcard characters ``*`` and ``?``.
+            A list of expressions.
+            The expressions can contain the wildcard characters ``*`` and ``?``.
 
         :returns: A list of file names.
         :rtype: list
