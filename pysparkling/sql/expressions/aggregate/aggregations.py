@@ -17,4 +17,3 @@ class Aggregation(Expression):
 
     def __str__(self):
         raise NotImplementedError
-
