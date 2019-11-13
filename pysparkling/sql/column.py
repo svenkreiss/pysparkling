@@ -2,7 +2,10 @@ import sys
 
 from pysparkling.sql.expressions.expressions import Expression
 from pysparkling.sql.expressions.mappers import StarOperator
-from pysparkling.sql.expressions.operators import *
+from pysparkling.sql.expressions.operators import Cast, Alias, IsNotNull, IsNull, IsIn, Substring, \
+    EndsWith, StartsWith, Contains, GetField, BitwiseXor, BitwiseAnd, BitwiseOr, EqNullSafe, \
+    GreaterThan, GreaterThanOrEqual, LessThanOrEqual, LessThan, Equal, Negate, Divide, Add, Minus, \
+    Time, Mod, Pow, And, Or, Invert
 
 from pysparkling.sql.types import DataType, StructField, string_to_type
 
