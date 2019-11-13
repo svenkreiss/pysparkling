@@ -46,7 +46,7 @@ def find_position_in_schema(schema, expr):
 
 
 def get_checked_matches(matches, field_name, schema, show_id):
-    if len(matches) == 0:
+    if not matches:
         raise AnalysisException("Unable to find the column '{0}' among {1}".format(
             field_name,
             format_schema(schema, show_id)
@@ -70,5 +70,4 @@ def format_schema(schema, show_id):
 def format_field(field, show_id):
     if show_id:
         return "{0}#{1}".format(field.name, field.id)
-    else:
-        return field.name
+    return field.name
