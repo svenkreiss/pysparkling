@@ -1,11 +1,10 @@
-from pysparkling import StorageLevel
-from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, ArrayType, MapType, IntegerType
-
-from pysparkling.sql.session import SparkSession
-
-from pysparkling import Context
 from unittest import TestCase
 
+from pysparkling import StorageLevel
+from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, \
+    ArrayType, MapType, IntegerType
+from pysparkling.sql.session import SparkSession
+from pysparkling import Context
 from pysparkling.utils import row_from_keyed_values
 
 
