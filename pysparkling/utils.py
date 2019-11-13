@@ -10,8 +10,9 @@ from operator import itemgetter
 import pytz
 from pytz import UnknownTimeZoneError
 
-from pysparkling.sql.internal_utils.joins import *
 from pysparkling.sql.schema_utils import get_on_fields
+from pysparkling.sql.internal_utils.joins import FULL_JOIN, RIGHT_JOIN, LEFT_JOIN, \
+    CROSS_JOIN, INNER_JOIN, LEFT_SEMI_JOIN, LEFT_ANTI_JOIN
 from pysparkling.sql.types import Row, _create_row
 from pysparkling.sql.utils import IllegalArgumentException
 
@@ -74,20 +75,20 @@ def reservoir_sample_and_size(iterable, k, seed):
     reservoir = list(itertools.islice(iterable, k))
 
     # If we have consumed all the elements, return them. Otherwise do the replacement.
-    l = len(reservoir)
-    if l < k:
-        return reservoir, l
+    reservoir_size = len(reservoir)
+    if reservoir_size < k:
+        return reservoir, reservoir_size
 
     # If input size > k, continue the sampling process.
-    for l, item in enumerate(iterable, start=k + 1):
+    for reservoir_size, item in enumerate(iterable, start=k + 1):
         # There are k elements in the reservoir, and the l-th element has been
         # consumed. It should be chosen with probability k/l. The expression
         # below is a random int chosen uniformly from [0, l)
-        replacementIndex = random.randint(0, l)
+        replacementIndex = random.randint(0, reservoir_size)
         if replacementIndex < k:
             reservoir[replacementIndex.toInt] = item
 
-    return reservoir, l
+    return reservoir, reservoir_size
 
 
 def compute_weighted_percentiles(weighted_values, number_of_percentiles, key=lambda x: x):
@@ -205,8 +206,7 @@ def pad_cell(cell, truncate, col_width):
     cell_width = col_width - str_half_width(cell) + len(cell)
     if truncate > 0:
         return cell.rjust(cell_width)
-    else:
-        return cell.ljust(cell_width)
+    return cell.ljust(cell_width)
 
 
 def format_cell(value):
@@ -221,7 +221,9 @@ def format_cell(value):
     if isinstance(value, dict):
         return "[{0}]".format(
             ", ".join(
-                "{0} -> {1}".format(format_cell(key), format_cell(sub_value)) for key, sub_value in value.items()
+                "{0} -> {1}".format(
+                    format_cell(key), format_cell(sub_value)
+                ) for key, sub_value in value.items()
             )
         )
     return str(value)
@@ -236,8 +238,10 @@ class MonotonicallyIncreasingIDGenerator(object):
         return self.value
 
 
+# pylint: disable=W0511
 # todo: store random-related utils in a separated module
 class XORShiftRandom(object):
+    # pylint: disable=W0511
     # todo: align generated values with the ones in Spark
     def __init__(self, init):
         self.seed = XORShiftRandom.hashSeed(init)
@@ -358,7 +362,10 @@ def merge_rows_joined_on_values(left, right, left_schema, right_schema, how, on)
 
     left_on_fields, right_on_fields = get_on_fields(left_schema, right_schema, on)
 
-    on_parts = [(on_field, left[on_field] if left is not None else right[on_field]) for on_field in on]
+    on_parts = [
+        (on_field, left[on_field] if left is not None else right[on_field])
+        for on_field in on
+    ]
 
     if left is None and how in (FULL_JOIN, RIGHT_JOIN):
         left = _create_row(left_names, [None for _ in left_names])
@@ -427,7 +434,7 @@ def portable_hash(x):
         if h == -1:
             h = -2
         return int(h)
-    elif isinstance(x, str):
+    if isinstance(x, str):
         return strhash(x)
     return hash(x)
 
@@ -456,8 +463,7 @@ def parse_tz(tz):
         match = re.match(GMT_PATTERN, tz)
         if match:
             return parse_gmt_based_offset(match)
-        else:
-            return None
+        return None
 
 
 def parse_gmt_based_offset(match):
@@ -473,8 +479,7 @@ def parse_gmt_based_offset(match):
     if 0 <= hours < 24 and 0 <= minutes < 60:
         offset = sign * (hours * 60 + minutes)
         return pytz.FixedOffset(offset)
-    else:
-        return None
+    return None
 
 
 def half_up_round(value, scale):
@@ -548,17 +553,18 @@ def get_json_encoder(date_formatter, timestamp_formatter):
                     return [encode_rows(e) for e in item]
                 if isinstance(item, dict):
                     return {key: encode_rows(value) for key, value in item.items()}
-                else:
-                    return item
+                return item
 
             return super(CustomJSONEncoder, self).encode(encode_rows(o))
 
+        # default can be overridden if passed a parameter during init
+        # pylint doesn't like the behavior but it is the expected one
+        # pylint: disable=E0202
         def default(self, o):
             if isinstance(o, datetime.date):
                 return timestamp_formatter(o)
-            elif isinstance(o, datetime.datetime):
+            if isinstance(o, datetime.datetime):
                 return date_formatter(o)
-            else:
-                return super(CustomJSONEncoder, self).default(o)
+            return super(CustomJSONEncoder, self).default(o)
 
     return CustomJSONEncoder
