@@ -41,6 +41,7 @@ setup(
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
+        'pandas': ['pandas>=0.25.3'],
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
         'test': [
