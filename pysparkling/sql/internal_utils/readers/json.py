@@ -1,11 +1,13 @@
 import itertools
 import json
+from functools import partial
 
-from pysparkling.sql.casts import *
+from pysparkling.sql.casts import get_struct_caster
 from pysparkling.sql.internal_utils.options import Options
 from pysparkling.sql.internal_utils.readers.utils import resolve_partitions, get_records
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
+from pysparkling.sql.types import StructType
 from pysparkling.utils import row_from_keyed_values
 
 
@@ -84,38 +86,42 @@ def parse_json_file(partitions, partition_schema, schema, options, f_name):
     records = get_records(f_name, options.linesep, options.encoding)
     rows = []
     for record in records:
-        raw_record_value = json.loads(record, encoding=options.encoding)
-        if not isinstance(raw_record_value, dict):
-            raise NotImplementedError(
-                "Top level items should be JSON objects (dicts), got {0} with {1}".format(
-                    type(raw_record_value),
-                    raw_record_value
-                )
-            )
-        record_value = decode_record(raw_record_value)
-        if schema is not None:
-            record_fields = record_value.__fields__
-            available_names = tuple(partition_schema.names) + record_fields
-            field_names = [
-                              name for name in record_fields if name in schema.names
-                          ] + [
-                              f.name for f in schema.fields
-                              if f.name not in available_names
-                          ]
-        else:
-            field_names = list(record_value.__fields__)
-        record_values = [
-            record_value[field_name] if field_name in record_value.__fields__ else None
-            for field_name in field_names
-        ]
-        partition_field_names = [f.name for f in partition_schema.fields]
-        # todo: nested rows
-        row = row_from_keyed_values(zip(
-            itertools.chain(field_names, partition_field_names),
-            itertools.chain(record_values, partitions[f_name])
-        ))
+        partition = partitions[f_name]
+        row = parse_record(record, schema, partition, partition_schema, options)
         rows.append(row)
     return rows
+
+
+def parse_record(record, schema, partition, partition_schema, options):
+    raw_record_value = json.loads(record, encoding=options.encoding)
+    if not isinstance(raw_record_value, dict):
+        raise NotImplementedError(
+            "Top level items should be JSON objects (dicts), got {0} with {1}".format(
+                type(raw_record_value),
+                raw_record_value
+            )
+        )
+    record_value = decode_record(raw_record_value)
+    if schema is not None:
+        record_fields = record_value.__fields__
+        available_names = tuple(partition_schema.names) + record_fields
+        field_names = [name for name in record_fields if name in schema.names] + [
+            f.name for f in schema.fields if f.name not in available_names
+        ]
+    else:
+        field_names = list(record_value.__fields__)
+    record_values = [
+        record_value[field_name] if field_name in record_value.__fields__ else None
+        for field_name in field_names
+    ]
+    partition_field_names = [f.name for f in partition_schema.fields]
+    # pylint: disable=W0511
+    # todo: handle nested rows
+    row = row_from_keyed_values(zip(
+        itertools.chain(field_names, partition_field_names),
+        itertools.chain(record_values, partition)
+    ))
+    return row
 
 
 def decode_record(item):
@@ -126,5 +132,4 @@ def decode_record(item):
             (key, decode_record(value))
             for key, value in item.items()
         )
-    else:
-        return item
+    return item
