@@ -640,6 +640,10 @@ class StructType(DataType):
             values = obj
         return _create_row(self.names, values)
 
+    @classmethod
+    def fromDDL(cls, string):
+        raise NotImplementedError("pysparkling does not support yet StructType.fromDDL")
+
 
 class UserDefinedType(DataType):
     """User-defined type (UDT).
