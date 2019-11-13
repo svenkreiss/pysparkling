@@ -1,15 +1,19 @@
-from pysparkling.sql.expressions.dates import *
-from pysparkling.sql.expressions.jsons import *
-from pysparkling.sql.expressions.strings import *
+import math
 
-from pysparkling.sql.column import parse, Column
-from pysparkling.sql.expressions.aggregate.collectors import SumDistinct
-from pysparkling.sql.expressions.explodes import *
+from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.arrays import *
-from pysparkling.sql.expressions.mappers import *
+from pysparkling.sql.expressions.dates import *
+from pysparkling.sql.expressions.explodes import *
+from pysparkling.sql.expressions.jsons import *
+from pysparkling.sql.expressions.literals import *
+
+from pysparkling.sql.expressions.aggregate.collectors import *
 from pysparkling.sql.expressions.aggregate.stat_aggregations import *
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import *
-from pysparkling.sql.expressions.userdefined import UserDefinedFunction
+from pysparkling.sql.expressions.mappers import *
+from pysparkling.sql.expressions.strings import *
+from pysparkling.sql.expressions.userdefined import *
+from pysparkling.sql.types import DataType
 
 
 def col(colName):
@@ -98,7 +102,6 @@ def approx_count_distinct(e, rsd=0.05):
     """
     # NB: This function returns the exact number of distinct values in pysparkling
     # as it does not rely on HyperLogLogPlusPlus or an other estimator
-    from pysparkling.sql.expressions.aggregate.collectors import ApproxCountDistinct
     return col(ApproxCountDistinct(column=parse(e)))
 
 

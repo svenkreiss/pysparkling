@@ -16,3 +16,6 @@ class UserDefinedFunction(Expression):
             self.f.__name__,
             ", ".join(str(expr) for expr in self.exprs)
         )
+
+
+__all__ = ["UserDefinedFunction"]

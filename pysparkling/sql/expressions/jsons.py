@@ -34,3 +34,6 @@ class StructsToJson(Expression):
             self.column,
             ", {0}".format(self.options) if self.options is not None else ""
         )
+
+
+__all__ = ["StructsToJson"]

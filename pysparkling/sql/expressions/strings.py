@@ -176,3 +176,9 @@ class Levenshtein(Expression):
 
     def __str__(self):
         return "levenshtein({0}, {1})".format(self.column1, self.column2)
+
+
+__all__ = [
+    "StringTrim", "StringTranslate", "StringRTrim", "StringRepeat", "StringRPad",
+    "StringLTrim", "StringLPad", "StringLocate", "Levenshtein", "StringInStr", "InitCap"
+]

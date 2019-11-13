@@ -1,4 +1,7 @@
-from pysparkling.sql.types import StructField, DataType
+from pysparkling.sql.casts import get_caster
+from pysparkling.sql.types import StructField, DataType, \
+    INTERNAL_TYPE_ORDER, python_to_spark_type
+from pysparkling.sql.utils import AnalysisException
 
 
 class Expression(object):
@@ -65,7 +68,7 @@ class Expression(object):
         pass
 
     def recursive_merge_stats(self, other, schema):
-        from pysparkling.sql.expressions.mappers import Alias
+        from pysparkling.sql.expressions.operators import Alias
         if isinstance(other.expr, Alias):
             self.recursive_merge_stats(other.expr.expr, schema)
         else:
@@ -131,4 +134,112 @@ class UnaryExpression(Expression):
         raise NotImplementedError
 
     def __str__(self):
+        raise NotImplementedError
+
+
+class BinaryOperation(Expression):
+    """
+    Perform a binary operation but return None if any value is None
+    """
+
+    def __init__(self, arg1, arg2):
+        super().__init__(arg1, arg2)
+        self.arg1 = arg1
+        self.arg2 = arg2
+
+    def eval(self, row, schema):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
+
+
+class TypeSafeBinaryOperation(BinaryOperation):
+    """
+    Perform a type and null-safe binary operation using *comparison* type cast rules:
+
+    It converts values if they are of different types following PySpark rules:
+
+    lit(datetime.date(2019, 1, 1))==lit("2019-01-01") is True
+    """
+
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+
+        type_1 = value_1.__class__
+        type_2 = value_2.__class__
+        if type_1 == type_2:
+            return self.unsafe_operation(value_1, value_2)
+
+        order_1 = INTERNAL_TYPE_ORDER.index(type_1)
+        order_2 = INTERNAL_TYPE_ORDER.index(type_2)
+        spark_type_1 = python_to_spark_type(type_1)
+        spark_type_2 = python_to_spark_type(type_2)
+
+        if order_1 > order_2:
+            caster = get_caster(from_type=spark_type_2, to_type=spark_type_1)
+            value_2 = caster(value_2)
+        elif order_1 < order_2:
+            caster = get_caster(from_type=spark_type_1, to_type=spark_type_2)
+            value_1 = caster(value_1)
+
+        return self.unsafe_operation(value_1, value_2)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value_1, value_2):
+        raise NotImplementedError
+
+
+class NullSafeBinaryOperation(BinaryOperation):
+    """
+    Perform a null-safe binary operation
+
+    It does not converts values if they are of different types:
+    lit(datetime.date(2019, 1, 1)) - lit("2019-01-01") raises an error
+    """
+
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+
+        type_1 = value_1.__class__
+        type_2 = value_2.__class__
+        if type_1 == type_2 or (
+                isinstance(value_1, (int, float)) and
+                isinstance(value_2, (int, float))
+        ):
+            return self.unsafe_operation(value_1, value_2)
+
+        raise AnalysisException(
+            "Cannot resolve {0} due to data type mismatch, first value is {1}, second value is {2}."
+            "".format(self, type_1, type_2)
+        )
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value_1, value_2):
+        raise NotImplementedError
+
+
+class NullSafeColumnOperation(Expression):
+    def __init__(self, column, *args):
+        super().__init__(column, *args)
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        return self.unsafe_operation(value)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value):
         raise NotImplementedError
