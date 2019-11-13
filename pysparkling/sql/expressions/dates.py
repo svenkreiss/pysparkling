@@ -20,7 +20,8 @@ class AddMonths(Expression):
         self.num_months = num_months
 
     def eval(self, row, schema):
-        return self.start_date.cast(DateType()).eval(row, schema) + relativedelta(months=self.num_months)
+        return (self.start_date.cast(DateType()).eval(row, schema)
+                + relativedelta(months=self.num_months))
 
     def __str__(self):
         return "add_months({0}, {1})".format(self.start_date, self.num_months)
@@ -209,7 +210,11 @@ class MonthsBetween(Expression):
         return float(diff)
 
     def __str__(self):
-        return "months_between({0}, {1}, {2})".format(self.column1, self.column2, str(self.round_off).lower())
+        return "months_between({0}, {1}, {2})".format(
+            self.column1,
+            self.column2,
+            str(self.round_off).lower()
+        )
 
 
 class DateDiff(Expression):
@@ -355,10 +360,9 @@ class TruncDate(Expression):
         value = self.column.cast(DateType()).eval(row, schema)
         if self.level in ('year', 'yyyy', 'yy'):
             return datetime.date(value.year, 1, 1)
-        elif self.level in ('month', 'mon', 'mm'):
+        if self.level in ('month', 'mon', 'mm'):
             return datetime.date(value.year, value.month, 1)
-        else:
-            return None
+        return None
 
     def __str__(self):
         return "trunc({0}, {1})".format(self.column, self.level)
@@ -373,25 +377,42 @@ class TruncTimestamp(Expression):
     def eval(self, row, schema):
         value = self.column.cast(TimestampType()).eval(row, schema)
 
+        day_truncation = self.truncate_to_day(value)
+        if day_truncation:
+            return day_truncation
+
+        time_truncated = self.truncate_to_time(value)
+        if time_truncated:
+            return time_truncated
+
+        return None
+
+    def truncate_to_day(self, value):
         if self.level in ('year', 'yyyy', 'yy'):
             return datetime.datetime(value.year, 1, 1)
-        elif self.level in ('month', 'mon', 'mm'):
+        if self.level in ('month', 'mon', 'mm'):
             return datetime.datetime(value.year, value.month, 1)
-        elif self.level in ('day', 'dd'):
+        if self.level in ('day', 'dd'):
             return datetime.datetime(value.year, value.month, value.day)
-        elif self.level in ('quarter',):
-            return
-        elif self.level in ('week',):
-            return datetime.datetime(value.year, value.month, value.day) - datetime.timedelta(
-                days=value.isoweekday() - 1)
-        elif self.level in ('hour',):
+        if self.level in ('quarter',):
+            quarter_start_month = int((value.month - 1) / 3) * 3 + 1
+            return datetime.datetime(value.year, quarter_start_month, 1)
+        if self.level in ('week',):
+            return datetime.datetime(
+                value.year, value.month, value.day
+            ) - datetime.timedelta(days=value.isoweekday() - 1)
+        return None
+
+    def truncate_to_time(self, value):
+        if self.level in ('hour',):
             return datetime.datetime(value.year, value.month, value.day, value.hour)
-        elif self.level in ('minute',):
+        if self.level in ('minute',):
             return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute)
-        elif self.level in ('second',):
-            return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute, value.second)
-        else:
-            return None
+        if self.level in ('second',):
+            return datetime.datetime(
+                value.year, value.month, value.day, value.hour, value.minute, value.second
+            )
+        return None
 
     def __str__(self):
         return "date_trunc({0}, {1})".format(self.level, self.column)
@@ -437,7 +458,8 @@ class ToUTCTimestamp(Expression):
 
 __all__ = [
     "ToUTCTimestamp", "FromUTCTimestamp", "TruncTimestamp", "TruncDate", "ParseToDate",
-    "ParseToTimestamp", "UnixTimestamp", "CurrentTimestamp", "FromUnixTime", "WeekOfYear", "NextDay", "MonthsBetween", "LastDay",
-    "DayOfYear", "DayOfMonth", "DayOfWeek", "Month", "Quarter", "Year", "DateDiff", "DateSub", "DateAdd", "DateFormat", "CurrentDate",
+    "ParseToTimestamp", "UnixTimestamp", "CurrentTimestamp", "FromUnixTime", "WeekOfYear",
+    "NextDay", "MonthsBetween", "LastDay", "DayOfYear", "DayOfMonth", "DayOfWeek", "Month",
+    "Quarter", "Year", "DateDiff", "DateSub", "DateAdd", "DateFormat", "CurrentDate",
     "AddMonths", "Hour", "Minute", "Second"
 ]
