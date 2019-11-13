@@ -196,8 +196,7 @@ class Column(object):
             if k.step is not None:
                 raise ValueError("slice with step is not supported.")
             return self.substr(k.start, k.stop)
-        else:
-            return self.getField(k)
+        return self.getField(k)
 
     def __iter__(self):
         raise TypeError("Column is not iterable")
@@ -205,6 +204,7 @@ class Column(object):
     def contains(self, other):
         return Column(Contains(self, parse_operator(other)))
 
+    # pylint: disable=W0511
     # todo: Like
     # def rlike(self, other):
     #     return Column(RegexLike(self, parse_operator(other)))
@@ -234,14 +234,11 @@ class Column(object):
         >>> df.select(df.name.substr(1, 3).alias("col")).collect()
         [Row(col='Ali'), Row(col='Bob')]
         """
-        if type(startPos) != type(length):
+        if not isinstance(startPos, type(length)):
             raise TypeError(
                 "startPos and length must be the same type. "
-                "Got {startPos_t} and {length_t}, respectively."
-                    .format(
-                    startPos_t=type(startPos),
-                    length_t=type(length),
-                ))
+                "Got {0} and {1}, respectively.".format(type(startPos), type(length))
+            )
         return Column(Substring(self, startPos, length))
 
     def isin(self, *exprs):
@@ -264,6 +261,7 @@ class Column(object):
             exprs = exprs[0]
         return Column(IsIn(self, exprs))
 
+    # pylint: disable=W0511
     # todo: Ordering
     # def asc(self):
     #     return Column(Asc(self))
@@ -325,14 +323,15 @@ class Column(object):
         assert not kwargs, 'Unexpected kwargs where passed: %s' % kwargs
 
         if metadata:
+            # pylint: disable=W0511
             # todo: support it
             raise ValueError('Pysparkling does not support alias with metadata')
 
         if len(alias) == 1:
             return Column(Alias(self, alias[0]))
-        else:
-            # todo: support it
-            raise ValueError('Pysparkling does not support multiple aliases')
+        # pylint: disable=W0511
+        # todo: support it
+        raise ValueError('Pysparkling does not support multiple aliases')
 
     def name(self, *alias, **kwargs):
         return self.alias(*alias, **kwargs)
@@ -470,8 +469,7 @@ class Column(object):
     def find_fields_in_schema(self, schema):
         if isinstance(self.expr, Expression):
             return self.expr.output_fields(schema)
-        else:
-            return [schema[self.find_position_in_schema(schema)]]
+        return [schema[self.find_position_in_schema(schema)]]
 
     def find_position_in_schema(self, schema):
         return find_position_in_schema(schema, self.expr)
@@ -492,12 +490,11 @@ class Column(object):
     def is_an_aggregation(self):
         if isinstance(self.expr, Expression):
             return self.expr.is_an_aggregation
-        elif isinstance(self.expr, str):
+        if isinstance(self.expr, str):
             return False
-        else:
-            raise NotImplementedError(
-                "Not implemented column expression type: {0}".format(type(self.expr))
-            )
+        raise NotImplementedError(
+            "Not implemented column expression type: {0}".format(type(self.expr))
+        )
 
     def output_fields(self, schema):
         if isinstance(self.expr, Expression):
@@ -531,7 +528,8 @@ class Column(object):
             self.expr.recursive_pre_evaluation_schema(pre_evaluation_schema)
         return self
 
-    # todo: window functions
+    # pylint: disable=W0511
+    # todo: support of window functions
     # def over(self, window):
     #     """
     #     Define a windowing column.
@@ -562,6 +560,7 @@ class Column(object):
 
     @property
     def data_type(self):
+        # pylint: disable=W0511
         # todo: be more specific
         return DataType()
 
@@ -581,7 +580,7 @@ def parse(arg):
         return arg
     if arg == "*":
         return Column(StarOperator())
-    if isinstance(arg, str) or isinstance(arg, Expression):
+    if isinstance(arg, (str, Expression)):
         return Column(arg)
     return Literal(value=arg)
 
