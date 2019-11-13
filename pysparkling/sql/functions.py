@@ -1237,7 +1237,7 @@ def regexp_extract(e, exp, groupIdx):
     [Row(str='100-200')]
     >>> df.select(Column('str').alias('range')).collect()
     [Row(range='100-200')]
-    >>> df.select(regexp_extract(df.str, r'(\d+)-(\d+)', 1).alias('d')).collect()
+    >>> df.select(regexp_extract(df.str, r'(\\d+)-(\\d+)', 1).alias('d')).collect()
     [Row(d='100')]
 
     :rtype: Column
@@ -1255,7 +1255,7 @@ def regexp_replace(e, pattern, replacement):
     [Row(str='100-200')]
     >>> df.select(Column('str').alias('range')).collect()
     [Row(range='100-200')]
-    >>> df.select(regexp_replace(df.str, r'-(\d+)', '-300').alias('d')).collect()
+    >>> df.select(regexp_replace(df.str, r'-(\\d+)', '-300').alias('d')).collect()
     [Row(d='100-300')]
 
     :rtype: Column
