@@ -1725,6 +1725,9 @@ def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
     """
     :rtype: Column
 
+    >>> import os, time
+    >>> os.environ['TZ'] = 'Europe/Paris'
+    >>> time.tzset()
     >>> from pysparkling import Context, Row
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
@@ -1744,6 +1747,9 @@ def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
     """
     :rtype: Column
 
+    >>> import os, time
+    >>> os.environ['TZ'] = 'Europe/Paris'
+    >>> time.tzset()
     >>> from pysparkling import Context, Row
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
