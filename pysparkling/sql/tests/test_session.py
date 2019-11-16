@@ -1,11 +1,20 @@
 from unittest import TestCase
 
+import pytest
+
 from pysparkling import StorageLevel
 from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, \
     ArrayType, MapType, IntegerType
 from pysparkling.sql.session import SparkSession
 from pysparkling import Context
+from pysparkling.sql.utils import require_minimum_pandas_version
 from pysparkling.utils import row_from_keyed_values
+
+try:
+    require_minimum_pandas_version()
+    has_pandas = True
+except ImportError:
+    has_pandas = False
 
 
 class SessionTests(TestCase):
@@ -51,10 +60,14 @@ class SessionTests(TestCase):
             StructType([StructField("_1", LongType(), True), StructField("_2", StringType(), True)])
         )
 
+    @pytest.mark.skipif(not has_pandas, reason='pandas is not installed')
     def test_session_create_data_frame_from_pandas_data_frame(self):
-        # Pandas is an optional dependency
-        # pylint: disable=C0415
-        import pandas as pd
+        try:
+            # Pandas is an optional dependency
+            # pylint: disable=C0415
+            import pandas as pd
+        except ImportError:
+            raise Exception("pandas is not importable")
 
         pdf = pd.DataFrame([
             (1, "one"),

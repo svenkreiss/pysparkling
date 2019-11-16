@@ -1601,9 +1601,12 @@ def _check_series_localize_timestamps(s, timezone):
     """
     require_minimum_pandas_version()
 
-    # pandas is an optional dependency
-    # pylint: disable=C0415
-    from pandas.api.types import is_datetime64tz_dtype
+    try:
+        # pandas is an optional dependency
+        # pylint: disable=C0415
+        from pandas.api.types import is_datetime64tz_dtype
+    except ImportError:
+        raise Exception("require_minimum_pandas_version() was not called")
     tz = timezone or _get_local_timezone()
     # pylint: disable=W0511
     # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
@@ -1638,9 +1641,13 @@ def _check_series_convert_timestamps_internal(s, timezone):
     """
     require_minimum_pandas_version()
 
-    # pandas is an optional dependency
-    # pylint: disable=C0415
-    from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
+    try:
+        # pandas is an optional dependency
+        # pylint: disable=C0415
+        from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
+    except ImportError:
+        raise Exception("require_minimum_pandas_version() was not called")
+
     # pylint: disable=W0511
     # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
     if is_datetime64_dtype(s.dtype):
@@ -1692,10 +1699,14 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
     """
     require_minimum_pandas_version()
 
-    # pandas is an optional dependency
-    # pylint: disable=C0415
-    import pandas as pd
-    from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
+    try:
+        # pandas is an optional dependency
+        # pylint: disable=C0415
+        import pandas as pd
+        from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
+    except ImportError:
+        raise Exception("require_minimum_pandas_version() was not called")
+
     from_tz = from_timezone or _get_local_timezone()
     to_tz = to_timezone or _get_local_timezone()
     # pylint: disable=W0511
