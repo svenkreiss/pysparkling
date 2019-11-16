@@ -240,9 +240,9 @@ class SparkSession(object):
         try:
             # pandas is an optional dependency
             # pylint: disable=C0415
-            import pandas
             has_pandas = True
-        except ModuleNotFoundError:
+            import pandas
+        except ImportError:
             has_pandas = False
 
         if has_pandas and isinstance(data, pandas.DataFrame):

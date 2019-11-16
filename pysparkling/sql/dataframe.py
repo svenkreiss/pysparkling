@@ -1684,9 +1684,12 @@ class DataFrame(object):
     def toPandas(self):
         require_minimum_pandas_version()
 
-        # pandas is an optional dependency
-        # pylint: disable=C0415
-        import pandas as pd
+        try:
+            # pandas is an optional dependency
+            # pylint: disable=C0415
+            import pandas as pd
+        except ImportError:
+            raise Exception("require_minimum_pandas_version() was not called")
 
         # noinspection PyProtectedMember
         sql_ctx_conf = self.sql_ctx._conf
