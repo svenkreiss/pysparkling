@@ -1,10 +1,10 @@
 import datetime
 import re
 import time
+from functools import partial
 
 import pytz
 from dateutil.tz import tzlocal
-from functools import partial
 
 from pysparkling.sql.types import UserDefinedType, NumericType, _create_row, DateType, \
     TimestampType, ArrayType, StructType, MapType, BooleanType, StringType, BinaryType, \
