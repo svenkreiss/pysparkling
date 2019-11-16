@@ -1,6 +1,9 @@
 import datetime
 import re
 import time
+
+import pytz
+from dateutil.tz import tzlocal
 from functools import partial
 
 from pysparkling.sql.types import UserDefinedType, NumericType, _create_row, DateType, \
@@ -15,10 +18,7 @@ TIME_REGEX = re.compile(
     "^([0-9]+):([0-9]+)?(?::([0-9]+))?(?:\\.([0-9]+))?(Z|[+-][0-9]+(?::(?:[0-9]+)?)?)?$"
 )
 
-tz_utc = datetime.timezone(datetime.timedelta(seconds=0))
-tz_local = datetime.timezone(
-    datetime.timedelta(seconds=-(time.altzone if time.daylight else time.timezone))
-)
+GMT = pytz.timezone("GMT")
 
 
 def identity(value):
@@ -162,7 +162,7 @@ def parse_time_as_string(time_as_string):
 def parse_timezone(tz_as_string):
     if tz_as_string:
         if tz_as_string == "Z":
-            tzinfo = tz_utc
+            tzinfo = GMT
         else:
             sign = tz_as_string[0]
             coeff = 1 if sign == "+" else -1
@@ -179,7 +179,7 @@ def parse_timezone(tz_as_string):
             )
             tzinfo = datetime.timezone(offset)
     else:
-        tzinfo = tz_local
+        tzinfo = tzlocal()
     return tzinfo
 
 
@@ -196,7 +196,7 @@ def cast_to_timestamp(value, from_type):
             month=date.month,
             day=date.day,
             **time_of_day
-        ).astimezone(tz_local).replace(tzinfo=None)
+        ).astimezone(tzlocal()).replace(tzinfo=None)
     if isinstance(value, datetime.datetime):
         return value
     if isinstance(value, datetime.date):

@@ -1,17 +1,15 @@
 import datetime
 import os
 import shutil
-import time as _time
 from unittest import TestCase
+
+from dateutil.tz import tzlocal
 
 from pysparkling import Context, Row
 from pysparkling.sql.session import SparkSession
 from pysparkling.sql.utils import AnalysisException
 
 spark = SparkSession(Context())
-tz_local = datetime.timezone(
-    datetime.timedelta(seconds=-(_time.altzone if _time.daylight else _time.timezone))
-)
 
 
 def get_folder_content(folder_path):
@@ -41,17 +39,19 @@ class DataFrameWriterTests(TestCase):
 
     def test_write_to_csv(self):
         df = spark.createDataFrame(
-            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tz_local), ),
-             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tz_local))]
+            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tzlocal()), ),
+             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tzlocal()))]
         )
         df.write.csv(".tmp/wonderland/")
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
-            {'_SUCCESS': [],
-             'part-00000-4989273019908358400.csv': [
-                 '2,Alice,2016-12-31T23:00:00.000+01:00\n',
-                 '5,Bob,2014-03-01T23:00:00.000+01:00\n'
-             ]}
+            {
+                '_SUCCESS': [],
+                'part-00000-65653853369276080.csv': [
+                    '2,Alice,2017-01-01T00:00:00.000+01:00\n',
+                    '5,Bob,2014-03-02T00:00:00.000+01:00\n'
+                ]
+            }
         )
 
     def test_write_to_csv_with_custom_options(self):
@@ -92,16 +92,17 @@ class DataFrameWriterTests(TestCase):
 
     def test_write_to_json(self):
         df = spark.createDataFrame(
-            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tz_local), ),
-             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tz_local))]
+            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tzlocal()), ),
+             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tzlocal()))]
         )
         df.write.json(".tmp/wonderland/")
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
+
             {'_SUCCESS': [],
-             'part-00000-4989273019908358400.json': [
-                 '{"age":2,"name":"Alice","time":"2016-12-31T23:00:00.000+01:00"}\n',
-                 '{"age":5,"name":"Bob","time":"2014-03-01T23:00:00.000+01:00"}\n'
+             'part-00000-65653853369276080.json': [
+                 '{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000+01:00"}\n',
+                 '{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000+01:00"}\n'
              ]}
         )
 

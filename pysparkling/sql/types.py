@@ -18,7 +18,6 @@ import itertools
 import os
 import sys
 import decimal
-import time
 import datetime
 import json as _json
 import re
@@ -28,9 +27,6 @@ import platform
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
-tz_local = datetime.timezone(
-    datetime.timedelta(seconds=-(time.altzone if time.daylight else time.timezone))
-)
 
 if sys.version >= "3":
     long = int
