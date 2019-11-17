@@ -29,7 +29,7 @@ class StringRTrim(UnaryExpression):
 
 class StringInStr(Expression):
     def __init__(self, substr, column):
-        super().__init__(column)
+        super(StringInStr).__init__(column)
         self.substr = substr
         self.column = column
 
@@ -46,7 +46,7 @@ class StringInStr(Expression):
 
 class StringLocate(Expression):
     def __init__(self, substr, column, pos):
-        super().__init__(column)
+        super(StringLocate).__init__(column)
         self.substr = substr
         self.column = column
         self.start = pos - 1
@@ -67,7 +67,7 @@ class StringLocate(Expression):
 
 class StringLPad(Expression):
     def __init__(self, column, length, pad):
-        super().__init__(column)
+        super(StringLPad).__init__(column)
         self.column = column
         self.length = length
         self.pad = pad
@@ -88,7 +88,7 @@ class StringLPad(Expression):
 
 class StringRPad(Expression):
     def __init__(self, column, length, pad):
-        super().__init__(column)
+        super(StringRPad).__init__(column)
         self.column = column
         self.length = length
         self.pad = pad
@@ -109,7 +109,7 @@ class StringRPad(Expression):
 
 class StringRepeat(Expression):
     def __init__(self, column, n):
-        super().__init__(column)
+        super(StringRepeat).__init__(column)
         self.column = column
         self.n = n
 
@@ -126,7 +126,7 @@ class StringRepeat(Expression):
 
 class StringTranslate(Expression):
     def __init__(self, column, matching_string, replace_string):
-        super().__init__(column)
+        super(StringTranslate).__init__(column)
         self.column = column
         self.matching_string = matching_string
         self.replace_string = replace_string
@@ -150,7 +150,7 @@ class StringTranslate(Expression):
 
 class InitCap(Expression):
     def __init__(self, column):
-        super().__init__(column)
+        super(InitCap).__init__(column)
         self.column = column
 
     def eval(self, row, schema):
@@ -163,7 +163,7 @@ class InitCap(Expression):
 
 class Levenshtein(Expression):
     def __init__(self, column1, column2):
-        super().__init__(column1, column2)
+        super(Levenshtein).__init__(column1, column2)
         self.column1 = column1
         self.column2 = column2
 

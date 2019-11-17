@@ -137,7 +137,7 @@ class Invert(UnaryExpression):
 
 class BitwiseOr(Expression):
     def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
+        super(BitwiseOr).__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -150,7 +150,7 @@ class BitwiseOr(Expression):
 
 class BitwiseAnd(Expression):
     def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
+        super(BitwiseAnd).__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -163,7 +163,7 @@ class BitwiseAnd(Expression):
 
 class BitwiseXor(Expression):
     def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
+        super(BitwiseXor).__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -184,7 +184,7 @@ class BitwiseNot(UnaryExpression):
 
 class EqNullSafe(Expression):
     def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
+        super(EqNullSafe).__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -197,7 +197,7 @@ class EqNullSafe(Expression):
 
 class GetField(Expression):
     def __init__(self, item, field):
-        super().__init__(item, field)
+        super(GetField).__init__(item, field)
         self.item = item
         self.field = field
 
@@ -226,7 +226,7 @@ class GetField(Expression):
 
 class Contains(Expression):
     def __init__(self, expr, value):
-        super().__init__(expr, value)
+        super(Contains).__init__(expr, value)
         self.expr = expr
         self.value = value
 
@@ -239,7 +239,7 @@ class Contains(Expression):
 
 class StartsWith(Expression):
     def __init__(self, arg1, substr):
-        super().__init__(arg1, substr)
+        super(StartsWith).__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -252,7 +252,7 @@ class StartsWith(Expression):
 
 class EndsWith(Expression):
     def __init__(self, arg1, substr):
-        super().__init__(arg1, substr)
+        super(EndsWith).__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -265,7 +265,7 @@ class EndsWith(Expression):
 
 class IsIn(Expression):
     def __init__(self, arg1, cols):
-        super().__init__(arg1)
+        super(IsIn).__init__(arg1)
         self.arg1 = arg1
         self.cols = cols
 
@@ -289,7 +289,7 @@ class IsNotNull(UnaryExpression):
 
 class Cast(Expression):
     def __init__(self, column, destination_type):
-        super().__init__(column)
+        super(Cast).__init__(column)
         self.column = column
         self.destination_type = destination_type
         self.caster = get_caster(from_type=self.column.data_type, to_type=destination_type)
@@ -303,7 +303,7 @@ class Cast(Expression):
 
 class Substring(Expression):
     def __init__(self, expr, start, length):
-        super().__init__(expr)
+        super(Substring).__init__(expr)
         self.expr = expr
         self.start = start
         self.length = length
@@ -325,7 +325,7 @@ class IsNull(UnaryExpression):
 
 class Alias(Expression):
     def __init__(self, expr, alias):
-        super().__init__(expr, alias)
+        super(Alias).__init__(expr, alias)
         self.expr = expr
         self.alias = alias
 

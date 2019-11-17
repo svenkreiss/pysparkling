@@ -3,7 +3,7 @@ from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
 
 class CollectList(Aggregation):
     def __init__(self, column):
-        super().__init__(column)
+        super(CollectList).__init__(column)
         self.column = column
         self.items = []
 
@@ -22,7 +22,7 @@ class CollectList(Aggregation):
 
 class CollectSet(Aggregation):
     def __init__(self, column):
-        super().__init__(column)
+        super(CollectSet).__init__(column)
         self.column = column
         self.items = set()
 
@@ -41,7 +41,7 @@ class CollectSet(Aggregation):
 
 class SumDistinct(Aggregation):
     def __init__(self, column):
-        super().__init__(column)
+        super(SumDistinct).__init__(column)
         self.column = column
         self.items = set()
 
@@ -62,7 +62,7 @@ class First(Aggregation):
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
-        super().__init__(column)
+        super(First).__init__(column)
         self.column = column
         self.value = self._sentinel
         self.ignore_nulls = ignore_nulls
@@ -86,7 +86,7 @@ class Last(Aggregation):
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
-        super().__init__(column)
+        super(Last).__init__(column)
         self.column = column
         self.value = None
         self.ignore_nulls = ignore_nulls
@@ -109,7 +109,7 @@ class Last(Aggregation):
 
 class CountDistinct(Aggregation):
     def __init__(self, columns):
-        super().__init__(columns)
+        super(CountDistinct).__init__(columns)
         self.columns = columns
         self.items = set()
 
@@ -130,7 +130,7 @@ class CountDistinct(Aggregation):
 
 class ApproxCountDistinct(Aggregation):
     def __init__(self, column):
-        super().__init__(column)
+        super(ApproxCountDistinct).__init__(column)
         self.column = column
         self.items = set()
 
