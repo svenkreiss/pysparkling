@@ -26,33 +26,33 @@ class Options(dict):
             d.update({
                 key.lower(): value for key, value in arg.items()
             })
-        super().__init__(d)
+        super(Options).__init__(d)
 
     def setdefault(self, k, default=None):
-        return super().setdefault(k.lower(), default)
+        return super(Options).setdefault(k.lower(), default)
 
     @staticmethod
     def fromkeys(seq):
-        return super().fromkeys(k.lower() for k in seq)
+        return super(Options).fromkeys(k.lower() for k in seq)
 
     def __getitem__(self, k):
-        return super().__getitem__(k.lower())
+        return super(Options).__getitem__(k.lower())
 
     def __setitem__(self, k, v):
         if isinstance(v, str) and v.lower() in ("true", "false"):
             v = (v.lower() == "true")
-        super().__setitem__(k.lower(), v)
+        super(Options).__setitem__(k.lower(), v)
 
     def __delitem__(self, k):
-        super().__delitem__(k.lower())
+        super(Options).__delitem__(k.lower())
 
     def get(self, k, *args, **kwargs):
-        return super().get(k.lower(), *args, **kwargs)
+        return super(Options).get(k.lower(), *args, **kwargs)
 
     def __contains__(self, o):
         if not isinstance(o, str):
             return False
-        return super().__contains__(o.lower())
+        return super(Options).__contains__(o.lower())
 
     def __getattr__(self, item):
         return self[item.lower()]

@@ -138,7 +138,7 @@ class Expression(object):
 
 class UnaryExpression(Expression):
     def __init__(self, column):
-        super().__init__(column)
+        super(UnaryExpression).__init__(column)
         self.column = column
 
     def eval(self, row, schema):
@@ -154,7 +154,7 @@ class BinaryOperation(Expression):
     """
 
     def __init__(self, arg1, arg2):
-        super().__init__(arg1, arg2)
+        super(BinaryOperation).__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -242,7 +242,7 @@ class NullSafeBinaryOperation(BinaryOperation):
 
 class NullSafeColumnOperation(Expression):
     def __init__(self, column, *args):
-        super().__init__(column, *args)
+        super(NullSafeColumnOperation).__init__(column, *args)
         self.column = column
 
     def eval(self, row, schema):

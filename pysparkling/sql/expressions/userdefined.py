@@ -3,7 +3,7 @@ from pysparkling.sql.expressions.expressions import Expression
 
 class UserDefinedFunction(Expression):
     def __init__(self, f, return_type, *exprs):
-        super().__init__()
+        super(UserDefinedFunction).__init__()
         self.f = f
         self.return_type = return_type
         self.exprs = exprs

@@ -6,7 +6,7 @@ class CovarianceStatAggregation(Aggregation):
         # Top level import would cause cyclic dependencies
         # pylint: disable=C0415
         from pysparkling.stat_counter import CovarianceCounter
-        super().__init__(column1, column2)
+        super(CovarianceStatAggregation).__init__(column1, column2)
         self.column1 = column1
         self.column2 = column2
         self.stat_helper = CovarianceCounter(method="pearson")
