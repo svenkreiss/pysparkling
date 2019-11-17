@@ -177,14 +177,14 @@ def row_from_keyed_values(keyed_values):
 
 FULL_WIDTH_REGEX = re.compile(
     "[" +
-    "\u1100-\u115F" +
-    "\u2E80-\uA4CF" +
-    "\uAC00-\uD7A3" +
-    "\uF900-\uFAFF" +
-    "\uFE10-\uFE19" +
-    "\uFE30-\uFE6F" +
-    "\uFF00-\uFF60" +
-    "\uFFE0-\uFFE6" +
+    r"\u1100-\u115F" +
+    r"\u2E80-\uA4CF" +
+    r"\uAC00-\uD7A3" +
+    r"\uF900-\uFAFF" +
+    r"\uFE10-\uFE19" +
+    r"\uFE30-\uFE6F" +
+    r"\uFF00-\uFF60" +
+    r"\uFFE0-\uFFE6" +
     "]"
 )
 
