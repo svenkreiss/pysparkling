@@ -47,10 +47,10 @@ class Local(FileSystem):
                 file_paths.append(match)
             else:
                 file_paths += [
-                    os.path.join(root, file)
+                    os.path.join(root, f)
                     for root, dirs, files in os.walk(match)
-                    for file in files
-                    if not file.startswith(("_", "."))
+                    for f in files
+                    if not f.startswith(("_", "."))
                 ]
         return file_paths
 
