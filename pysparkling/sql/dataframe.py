@@ -453,7 +453,7 @@ class DataFrame(object):
             if not cols:
                 return DataFrame(self._jdf.repartition(numPartitions), self.sql_ctx)
 
-            def partitioner(row: Row):
+            def partitioner(row):
                 return sum(hash(row[c]) for c in cols)
 
             repartitioned_jdf = self._jdf.partitionValues(numPartitions, partitioner)
@@ -1740,7 +1740,7 @@ class DataFrame(object):
 
 
 class DataFrameNaFunctions(object):
-    def __init__(self, df: DataFrame):
+    def __init__(self, df):
         self.df = df
 
     def drop(self, how='any', thresh=None, subset=None):
@@ -1760,7 +1760,7 @@ class DataFrameNaFunctions(object):
 
 
 class DataFrameStatFunctions(object):
-    def __init__(self, df: DataFrame):
+    def __init__(self, df):
         self.df = df
 
     def approxQuantile(self, col, probabilities, relativeError):
