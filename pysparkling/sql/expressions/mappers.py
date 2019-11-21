@@ -399,7 +399,7 @@ class Log10(UnaryExpression):
 
 class Log2(UnaryExpression):
     def eval(self, row, schema):
-        return math.log2(self.column.eval(row, schema))
+        return math.log(self.column.eval(row, schema), 2)
 
     def __str__(self):
         return "LOG2({0})".format(self.column)
