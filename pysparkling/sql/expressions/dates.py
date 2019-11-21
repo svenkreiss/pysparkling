@@ -156,7 +156,7 @@ class NextDay(Expression):
         self.day_of_week = day_of_week
 
     def eval(self, row, schema):
-        value: datetime.datetime = self.column.cast(DateType()).eval(row, schema)
+        value = self.column.cast(DateType()).eval(row, schema)
 
         if self.day_of_week.upper() not in DAYS_OF_WEEK:
             return None
