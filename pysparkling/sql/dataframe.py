@@ -7,7 +7,7 @@ from pysparkling.sql.utils import IllegalArgumentException, require_minimum_pand
 from pysparkling.storagelevel import StorageLevel
 # noinspection PyProtectedMember
 from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
-    IntegerType, FloatType, Row, _check_series_convert_timestamps_local_tz
+    IntegerType, FloatType, _check_series_convert_timestamps_local_tz
 
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
@@ -140,7 +140,7 @@ class DataFrame(object):
 
     def show(self, n=20, truncate=True, vertical=False):
         """
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -611,7 +611,7 @@ class DataFrame(object):
         """
         Returns the cartesian product of self and other
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([
@@ -801,7 +801,7 @@ class DataFrame(object):
 
         return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
-    def sortWithinPartitions(self, *cols, ascending=True):
+    def sortWithinPartitions(self, *cols, **kwargs):
         """
         >>> from pysparkling import Context
         >>> from pysparkling.sql.session import SparkSession
@@ -812,10 +812,13 @@ class DataFrame(object):
         [Row(id=1), Row(id=0)]
         [Row(id=3), Row(id=2)]
         """
+        ascending = kwargs.pop("ascending", True)
+        if kwargs:
+            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
         sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
-    def sort(self, *cols, ascending=True):
+    def sort(self, *cols, **kwargs):
         """Returns a new :class:`DataFrame` sorted by the specified column(s).
 
         :param cols: list of :class:`Column` or column names to sort by.
@@ -827,7 +830,7 @@ class DataFrame(object):
         # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         # >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
         # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -855,6 +858,9 @@ class DataFrame(object):
         |  5|  Bob|
         +---+-----+
         """
+        ascending = kwargs.pop("ascending", True)
+        if kwargs:
+            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
         sorted_jdf = self._jdf.sort(cols, ascending)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
@@ -892,7 +898,7 @@ class DataFrame(object):
         .. note:: This function is meant for exploratory data analysis, as we make no
             guarantee about the backward compatibility of the schema of the resulting DataFrame.
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -942,7 +948,7 @@ class DataFrame(object):
         .. note:: This function is meant for exploratory data analysis, as we make no
             guarantee about the backward compatibility of the schema of the resulting DataFrame.
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -1024,7 +1030,7 @@ class DataFrame(object):
             If one of the column names is '*', that column is expanded to include all columns
             in the current DataFrame.
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> from pysparkling.sql.functions import (explode, split, posexplode,
@@ -1111,7 +1117,7 @@ class DataFrame(object):
         # >>> df.selectExpr("age * 2", "abs(age)").collect()
         # [Row((age * 2)=4, abs(age)=2), Row((age * 2)=10, abs(age)=5)]
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -1252,7 +1258,7 @@ class DataFrame(object):
         This is equivalent to `UNION ALL` in SQL. To do a SQL-style set union
         (that does deduplication of elements), use this function followed by :func:`distinct`.
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
@@ -1283,7 +1289,7 @@ class DataFrame(object):
         The difference between this function and :func:`union` is that this function
         resolves columns by name (not by position):
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
@@ -1495,7 +1501,7 @@ class DataFrame(object):
 
         More information in pysparkling.stat_counter.ColumnStatHelper
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
@@ -1592,7 +1598,7 @@ class DataFrame(object):
     def withColumn(self, colName, col):
         """
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> from pysparkling.sql.functions import length
         >>> spark = SparkSession(Context())
@@ -1618,7 +1624,7 @@ class DataFrame(object):
         Returns a DataFrame without the specified columns
         If some column to drop are not in the DataFrame they are ignored
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([
@@ -1659,7 +1665,7 @@ class DataFrame(object):
 
         :param cols: list of new column names (string)
 
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
