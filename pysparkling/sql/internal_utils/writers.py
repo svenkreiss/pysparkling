@@ -292,7 +292,9 @@ class CSVWriter(DataWriter):
             for col_name in self.partitioning_col_names
         ]
         file_path = "/".join(
-            [output_path, *partition_parts, "part-00000-{0}.csv".format(portable_hash(ref_value))]
+            [output_path]
+            + partition_parts
+            + ["part-00000-{0}.csv".format(portable_hash(ref_value))]
         )
 
         # pylint: disable=W0511
@@ -367,7 +369,7 @@ class JSONWriter(DataWriter):
             "{0}={1}".format(col_name, ref_value[col_name])
             for col_name in self.partitioning_col_names
         ]
-        partition_folder = "/".join([output_path, *partition_parts])
+        partition_folder = "/".join([output_path] + partition_parts)
         file_path = "{0}/part-00000-{1}.json".format(partition_folder, portable_hash(ref_value))
 
         if not os.path.exists(partition_folder):
