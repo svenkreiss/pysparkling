@@ -50,7 +50,7 @@ def get_checked_matches(matches, field_name, schema, show_id):
         raise AnalysisException("Unable to find the column '{0}' among {1}".format(
             field_name,
             format_schema(schema, show_id)
-        )) from None
+        ))
 
     if len(matches) > 1:
         raise AnalysisException(
