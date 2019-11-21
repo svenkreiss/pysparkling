@@ -5,7 +5,7 @@ from pysparkling.sql.expressions.expressions import UnaryExpression
 
 class Explode(UnaryExpression):
     def __init__(self, column):
-        super(Explode).__init__(column)
+        super(Explode, self).__init__(column)
         self.column = column
 
     @property

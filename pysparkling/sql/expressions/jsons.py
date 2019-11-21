@@ -7,7 +7,7 @@ from pysparkling.utils import get_json_encoder
 
 class StructsToJson(Expression):
     def __init__(self, column, options):
-        super(StructsToJson).__init__(column)
+        super(StructsToJson, self).__init__(column)
         self.column = column
         self.options = options
         if options:

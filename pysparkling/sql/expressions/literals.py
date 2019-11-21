@@ -3,7 +3,7 @@ from pysparkling.sql.expressions.expressions import Expression
 
 class Literal(Expression):
     def __init__(self, value):
-        super(Literal).__init__()
+        super(Literal, self).__init__()
         self.value = value
 
     def eval(self, row, schema):
