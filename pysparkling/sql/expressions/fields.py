@@ -6,7 +6,7 @@ from pysparkling.sql.utils import AnalysisException
 
 class FieldAsExpression(Expression):
     def __init__(self, field):
-        super(FieldAsExpression).__init__()
+        super(FieldAsExpression, self).__init__()
         self.field = field
 
     def eval(self, row, schema):
