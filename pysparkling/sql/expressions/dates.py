@@ -198,13 +198,13 @@ class MonthsBetween(Expression):
             diff = ((value_1.year - value_2.year) * 12 +
                     (value_1.month - value_2.month))
         else:
+            day_offset = (value_1.day - value_2.day +
+                          (value_1.hour - value_2.hour) / 24 +
+                          (value_1.minute - value_2.minute) / 1440 +
+                          (value_1.second - value_2.second) / 86400)
             diff = ((value_1.year - value_2.year) * 12 +
                     (value_1.month - value_2.month) * 1 +
-                    (value_1.day - value_2.day +
-                     (value_1.hour - value_2.hour) / 24 +
-                     (value_1.minute - value_2.minute) / 1440 +
-                     (value_1.second - value_2.second) / 86400
-                     ) / 31)
+                    day_offset / 31)
         if self.round_off:
             return float(round(diff, 8))
         return float(diff)
