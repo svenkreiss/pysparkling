@@ -1,5 +1,5 @@
-from pysparkling.sql.internal_utils.readers.csv import CSVReader
-from pysparkling.sql.internal_utils.readers.json import JSONReader
+from pysparkling.sql.internal_utils.readers.csvreader import CSVReader
+from pysparkling.sql.internal_utils.readers.jsonreader import JSONReader
 from pysparkling.sql.internal_utils.readwrite import OptionUtils, to_option_stored_value
 
 
