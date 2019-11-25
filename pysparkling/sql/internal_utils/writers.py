@@ -1,3 +1,4 @@
+import collections
 import csv
 import json
 import os
@@ -324,7 +325,7 @@ class JSONWriter(DataWriter):
     def __init__(self, df, mode, options, partitioning_col_names,
                  num_buckets, bucket_col_names, sort_col_names):
         super(JSONWriter, self).__init__(df, mode, options, partitioning_col_names,
-                                   num_buckets, bucket_col_names, sort_col_names)
+                                         num_buckets, bucket_col_names, sort_col_names)
 
         self.encoder = get_json_encoder(
             date_formatter=self.dateFormat,
@@ -353,7 +354,7 @@ class JSONWriter(DataWriter):
 
     def preformat(self, row, schema):
         return json.dumps(
-            dict(zip(schema.names, row)),
+            collections.OrderedDict(zip(schema.names, row)),
             cls=self.encoder,
             separators=(',', ':')
         ) + self.lineSep
