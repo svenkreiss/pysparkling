@@ -437,6 +437,8 @@ def portable_hash(x):
         return int(h)
     if isinstance(x, str):
         return strhash(x)
+    if isinstance(x, datetime.datetime):
+        return portable_hash(x.timetuple())
     return hash(x)
 
 

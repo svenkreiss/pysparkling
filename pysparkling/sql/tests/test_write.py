@@ -47,7 +47,7 @@ class DataFrameWriterTests(TestCase):
             get_folder_content(".tmp/wonderland"),
             {
                 '_SUCCESS': [],
-                'part-00000-65653853369276080.csv': [
+                'part-00000-8447384085955758034.csv': [
                     '2,Alice,2017-01-01T00:00:00.000+01:00\n',
                     '5,Bob,2014-03-02T00:00:00.000+01:00\n'
                 ]
@@ -100,7 +100,7 @@ class DataFrameWriterTests(TestCase):
             get_folder_content(".tmp/wonderland"),
 
             {'_SUCCESS': [],
-             'part-00000-65653853369276080.json': [
+             'part-00000-8447384085955758034.json': [
                  '{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000+01:00"}\n',
                  '{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000+01:00"}\n'
              ]}
