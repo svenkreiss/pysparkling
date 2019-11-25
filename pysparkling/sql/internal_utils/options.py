@@ -9,11 +9,11 @@ class Options(dict):
 
     >>> default_options = dict(sep=",", samplingRatio=None)
     >>> requested_options = dict(Sep="|")
-    >>> o=Options(default_options, requested_options)
+    >>> o=Options({"format": "json", "lineSep": ","}, Format="csv")
     >>> o
-    {'sep': '|', 'samplingratio': None}
-    >>> o.SEP, o.samplingratio
-    ('|', None)
+    {'format': 'csv', 'linesep': ','}
+    >>> o.format, o.linesep
+    ('csv', ',')
     >>> o.UndefinedSetting
     Traceback (most recent call last):
     ...
@@ -21,10 +21,6 @@ class Options(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        >>> Options({"format": "json", "lineSep": ","}, Format="csv")
-        {'format': 'csv', 'linesep': ','}
-        """
         d = {
             key.lower(): value
             for arg in args
