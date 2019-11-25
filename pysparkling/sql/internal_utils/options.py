@@ -10,8 +10,6 @@ class Options(dict):
     >>> default_options = dict(sep=",", samplingRatio=None)
     >>> requested_options = dict(Sep="|")
     >>> o=Options({"format": "json", "lineSep": ","}, Format="csv")
-    >>> o
-    {'format': 'csv', 'linesep': ','}
     >>> o.format, o.linesep
     ('csv', ',')
     >>> o.UndefinedSetting
