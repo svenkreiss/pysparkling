@@ -40,8 +40,8 @@ class Options(dict):
         return super(Options, self).setdefault(k.lower(), default)
 
     @staticmethod
-    def fromkeys(seq):
-        return super(Options, self).fromkeys(k.lower() for k in seq)
+    def fromkeys(seq, value=None):
+        return Options({k.lower(): value for k in seq})
 
     def __getitem__(self, k):
         return super(Options, self).__getitem__(k.lower())
