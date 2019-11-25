@@ -1,6 +1,5 @@
 from __future__ import absolute_import, unicode_literals
 
-import glob
 from fnmatch import fnmatch
 import io
 import logging
@@ -35,24 +34,6 @@ class Local(FileSystem):
                 if fnmatch(path, expr) or fnmatch(path, expr + '/part*'):
                     files.append(path)
         return files
-
-    @staticmethod
-    def resolve_content(expr):
-        if expr.startswith('file://'):
-            expr = expr[7:]
-        matches = glob.glob(expr)
-        file_paths = []
-        for match in matches:
-            if os.path.isfile(match):
-                file_paths.append(match)
-            else:
-                file_paths += [
-                    os.path.join(root, f)
-                    for root, _, files in os.walk(match)
-                    for f in files
-                    if not f.startswith(("_", "."))
-                ]
-        return file_paths
 
     @property
     def file_path(self):

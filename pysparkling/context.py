@@ -11,22 +11,19 @@ import struct
 import time
 import traceback
 
-from pysparkling import __version__ as PYSPARKLING_VERSION
-from pysparkling.broadcast import Broadcast
-from pysparkling import accumulators
-from pysparkling.cache_manager import CacheManager
-from pysparkling.exceptions import ContextIsLockedException
-from pysparkling.fileio import File, TextFile
-from pysparkling.partition import Partition
-from pysparkling.rdd import RDD, EmptyRDD
-from pysparkling.task_context import TaskContext
+from . import __version__ as PYSPARKLING_VERSION
+from .broadcast import Broadcast
+from . import accumulators
+from .cache_manager import CacheManager
+from .exceptions import ContextIsLockedException
+from .fileio import File, TextFile
+from .partition import Partition
+from .rdd import RDD, EmptyRDD
+from .task_context import TaskContext
 
 # Python 2 compatibility
 if not hasattr(time, 'perf_counter'):
-    try:  # Python 2
-        time.perf_counter = time.clock
-    except AttributeError:  # Unexpected
-        raise Exception("`time`should contain either clock (py2) or perf_counter (py3)")
+    time.perf_counter = time.clock
 
 
 log = logging.getLogger(__name__)
@@ -125,7 +122,6 @@ class Context(object):
     """
 
     __last_rdd_id = 0
-    _active_context = None
 
     def __init__(self, pool=None, serializer=None, deserializer=None,
                  data_serializer=None, data_deserializer=None,
@@ -156,7 +152,6 @@ class Context(object):
         self.locked = False
 
         self.version = PYSPARKLING_VERSION
-        Context._active_context = self
 
     def __getstate__(self):
         r = {k: v if k not in ('_pool',) else None
@@ -190,10 +185,6 @@ class Context(object):
     def newRddId(self):
         Context.__last_rdd_id += 1
         return Context.__last_rdd_id
-
-    @property
-    def defaultParallelism(self):
-        return 1
 
     def parallelize(self, x, numSlices=None):
         """Parallelize x.

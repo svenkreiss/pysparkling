@@ -71,4 +71,4 @@ class BinaryFile(tornado.testing.AsyncTestCase):
 
         ssc.start()
         ssc.awaitTermination(timeout=0.3)
-        self.assertEqual(sum(result), 54)
+        self.assertEqual(sum(result), 53)

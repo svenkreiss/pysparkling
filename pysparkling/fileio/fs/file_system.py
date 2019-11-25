@@ -19,14 +19,6 @@ class FileSystem(object):
         """
         log.error('Cannot resolve: {0}'.format(expr))
 
-    @staticmethod
-    def resolve_content(expr):
-        """Return all the files matching expr or in a folder matching expr
-
-        :rtype: list
-        """
-        log.error('Cannot resolve: {0}'.format(expr))
-
     def exists(self):
         """Check whether the given file_name exists.
 

@@ -1,21 +1,19 @@
 """pysparkling module"""
 # flake8: noqa
-from pysparkling.sql.types import Row
 
 __version__ = '0.6.0'
 
-from pysparkling.rdd import RDD
-from pysparkling.context import Context
-from pysparkling.broadcast import Broadcast
-from pysparkling.accumulators import  Accumulator, AccumulatorParam
-from pysparkling.stat_counter import StatCounter
-from pysparkling.cache_manager import CacheManager, TimedCacheManager
-from pysparkling.storagelevel import StorageLevel
+from .rdd import RDD
+from .context import Context
+from .broadcast import Broadcast
+from .accumulators import  Accumulator, AccumulatorParam
+from .stat_counter import StatCounter
+from .cache_manager import CacheManager, TimedCacheManager
 
-from pysparkling import fileio
-from pysparkling import streaming
-from pysparkling import exceptions
+from . import fileio
+from . import streaming
+from . import exceptions
 
-__all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager', 'Row',
-           'TimedCacheManager', 'StorageLevel',
+__all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager',
+           'TimedCacheManager',
            'exceptions', 'fileio', 'streaming']

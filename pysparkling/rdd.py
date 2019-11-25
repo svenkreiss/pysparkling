@@ -23,20 +23,17 @@ try:
 except ImportError:
     numpy = None
 
-from pysparkling import fileio
-from pysparkling.utils import portable_hash
-from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
-from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
-                                  BernoulliSamplerPerKey, PoissonSamplerPerKey)
-from pysparkling.stat_counter import StatCounter
-
-maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
+from . import fileio
+from .exceptions import FileAlreadyExistsException, ContextIsLockedException
+from .samplers import (BernoulliSampler, PoissonSampler,
+                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
+from .stat_counter import StatCounter
 
 log = logging.getLogger(__name__)
 
 
 def _hash(v):
-    return portable_hash(v) & 0xffffffff
+    return hash(v) & 0xffffffff
 
 
 class RDD(object):
@@ -125,13 +122,6 @@ class RDD(object):
             ),
         )
 
-    def treeAggregate(self, zeroValue, seqOp, combOp, depth=2):
-        """same internal behaviour as :func:`~pysparkling.RDD.aggregate()`
-
-        :param depth: Not used.
-        """
-        return self.aggregate(zeroValue, seqOp, combOp)
-
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
         """aggregate by key
 
@@ -165,7 +155,6 @@ class RDD(object):
         >>> (r['a'], r['b'])
         (4, 2)
         """
-
         def seqFuncByKey(tc, i):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
             for k, v in i:
@@ -225,18 +214,6 @@ class RDD(object):
         4
         """
         return self.persist()
-
-    def glom(self):
-        """coalesce into a list elements of a partition
-
-        :rtype: RDD
-
-        >>> from pysparkling import Context
-        >>> rdd = Context().parallelize([1, 2, 3, 4], 2)
-        >>> sorted(rdd.glom().collect())
-        [[1, 2], [3, 4]]
-        """
-        return self.mapPartitions(lambda items: [list(items)])
 
     def cartesian(self, other):
         """cartesian product of this RDD with ``other``
@@ -317,23 +294,19 @@ class RDD(object):
         number_of_big_groups = current_num_partitions % new_num_partitions
         number_of_small_groups = new_num_partitions - number_of_big_groups
 
-        partition_mapping = ([p for p in range(number_of_big_groups)
-                              for _ in range(big_group_size)] +
-                             [p for p in range(number_of_big_groups,
-                                               number_of_big_groups + number_of_small_groups)
-                              for _ in range(small_group_size)])
-        new_partitions = {i: [] for i in range(new_num_partitions)}
+        def slice_partition_content(partitions, start, end):
+            return itertools.chain(*(p.x() for p in partitions[start:end]))
 
         def partitioned():
-            def move_partition_content(partition_index, partition):
-                new_partitions[partition_mapping[partition_index]] += partition
-                return []
-
-            # trigger an evaluation with count
-            self.mapPartitionsWithIndex(move_partition_content).count()
-
-            for p in list(new_partitions.values()):
-                yield p
+            start = 0
+            for _ in range(number_of_big_groups):
+                end = start + big_group_size
+                yield slice_partition_content(self._p, start, end)
+                start = end
+            for _ in range(number_of_small_groups):
+                end = start + small_group_size
+                yield slice_partition_content(self._p, start, end)
+                start = end
 
         # noinspection PyProtectedMember
         return self.context._parallelize_partitions(partitioned())
@@ -421,16 +394,6 @@ class RDD(object):
         """
         return self.count()
 
-    def countApproxDistinct(self):
-        """return the number of distinct values
-
-        :rtype: int
-
-        .. note::
-            The operation is currently implemented as a local and exact operation.
-        """
-        return len(set(self.toLocalIterator()))
-
     def countByKey(self):
         """returns a `dict` containing the count for every key
 
@@ -459,13 +422,11 @@ class RDD(object):
         >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
         2
         """
-
         def map_func(tc, x):
             r = defaultdict(int)
             for v in x:
                 r[v] += 1
             return r
-
         return self.context.runJob(self, map_func,
                                    resultHandler=sum_counts_by_keys)
 
@@ -763,7 +724,7 @@ class RDD(object):
         h = [0 for _ in buckets]
         for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
-                if b[0] <= x < b[1]:
+                if  b[0] <= x < b[1]:
                     h[i] += 1
             # make the last bin inclusive on the right
             if x == buckets[-1]:
@@ -888,64 +849,6 @@ class RDD(object):
             for v_other in (d_other[kv[0]] if kv[0] in d_other else [None])
         ])
 
-    def _leftSemiJoin(self, other):
-        """left semi join
-
-        This function is not part of the official Spark API hence its leading "_"
-
-        :param RDD other: The other RDD.
-        :rtype: RDD
-
-        .. note::
-            Creating the new RDD is currently implemented as a local operation.
-
-        Example:
-
-        >>> from pysparkling import Context
-        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
-        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
-        >>> rdd1._leftSemiJoin(rdd2).collect()
-        [(1, (1, ()))]
-        """
-
-        d_other = other.groupByKey().collectAsMap()
-
-        return self.groupByKey().flatMap(lambda kv: [
-            (kv[0], (v_self, ()))
-            for v_self in kv[1]
-            if kv[0] in d_other
-        ])
-
-    def _leftAntiJoin(self, other):
-        """left anti join
-
-        This function is not part of the official Spark API hence its leading "_"
-
-        :param RDD other: The other RDD.
-        :param int numPartitions: Number of partitions in the resulting RDD.
-        :rtype: RDD
-
-        .. note::
-            Creating the new RDD is currently implemented as a local operation.
-
-
-        Example:
-
-        >>> from pysparkling import Context
-        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
-        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
-        >>> rdd1._leftAntiJoin(rdd2).collect()
-        [(0, (1, None))]
-        """
-
-        d_other = other.groupByKey().collectAsMap()
-
-        return self.groupByKey().flatMap(lambda kv: [
-            (kv[0], (v_self, None))
-            for v_self in kv[1]
-            if kv[0] not in d_other
-        ])
-
     def lookup(self, key):
         """Return all the (key, value) pairs where the given key matches.
 
@@ -1051,7 +954,6 @@ class RDD(object):
     def mean(self):
         """returns the mean of this dataset
 
-        :rtype: float
 
         Example:
 
@@ -1060,13 +962,6 @@ class RDD(object):
         5.0
         """
         return self.stats().mean()
-
-    def meanApprox(self):
-        """same as :func:`~pysparkling.RDD.mean()`
-
-        :rtype: float
-        """
-        return self.mean()
 
     def min(self):
         """returns the minimum element"""
@@ -1120,16 +1015,6 @@ class RDD(object):
         :param storageLevel: Not used.
         """
         return PersistedRDD(self, storageLevel=storageLevel)
-
-    def unpersist(self, blocking=False):
-        """Remove the results of computed partitions from the cache
-
-        Only affects :class:`~pysparkling.RDD.PersistedRDD`
-
-        :param blocking: Not used.
-        :rtype RDD`
-        """
-        return self
 
     def pipe(self, command, env=None):
         """Run a command with the elements in the dataset as argument.
@@ -1252,45 +1137,11 @@ class RDD(object):
         >>> rdd.reduceByKey(lambda a, b: a+b).collect()
         [(0, 1), (1, 4)]
         """
-        return (self
-                .groupByKey(numPartitions)
-                .mapValues(lambda x: functools.reduce(f, x)))
-
-    def reduceByKeyLocally(self, f):
-        """reduce by key and return a dictionnary
-
-        :param f: A commutative and associative binary operator.
-        :param int numPartitions: Number of partitions in the resulting RDD.
-        :rtype: dict
-
-        >>> from pysparkling import Context
-        >>> from operator import add
-        >>> rdd = Context().parallelize([("a", 1), ("b", 1), ("a", 1)])
-        >>> sorted(rdd.reduceByKeyLocally(lambda a, b: a+b).items())
-        [('a', 2), ('b', 1)]
-        """
-        return dict(self.reduceByKey(f).collect())
-
-    def treeReduce(self, f, depth=2):
-        """same internal behaviour as :func:`~pysparkling.RDD.reduce()`
-
-        :param depth: Not used.
-
-        >>> from pysparkling import Context
-        >>> from operator import add
-        >>> rdd = Context().parallelize([-5, -4, -3, -2, -1, 1, 2, 3, 4], 10)
-        >>> rdd.treeReduce(add)
-        -5
-        >>> rdd.treeReduce(add, 1)
-        -5
-        >>> rdd.treeReduce(add, 2)
-        -5
-        >>> rdd.treeReduce(add, 5)
-        -5
-        >>> rdd.treeReduce(add, 10)
-        -5
-        """
-        return self.reduce(f)
+        return (
+            self
+            .groupByKey(numPartitions)
+            .mapValues(lambda x: functools.reduce(f, x))
+        )
 
     def repartition(self, numPartitions):
         """repartition
@@ -1340,9 +1191,11 @@ class RDD(object):
         def partition_sort(data):
             return sorted(data, key=keyfunc, reverse=not ascending)
 
-        return (self
-                .partitionBy(numPartitions, partitionFunc)
-                .mapPartitions(partition_sort))
+        return (
+            self
+            .partitionBy(numPartitions, partitionFunc)
+            .mapPartitions(partition_sort)
+        )
 
     def rightOuterJoin(self, other, numPartitions=None):
         """right outer join
@@ -1468,19 +1321,6 @@ class RDD(object):
         1.0
         """
         return self.stats().sampleVariance()
-
-    def isEmpty(self):
-        """
-        Returns whether or not RDD contains elements.
-
-        :rtype: bool
-        >>> from pysparkling import Context
-        >>> Context().parallelize([]).isEmpty()
-        True
-        >>> Context().parallelize([1]).isEmpty()
-        False
-        """
-        return not self.partitions() or len(self.take(1)) == 0
 
     def saveAsPickleFile(self, path, batchSize=10):
         """save as pickle file
@@ -1719,24 +1559,6 @@ class RDD(object):
             preservesPartitioning=True,
         )
 
-    def subtractByKey(self, other, numPartitions=None):
-        """
-        Return each (key, value) pair in C{self} that has no pair with matching
-        key in C{other}.
-        >>> from pysparkling import Context
-        >>> sc = Context()
-        >>> x = sc.parallelize([("a", 1), ("b", 4), ("b", 5), ("a", 2)])
-        >>> y = sc.parallelize([("a", 3), ("c", None)])
-        >>> sorted(x.subtractByKey(y).collect())
-        [('b', 4), ('b', 5)]
-        """
-
-        def filter_func(pair):
-            _, (val1, val2) = pair
-            return val1 and not val2
-
-        return self.cogroup(other, numPartitions).filter(filter_func).flatMapValues(lambda x: x[0])
-
     def sum(self):
         """sum of all the elements
 
@@ -1751,11 +1573,6 @@ class RDD(object):
         """
         return self.context.runJob(self, lambda tc, x: sum(x),
                                    resultHandler=sum)
-
-    def sumApprox(self):
-        """same as :func:`~pysparkling.RDD.sum()`
-        """
-        return self.sum()
 
     def take(self, n):
         """Take n elements and return them in a list.
@@ -1833,24 +1650,24 @@ class RDD(object):
         if num == 0:
             return []
 
-        initial_sample = self.take(num)
-        initial_count = len(initial_sample)
-        if initial_count == 0:
+        initialCount = self.count()
+        if initialCount == 0:
             return []
 
         rand = random.Random(seed)
 
-        if (not withReplacement) and num >= initial_count:
+        if (not withReplacement) and num >= initialCount:
             # shuffle current RDD and return
-            rand.shuffle(initial_sample)
-            return initial_sample
+            samples = self.collect()
+            rand.shuffle(samples)
+            return samples
 
         maxSampleSize = sys.maxsize - int(numStDev * math.sqrt(sys.maxsize))
         if num > maxSampleSize:
             raise ValueError(
                 "Sample size cannot be greater than %d." % maxSampleSize)
 
-        fraction = RDD._computeFractionForSampleSize(num, initial_count, withReplacement)
+        fraction = RDD._computeFractionForSampleSize(num, initialCount, withReplacement)
         samples = self.sample(withReplacement, fraction, seed).collect()
 
         # If the first sample didn't turn out large enough, keep trying to take samples;
@@ -1914,19 +1731,6 @@ class RDD(object):
         delta = 0.00005
         gamma = -math.log(delta) / total
         return min(1, fraction + gamma + math.sqrt(gamma * gamma + 2 * gamma * fraction))
-
-    def takeOrdered(self, n, key=lambda x: x):
-        """
-        Return the first n elements of the RDD based on ascending order.
-
-        A custom key function can be supplied to customize the sort order
-        >>> from pysparkling import Context
-        >>> Context().parallelize([10, 1, 2, 9, 3, 4, 5, 6, 7]).takeOrdered(6)
-        [1, 2, 3, 4, 5, 6]
-        >>> Context().parallelize([10, 1, 2, 9, 3, 4, 5, 6, 7], 2).takeOrdered(6, key=lambda x: -x)
-        [10, 9, 7, 6, 5, 4]
-        """
-        return self.sortBy(key).take(n)
 
     def toLocalIterator(self):
         """Returns an iterator over the dataset.
@@ -2069,28 +1873,6 @@ class RDD(object):
             preservesPartitioning=True,
         )
 
-    def toDF(self, schema=None, sampleRatio=None):
-        """
-        Converts current :class:`RDD` into a :class:`DataFrame`
-
-        This is a shorthand for ``spark.createDataFrame(rdd, schema, sampleRatio)``
-
-        :param schema: a :class:`pysparkling.sql.types.StructType` or list of names of columns
-        :param samplingRatio: the sample ratio of rows used for inferring
-        :return: a DataFrame
-
-        >>> from pysparkling import Context, Row
-        >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
-        >>> rdd.toDF().collect()
-        [Row(age=1, name='Alice')]
-        """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
-        from pysparkling import Context
-        from pysparkling.sql.session import SparkSession
-        sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
-        return sparkSession.createDataFrame(self, schema, sampleRatio)
-
 
 class MapPartitionsRDD(RDD):
     def __init__(self, prev, f, preservesPartitioning=False):
@@ -2127,7 +1909,7 @@ class PartitionwiseSampledRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         if seed is None:
-            seed = random.randint(0, 2 ** 31)
+            seed = random.randint(0, 2**31)
 
         self.prev = prev
         self.sampler = sampler
@@ -2157,31 +1939,21 @@ class PersistedRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
         self.prev = prev
         self.storageLevel = storageLevel
-        self._cache_manager = None
-        self._cid = None
 
     def compute(self, split, task_context):
         if self._rdd_id is None or split.index is None:
-            self._cid = None
+            cid = None
         else:
-            self._cid = (self._rdd_id, split.index)
+            cid = (self._rdd_id, split.index)
 
-        if not task_context.cache_manager.has(self._cid):
+        if not task_context.cache_manager.has(cid):
             data = list(self.prev.compute(split, task_context._create_child()))
-            task_context.cache_manager.add(self._cid, data, self.storageLevel)
-            self._cache_manager = task_context.cache_manager
+            task_context.cache_manager.add(cid, data, self.storageLevel)
         else:
-            log.debug('Using cache of RDD {} partition {}.'.format(*self._cid))
-            data = task_context.cache_manager.get(self._cid)
+            log.debug('Using cache of RDD {} partition {}.'.format(*cid))
+            data = task_context.cache_manager.get(cid)
 
         return iter(data)
-
-    def unpersist(self, blocking=False):
-        if self._cache_manager:
-            self._cache_manager.delete(self._cid)
-
-        unpersisted_rdd = RDD(self.partitions(), self.context)
-        return unpersisted_rdd
 
 
 class EmptyRDD(RDD):

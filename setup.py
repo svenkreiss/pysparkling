@@ -36,12 +36,9 @@ setup(
         'boto>=2.36.0',
         'future>=0.15',
         'requests>=2.6.0',
-        'pytz>=2019.3',
-        'python-dateutil>=2.8.0'
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
-        'pandas': ['pandas>=0.23.2'],
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
         'test': [
