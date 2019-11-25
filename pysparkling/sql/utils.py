@@ -1,6 +1,3 @@
-from distutils.version import LooseVersion
-
-
 class CapturedException(Exception):
     pass
 
@@ -20,7 +17,7 @@ class IllegalArgumentException(CapturedException):
 def require_minimum_pandas_version():
     """ Raise an ImportError if Pandas version is < 0.23.2
     """
-    minimum_pandas_version = "0.23.2"
+    minimum_pandas_version = (0, 23, 2)
 
     # pandas is an optional dependency
     # pylint: disable=C0415
@@ -31,8 +28,19 @@ def require_minimum_pandas_version():
         have_pandas = False
 
     if not have_pandas:
-        raise ImportError("Pandas >= %s must be installed; however, "
-                          "it was not found." % minimum_pandas_version)
-    if LooseVersion(pandas.__version__) < LooseVersion(minimum_pandas_version):
-        raise ImportError("Pandas >= %s must be installed; however, "
-                          "your version was %s." % (minimum_pandas_version, pandas.__version__))
+        raise ImportError(
+            "Pandas >= {0} must be installed; however none were found.".format(
+                minimum_pandas_version
+            )
+        )
+    if parse_pandas_version(pandas.__version__) < minimum_pandas_version:
+        raise ImportError(
+            "Pandas >= {0} must be installed; however, your version was {1}.".format(
+                minimum_pandas_version,
+                pandas.__version__
+            )
+        )
+
+
+def parse_pandas_version(version):
+    return tuple(int(part) for part in version.split("."))
