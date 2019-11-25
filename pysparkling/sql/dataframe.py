@@ -643,72 +643,7 @@ class DataFrame(object):
 
     def join(self, other, on=None, how="inner"):
         """
-        # >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
-        # >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
-        # >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).show()
-        # +----+----------+---+
-        # |name|      time|  n|
-        # +----+----------+---+
-        # |   o|1479441846|  a|
-        # |   o|1479441846|  b|
-        # |   o|1479441846|  o|
-        # +----+----------+---+
-        # >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
-        #
-        # >>> a.join(c, on=(a.name == c.name)).show()
-        # +----+----------+----+
-        # |name|      time|name|
-        # +----+----------+----+
-        # |   o|1479441846|   o|
-        # +----+----------+----+
-        # >>> a.join(c, on=(a.name != c.name)).show()
-        # +----+----------+----+
-        # |name|      time|name|
-        # +----+----------+----+
-        # |   o|1479441846|   a|
-        # |   o|1479441846|   b|
-        # +----+----------+----+
-        # >>> c.join(d, on="id", how="inner").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  2|
-        # +---+
-        # >>> c.join(d, on="id", how="left_outer").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  2|
-        # |  4|
-        # +---+
-        # >>> c.join(d, on="id", how="right_outer").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  1|
-        # |  2|
-        # +---+
-        # >>> c.join(d, on="id", how="full_outer").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  2|
-        # |  1|
-        # |  4|
-        # +---+
-        # >>> c.join(d, on="id", how="leftsemi").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  2|
-        # +---+
-        # >>> c.join(d, on="id", how="leftanti").show()
-        # +---+
-        # | id|
-        # +---+
-        # |  4|
-        # +---+
-        >>> from pysparkling import Context
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> from pysparkling.sql.functions import length, col, lit
         >>> spark = SparkSession(Context())
@@ -723,14 +658,14 @@ class DataFrame(object):
         ...   lit("right").alias("side")
         ... )
         >>>
-        >>> left_df.join(right_df, on="id", how="inner").show()
+        >>> left_df.join(right_df, on="id", how="inner").orderBy("id").show()
         +---+----------+----+----------+-----+
         | id|test_value|side|test_value| side|
         +---+----------+----+----------+-----+
         |  2|test_value|left|test_value|right|
         +---+----------+----+----------+-----+
 
-        >>> left_df.join(right_df, on="id", how="left_outer").show()
+        >>> left_df.join(right_df, on="id", how="left_outer").orderBy("id").show()
         +---+----------+----+----------+-----+
         | id|test_value|side|test_value| side|
         +---+----------+----+----------+-----+
@@ -738,7 +673,7 @@ class DataFrame(object):
         |  4|test_value|left|      null| null|
         +---+----------+----+----------+-----+
 
-        >>> left_df.join(right_df, on="id", how="right_outer").show()
+        >>> left_df.join(right_df, on="id", how="right_outer").orderBy("id").show()
         +---+----------+----+----------+-----+
         | id|test_value|side|test_value| side|
         +---+----------+----+----------+-----+
@@ -746,23 +681,23 @@ class DataFrame(object):
         |  2|test_value|left|test_value|right|
         +---+----------+----+----------+-----+
 
-        >>> left_df.join(right_df, on="id", how="full_outer").show()
+        >>> left_df.join(right_df, on="id", how="full_outer").orderBy("id").show()
         +---+----------+----+----------+-----+
         | id|test_value|side|test_value| side|
         +---+----------+----+----------+-----+
-        |  2|test_value|left|test_value|right|
         |  1|      null|null|test_value|right|
+        |  2|test_value|left|test_value|right|
         |  4|test_value|left|      null| null|
         +---+----------+----+----------+-----+
 
-        >>> left_df.join(right_df, on="id", how="leftsemi").show()
+        >>> left_df.join(right_df, on="id", how="leftsemi").orderBy("id").show()
         +---+----------+----+
         | id|test_value|side|
         +---+----------+----+
         |  2|test_value|left|
         +---+----------+----+
 
-        >>> left_df.join(right_df, on="id", how="leftanti").show()
+        >>> left_df.join(right_df, on="id", how="leftanti").orderBy("id").show()
         +---+----------+----+
         | id|test_value|side|
         +---+----------+----+
@@ -771,15 +706,38 @@ class DataFrame(object):
         >>> # Degenerated case:
         >>> degen_left = left_df.select(left_df.id, (left_df.id*2).alias("id"))
         >>> degen_right = right_df.select(right_df.id, (right_df.id*2).alias("id"))
-        >>> degen_left.join(degen_right, on="id", how="outer").show()
+        >>> degen_left.join(degen_right, on="id", how="outer").orderBy("id").show()
         +---+----+----+
         | id|  id|  id|
         +---+----+----+
-        |  2|   4|   4|
         |  1|null|   2|
+        |  2|   4|   4|
         |  4|   8|null|
         +---+----+----+
-
+        >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
+        >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
+        >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).orderBy("n").show()
+        +----+----------+---+
+        |name|      time|  n|
+        +----+----------+---+
+        |   o|1479441846|  a|
+        |   o|1479441846|  b|
+        |   o|1479441846|  o|
+        +----+----------+---+
+        >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
+        >>> a.join(c, on=(a.name == c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   o|
+        +----+----------+----+
+        >>> a.join(c, on=(a.name != c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   a|
+        |   o|1479441846|   b|
+        +----+----------+----+
         """
         # noinspection PyProtectedMember
         if isinstance(on, str):

@@ -1,3 +1,4 @@
+import collections
 import datetime
 import os
 import time
@@ -50,7 +51,7 @@ class CastTests(TestCase):
     def test_cast_map_to_string(self):
         self.assertEqual(
             cast_to_string(
-                {True: {"one": 1, "nothing": None, "three": 3}},
+                {True: collections.OrderedDict([("one", 1), ("nothing", None), ("three", 3)])},
                 MapType(
                     BooleanType(),
                     MapType(StringType(), IntegerType())
@@ -62,7 +63,10 @@ class CastTests(TestCase):
     def test_cast_row_to_string(self):
         self.assertEqual(
             cast_to_string(
-                Row(a={"value": None, "b": {"c": 7}}, b=None, c=True, d=5.2),
+                Row(a=collections.OrderedDict([("value", None), ("b", {"c": 7})]),
+                    b=None,
+                    c=True,
+                    d=5.2),
                 StructType([
                     StructField(
                         "a",
