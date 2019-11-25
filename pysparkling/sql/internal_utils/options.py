@@ -21,12 +21,20 @@ class Options(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        d = {}
-        for arg in (*args, kwargs):
-            d.update({
-                key.lower(): value for key, value in arg.items()
-            })
-        super(Options).__init__(d)
+        """
+        >>> Options({"format": "json", "lineSep": ","}, Format="csv")
+        {'format': 'csv', 'linesep': ','}
+        """
+        d = {
+            key.lower(): value
+            for arg in args
+            for key, value in arg.items()
+        }
+        d.update({
+            key.lower(): value
+            for key, value in kwargs.items()
+        })
+        super(Options, self).__init__(d)
 
     def setdefault(self, k, default=None):
         return super(Options, self).setdefault(k.lower(), default)
