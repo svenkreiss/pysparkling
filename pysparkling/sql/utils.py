@@ -1,6 +1,3 @@
-from distutils.version import LooseVersion
-
-
 class CapturedException(Exception):
     pass
 
