@@ -41,6 +41,24 @@ class File(object):
         log.debug('Filenames: {0}'.format(files))
         return files
 
+    @classmethod
+    def get_content(cls, all_expr):
+        """Return all files matching or in folder matching one of the given expression
+
+        :param all_expr:
+            A list of expressions.
+            The expressions can contain the wildcard characters ``*`` and ``?``.
+
+        :returns: A list of file names.
+        :rtype: list
+        """
+        files = []
+        for expr in all_expr:
+            expr = expr.strip()
+            files += fs.get_fs(expr).resolve_content(expr)
+        log.debug('Filenames: {0}'.format(files))
+        return files
+
     def exists(self):
         """Checks both for a file or directory at this location.
 
