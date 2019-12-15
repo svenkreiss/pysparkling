@@ -128,7 +128,7 @@ class Hdfs(FileSystem):
 
     @classmethod
     def resolve_content(cls, expr):
-        c, _ = Hdfs.client_and_path(expr)
+        c, _ = cls.client_and_path(expr)
 
         scheme, domain, folder_path, pattern = parse_file_uri(expr)
 
