@@ -1,4 +1,8 @@
+import re
 from operator import itemgetter
+
+
+WILDCARD_START_PATTERN = re.compile(r'(?P<previous_character>^|[^\\])(?P<wildcard_start>[*?[])')
 
 
 class Tokenizer(object):
@@ -34,7 +38,13 @@ def parse_file_uri(expr):
     t = Tokenizer(expr)
     scheme = t.next('://')
     domain = t.next('/')
-    last_slash_position = t.expression.rfind('/')
+    wildcard_match = next(WILDCARD_START_PATTERN.finditer(t.expression), None)
+    if wildcard_match is not None:
+        first_pattern_position = wildcard_match.start("wildcard_start")
+    else:
+        first_pattern_position = len(t.expression)
+
+    last_slash_position = t.expression.rfind('/', 0, first_pattern_position)
     folder_path = '/' + t.expression[:last_slash_position+1]
     file_pattern = t.expression[last_slash_position+1:]
 
