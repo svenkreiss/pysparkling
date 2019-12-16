@@ -5,14 +5,14 @@ import logging
 from io import BytesIO, StringIO
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer
+from ...utils import Tokenizer, parse_file_uri
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
 try:
     from gcloud import storage
-except ImportError:
+except ImportError as e:
     storage = None
 
 
@@ -58,6 +58,10 @@ class GS(FileSystem):
     @staticmethod
     def _get_client(project_name):
         if project_name not in GS._clients:
+            if storage is None:
+                raise FileSystemNotSupported(
+                    'Google Storage is not supported. Install "gcloud".'
+                )
             GS._clients[project_name] = storage.Client(project_name)
         return GS._clients[project_name]
 
@@ -81,6 +85,34 @@ class GS(FileSystem):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
                 files.append('{0}://{1}:{2}/{3}'.format(
                     scheme, project_name, bucket_name, k.name))
+        return files
+
+    @staticmethod
+    def resolve_content(expr):
+        scheme, raw_bucket_name, folder_path, pattern = parse_file_uri(expr)
+
+        if ':' in raw_bucket_name:
+            project_name, _, bucket_name = raw_bucket_name.partition(':')
+        else:
+            project_name = GS.project_name
+            bucket_name = raw_bucket_name
+
+        folder_path = folder_path[1:]  # Remove leading slash
+
+        expr = "{0}{1}".format(folder_path, pattern)
+        # Match all files inside folders that match expr
+        pattern_expr = "{0}{1}*".format(expr, "" if expr.endswith("/") else "/")
+
+        bucket = GS._get_client(project_name).get_bucket(bucket_name)
+
+        files = []
+        for k in bucket.list_blobs(prefix=folder_path):
+            if not k.name.endswith("/") and (
+                    fnmatch(k.name, expr) or fnmatch(k.name, pattern_expr)
+            ):
+                files.append(
+                    '{0}://{1}/{2}'.format(scheme, raw_bucket_name, k.name)
+                )
         return files
 
     def exists(self):
