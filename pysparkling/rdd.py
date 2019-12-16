@@ -1118,6 +1118,16 @@ class RDD(object):
         """
         return PersistedRDD(self, storageLevel=storageLevel)
 
+    def unpersist(self, blocking=False):
+        """Remove the results of computed partitions from the cache
+
+        Only affects :class:`~pysparkling.RDD.PersistedRDD`
+
+        :param blocking: Not used.
+        :rtype RDD`
+        """
+        return self
+
     def pipe(self, command, env=None):
         """Run a command with the elements in the dataset as argument.
 
@@ -2041,21 +2051,31 @@ class PersistedRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
         self.prev = prev
         self.storageLevel = storageLevel
+        self._cache_manager = None
+        self._cid = None
 
     def compute(self, split, task_context):
         if self._rdd_id is None or split.index is None:
-            cid = None
+            self._cid = None
         else:
-            cid = (self._rdd_id, split.index)
+            self._cid = (self._rdd_id, split.index)
 
-        if not task_context.cache_manager.has(cid):
+        if not task_context.cache_manager.has(self._cid):
             data = list(self.prev.compute(split, task_context._create_child()))
-            task_context.cache_manager.add(cid, data, self.storageLevel)
+            task_context.cache_manager.add(self._cid, data, self.storageLevel)
+            self._cache_manager = task_context.cache_manager
         else:
-            log.debug('Using cache of RDD {} partition {}.'.format(*cid))
-            data = task_context.cache_manager.get(cid)
+            log.debug('Using cache of RDD {} partition {}.'.format(*self._cid))
+            data = task_context.cache_manager.get(self._cid)
 
         return iter(data)
+
+    def unpersist(self, blocking=False):
+        if self._cache_manager:
+            self._cache_manager.delete(self._cid)
+
+        unpersisted_rdd = RDD(self.partitions(), self.context)
+        return unpersisted_rdd
 
 
 class EmptyRDD(RDD):
