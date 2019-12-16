@@ -1912,6 +1912,19 @@ class RDD(object):
         gamma = -math.log(delta) / total
         return min(1, fraction + gamma + math.sqrt(gamma * gamma + 2 * gamma * fraction))
 
+    def takeOrdered(self, n, key=lambda x: x):
+        """
+        Return the first n elements of the RDD based on ascending order.
+
+        A custom key function can be supplied to customize the sort order
+        >>> from pysparkling import Context
+        >>> Context().parallelize([10, 1, 2, 9, 3, 4, 5, 6, 7]).takeOrdered(6)
+        [1, 2, 3, 4, 5, 6]
+        >>> Context().parallelize([10, 1, 2, 9, 3, 4, 5, 6, 7], 2).takeOrdered(6, key=lambda x: -x)
+        [10, 9, 7, 6, 5, 4]
+        """
+        return self.sortBy(key).take(n)
+
     def toLocalIterator(self):
         """Returns an iterator over the dataset.
 
