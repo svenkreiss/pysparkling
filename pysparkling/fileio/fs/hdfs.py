@@ -123,7 +123,9 @@ class Hdfs(FileSystem):
                     file_path = format_file_uri(scheme, domain, file_local_path)
                     file_paths.append(file_path)
             elif file_status["type"] == "DIRECTORY":
-                file_paths += cls._get_folder_files_by_expr(c, scheme, domain, file_local_path + "/", expr)
+                file_paths += cls._get_folder_files_by_expr(
+                    c, scheme, domain, file_local_path + "/", expr
+                )
         return file_paths
 
     @classmethod
