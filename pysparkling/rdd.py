@@ -1337,11 +1337,9 @@ class RDD(object):
         def partition_sort(data):
             return sorted(data, key=keyfunc, reverse=not ascending)
 
-        return (
-            self
-            .partitionBy(numPartitions, partitionFunc)
-            .mapPartitions(partition_sort)
-        )
+        return (self
+                .partitionBy(numPartitions, partitionFunc)
+                .mapPartitions(partition_sort))
 
     def rightOuterJoin(self, other, numPartitions=None):
         """right outer join
@@ -1467,6 +1465,19 @@ class RDD(object):
         1.0
         """
         return self.stats().sampleVariance()
+
+    def isEmpty(self):
+        """
+        Returns whether or not RDD contains elements.
+
+        :rtype: bool
+        >>> from pysparkling import Context
+        >>> Context().parallelize([]).isEmpty()
+        True
+        >>> Context().parallelize([1]).isEmpty()
+        False
+        """
+        return not self.partitions() or len(self.take(1)) == 0
 
     def saveAsPickleFile(self, path, batchSize=10):
         """save as pickle file
