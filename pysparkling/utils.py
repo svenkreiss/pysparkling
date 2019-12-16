@@ -1,4 +1,6 @@
+import datetime
 import re
+import sys
 from operator import itemgetter
 
 
@@ -53,3 +55,52 @@ def parse_file_uri(expr):
 
 def format_file_uri(scheme, domain, *local_path_components):
     return '{0}://{1}{2}'.format(scheme, domain, "/".join(local_path_components))
+
+
+def strhash(string):
+    """
+    Old python hash function as described in PEP 456, excluding prefix, suffix and mask.
+
+    :param string: string to hash
+    :return: hash
+    """
+    if string == "":
+        return 0
+
+    x = ord(string[0]) << 7
+    for c in string[1:]:
+        x = ((1000003 * x) ^ ord(c)) & (1 << 32)
+    x = (x ^ len(string))
+    return x
+
+
+def portable_hash(x):
+    """
+    This function returns consistent hash code for builtin types, especially
+    for None and tuple with None.
+    The algorithm is similar to that one used by CPython 2.7
+    >>> portable_hash(None)
+    0
+    >>> portable_hash((None, 1)) & 0xffffffff
+    219750521
+    """
+
+    if x is None:
+        return 0
+    if isinstance(x, list):
+        return portable_hash(tuple(x))
+    if isinstance(x, tuple):
+        h = 0x345678
+        for i in x:
+            h ^= portable_hash(i)
+            h *= 1000003
+            h &= sys.maxsize
+        h ^= len(x)
+        if h == -1:
+            h = -2
+        return int(h)
+    if isinstance(x, str):
+        return strhash(x)
+    if isinstance(x, datetime.datetime):
+        return portable_hash(x.timetuple())
+    return hash(x)
