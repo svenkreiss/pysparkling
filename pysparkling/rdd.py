@@ -23,17 +23,20 @@ try:
 except ImportError:
     numpy = None
 
-from . import fileio
-from .exceptions import FileAlreadyExistsException, ContextIsLockedException
-from .samplers import (BernoulliSampler, PoissonSampler,
-                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
-from .stat_counter import StatCounter
+from pysparkling import fileio
+from pysparkling.utils import portable_hash
+from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
+from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
+                                  BernoulliSamplerPerKey, PoissonSamplerPerKey)
+from pysparkling.stat_counter import StatCounter
+
+maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
 log = logging.getLogger(__name__)
 
 
 def _hash(v):
-    return hash(v) & 0xffffffff
+    return portable_hash(v) & 0xffffffff
 
 
 class RDD(object):
@@ -2102,7 +2105,7 @@ class PartitionwiseSampledRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         if seed is None:
-            seed = random.randint(0, 2**31)
+            seed = random.randint(0, 2 ** 31)
 
         self.prev = prev
         self.sampler = sampler
