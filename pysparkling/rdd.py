@@ -122,6 +122,13 @@ class RDD(object):
             ),
         )
 
+    def treeAggregate(self, zeroValue, seqOp, combOp, depth=2):
+        """same internal behaviour as :func:`~pysparkling.RDD.aggregate()`
+
+        :param depth: Not used.
+        """
+        return self.aggregate(zeroValue, seqOp, combOp)
+
     def aggregateByKey(self, zeroValue, seqFunc, combFunc, numPartitions=None):
         """aggregate by key
 
