@@ -1249,11 +1249,45 @@ class RDD(object):
         >>> rdd.reduceByKey(lambda a, b: a+b).collect()
         [(0, 1), (1, 4)]
         """
-        return (
-            self
-            .groupByKey(numPartitions)
-            .mapValues(lambda x: functools.reduce(f, x))
-        )
+        return (self
+                .groupByKey(numPartitions)
+                .mapValues(lambda x: functools.reduce(f, x)))
+
+    def reduceByKeyLocally(self, f):
+        """reduce by key and return a dictionnary
+
+        :param f: A commutative and associative binary operator.
+        :param int numPartitions: Number of partitions in the resulting RDD.
+        :rtype: dict
+
+        >>> from pysparkling import Context
+        >>> from operator import add
+        >>> rdd = Context().parallelize([("a", 1), ("b", 1), ("a", 1)])
+        >>> sorted(rdd.reduceByKeyLocally(lambda a, b: a+b).items())
+        [('a', 2), ('b', 1)]
+        """
+        return dict(self.reduceByKey(f).collect())
+
+    def treeReduce(self, f, depth=2):
+        """same internal behaviour as :func:`~pysparkling.RDD.reduce()`
+
+        :param depth: Not used.
+
+        >>> from pysparkling import Context
+        >>> from operator import add
+        >>> rdd = Context().parallelize([-5, -4, -3, -2, -1, 1, 2, 3, 4], 10)
+        >>> rdd.treeReduce(add)
+        -5
+        >>> rdd.treeReduce(add, 1)
+        -5
+        >>> rdd.treeReduce(add, 2)
+        -5
+        >>> rdd.treeReduce(add, 5)
+        -5
+        >>> rdd.treeReduce(add, 10)
+        -5
+        """
+        return self.reduce(f)
 
     def repartition(self, numPartitions):
         """repartition
