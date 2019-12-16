@@ -5,7 +5,7 @@ from io import BytesIO, StringIO
 import logging
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer
+from ...utils import Tokenizer, parse_file_uri
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
@@ -50,6 +50,8 @@ class S3(FileSystem):
     @classmethod
     def _get_conn(cls):
         if not cls._conn:
+            if boto is None:
+                raise FileSystemNotSupported('S3 not supported. Install "boto".')
             cls._conn = boto.connect_s3(**cls.connection_kwargs)
         return cls._conn
 
@@ -69,6 +71,30 @@ class S3(FileSystem):
         expr = expr[len(scheme) + 3 + len(bucket_name) + 1:]
         for k in bucket.list(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
+                files.append('{0}://{1}/{2}'.format(
+                    scheme,
+                    bucket_name,
+                    k.name,
+                ))
+        return files
+
+    @classmethod
+    def resolve_content(cls, expr):
+        scheme, bucket_name, folder_path, pattern = parse_file_uri(expr)
+
+        folder_path = folder_path[1:]  # Remove leading slash
+
+        expr = "{0}{1}".format(folder_path, pattern)
+        # Match all files inside folders that match expr
+        pattern_expr = "{0}{1}*".format(expr, "" if expr.endswith("/") else "/")
+
+        bucket = cls._get_conn().get_bucket(
+            bucket_name,
+            validate=False
+        )
+        files = []
+        for k in bucket.list(prefix=folder_path):
+            if fnmatch(k.name, expr) or fnmatch(k.name, pattern_expr):
                 files.append('{0}://{1}/{2}'.format(
                     scheme,
                     bucket_name,
