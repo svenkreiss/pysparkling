@@ -456,11 +456,13 @@ class RDD(object):
         >>> Context().parallelize([1, 2, 2, 4, 1]).countByValue()[2]
         2
         """
+
         def map_func(tc, x):
             r = defaultdict(int)
             for v in x:
                 r[v] += 1
             return r
+
         return self.context.runJob(self, map_func,
                                    resultHandler=sum_counts_by_keys)
 
@@ -758,7 +760,7 @@ class RDD(object):
         h = [0 for _ in buckets]
         for x in self.toLocalIterator():
             for i, b in enumerate(zip(buckets[:-1], buckets[1:])):
-                if  b[0] <= x < b[1]:
+                if b[0] <= x < b[1]:
                     h[i] += 1
             # make the last bin inclusive on the right
             if x == buckets[-1]:
@@ -881,6 +883,64 @@ class RDD(object):
             (kv[0], (v_self, v_other))
             for v_self in kv[1]
             for v_other in (d_other[kv[0]] if kv[0] in d_other else [None])
+        ])
+
+    def _leftSemiJoin(self, other):
+        """left semi join
+
+        This function is not part of the official Spark API hence its leading "_"
+
+        :param RDD other: The other RDD.
+        :rtype: RDD
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1._leftSemiJoin(rdd2).collect()
+        [(1, (1, ()))]
+        """
+
+        d_other = other.groupByKey().collectAsMap()
+
+        return self.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, ()))
+            for v_self in kv[1]
+            if kv[0] in d_other
+        ])
+
+    def _leftAntiJoin(self, other):
+        """left anti join
+
+        This function is not part of the official Spark API hence its leading "_"
+
+        :param RDD other: The other RDD.
+        :param int numPartitions: Number of partitions in the resulting RDD.
+        :rtype: RDD
+
+        .. note::
+            Creating the new RDD is currently implemented as a local operation.
+
+
+        Example:
+
+        >>> from pysparkling import Context
+        >>> rdd1 = Context().parallelize([(0, 1), (1, 1)])
+        >>> rdd2 = Context().parallelize([(2, 1), (1, 3)])
+        >>> rdd1._leftAntiJoin(rdd2).collect()
+        [(0, (1, None))]
+        """
+
+        d_other = other.groupByKey().collectAsMap()
+
+        return self.groupByKey().flatMap(lambda kv: [
+            (kv[0], (v_self, None))
+            for v_self in kv[1]
+            if kv[0] not in d_other
         ])
 
     def lookup(self, key):
