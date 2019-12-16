@@ -1749,6 +1749,11 @@ class RDD(object):
         return self.context.runJob(self, lambda tc, x: sum(x),
                                    resultHandler=sum)
 
+    def sumApprox(self):
+        """same as :func:`~pysparkling.RDD.sum()`
+        """
+        return self.sum()
+
     def take(self, n):
         """Take n elements and return them in a list.
 
