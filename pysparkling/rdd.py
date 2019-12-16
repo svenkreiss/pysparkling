@@ -418,6 +418,16 @@ class RDD(object):
         """
         return self.count()
 
+    def countApproxDistinct(self):
+        """return the number of distinct values
+
+        :rtype: int
+
+        .. note::
+            The operation is currently implemented as a local and exact operation.
+        """
+        return len(set(self.toLocalIterator()))
+
     def countByKey(self):
         """returns a `dict` containing the count for every key
 
