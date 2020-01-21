@@ -202,19 +202,16 @@ class GetField(Expression):
         self.field = field
 
     def eval(self, row, schema):
-        try:
-            idx = schema.names.index(self.item.col_name)
-            if isinstance(schema.fields[idx].dataType, StructType):
-                item_value = dict(zip(
-                    schema.fields[idx].dataType.names,
-                    self.item.eval(row, schema)
-                ))
-            elif isinstance(schema.fields[idx].dataType, MapType):
-                item_value = self.item.eval(row, schema)
-            else:
-                item_value = dict(enumerate(self.item.eval(row, schema)))
-        except ValueError:
+        idx = schema.names.index(self.item.col_name)
+        if isinstance(schema.fields[idx].dataType, StructType):
+            item_value = dict(zip(
+                schema.fields[idx].dataType.names,
+                self.item.eval(row, schema)
+            ))
+        elif isinstance(schema.fields[idx].dataType, MapType):
             item_value = self.item.eval(row, schema)
+        else:
+            item_value = dict(enumerate(self.item.eval(row, schema)))
         field_value = self.field.eval(row, schema)
         return item_value.get(field_value)
 
