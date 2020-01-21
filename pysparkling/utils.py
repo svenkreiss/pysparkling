@@ -551,14 +551,17 @@ def get_json_encoder(date_formatter, timestamp_formatter):
         def encode(self, o):
             def encode_rows(item):
                 if isinstance(item, Row):
-                    return collections.OrderedDict(zip(item.__fields__, item))
+                    return collections.OrderedDict(
+                        (key, encode_rows(value))
+                        for key, value in zip(item.__fields__, item)
+                    )
                 if isinstance(item, (list, tuple)):
                     return [encode_rows(e) for e in item]
                 if isinstance(item, dict):
-                    return collections.OrderedDict([
+                    return collections.OrderedDict(
                         (key, encode_rows(value))
                         for key, value in item.items()
-                    ])
+                    )
                 return item
 
             return super(CustomJSONEncoder, self).encode(encode_rows(o))
