@@ -216,7 +216,9 @@ class GetField(Expression):
         return item_value.get(field_value)
 
     def __str__(self):
-        if isinstance(self.item.expr.field.dataType, StructType):
+        if (hasattr(self.item.expr, "field")
+                and hasattr(self.item.expr.field, "dataType")
+                and isinstance(self.item.expr.field.dataType, StructType)):
             return "{0}.{1}".format(self.item, self.field)
         return "{0}[{1}]".format(self.item, self.field)
 
