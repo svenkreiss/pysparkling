@@ -185,8 +185,12 @@ class TypeSafeBinaryOperation(BinaryOperation):
         if type_1 == type_2:
             return self.unsafe_operation(value_1, value_2)
 
-        order_1 = INTERNAL_TYPE_ORDER.index(type_1)
-        order_2 = INTERNAL_TYPE_ORDER.index(type_2)
+        try:
+            order_1 = INTERNAL_TYPE_ORDER.index(type_1)
+            order_2 = INTERNAL_TYPE_ORDER.index(type_2)
+        except ValueError as e:
+            raise AnalysisException("Unable to process type: {0}".format(e))
+
         spark_type_1 = python_to_spark_type(type_1)
         spark_type_2 = python_to_spark_type(type_2)
 
