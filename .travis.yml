@@ -1,12 +1,12 @@
 dist: xenial
 language: python
 python:
- - "2.7"
  - "3.4"
  - "3.5"
  - "3.6"
  - "3.7"
- - "pypy"
+ - "3.8"
+ - "pypy3"
 install:
  - pip install --upgrade pip
  - "if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi"
