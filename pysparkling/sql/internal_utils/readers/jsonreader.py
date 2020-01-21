@@ -114,7 +114,7 @@ def parse_record(record, schema, partition, partition_schema, options):
         record_value[field_name] if field_name in record_value.__fields__ else None
         for field_name in field_names
     ]
-    partition_field_names = [f.name for f in partition_schema.fields]
+    partition_field_names = [f.name for f in partition_schema.fields] if partition_schema else []
     # pylint: disable=W0511
     # todo: handle nested rows
     row = row_from_keyed_values(zip(
