@@ -64,7 +64,7 @@ class SessionTests(TestCase):
     def test_session_create_data_frame_from_pandas_data_frame(self):
         try:
             # Pandas is an optional dependency
-            # pylint: disable=C0415
+            # pylint: disable=import-outside-toplevel
             import pandas as pd
         except ImportError:
             raise Exception("pandas is not importable")

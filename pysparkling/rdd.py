@@ -2121,7 +2121,7 @@ class RDD(object):
         [Row(_1=1, _2=2), Row(_1=3, _2=4)]
         """
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling import Context
         from pysparkling.sql.session import SparkSession
         sparkSession = SparkSession._instantiatedSession or SparkSession(Context())

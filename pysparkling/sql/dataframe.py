@@ -78,7 +78,7 @@ class DataFrame(object):
     @property
     def write(self):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.readwriter import DataFrameWriter
 
         return DataFrameWriter(self)
@@ -1130,7 +1130,7 @@ class DataFrame(object):
         +-----+---+-----+
         """
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols)
@@ -1156,7 +1156,7 @@ class DataFrame(object):
         +-----+----+-----+
         """
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols, ROLLUP_TYPE)
@@ -1200,7 +1200,7 @@ class DataFrame(object):
 
         """
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
 
         jgd = InternalGroupedDataFrame(self._jdf, cols, CUBE_TYPE)
@@ -1650,7 +1650,7 @@ class DataFrame(object):
 
         try:
             # pandas is an optional dependency
-            # pylint: disable=C0415
+            # pylint: disable=import-outside-toplevel
             import pandas as pd
         except ImportError:
             raise Exception("require_minimum_pandas_version() was not called")
@@ -1764,7 +1764,7 @@ def _to_corrected_pandas_type(dt):
     This method gets the corrected data type for Pandas if that type may be inferred uncorrectly.
     """
     # numpy is an optional dependency
-    # pylint: disable=C0415
+    # pylint: disable=import-outside-toplevel
     import numpy as np
 
     if isinstance(dt, ByteType):

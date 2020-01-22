@@ -57,7 +57,7 @@ class Expression(object):
     @staticmethod
     def children_merge(children, row, schema):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.column import Column
         for child in children:
             if isinstance(child, Expression):
@@ -72,7 +72,7 @@ class Expression(object):
 
     def recursive_merge_stats(self, other, schema):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.expressions.operators import Alias
         if isinstance(other.expr, Alias):
             self.recursive_merge_stats(other.expr.expr, schema)
@@ -83,7 +83,7 @@ class Expression(object):
     @staticmethod
     def children_merge_stats(children, other, schema):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.column import Column
         for child in children:
             if isinstance(child, Expression):
@@ -101,7 +101,7 @@ class Expression(object):
     @staticmethod
     def children_initialize(children, partition_index):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.column import Column
         for child in children:
             if isinstance(child, Expression):
@@ -122,7 +122,7 @@ class Expression(object):
     @staticmethod
     def children_pre_evaluation_schema(children, schema):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.column import Column
         for child in children:
             if isinstance(child, Expression):

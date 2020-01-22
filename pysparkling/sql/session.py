@@ -42,7 +42,7 @@ class SparkSession(object):
 
     def __init__(self, sparkContext, jsparkSession=None):
         # Top level import would cause cyclic dependencies
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pysparkling.sql.context import SQLContext
         self._sc = sparkContext
         self._wrapped = SQLContext(self._sc, self)
@@ -192,7 +192,7 @@ class SparkSession(object):
     # noinspection PyMethodMayBeStatic
     def _get_numpy_record_dtype(self, rec):
         # numpy is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         import numpy as np
         cur_dtypes = rec.dtype
         col_names = cur_dtypes.names
@@ -239,7 +239,7 @@ class SparkSession(object):
 
         try:
             # pandas is an optional dependency
-            # pylint: disable=C0415
+            # pylint: disable=import-outside-toplevel
             has_pandas = True
             import pandas
         except ImportError:
