@@ -43,10 +43,10 @@ Install
     pip install pysparkling[s3,hdfs,streaming]
 
 
-`Documentation <http://pysparkling.trivial.io>`_:
+`Documentation <https://pysparkling.trivial.io>`_:
 
 .. image:: https://raw.githubusercontent.com/svenkreiss/pysparkling/master/docs/readthedocs.png
-   :target: http://pysparkling.trivial.io
+   :target: https://pysparkling.trivial.io
 
 
 Other links:
