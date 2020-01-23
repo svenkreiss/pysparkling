@@ -68,6 +68,8 @@ def test_s3_1():
 
 
 def test_hdfs_resolve_filenames_with_wildcard():
+    # hdfs is an optional dependency
+    # pylint: disable=import-outside-toplevel
     from pysparkling.fileio.fs import Hdfs
     Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
 
@@ -80,6 +82,8 @@ def test_hdfs_resolve_filenames_with_wildcard():
 
 
 def test_hdfs_resolve_filenames_with_folder_path():
+    # hdfs is an optional dependency
+    # pylint: disable=import-outside-toplevel
     from pysparkling.fileio.fs import Hdfs
     Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
 
@@ -92,6 +96,8 @@ def test_hdfs_resolve_filenames_with_folder_path():
 
 
 def test_hdfs_resolve_filenames_with_folder_path_and_trailing_slash():
+    # hdfs is an optional dependency
+    # pylint: disable=import-outside-toplevel
     from pysparkling.fileio.fs import Hdfs
     Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
 
@@ -104,6 +110,8 @@ def test_hdfs_resolve_filenames_with_folder_path_and_trailing_slash():
 
 
 def test_hdfs_resolve_filenames_with_file_path():
+    # hdfs is an optional dependency
+    # pylint: disable=import-outside-toplevel
     from pysparkling.fileio.fs import Hdfs
     Hdfs.client_and_path = staticmethod(lambda *args, **kwargs: (MockedHdfsClient(), "unused_path"))
 
@@ -115,6 +123,8 @@ def test_hdfs_resolve_filenames_with_file_path():
 
 
 def test_s3_resolve_filenames():
+    # boto is an optional dependency
+    # pylint: disable=import-outside-toplevel
     from pysparkling.fileio.fs import S3
     S3._get_conn = classmethod(lambda *args, **kwargs: MockedS3Connection())
 
