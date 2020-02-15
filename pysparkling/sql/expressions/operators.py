@@ -1,7 +1,7 @@
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
     NullSafeBinaryOperation, TypeSafeBinaryOperation
-from pysparkling.sql.types import StructType, MapType
+from pysparkling.sql.types import StructType, MapType, Row
 
 
 class Negate(UnaryExpression):
@@ -202,16 +202,16 @@ class GetField(Expression):
         self.field = field
 
     def eval(self, row, schema):
-        idx = schema.names.index(self.item.col_name)
-        if isinstance(schema.fields[idx].dataType, StructType):
+        item_eval = self.item.eval(row, schema)
+        if isinstance(item_eval, Row):
             item_value = dict(zip(
-                schema.fields[idx].dataType.names,
-                self.item.eval(row, schema)
+                item_eval.__fields__,
+                item_eval
             ))
-        elif isinstance(schema.fields[idx].dataType, MapType):
-            item_value = self.item.eval(row, schema)
+        elif isinstance(item_eval, dict):
+            item_value = item_eval
         else:
-            item_value = dict(enumerate(self.item.eval(row, schema)))
+            item_value = dict(enumerate(item_eval))
         field_value = self.field.eval(row, schema)
         return item_value.get(field_value)
 
