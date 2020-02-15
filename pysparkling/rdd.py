@@ -23,12 +23,12 @@ try:
 except ImportError:
     numpy = None
 
-from pysparkling import fileio
-from pysparkling.utils import portable_hash
-from pysparkling.exceptions import FileAlreadyExistsException, ContextIsLockedException
-from pysparkling.samplers import (BernoulliSampler, PoissonSampler,
-                                  BernoulliSamplerPerKey, PoissonSamplerPerKey)
-from pysparkling.stat_counter import StatCounter
+from . import fileio
+from .utils import portable_hash
+from .exceptions import FileAlreadyExistsException, ContextIsLockedException
+from .samplers import (BernoulliSampler, PoissonSampler,
+                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
+from .stat_counter import StatCounter
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
