@@ -703,16 +703,16 @@ class DataFrame(object):
         |  4|test_value|left|
         +---+----------+----+
         >>> # Degenerated case:
-        >>> degen_left = left_df.select(left_df.id, (left_df.id*2).alias("id"))
-        >>> degen_right = right_df.select(right_df.id, (right_df.id*2).alias("id"))
-        >>> degen_left.join(degen_right, on="id", how="outer").orderBy("id").show()
-        +---+----+----+
-        | id|  id|  id|
-        +---+----+----+
-        |  1|null|   2|
-        |  2|   4|   4|
-        |  4|   8|null|
-        +---+----+----+
+        >>> degen_left = left_df.withColumn("left_id", left_df.id).select(left_df.id, (left_df.id*2).alias("id"), "left_id")
+        >>> degen_right = right_df.withColumn("right_id", right_df.id).select(right_df.id, (right_df.id*2).alias("id"), "right_id")
+        >>> degen_left.join(degen_right, on="id", how="outer").orderBy("left_id").show()
+        +---+----+-------+----+--------+
+        | id|  id|left_id|  id|right_id|
+        +---+----+-------+----+--------+
+        |  1|null|   null|   2|       1|
+        |  2|   4|      2|   4|       2|
+        |  4|   8|      4|null|    null|
+        +---+----+-------+----+--------+
         >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
         >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
         >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).orderBy("n").show()
