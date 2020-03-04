@@ -498,6 +498,7 @@ class DataFrame(object):
         if isinstance(numPartitions, int):
             if not cols:
                 raise ValueError("At least one partition-by expression must be specified.")
+            cols = [parse(col) for col in cols]
             repartitioned_jdf = self._jdf.repartitionByRange(numPartitions, *cols)
             return DataFrame(repartitioned_jdf, self.sql_ctx)
         if isinstance(numPartitions, (basestring, Column)):
