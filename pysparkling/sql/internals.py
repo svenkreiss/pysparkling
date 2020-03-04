@@ -197,7 +197,7 @@ class DataFrameInternal(object):
         )
 
     def repartitionByRange(self, numPartitions, *cols):
-        key = get_keyfunc(cols)
+        key = get_keyfunc(cols, self.bound_schema)
         bounds = self._get_range_bounds(self._rdd, numPartitions, key=key)
 
         def get_range_id(value):
@@ -319,7 +319,7 @@ class DataFrameInternal(object):
         return self._rdd.map(lambda row: json.dumps(row.asDict(True), ensure_ascii=not use_unicode))
 
     def sortWithinPartitions(self, cols, ascending):
-        key = get_keyfunc(cols)
+        key = get_keyfunc(cols, self.bound_schema)
 
         def partition_sort(data):
             return sorted(data, key=key, reverse=not ascending)
