@@ -145,7 +145,7 @@ def compute_weighted_percentiles(weighted_values, number_of_percentiles, key=lam
     return bounds
 
 
-def get_keyfunc(cols):
+def get_keyfunc(cols, schema, nulls_are_smaller=False):
     """
     Return a function that maps a row to a tuple of some of its columns values
     """
@@ -155,14 +155,20 @@ def get_keyfunc(cols):
         Returns a tuple designed for comparisons based on a row
 
         Each requested columns is mapped to two columns:
-        - The first indicate whether the column value is not None
+        - The first indicate whether the column value is None or not
         - The second is the column value
 
         This prevent comparison between None and non-None values
+        It also allows to defined how None values should be considered
         """
-        return tuple(
-            (row[col] is not None, row[col]) for col in cols
-        )
+        values = []
+        for col in cols:
+            value = col.eval(row, schema)
+            values += (
+                (value is None) != nulls_are_smaller,
+                value
+            )
+        return tuple(values)
 
     return key
 
