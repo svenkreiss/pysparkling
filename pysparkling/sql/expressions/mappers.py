@@ -30,38 +30,42 @@ class StarOperator(Expression):
 
 
 class CaseWhen(Expression):
-    def __init__(self, condition, function):
-        super(CaseWhen, self).__init__(condition, function)
+    def __init__(self, conditions, values, default=None):
+        super(CaseWhen, self).__init__(conditions, values, default)
 
-        self.conditions = [condition]
-        self.functions = [function]
-        self.function_b = None
-
-    def otherwise(self, function):
-        self.function_b = function
-        return self
-
-    def when(self, condition, function):
-        self.conditions.append(condition)
-        self.functions.append(function)
-        return self
+        self.conditions = conditions
+        self.values = values
+        self.default = default
 
     def eval(self, row, schema):
-        for condition, function in zip(self.conditions, self.functions):
-            true = condition.eval(row, schema)
-            if true:
-                return function
-        if self.function_b is not None:
-            return self.function_b
+        for condition, function in zip(self.conditions, self.values):
+            condition_value = condition.eval(row, schema)
+            if condition_value:
+                return function.eval(row, schema)
+        if self.default is not None:
+            return self.default.eval(row, schema)
         return None
 
     def __str__(self):
         return "CASE {0}{1} END".format(
             " ".join(
-                "WHEN {0} THEN {1}".format(condition, function)
-                for condition, function in zip(self.conditions, self.functions)
+                "WHEN {0} THEN {1}".format(condition, value)
+                for condition, value in zip(self.conditions, self.values)
             ),
-            " ELSE {}".format(self.function_b) if self.function_b is not None else ""
+            " ELSE {}".format(self.default) if self.default is not None else ""
+        )
+
+    def with_when(self, condition, value):
+        return CaseWhen(
+            self.conditions + [condition],
+            self.values + [value]
+        )
+
+    def with_otherwise(self, default):
+        return CaseWhen(
+            self.conditions,
+            self.values,
+            default
         )
 
 

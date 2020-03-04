@@ -699,7 +699,7 @@ def when(condition, value):
 
     :rtype: Column
     """
-    return CaseWhen(parse(condition), parse(value))
+    return col(CaseWhen([parse(condition)], [parse(value)]))
 
 
 def bitwiseNOT(e):
