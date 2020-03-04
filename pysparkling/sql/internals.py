@@ -161,9 +161,6 @@ class DataFrameInternal(object):
     def coalesce(self, numPartitions):
         return self._with_rdd(self._rdd.coalesce(numPartitions), self.bound_schema)
 
-    def repartition(self, numPartitions):
-        return self._with_rdd(self._rdd.repartition(numPartitions), self.bound_schema)
-
     def distinct(self):
         return self._with_rdd(self._rdd.distinct(), self.bound_schema)
 
@@ -190,11 +187,20 @@ class DataFrameInternal(object):
     def is_cached(self):
         return hasattr(self._rdd, "storageLevel")
 
-    def partitionValues(self, numPartitions, partitioner=None):
+    def simple_repartition(self, numPartitions):
+        return self._with_rdd(self._rdd.repartition(numPartitions), self.bound_schema)
+
+    def repartitionByValues(self, numPartitions, partitioner=None):
         return self._with_rdd(
             self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values(),
             self.bound_schema
         )
+
+    def repartition(self, numPartitions, cols):
+        def partitioner(row):
+            return sum(hash(c.eval(row, self.bound_schema)) for c in cols)
+
+        return self.repartitionByValues(numPartitions, partitioner)
 
     def repartitionByRange(self, numPartitions, *cols):
         key = get_keyfunc(cols, self.bound_schema)
@@ -203,7 +209,7 @@ class DataFrameInternal(object):
         def get_range_id(value):
             return sum(1 for bound in bounds if key(bound) < key(value))
 
-        return self.partitionValues(numPartitions, partitioner=get_range_id)
+        return self.repartitionByValues(numPartitions, partitioner=get_range_id)
 
     @staticmethod
     def _get_range_bounds(rdd, numPartitions, key):

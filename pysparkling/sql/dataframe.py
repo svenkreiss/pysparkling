@@ -451,12 +451,10 @@ class DataFrame(object):
         """
         if isinstance(numPartitions, int):
             if not cols:
-                return DataFrame(self._jdf.repartition(numPartitions), self.sql_ctx)
+                return DataFrame(self._jdf.simple_repartition(numPartitions), self.sql_ctx)
 
-            def partitioner(row):
-                return sum(hash(row[c]) for c in cols)
-
-            repartitioned_jdf = self._jdf.partitionValues(numPartitions, partitioner)
+            cols = [parse(col) for col in cols]
+            repartitioned_jdf = self._jdf.repartition(numPartitions, cols)
             return DataFrame(repartitioned_jdf, self.sql_ctx)
         if isinstance(numPartitions, (basestring, Column)):
             return self.repartition(200, numPartitions, *cols)
