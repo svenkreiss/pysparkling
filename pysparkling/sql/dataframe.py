@@ -815,10 +815,9 @@ class DataFrame(object):
         |  5|  Bob|
         +---+-----+
         """
-        ascending = kwargs.pop("ascending", True)
-        if kwargs:
-            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
-        sorted_jdf = self._jdf.sort(cols, ascending)
+        exprs = [parse(col) for col in cols]
+        sorting_cols = self._sort_cols(exprs, kwargs)
+        sorted_jdf = self._jdf.sort(sorting_cols)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
     def orderBy(self, *cols, **kwargs):
@@ -835,7 +834,7 @@ class DataFrame(object):
         if len(cols) == 1 and isinstance(cols[0], list):
             cols = cols[0]
 
-        ascending = kwargs.get('ascending', True)
+        ascending = kwargs.pop('ascending', True)
         if isinstance(ascending, (bool, int)):
             if not ascending:
                 cols = [jc.desc() for jc in cols]
@@ -843,6 +842,9 @@ class DataFrame(object):
             cols = [jc if asc else jc.desc() for asc, jc in zip(ascending, cols)]
         else:
             raise TypeError("ascending can only be boolean or list, but got %s" % type(ascending))
+
+        if kwargs:
+            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
 
         return cols
 

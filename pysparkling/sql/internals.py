@@ -325,7 +325,7 @@ class DataFrameInternal(object):
         return self._rdd.map(lambda row: json.dumps(row.asDict(True), ensure_ascii=not use_unicode))
 
     def sortWithinPartitions(self, cols, ascending):
-        key = get_keyfunc(cols, self.bound_schema)
+        key = get_keyfunc([parse(c) for c in cols], self.bound_schema)
 
         def partition_sort(data):
             return sorted(data, key=key, reverse=not ascending)
@@ -335,12 +335,19 @@ class DataFrameInternal(object):
             self.bound_schema
         )
 
-    def sort(self, cols, ascending):
-        key = get_keyfunc(cols)
-        return self._with_rdd(
-            self._rdd.sortBy(key, ascending=ascending),
-            self.bound_schema
-        )
+    def sort(self, cols):
+        # Pysparkling implementation of RDD.sortBy is an in-order sort,
+        # calling it multiple times allow sorting
+        # based on multiple criteria and ascending orders
+        # Todo: this could be optimized as it's possible to sort
+        #  together columns that are in the same ascending order
+        sorted_rdd = self._rdd
+        for col in cols[::-1]:
+            ascending = col.sort_order in ["ASC NULLS FIRST", "ASC NULLS LAST"]
+            nulls_are_smaller = col.sort_order in ["DESC NULLS LAST", "ASC NULLS FIRST"]
+            key = get_keyfunc([col], self.bound_schema, nulls_are_smaller=nulls_are_smaller)
+            sorted_rdd = sorted_rdd.sortBy(key, ascending=ascending)
+        return self._with_rdd(sorted_rdd, self.bound_schema)
 
     def select(self, *exprs):
         cols = [parse(e) for e in exprs]

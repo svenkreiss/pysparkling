@@ -6,6 +6,8 @@ from pysparkling.sql.expressions.operators import Cast, Alias, IsNotNull, IsNull
     EndsWith, StartsWith, Contains, GetField, BitwiseXor, BitwiseAnd, BitwiseOr, EqNullSafe, \
     GreaterThan, GreaterThanOrEqual, LessThanOrEqual, LessThan, Equal, Negate, Divide, Add, Minus, \
     Time, Mod, Pow, And, Or, Invert
+from pysparkling.sql.expressions.orders import Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, \
+    SortOrder
 
 from pysparkling.sql.types import DataType, StructField, string_to_type
 
@@ -262,25 +264,137 @@ class Column(object):
             exprs = exprs[0]
         return Column(IsIn(self, exprs))
 
-    # pylint: disable=W0511
-    # todo: Ordering
-    # def asc(self):
-    #     return Column(Asc(self))
-    #
-    # def asc_nulls_first(self):
-    #     return Column(AscNullsFirst(self))
-    #
-    # def asc_nulls_last(self):
-    #     return Column(AscNullsLast(self))
-    #
-    # def desc(self):
-    #     return Column(Desc(self))
-    #
-    # def desc_nulls_first(self):
-    #     return Column(DescNullsFirst(self))
-    #
-    # def desc_nulls_last(self):
-    #     return Column(DescNullsLast(self))
+    def asc(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> # asc is the default order
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy("order").show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  1| null|
+        |  3| null|
+        |  0|    0|
+        |  2|    2|
+        |  4|    4|
+        +---+-----+
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").asc()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  1| null|
+        |  3| null|
+        |  0|    0|
+        |  2|    2|
+        |  4|    4|
+        +---+-----+
+
+        """
+        return Column(Asc(self))
+
+    def asc_nulls_first(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").asc_nulls_first()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  1| null|
+        |  3| null|
+        |  0|    0|
+        |  2|    2|
+        |  4|    4|
+        +---+-----+
+
+
+        """
+        return Column(AscNullsFirst(self))
+
+    def asc_nulls_last(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").asc_nulls_last()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  0|    0|
+        |  2|    2|
+        |  4|    4|
+        |  1| null|
+        |  3| null|
+        +---+-----+
+
+        """
+        return Column(AscNullsLast(self))
+
+    def desc(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").desc()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  4|    4|
+        |  2|    2|
+        |  0|    0|
+        |  1| null|
+        |  3| null|
+        +---+-----+
+
+        """
+        return Column(Desc(self))
+
+    def desc_nulls_first(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").desc_nulls_first()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  1| null|
+        |  3| null|
+        |  4|    4|
+        |  2|    2|
+        |  0|    0|
+        +---+-----+
+
+        """
+        return Column(DescNullsFirst(self))
+
+    def desc_nulls_last(self):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(col("order").desc_nulls_last()).show()
+        +---+-----+
+        | id|order|
+        +---+-----+
+        |  4|    4|
+        |  2|    2|
+        |  0|    0|
+        |  1| null|
+        |  3| null|
+        +---+-----+
+
+        """
+        return Column(DescNullsLast(self))
 
     def isNull(self):
         return Column(IsNull(self))
@@ -537,6 +651,12 @@ class Column(object):
         if isinstance(self.expr, Expression):
             self.expr.recursive_pre_evaluation_schema(pre_evaluation_schema)
         return self
+
+    @property
+    def sort_order(self):
+        if isinstance(self.expr, SortOrder):
+            return self.expr.sort_order
+        return "ASC NULLS FIRST"
 
     # pylint: disable=W0511
     # todo: support of window functions

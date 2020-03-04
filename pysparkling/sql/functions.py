@@ -63,43 +63,133 @@ def typedLit(literal):
 def asc(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  1| null|
+    |  3| null|
+    |  0|    0|
+    |  2|    2|
+    |  4|    4|
+    +---+-----+
     """
-    return col(Column(columnName).asc)
+    return parse(columnName).asc()
 
 
 def asc_nulls_first(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc_nulls_first("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  1| null|
+    |  3| null|
+    |  0|    0|
+    |  2|    2|
+    |  4|    4|
+    +---+-----+
     """
-    return col(Column(columnName).asc_nulls_first)
+    return parse(columnName).asc_nulls_first()
 
 
 def asc_nulls_last(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc_nulls_last("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  0|    0|
+    |  2|    2|
+    |  4|    4|
+    |  1| null|
+    |  3| null|
+    +---+-----+
     """
-    return col(Column(columnName).asc_nulls_last)
+    return parse(columnName).asc_nulls_last()
 
 
 def desc(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  4|    4|
+    |  2|    2|
+    |  0|    0|
+    |  1| null|
+    |  3| null|
+    +---+-----+
     """
-    return col(Column(columnName).desc)
+    return parse(columnName).desc()
 
 
 def desc_nulls_first(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc_nulls_first("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  1| null|
+    |  3| null|
+    |  4|    4|
+    |  2|    2|
+    |  0|    0|
+    +---+-----+
     """
-    return col(Column(columnName).desc_nulls_first)
+    return parse(columnName).desc_nulls_first()
 
 
 def desc_nulls_last(columnName):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc_nulls_last("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  4|    4|
+    |  2|    2|
+    |  0|    0|
+    |  1| null|
+    |  3| null|
+    +---+-----+
     """
-    return col(Column(columnName).desc_nulls_last)
+    return parse(columnName).desc_nulls_last()
 
 
 def approx_count_distinct(e, rsd=0.05):
