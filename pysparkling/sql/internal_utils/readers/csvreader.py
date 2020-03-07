@@ -97,5 +97,7 @@ def parse_csv_file(partitions, partition_schema, schema, options, file_name):
             itertools.chain(field_names, partition_field_names),
             itertools.chain(record_values, partitions[file_name] or [])
         )
+        row.set_input_file_name(file_name)
         rows.append(row)
+
     return rows

@@ -1570,6 +1570,14 @@ class Row(tuple):
         self._metadata["grouping"] = grouping
         return self
 
+    def set_input_file_name(self, input_file_name):
+        # This method is specific to Pysparkling and should not be used by
+        # user of the library who wants compatibility with PySpark
+        if self._metadata is None:
+            self.set_metadata({})
+        self._metadata["input_file_name"] = input_file_name
+        return self
+
     def set_metadata(self, metadata):
         # This method is specific to Pysparkling and should not be used by
         # user of the library who wants compatibility with PySpark

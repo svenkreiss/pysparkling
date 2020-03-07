@@ -23,7 +23,7 @@ from pysparkling.sql.expressions.mappers import MapConcat, MapFromEntries, MapEn
     Tanh, Tan, Sinh, Sin, Signum, Bround, Round, Rint, Log2, Log1p, Log10, Least, Hypot, Unhex, \
     Hex, Greatest, Floor, Factorial, ExpM1, Exp, Cosh, Cos, Conv, Ceil, Cbrt, Bin, Atan2, Atan, \
     Asin, Acos, Abs, CaseWhen, CreateStruct, Sqrt, SparkPartitionID, Randn, Rand, NaNvl, \
-    MonotonicallyIncreasingID, IsNaN, Coalesce, GroupingID, Grouping, Log
+    MonotonicallyIncreasingID, IsNaN, Coalesce, GroupingID, Grouping, Log, InputFileName
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import StringTrim, StringTranslate, StringRTrim, \
     StringRepeat, StringRPad, StringLTrim, StringLPad, StringLocate, Levenshtein, StringInStr, \
@@ -642,7 +642,7 @@ def coalesce(*exprs):
 
 
 def input_file_name():
-    raise NotImplementedError("Pysparkling does not support yet this function")
+    return col(InputFileName())
 
 
 def isnan(e):

@@ -81,12 +81,13 @@ class JSONReader(object):
         )
 
 
-def parse_json_file(partitions, partition_schema, schema, options, f_name):
-    records = get_records(f_name, options.linesep, options.encoding)
+def parse_json_file(partitions, partition_schema, schema, options, file_name):
+    records = get_records(file_name, options.linesep, options.encoding)
     rows = []
     for record in records:
-        partition = partitions[f_name]
+        partition = partitions[file_name]
         row = parse_record(record, schema, partition, partition_schema, options)
+        row.set_input_file_name(file_name)
         rows.append(row)
     return rows
 
