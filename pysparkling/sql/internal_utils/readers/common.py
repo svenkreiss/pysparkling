@@ -1,10 +1,13 @@
 from pysparkling.sql.internal_utils.readers.csvreader import CSVReader
 from pysparkling.sql.internal_utils.readers.jsonreader import JSONReader
 from pysparkling.sql.internal_utils.readwrite import OptionUtils, to_option_stored_value
+from pysparkling.sql.types import StructType
 
 
 class InternalReader(OptionUtils):
     def schema(self, schema):
+        if not isinstance(schema, StructType):
+            raise NotImplementedError("Pysparkling currently only supports StructType for schemas")
         self._schema = schema
 
     def option(self, key, value):
