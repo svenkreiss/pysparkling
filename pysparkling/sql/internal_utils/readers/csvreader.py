@@ -16,7 +16,8 @@ class CSVReader(object):
         lineSep=None,
         encoding="utf-8",
         sep=",",
-        inferSchema=False
+        inferSchema=False,
+        header=False
     )
 
     def __init__(self, spark, paths, schema, options):
