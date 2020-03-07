@@ -336,6 +336,7 @@ class DataFrameInternal(object):
         # Pysparkling implementation of RDD.sortBy is an in-order sort,
         # calling it multiple times allow sorting
         # based on multiple criteria and ascending orders
+        # pylint: disable=W0511
         # Todo: this could be optimized as it's possible to sort
         #  together columns that are in the same ascending order
         sorted_rdd = self._rdd
