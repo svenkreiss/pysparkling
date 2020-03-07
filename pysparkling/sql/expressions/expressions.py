@@ -93,8 +93,12 @@ class Expression(object):
             elif isinstance(child, (list, set, tuple)):
                 Expression.children_merge_stats(child, other, schema)
 
-    # Initialization for nondeterministic expression (like in scala)
     def recursive_initialize(self, partition_index):
+        """
+        This methods adds once data to expressions that require it
+        e.g. for non-deterministic expression so that their result is constant
+        across several evaluations
+        """
         self.initialize(partition_index)
         self.children_initialize(self.children, partition_index)
 
