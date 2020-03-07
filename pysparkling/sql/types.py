@@ -609,7 +609,7 @@ class StructType(DataType):
             return tuple(f.toInternal(obj.get(n)) if c else obj.get(n)
                          for n, f, c in zip(self.names, self.fields, self._needConversion))
         if isinstance(obj, Row):
-            return _create_row(
+            return create_row(
                 obj.__fields__,
                 (f.toInternal(val) for f, val, c in zip(self.fields, obj, self._needConversion))
             )
@@ -634,7 +634,7 @@ class StructType(DataType):
                       for f, v, c in zip(self.fields, obj, self._needConversion)]
         else:
             values = obj
-        return _create_row(self.names, values)
+        return create_row(self.names, values)
 
     @classmethod
     def fromDDL(cls, string):
@@ -1128,7 +1128,7 @@ def _create_converter(dataType):
 
         if isinstance(obj, Row):
             if convert_fields:
-                return _create_row(
+                return create_row(
                     obj.__fields__,
                     [converter(value) for converter, value in zip(converters, obj)]
                 )
@@ -1402,11 +1402,20 @@ def _create_row_inbound_converter(dataType):
     return lambda *a: dataType.fromInternal(a)
 
 
-def _create_row(fields, values):
-    row = Row(*values)
-    # pylint: disable=W0201
-    row.__fields__ = fields
-    return row
+def row_from_keyed_values(keyed_values, metadata=None):
+    # keyed_values might be an iterable
+    keyed_values = tuple(keyed_values)
+    # Preserve Row column order which is modified when calling Row(dict)
+    values = (value for key, value in keyed_values)
+    fields = (key for key, value in keyed_values)
+    return create_row(fields, values, metadata)
+
+
+def create_row(fields, values, metadata=None):
+    new_row = tuple.__new__(Row, values)
+    new_row.__fields__ = tuple(fields)
+    new_row.set_metadata(metadata)
+    return new_row
 
 
 class Row(tuple):
@@ -1507,7 +1516,7 @@ class Row(tuple):
         if len(args) > len(self):
             raise ValueError("Can not create Row with fields %s, expected %d values "
                              "but got %s" % (self, len(self), args))
-        return _create_row(self, args)
+        return create_row(self, args)
 
     def __getitem__(self, item):
         if isinstance(item, (int, slice)):
@@ -1543,7 +1552,7 @@ class Row(tuple):
     def __reduce__(self):
         """Returns a tuple so Python knows how to pickle Row."""
         if hasattr(self, "__fields__"):
-            return _create_row, (self.__fields__, tuple(self))
+            return create_row, (self.__fields__, tuple(self))
         return tuple.__reduce__(self)
 
     def __repr__(self):

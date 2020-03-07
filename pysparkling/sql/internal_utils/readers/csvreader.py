@@ -8,8 +8,7 @@ from pysparkling.sql.internal_utils.readers.utils import resolve_partitions, \
     guess_schema_from_strings
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import StructType, StringType, StructField
-from pysparkling.utils import row_from_keyed_values
+from pysparkling.sql.types import StructType, StringType, StructField, create_row
 
 
 class CSVReader(object):
@@ -69,8 +68,8 @@ class CSVReader(object):
         )
 
 
-def parse_csv_file(partitions, partition_schema, schema, options, f_name):
-    f_content = TextFile(f_name).load(encoding=options.encoding).read()
+def parse_csv_file(partitions, partition_schema, schema, options, file_name):
+    f_content = TextFile(file_name).load(encoding=options.encoding).read()
     records = (f_content.split(options.lineSep)
                if options.lineSep is not None
                else f_content.splitlines())
@@ -93,9 +92,9 @@ def parse_csv_file(partitions, partition_schema, schema, options, f_name):
         partition_field_names = [
             f.name for f in partition_schema.fields
         ] if partition_schema else []
-        row = row_from_keyed_values(zip(
+        row = create_row(
             itertools.chain(field_names, partition_field_names),
-            itertools.chain(record_values, partitions[f_name])
-        ))
+            itertools.chain(record_values, partitions[file_name] or [])
+        )
         rows.append(row)
     return rows

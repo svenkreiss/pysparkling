@@ -1,8 +1,7 @@
 from pysparkling.fileio import File, TextFile
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.types import StructType, StructField, IntegerType, LongType, DecimalType, \
-    DoubleType, TimestampType, StringType
-from pysparkling.utils import row_from_keyed_values
+    DoubleType, TimestampType, StringType, row_from_keyed_values
 from pysparkling.sql.utils import AnalysisException
 
 

@@ -12,14 +12,15 @@ from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JO
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.storagelevel import StorageLevel
 
-from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType
+from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType, row_from_keyed_values, \
+    create_row
 
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array
 from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, \
-    get_keyfunc, row_from_keyed_values, str_half_width, pad_cell, merge_rows_joined_on_values, \
+    get_keyfunc, str_half_width, pad_cell, merge_rows_joined_on_values, \
     format_cell, portable_hash, merge_rows
 
 if sys.version >= '3':
@@ -29,10 +30,6 @@ GROUP_BY_TYPE = 0
 ROLLUP_TYPE = 1
 CUBE_TYPE = 2
 GROUPED = object()
-
-
-def to_row(cols, record):
-    return row_from_keyed_values(zip(cols, record))
 
 
 class FieldIdGenerator(object):
@@ -82,7 +79,7 @@ class DataFrameInternal(object):
         if convert_to_row:
             if cols is None:
                 cols = ["_c{0}".format(i) for i in range(200)]
-            rdd = rdd.map(partial(to_row, cols))
+            rdd = rdd.map(partial(create_row, cols))
 
         self._sc = sc
         self._rdd = rdd
@@ -370,16 +367,11 @@ class DataFrameInternal(object):
                     )
                 )
 
-            output_field_lists = self.get_select_output_field_lists(
+            return self.get_select_output_field_lists(
                 partition,
                 non_generators,
                 initialized_cols,
                 generators[0] if generators else None
-            )
-
-            return list(
-                row_from_keyed_values(output_row_fields)
-                for output_row_fields in output_field_lists
             )
 
         new_schema = get_schema_from_cols(cols, self.bound_schema)
@@ -389,22 +381,28 @@ class DataFrameInternal(object):
         )
 
     def get_select_output_field_lists(self, partition, non_generators, initialized_cols, generator):
-        output_field_lists = []
+        output_rows = []
         for row in partition:
-            base_row = []
+            base_row_fields = []
             for col in non_generators:
                 output_cols, output_values = resolve_column(col, row, schema=self.bound_schema)
-                base_row += zip(output_cols, output_values[0])
+                base_row_fields += zip(output_cols, output_values[0])
 
             if generator is not None:
-                output_field_lists += self.get_generated_rows(
-                    generator, row, initialized_cols, base_row
+                generated_row_fields = self.get_generated_row_fields(
+                    generator, row, initialized_cols, base_row_fields
                 )
+                for generated_row in generated_row_fields:
+                    output_rows.append(
+                        row_from_keyed_values(generated_row, metadata=row.get_metadata())
+                    )
             else:
-                output_field_lists.append(base_row)
-        return output_field_lists
+                output_rows.append(
+                    row_from_keyed_values(base_row_fields, metadata=row.get_metadata())
+                )
+        return output_rows
 
-    def get_generated_rows(self, generator, row, initialized_cols, base_row):
+    def get_generated_row_fields(self, generator, row, initialized_cols, base_row):
         additional_fields = []
         generator_position = initialized_cols.index(generator)
         generated_cols, generated_sub_rows = resolve_column(

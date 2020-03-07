@@ -6,10 +6,10 @@ from functools import partial
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import UserDefinedType, NumericType, _create_row, DateType, \
+from pysparkling.sql.types import UserDefinedType, NumericType, DateType, \
     TimestampType, ArrayType, StructType, MapType, BooleanType, StringType, BinaryType, \
     FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, NullType, \
-    DecimalType
+    DecimalType, create_row
 from pysparkling.sql.utils import AnalysisException
 
 JAVA_TIME_FORMAT_TOKENS = re.compile("(([a-zA-Z])\\2*|[^a-zA-Z]+)")
@@ -353,9 +353,10 @@ def get_struct_caster(from_type, to_type):
     ]
 
     def do_cast_to_struct(value):
-        return _create_row(
+        return create_row(
             names,
-            tuple(caster(sub_value) for caster, sub_value in zip(casters, value))
+            (caster(sub_value) for caster, sub_value in zip(casters, value)),
+            metadata=value.get_metadata()
         )
 
     return do_cast_to_struct

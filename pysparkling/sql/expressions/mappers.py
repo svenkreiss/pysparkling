@@ -4,14 +4,14 @@ import random
 import re
 import string
 
-from pysparkling.sql.types import StringType
+from pysparkling.sql.types import StringType, create_row
 
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
     NullSafeColumnOperation
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, row_from_keyed_values, \
-    MonotonicallyIncreasingIDGenerator, half_even_round, half_up_round
+from pysparkling.utils import XORShiftRandom, MonotonicallyIncreasingIDGenerator, \
+    half_even_round, half_up_round
 
 
 class StarOperator(Expression):
@@ -512,7 +512,7 @@ class CreateStruct(Expression):
             output_cols, output_values = resolve_column(col, row, schema, allow_generator=False)
             struct_cols += output_cols
             struct_values += output_values[0]
-        return row_from_keyed_values(zip(struct_cols, struct_values))
+        return create_row(struct_cols, struct_values)
 
     def __str__(self):
         return "named_struct({0})".format(", ".join("{0}, {0}".format(col) for col in self.columns))

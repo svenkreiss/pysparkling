@@ -14,7 +14,7 @@ from pytz import UnknownTimeZoneError
 from pysparkling.sql.schema_utils import get_on_fields
 from pysparkling.sql.internal_utils.joins import FULL_JOIN, RIGHT_JOIN, LEFT_JOIN, \
     CROSS_JOIN, INNER_JOIN, LEFT_SEMI_JOIN, LEFT_ANTI_JOIN
-from pysparkling.sql.types import Row, _create_row
+from pysparkling.sql.types import Row, create_row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
 
 
@@ -171,15 +171,6 @@ def get_keyfunc(cols, schema, nulls_are_smaller=False):
         return tuple(values)
 
     return key
-
-
-def row_from_keyed_values(keyed_values):
-    # keyed_values might be an iterable
-    keyed_values = tuple(keyed_values)
-    # Preserve Row column order which is modified when calling Row(dict)
-    new_row = tuple.__new__(Row, (value for key, value in keyed_values))
-    new_row.__fields__ = tuple(key for key, value in keyed_values)
-    return new_row
 
 
 FULL_WIDTH_REGEX = re.compile(
@@ -357,8 +348,8 @@ class MurmurHash3(object):
 
 
 def merge_rows(left, right):
-    return _create_row(
-        left.__fields__ + right.__fields__,
+    return create_row(
+        itertools.chain(left.__fields__, right.__fields__),
         left + right
     )
 
@@ -375,9 +366,9 @@ def merge_rows_joined_on_values(left, right, left_schema, right_schema, how, on)
     ]
 
     if left is None and how in (FULL_JOIN, RIGHT_JOIN):
-        left = _create_row(left_names, [None for _ in left_names])
+        left = create_row(left_names, [None for _ in left_names])
     if right is None and how in (LEFT_JOIN, FULL_JOIN):
-        right = _create_row(right_names, [None for _ in right_names])
+        right = create_row(right_names, [None for _ in right_names])
 
     left_parts = (
         (field.name, value)

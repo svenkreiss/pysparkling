@@ -7,8 +7,7 @@ from pysparkling.sql.internal_utils.options import Options
 from pysparkling.sql.internal_utils.readers.utils import resolve_partitions, get_records
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import StructType
-from pysparkling.utils import row_from_keyed_values
+from pysparkling.sql.types import StructType, create_row, row_from_keyed_values
 
 
 class JSONReader(object):
@@ -117,10 +116,10 @@ def parse_record(record, schema, partition, partition_schema, options):
     partition_field_names = [f.name for f in partition_schema.fields] if partition_schema else []
     # pylint: disable=W0511
     # todo: handle nested rows
-    row = row_from_keyed_values(zip(
+    row = create_row(
         itertools.chain(field_names, partition_field_names),
         itertools.chain(record_values, partition)
-    ))
+    )
     return row
 
 
