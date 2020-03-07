@@ -33,4 +33,3 @@ class DescNullsLast(SortOrder):
 
 Asc = AscNullsFirst
 Desc = DescNullsLast
-
