@@ -703,8 +703,12 @@ class DataFrame(object):
         |  4|test_value|left|
         +---+----------+----+
         >>> # Degenerated case:
-        >>> degen_left = left_df.withColumn("left_id", left_df.id).select(left_df.id, (left_df.id*2).alias("id"), "left_id")
-        >>> degen_right = right_df.withColumn("right_id", right_df.id).select(right_df.id, (right_df.id*2).alias("id"), "right_id")
+        >>> degen_left = left_df.withColumn("left_id", left_df.id).select(
+        ...   left_df.id, (left_df.id*2).alias("id"), "left_id"
+        ... )
+        >>> degen_right = right_df.withColumn("right_id", right_df.id).select(
+        ...   right_df.id, (right_df.id*2).alias("id"), "right_id"
+        ... )
         >>> degen_left.join(degen_right, on="id", how="outer").orderBy("left_id").show()
         +---+----+-------+----+--------+
         | id|  id|left_id|  id|right_id|

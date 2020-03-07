@@ -12,8 +12,8 @@ from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JO
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.storagelevel import StorageLevel
 
-from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType, row_from_keyed_values, \
-    create_row
+from pysparkling.sql.types import Row, StructField, LongType, StructType, StringType, DataType, \
+    row_from_keyed_values, create_row
 
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array

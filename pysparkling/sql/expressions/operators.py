@@ -1,7 +1,7 @@
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
     NullSafeBinaryOperation, TypeSafeBinaryOperation
-from pysparkling.sql.types import StructType, MapType, Row
+from pysparkling.sql.types import StructType, Row
 
 
 class Negate(UnaryExpression):

@@ -68,7 +68,9 @@ def asc(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(asc("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
@@ -90,7 +92,9 @@ def asc_nulls_first(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc_nulls_first("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(asc_nulls_first("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
@@ -112,7 +116,9 @@ def asc_nulls_last(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(asc_nulls_last("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(asc_nulls_last("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
@@ -134,7 +140,9 @@ def desc(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(desc("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
@@ -156,7 +164,9 @@ def desc_nulls_first(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc_nulls_first("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(desc_nulls_first("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
@@ -178,7 +188,9 @@ def desc_nulls_last(columnName):
     >>> from pysparkling.sql.session import SparkSession
     >>> from pysparkling.sql.functions import when, col
     >>> spark = SparkSession(Context())
-    >>> df = spark.range(5).withColumn("order", when(col('id')%2 == 0, col('id'))).orderBy(desc_nulls_last("order")).show()
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(desc_nulls_last("order")).show()
     +---+-----+
     | id|order|
     +---+-----+
