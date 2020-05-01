@@ -19,6 +19,12 @@ setup(
     version=VERSION,
     packages=[
         'pysparkling',
+        'pysparkling.sql',
+        'pysparkling.sql.expressions',
+        'pysparkling.sql.expressions.aggregate',
+        'pysparkling.sql.internal_utils',
+        'pysparkling.sql.internal_utils.readers',
+        'pysparkling.sql.tests',
         'pysparkling.fileio',
         'pysparkling.fileio.fs',
         'pysparkling.fileio.codec',
