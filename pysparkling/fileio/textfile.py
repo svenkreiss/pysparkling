@@ -29,6 +29,7 @@ class TextFile(File):
         :param str encoding_errors: How to handle encoding errors.
         :rtype: io.StringIO
         """
+        # pylint: disable=comparison-with-callable
         if isinstance(self.codec, codec.NoCodec) and \
            self.fs.load_text != FileSystem.load_text:
             stream = self.fs.load_text(encoding, encoding_errors)
