@@ -45,8 +45,8 @@ class LazyTestInjection(object):
 
 class Multiprocessing(unittest.TestCase):
     def setUp(self):
-        pool = multiprocessing.Pool(4)
-        self.sc = pysparkling.Context(pool=pool,
+        self.pool = multiprocessing.Pool(4)
+        self.sc = pysparkling.Context(pool=self.pool,
                                       serializer=cloudpickle.dumps,
                                       deserializer=pickle.loads)
 
@@ -59,6 +59,9 @@ class Multiprocessing(unittest.TestCase):
         my_rdd = self.sc.parallelize([1, 2, 2, 4, 1, 3, 5, 9], 3)
         self.assertEqual(my_rdd.first(), 1)
 
+    def tearDown(self):
+        self.pool.close()
+
 
 def square_op(x):
     return x ** 2
@@ -66,13 +69,16 @@ def square_op(x):
 
 class MultiprocessingWithoutCloudpickle(unittest.TestCase):
     def setUp(self):
-        pool = multiprocessing.Pool(4)
-        self.sc = pysparkling.Context(pool=pool)
+        self.pool = multiprocessing.Pool(4)
+        self.sc = pysparkling.Context(pool=self.pool)
 
     def test_basic(self):
         my_rdd = self.sc.parallelize([1, 3, 4])
         r = my_rdd.map(square_op).collect()
         self.assertIn(16, r)
+
+    def tearDown(self):
+        self.pool.close()
 
 
 class NotParallel(unittest.TestCase, LazyTestInjection):
