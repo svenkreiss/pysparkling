@@ -1137,8 +1137,7 @@ class DataFrame(object):
         # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
-
-        jgd = InternalGroupedDataFrame(self._jdf, cols)
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols])
         return GroupedData(jgd, self)
 
     def rollup(self, *cols):
@@ -1164,7 +1163,7 @@ class DataFrame(object):
         # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
 
-        jgd = InternalGroupedDataFrame(self._jdf, cols, ROLLUP_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], ROLLUP_TYPE)
         return GroupedData(jgd, self)
 
     def cube(self, *cols):
@@ -1208,7 +1207,7 @@ class DataFrame(object):
         # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
 
-        jgd = InternalGroupedDataFrame(self._jdf, cols, CUBE_TYPE)
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], CUBE_TYPE)
         return GroupedData(jgd, self)
 
     def agg(self, *exprs):

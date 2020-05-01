@@ -16,7 +16,7 @@ from pysparkling.sql.types import Row, StructField, LongType, StructType, String
     row_from_keyed_values, create_row
 
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array
+from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array, collect_set
 from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, \
@@ -26,10 +26,21 @@ from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percen
 if sys.version >= '3':
     basestring = str
 
-GROUP_BY_TYPE = 0
-ROLLUP_TYPE = 1
-CUBE_TYPE = 2
-GROUPED = object()
+GROUP_BY_TYPE = "GROUP_BY_TYPE"
+ROLLUP_TYPE = "ROLLUP_TYPE"
+CUBE_TYPE = "CUBE_TYPE"
+
+
+class SubTotalValue:
+    """
+    Some grouping type (rollup and cube) compute subtotals on all statistics,
+    This class once instantiated creates a unique value that identify such subtotals
+    """
+    def __repr__(self):
+        return "SubTotal"
+
+
+GROUPED = SubTotalValue()
 
 
 class FieldIdGenerator(object):
@@ -964,14 +975,25 @@ class DataFrameInternal(object):
         pass
 
 
+def get_pivoted_stats(stats, pivot_value):
+    if pivot_value is None:
+        return stats
+    else:
+        if len(stats) == 1:
+            return [stats[0].alias(pivot_value)]
+        else:
+            return [stat.alias("{0}_{1}".format(pivot_value, stat)) for stat in stats]
+
+
 class InternalGroupedDataFrame(object):
-    def __init__(self, jdf, grouping_exprs, group_type=GROUP_BY_TYPE):
-        """
-        :type df: pysparkling.sql.dataframe.DataFrame
-        """
+    def __init__(self,
+                 jdf, grouping_cols, group_type=GROUP_BY_TYPE,
+                 pivot_col=None, pivot_values=None):
         self.jdf = jdf
-        self.grouping_cols = [parse(e) for e in grouping_exprs]
+        self.grouping_cols = grouping_cols
         self.group_type = group_type
+        self.pivot_col = pivot_col
+        self.pivot_values = pivot_values
 
     def agg(self, stats):
         grouping_schema = StructType([
@@ -980,9 +1002,11 @@ class InternalGroupedDataFrame(object):
             for field in col.find_fields_in_schema(self.jdf.bound_schema)
         ])
 
-        init = GroupedStats(self.grouping_cols, stats)
         aggregated_stats = self.jdf.aggregate(
-            init,
+            GroupedStats(self.grouping_cols,
+                         stats,
+                         pivot_col=self.pivot_col,
+                         pivot_values=self.pivot_values),
             lambda grouped_stats, row: grouped_stats.merge(
                 row,
                 self.jdf.bound_schema
@@ -992,12 +1016,14 @@ class InternalGroupedDataFrame(object):
                 self.jdf.bound_schema
             )
         )
+
         data = []
         all_stats = self.add_subtotals(aggregated_stats)
         for group_key in all_stats.group_keys:
             key = [(str(key), None if value is GROUPED else value)
                    for key, value in zip(self.grouping_cols, group_key)]
             grouping = tuple(value is GROUPED for value in group_key)
+
             key_as_row = row_from_keyed_values(key).set_grouping(grouping)
             data.append(row_from_keyed_values(
                 key + [
@@ -1006,19 +1032,45 @@ class InternalGroupedDataFrame(object):
                          key_as_row,
                          grouping_schema
                      ))
-                    for stat in all_stats.groups[group_key]
+                    for pivot_value, stats in all_stats.groups[group_key].items()
+                    for stat in get_pivoted_stats(stats, pivot_value)
                 ]
             ))
 
-        new_schema = StructType(
-            grouping_schema.fields + [
-                StructField(
-                    str(stat),
-                    DataType(),
-                    True
-                ) for stat in stats
-            ]
-        )
+        if self.pivot_col is not None:
+            if len(stats) == 1:
+                new_schema = StructType(
+                    grouping_schema.fields + [
+                        StructField(
+                            str(pivot_value),
+                            DataType(),
+                            True
+                        ) for pivot_value in self.pivot_values
+                    ]
+                )
+            else:
+                new_schema = StructType(
+                    grouping_schema.fields + [
+                        StructField(
+                            "{0}_{1}".format(pivot_value, stat),
+                            DataType(),
+                            True
+                        )
+                        for pivot_value in self.pivot_values
+                        for stat in stats
+                    ]
+                )
+        else:
+            new_schema = StructType(
+                grouping_schema.fields + [
+                    StructField(
+                        str(stat),
+                        DataType(),
+                        True
+                    ) for stat in stats
+                ]
+            )
+
         # noinspection PyProtectedMember
         return self.jdf._with_rdd(self.jdf._sc.parallelize(data), schema=new_schema)
 
@@ -1038,16 +1090,18 @@ class InternalGroupedDataFrame(object):
                 if subtotal_key not in all_stats:
                     all_stats[subtotal_key] = deepcopy(group_stats)
                 else:
-                    all_stats[subtotal_key] = list(
-                        subtotal_stat.mergeStats(group_stat, self.jdf.bound_schema)
-                        for subtotal_stat, group_stat in zip(
-                            all_stats[subtotal_key],
-                            group_stats
-                        )
-                    )
+                    for pivot_value, pivot_stats in group_stats.items():
+                        for subtotal_stat, group_stat in zip(all_stats[subtotal_key][pivot_value], pivot_stats):
+                            subtotal_stat.mergeStats(
+                                group_stat,
+                                self.jdf.bound_schema
+                            )
+
         return GroupedStats(
             grouping_cols=grouping_cols,
             stats=aggregated_stats.stats,
+            pivot_col=self.pivot_col,
+            pivot_values=self.pivot_values,
             groups=all_stats
         )
 
@@ -1077,11 +1131,27 @@ class InternalGroupedDataFrame(object):
             return result
         raise NotImplementedError("Unknown grouping type: {0}".format(self.group_type))
 
+    def pivot(self, pivot_col, pivot_values):
+        if pivot_values is None:
+            pivot_values = sorted(
+                self.jdf.select(collect_set(pivot_col)).collect()[0][0]
+            )
+
+        return InternalGroupedDataFrame(
+            jdf=self.jdf,
+            grouping_cols=self.grouping_cols,
+            group_type=self.group_type,
+            pivot_col=pivot_col,
+            pivot_values=pivot_values
+        )
+
 
 class GroupedStats(object):
-    def __init__(self, grouping_cols, stats, groups=None):
+    def __init__(self, grouping_cols, stats, pivot_col, pivot_values, groups=None):
         self.grouping_cols = grouping_cols
         self.stats = stats
+        self.pivot_col = pivot_col
+        self.pivot_values = pivot_values if pivot_values is not None else [None]
         if groups is None:
             self.groups = {}
             # As python < 3.6 does not guarantee dict ordering
@@ -1095,14 +1165,19 @@ class GroupedStats(object):
     def merge(self, row, schema):
         group_key = tuple(col.eval(row, schema) for col in self.grouping_cols)
         if group_key not in self.groups:
-            group_stats = [deepcopy(stat) for stat in self.stats]
+            group_stats = {
+                pivot_value: [deepcopy(stat) for stat in self.stats]
+                for pivot_value in self.pivot_values
+            }
             self.groups[group_key] = group_stats
             self.group_keys.append(group_key)
         else:
             group_stats = self.groups[group_key]
 
-        for i, stat in enumerate(group_stats):
-            group_stats[i] = stat.merge(row, schema)
+        pivot_value = self.pivot_col.eval(row, schema) if self.pivot_col is not None else None
+        if pivot_value in self.pivot_values:
+            for stat in group_stats[pivot_value]:
+                stat.merge(row, schema)
 
         return self
 
@@ -1114,7 +1189,11 @@ class GroupedStats(object):
             else:
                 group_stats = self.groups[group_key]
                 other_stats = other.groups[group_key]
-                for i, (stat, other_stat) in enumerate(zip(group_stats, other_stats)):
-                    group_stats[i] = stat.mergeStats(other_stat, schema)
+                for pivot_value in self.pivot_values:
+                    for (stat, other_stat) in zip(
+                            group_stats[pivot_value],
+                            other_stats[pivot_value]
+                    ):
+                        stat.mergeStats(other_stat, schema)
 
         return self
