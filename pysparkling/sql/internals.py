@@ -16,7 +16,8 @@ from pysparkling.sql.types import Row, StructField, LongType, StructType, String
     row_from_keyed_values, create_row
 
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array, collect_set
+from pysparkling.sql.functions import parse, count, lit, struct, rand, map_from_arrays, array, \
+    collect_set
 from pysparkling.sql.schema_utils import merge_schemas, get_schema_from_cols, infer_schema_from_rdd
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import reservoir_sample_and_size, compute_weighted_percentiles, \
@@ -978,11 +979,9 @@ class DataFrameInternal(object):
 def get_pivoted_stats(stats, pivot_value):
     if pivot_value is None:
         return stats
-    else:
-        if len(stats) == 1:
-            return [stats[0].alias(pivot_value)]
-        else:
-            return [stat.alias("{0}_{1}".format(pivot_value, stat)) for stat in stats]
+    if len(stats) == 1:
+        return [stats[0].alias(pivot_value)]
+    return [stat.alias("{0}_{1}".format(pivot_value, stat)) for stat in stats]
 
 
 class InternalGroupedDataFrame(object):
@@ -1091,7 +1090,10 @@ class InternalGroupedDataFrame(object):
                     all_stats[subtotal_key] = deepcopy(group_stats)
                 else:
                     for pivot_value, pivot_stats in group_stats.items():
-                        for subtotal_stat, group_stat in zip(all_stats[subtotal_key][pivot_value], pivot_stats):
+                        for subtotal_stat, group_stat in zip(
+                                all_stats[subtotal_key][pivot_value],
+                                pivot_stats
+                        ):
                             subtotal_stat.mergeStats(
                                 group_stat,
                                 self.jdf.bound_schema
