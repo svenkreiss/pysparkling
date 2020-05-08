@@ -196,9 +196,10 @@ class ColumnStatHelper(object):
 
     def merge(self, row, schema):
         value = self.column.eval(row, schema)
-        self.update_counters(value)
-        if isinstance(value, numbers.Number):
-            self.update_sample(value)
+        if value is not None:
+            self.update_counters(value)
+            if isinstance(value, numbers.Number):
+                self.update_sample(value)
         return self
 
     def update_counters(self, value):
