@@ -51,7 +51,7 @@ class ArrayColumn(Expression):
 
 
 class MapColumn(Expression):
-    def __init__(self, *columns):
+    def __init__(self, columns):
         super(MapColumn, self).__init__(columns)
         self.columns = columns
         self.keys = columns[::2]
