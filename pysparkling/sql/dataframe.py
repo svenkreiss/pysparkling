@@ -3,7 +3,7 @@ import warnings
 
 from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE, CUBE_TYPE
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
-from pysparkling.sql.utils import IllegalArgumentException, require_minimum_pandas_version
+from pysparkling.sql.utils import IllegalArgumentException, require_minimum_pandas_version, AnalysisException
 from pysparkling.storagelevel import StorageLevel
 # noinspection PyProtectedMember
 from pysparkling.sql.types import TimestampType, IntegralType, ByteType, ShortType, \
@@ -983,7 +983,10 @@ class DataFrame(object):
         if name.startswith("_"):
             raise AttributeError(name)
 
-        field_position = Column(name).find_position_in_schema(self.schema)
+        try:
+            field_position = Column(name).find_position_in_schema(self.schema)
+        except AnalysisException:
+            raise AttributeError
         return self[field_position]
 
     def select(self, *cols):
