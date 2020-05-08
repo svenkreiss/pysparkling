@@ -599,7 +599,7 @@ def create_map(*exprs):
         exprs = exprs[0]
     cols = [parse(e) for e in exprs]
 
-    return col(MapColumn(*cols))
+    return col(MapColumn(cols))
 
 
 def map_from_arrays(col1, col2):
@@ -2129,21 +2129,21 @@ def array_intersect(col1, col2):
     """
     :rtype: Column
     """
-    return col(ArrayIntersect(col1, col2))
+    return col(ArrayIntersect(parse(col1), parse(col2)))
 
 
 def array_union(col1, col2):
     """
     :rtype: Column
     """
-    return col(ArrayUnion(col1, col2))
+    return col(ArrayUnion(parse(col1), parse(col2)))
 
 
 def array_except(col1, col2):
     """
     :rtype: Column
     """
-    return col(ArrayExcept(col1, col2))
+    return col(ArrayExcept(parse(col1), parse(col2)))
 
 
 def explode(e):
@@ -2246,7 +2246,7 @@ def size(e):
     """
     :rtype: Column
     """
-    return col(Size(e))
+    return col(Size(parse(e)))
 
 
 def sort_array(e, asc=True):
