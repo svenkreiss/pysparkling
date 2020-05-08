@@ -11,15 +11,15 @@ import struct
 import time
 import traceback
 
-from pysparkling import __version__ as PYSPARKLING_VERSION
-from pysparkling.broadcast import Broadcast
-from pysparkling import accumulators
-from pysparkling.cache_manager import CacheManager
-from pysparkling.exceptions import ContextIsLockedException
-from pysparkling.fileio import File, TextFile
-from pysparkling.partition import Partition
-from pysparkling.rdd import RDD, EmptyRDD
-from pysparkling.task_context import TaskContext
+from . import __version__ as PYSPARKLING_VERSION
+from .broadcast import Broadcast
+from . import accumulators
+from .cache_manager import CacheManager
+from .exceptions import ContextIsLockedException
+from .fileio import File, TextFile
+from .partition import Partition
+from .rdd import RDD, EmptyRDD
+from .task_context import TaskContext
 
 # Python 2 compatibility
 if not hasattr(time, 'perf_counter'):

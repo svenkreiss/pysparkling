@@ -3,9 +3,9 @@ from __future__ import absolute_import, unicode_literals
 import logging
 from io import BytesIO, StringIO, TextIOWrapper
 
-from pysparkling.fileio import codec
-from pysparkling.fileio.file import File
-from pysparkling.fileio.fs.file_system import FileSystem
+from . import codec
+from .file import File
+from .fs.file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
