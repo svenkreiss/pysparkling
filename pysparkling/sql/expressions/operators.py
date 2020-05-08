@@ -230,7 +230,7 @@ class Contains(Expression):
         self.value = value
 
     def eval(self, row, schema):
-        return self.value in self.expr.eval(row, schema)
+        return self.value.eval(row, schema) in self.expr.eval(row, schema)
 
     def __str__(self):
         return "contains({0}, {1})".format(self.expr, self.value)
