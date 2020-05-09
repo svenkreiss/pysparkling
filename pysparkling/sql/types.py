@@ -1612,7 +1612,7 @@ def _check_series_localize_timestamps(s, timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64tz_dtype
     except ImportError:
         raise Exception("require_minimum_pandas_version() was not called")
@@ -1652,7 +1652,7 @@ def _check_series_convert_timestamps_internal(s, timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
     except ImportError:
         raise Exception("require_minimum_pandas_version() was not called")
@@ -1710,7 +1710,7 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         import pandas as pd
         from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
     except ImportError:
