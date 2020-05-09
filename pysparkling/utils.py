@@ -69,11 +69,11 @@ def format_file_uri(scheme, domain, *local_path_components):
 
 def reservoir_sample_and_size(iterable, k, seed):
     """
-        Returns a sample of k items of iterable and its original size
-        If the iterable contains less than k items the sample is a list of those items
-        Algorithm used is reservoir sampling.
+    Returns a sample of k items of iterable and its original size
+    If the iterable contains less than k items the sample is a list of those items
+    Algorithm used is reservoir sampling.
 
-        :rtype list
+    :rtype list
     """
     random.seed(seed)
 
@@ -205,6 +205,13 @@ def str_half_width(value):
 
 
 def pad_cell(cell, truncate, col_width):
+    """
+    Compute how to pad the value "cell" truncated to truncate so that it fits col width
+    :param cell: Any
+    :param truncate: int
+    :param col_width: int
+    :return:
+    """
     cell = format_cell(cell)
     cell_width = col_width - str_half_width(cell) + len(cell)
     if truncate > 0:
@@ -213,6 +220,9 @@ def pad_cell(cell, truncate, col_width):
 
 
 def format_cell(value):
+    """
+    Convert a cell value to a string using the logic needed in DataFrame.show()
+    """
     if value is None:
         return "null"
     if isinstance(value, bool):
@@ -491,6 +501,10 @@ def parse_gmt_based_offset(match):
 
 def half_up_round(value, scale):
     """
+    Round values using the "half up" logic
+
+    See more: https://docs.python.org/3/library/decimal.html#rounding-modes
+
     >>> half_up_round(7.5, 0)
     8.0
     >>> half_up_round(6.5, 0)
@@ -512,6 +526,10 @@ def half_up_round(value, scale):
 
 def half_even_round(value, scale):
     """
+    Round values using the "half even" logic
+
+    See more: https://docs.python.org/3/library/decimal.html#rounding-modes
+
     >>> half_even_round(7.5, 0)
     8.0
     >>> half_even_round(6.5, 0)
@@ -551,6 +569,14 @@ def levenshtein_distance(str1, str2):
 
 
 def get_json_encoder(date_formatter, timestamp_formatter):
+    """
+    Returns a JsonEncoder which convert Rows to json with the same behavior
+    and conversion logic as PySpark.
+
+    :param date_formatter: a function that convert a date into a string
+    :param timestamp_formatter: a function that convert a timestamp into a string
+    :return: type
+    """
     class CustomJSONEncoder(json.JSONEncoder):
         def encode(self, o):
             def encode_rows(item):

@@ -1,4 +1,6 @@
-
+"""
+The following constants are used to identify join types
+"""
 INNER_JOIN = "inner"
 CROSS_JOIN = "cross"
 FULL_JOIN = "full"

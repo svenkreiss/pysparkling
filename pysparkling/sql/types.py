@@ -1404,15 +1404,32 @@ def _create_row_inbound_converter(dataType):
 
 
 def row_from_keyed_values(keyed_values, metadata=None):
+    """
+    Create a Row from a list of tuples where the first element
+    is the field name and the second its value.
+
+    :type keyed_values: iterable
+    :type metadata: Optional[dict]
+    :return: pysparkling.sql.Row
+    """
     # keyed_values might be an iterable
     keyed_values = tuple(keyed_values)
-    # Preserve Row column order which is modified when calling Row(dict)
     values = (value for key, value in keyed_values)
     fields = (key for key, value in keyed_values)
     return create_row(fields, values, metadata)
 
 
 def create_row(fields, values, metadata=None):
+    """
+    Create a Row from a list of fields and the corresponding list of values
+
+    This functions preserves field order and duplicates, unlike Row(dict)
+
+    :type fields: iterable
+    :type values: iterable
+    :type metadata: Optional[dict]
+    :return: pysparkling.sql.Row
+    """
     new_row = tuple.__new__(Row, values)
     new_row.__fields__ = tuple(fields)
     new_row.set_metadata(metadata)
