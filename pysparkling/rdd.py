@@ -24,11 +24,11 @@ except ImportError:
     numpy = None
 
 from . import fileio
+from .utils import portable_hash
 from .exceptions import FileAlreadyExistsException, ContextIsLockedException
 from .samplers import (BernoulliSampler, PoissonSampler,
                        BernoulliSamplerPerKey, PoissonSamplerPerKey)
 from .stat_counter import StatCounter
-from .utils import portable_hash
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
@@ -1292,42 +1292,6 @@ class RDD(object):
         """
         return self.reduce(f)
 
-    def reduceByKeyLocally(self, f):
-        """reduce by key and return a dictionnary
-
-        :param f: A commutative and associative binary operator.
-        :param int numPartitions: Number of partitions in the resulting RDD.
-        :rtype: dict
-
-        >>> from pysparkling import Context
-        >>> from operator import add
-        >>> rdd = Context().parallelize([("a", 1), ("b", 1), ("a", 1)])
-        >>> sorted(rdd.reduceByKeyLocally(lambda a, b: a+b).items())
-        [('a', 2), ('b', 1)]
-        """
-        return dict(self.reduceByKey(f).collect())
-
-    def treeReduce(self, f, depth=2):
-        """same internal behaviour as :func:`~pysparkling.RDD.reduce()`
-
-        :param depth: Not used.
-
-        >>> from pysparkling import Context
-        >>> from operator import add
-        >>> rdd = Context().parallelize([-5, -4, -3, -2, -1, 1, 2, 3, 4], 10)
-        >>> rdd.treeReduce(add)
-        -5
-        >>> rdd.treeReduce(add, 1)
-        -5
-        >>> rdd.treeReduce(add, 2)
-        -5
-        >>> rdd.treeReduce(add, 5)
-        -5
-        >>> rdd.treeReduce(add, 10)
-        -5
-        """
-        return self.reduce(f)
-
     def repartition(self, numPartitions):
         """repartition
 
@@ -2115,10 +2079,10 @@ class RDD(object):
         :param samplingRatio: the sample ratio of rows used for inferring
         :return: a DataFrame
 
-        >>> from pysparkling import Context
-        >>> rdd = Context().parallelize([(1, 2), (3, 4)])
+        >>> from pysparkling import Context, Row
+        >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
         >>> rdd.toDF().collect()
-        [Row(_1=1, _2=2), Row(_1=3, _2=4)]
+        [Row(age=1, name='Alice')]
         """
         # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
