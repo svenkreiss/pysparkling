@@ -610,7 +610,7 @@ class StructType(DataType):
             return tuple(f.toInternal(obj.get(n)) if c else obj.get(n)
                          for n, f, c in zip(self.names, self.fields, self._needConversion))
         if isinstance(obj, Row):
-            return _create_row(
+            return create_row(
                 obj.__fields__,
                 (f.toInternal(val) for f, val, c in zip(self.fields, obj, self._needConversion))
             )
@@ -635,7 +635,7 @@ class StructType(DataType):
                       for f, v, c in zip(self.fields, obj, self._needConversion)]
         else:
             values = obj
-        return _create_row(self.names, values)
+        return create_row(self.names, values)
 
     @classmethod
     def fromDDL(cls, string):
@@ -1129,7 +1129,7 @@ def _create_converter(dataType):
 
         if isinstance(obj, Row):
             if convert_fields:
-                return _create_row(
+                return create_row(
                     obj.__fields__,
                     [converter(value) for converter, value in zip(converters, obj)]
                 )
@@ -1403,11 +1403,37 @@ def _create_row_inbound_converter(dataType):
     return lambda *a: dataType.fromInternal(a)
 
 
-def _create_row(fields, values):
-    row = Row(*values)
-    # pylint: disable=W0201
-    row.__fields__ = fields
-    return row
+def row_from_keyed_values(keyed_values, metadata=None):
+    """
+    Create a Row from a list of tuples where the first element
+    is the field name and the second its value.
+
+    :type keyed_values: iterable
+    :type metadata: Optional[dict]
+    :return: pysparkling.sql.Row
+    """
+    # keyed_values might be an iterable
+    keyed_values = tuple(keyed_values)
+    values = (value for key, value in keyed_values)
+    fields = (key for key, value in keyed_values)
+    return create_row(fields, values, metadata)
+
+
+def create_row(fields, values, metadata=None):
+    """
+    Create a Row from a list of fields and the corresponding list of values
+
+    This functions preserves field order and duplicates, unlike Row(dict)
+
+    :type fields: iterable
+    :type values: iterable
+    :type metadata: Optional[dict]
+    :return: pysparkling.sql.Row
+    """
+    new_row = tuple.__new__(Row, values)
+    new_row.__fields__ = tuple(fields)
+    new_row.set_metadata(metadata)
+    return new_row
 
 
 class Row(tuple):
@@ -1508,7 +1534,7 @@ class Row(tuple):
         if len(args) > len(self):
             raise ValueError("Can not create Row with fields %s, expected %d values "
                              "but got %s" % (self, len(self), args))
-        return _create_row(self, args)
+        return create_row(self, args)
 
     def __getitem__(self, item):
         if isinstance(item, (int, slice)):
@@ -1544,7 +1570,7 @@ class Row(tuple):
     def __reduce__(self):
         """Returns a tuple so Python knows how to pickle Row."""
         if hasattr(self, "__fields__"):
-            return _create_row, (self.__fields__, tuple(self))
+            return create_row, (self.__fields__, tuple(self))
         return tuple.__reduce__(self)
 
     def __repr__(self):
@@ -1603,7 +1629,7 @@ def _check_series_localize_timestamps(s, timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64tz_dtype
     except ImportError:
         raise Exception("require_minimum_pandas_version() was not called")
@@ -1643,7 +1669,7 @@ def _check_series_convert_timestamps_internal(s, timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
     except ImportError:
         raise Exception("require_minimum_pandas_version() was not called")
@@ -1701,7 +1727,7 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
 
     try:
         # pandas is an optional dependency
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         import pandas as pd
         from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
     except ImportError:

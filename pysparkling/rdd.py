@@ -2069,6 +2069,30 @@ class RDD(object):
             preservesPartitioning=True,
         )
 
+    def toDF(self, schema=None, sampleRatio=None):
+        """
+        Converts current :class:`RDD` into a :class:`DataFrame`
+
+        This is a shorthand for ``spark.createDataFrame(rdd, schema, sampleRatio)``
+
+        :param schema: a :class:`pysparkling.sql.types.StructType` or list of names of columns
+        :param samplingRatio: the sample ratio of rows used for inferring
+        :return: a DataFrame
+
+        # todo: Activate those tests once pysparkling.sql is implemented
+        # >>> from pysparkling import Context, Row
+        # >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
+        # >>> rdd.toDF().collect()
+        # [Row(age=1, name='Alice')]
+        """
+        # # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        # from pysparkling import Context
+        # from pysparkling.sql.session import SparkSession
+        # sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
+        # return sparkSession.createDataFrame(self, schema, sampleRatio)
+        return NotImplementedError
+
 
 class MapPartitionsRDD(RDD):
     def __init__(self, prev, f, preservesPartitioning=False):

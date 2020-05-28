@@ -189,6 +189,10 @@ class Context(object):
         Context.__last_rdd_id += 1
         return Context.__last_rdd_id
 
+    @property
+    def defaultParallelism(self):
+        return 1
+
     def parallelize(self, x, numSlices=None):
         """Parallelize x.
 
