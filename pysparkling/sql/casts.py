@@ -35,6 +35,11 @@ def cast_from_none(value, from_type, options):
     )
 
 
+def default_timestamp_formatter(timestamp):
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+
+
 def cast_to_binary(value, from_type, options):
     if isinstance(from_type, StringType):
         # noinspection PyTypeChecker
