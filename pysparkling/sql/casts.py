@@ -266,6 +266,11 @@ def cast_to_int(value, from_type, options):
     return _cast_to_bounded_type("int", min_value, max_value, value, from_type, options=options)
 
 
+def cast_to_long(value, from_type, options):
+    min_value, max_value = -9223372036854775808, 9223372036854775807
+    return _cast_to_bounded_type("long", min_value, max_value, value, from_type, options=options)
+
+
 def cast_value(value, options):
     if value == "":
         return None
