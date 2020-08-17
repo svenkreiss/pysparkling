@@ -256,6 +256,11 @@ def cast_to_byte(value, from_type, options):
     return _cast_to_bounded_type("byte", min_value, max_value, value, from_type, options=options)
 
 
+def cast_to_short(value, from_type, options):
+    min_value, max_value = -32768, 32767
+    return _cast_to_bounded_type("short", min_value, max_value, value, from_type, options=options)
+
+
 def cast_value(value, options):
     if value == "":
         return None
