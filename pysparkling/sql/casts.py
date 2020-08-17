@@ -251,6 +251,10 @@ def _cast_to_bounded_type(name, min_value, max_value, value, from_type, options)
     raise AnalysisException("Cannot cast type {0} to {1}".format(from_type, name))
 
 
+def cast_to_byte(value, from_type, options):
+    min_value, max_value = -128, 127
+    return _cast_to_bounded_type("byte", min_value, max_value, value, from_type, options=options)
+
 
 def cast_value(value, options):
     if value == "":
