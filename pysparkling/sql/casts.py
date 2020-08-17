@@ -153,6 +153,23 @@ def split_datetime_as_string(value):
     return date_as_string, time_as_string
 
 
+def cast_value(value, options):
+    if value == "":
+        return None
+    if isinstance(value, datetime.datetime):
+        return value.timestamp()
+    if isinstance(value, datetime.date):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    raise ValueError("Unable to cast from value")
+
+
 def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
 
