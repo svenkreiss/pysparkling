@@ -213,3 +213,38 @@ class TypeSafeBinaryOperation(BinaryOperation):
 
     def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
+
+
+class NullSafeBinaryOperation(BinaryOperation):
+    """
+    Perform a null-safe binary operation
+
+    It does not converts values if they are of different types:
+    lit(datetime.date(2019, 1, 1)) - lit("2019-01-01") raises an error
+    """
+
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+
+        type_1 = value_1.__class__
+        type_2 = value_2.__class__
+        if type_1 == type_2 or (
+                isinstance(value_1, (int, float)) and
+                isinstance(value_2, (int, float))
+        ):
+            return self.unsafe_operation(value_1, value_2)
+
+        raise AnalysisException(
+            "Cannot resolve {0} due to data type mismatch, first value is {1}, second value is {2}."
+            "".format(self, type_1, type_2)
+        )
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value1, value2):
+        raise NotImplementedError
+
