@@ -300,3 +300,17 @@ class Cast(Expression):
 
     def __str__(self):
         return "{0}".format(self.column)
+
+
+class Substring(Expression):
+    def __init__(self, expr, start, length):
+        super(Substring, self).__init__(expr)
+        self.expr = expr
+        self.start = start
+        self.length = length
+
+    def eval(self, row, schema):
+        return str(self.expr.eval(row, schema))[self.start - 1:self.start - 1 + self.length]
+
+    def __str__(self):
+        return "substring({0}, {1}, {2})".format(self.expr, self.start, self.length)
