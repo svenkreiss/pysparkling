@@ -26,3 +26,39 @@ def cast_from_none(value, from_type, options):
             value
         )
     )
+
+
+FORMAT_MAPPING = {
+    "EEEE": "%A",
+    "EEE": "%a",
+    "EE": "%a",
+    "E": "%a",
+    "e": "%w",
+    "dd": "%d",
+    "d": "%-d",
+    "MMMM": "%B",
+    "MMM": "%b",
+    "MM": "%m",
+    "M": "%-m",
+    "yyyy": "%Y",
+    "yyy": "%Y",
+    "yy": "%y",
+    "y": "%Y",
+    "HH": "%H",
+    "H": "%-H",
+    "hh": "%I",
+    "h": "%-I",
+    "a": "%p",
+    "mm": "%M",
+    "m": "%-M",
+    "ss": "%S",
+    "s": "%-S",
+    "S": "%f",
+    "xxxx": "%z",
+    "xx": "%z",
+    "ZZZ": "%z",
+    "ZZ": "%z",
+    "Z": "%z",
+    "DDD": "%j",
+    "D": "%-j",
+}
