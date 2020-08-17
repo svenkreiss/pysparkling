@@ -226,6 +226,16 @@ def split_datetime_as_string(value):
     return date_as_string, time_as_string
 
 
+def cast_to_boolean(value, from_type, options):
+    if value == "" or value is None:
+        return None
+    if isinstance(from_type, StringType):
+        return True if value.lower() == "true" else False if value.lower() == "false" else None
+    if isinstance(from_type, (NumericType, BooleanType)):
+        return bool(value)
+    raise AnalysisException("Cannot cast type {0} to boolean".format(from_type))
+
+
 def cast_value(value, options):
     if value == "":
         return None
