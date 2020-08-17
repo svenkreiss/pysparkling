@@ -259,3 +259,20 @@ class EndsWith(Expression):
 
     def __str__(self):
         return "endswith({0}, {1})".format(self.arg1, self.substr)
+
+
+class IsIn(Expression):
+    def __init__(self, arg1, cols):
+        super(IsIn, self).__init__(arg1)
+        self.arg1 = arg1
+        self.cols = cols
+
+    def eval(self, row, schema):
+        return self.arg1.eval(row, schema) in self.cols
+
+    def __str__(self):
+        return "({0} IN ({1}))".format(
+            self.arg1,
+            ", ".join(str(col) for col in self.cols)
+        )
+
