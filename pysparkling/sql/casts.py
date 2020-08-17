@@ -327,6 +327,10 @@ def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
 
 
+DESTINATION_DEPENDENT_CASTERS = {
+    DecimalType: cast_to_decimal,
+}
+
 CASTERS = {
     StringType: cast_to_string,
     BinaryType: cast_to_binary,
