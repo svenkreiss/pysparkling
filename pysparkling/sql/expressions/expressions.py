@@ -148,3 +148,20 @@ class UnaryExpression(Expression):
 
     def __str__(self):
         raise NotImplementedError
+
+
+class BinaryOperation(Expression):
+    """
+    Perform a binary operation but return None if any value is None
+    """
+
+    def __init__(self, arg1, arg2):
+        super(BinaryOperation, self).__init__(arg1, arg2)
+        self.arg1 = arg1
+        self.arg2 = arg2
+
+    def eval(self, row, schema):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
