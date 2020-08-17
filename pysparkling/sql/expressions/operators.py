@@ -170,3 +170,11 @@ class BitwiseXor(Expression):
 
     def __str__(self):
         return "({0} ^ {1})".format(self.arg1, self.arg2)
+
+
+class BitwiseNot(UnaryExpression):
+    def eval(self, row, schema):
+        return ~(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "~{0}".format(self.column)
