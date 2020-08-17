@@ -1,4 +1,6 @@
 import re
+from functools import lru_cache
+
 import pytz
 from pysparkling.sql.utils import AnalysisException
 
@@ -87,6 +89,7 @@ def get_sub_formatter(group):
     return lambda value: token
 
 
+@lru_cache
 def get_time_formatter(java_time_format):
     """
     Convert a Java time format to a Python time format.
