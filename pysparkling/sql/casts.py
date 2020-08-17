@@ -39,6 +39,21 @@ def default_timestamp_formatter(timestamp):
     return timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def cast_to_string(value, from_type, options):
+    date_format = get_time_formatter(options.get("dateformat", "yyyy-MM-dd"))
+    timestamp_format = (get_time_formatter(options["timestampformat"])
+                        if "timestampformat" in options
+                        else default_timestamp_formatter)
+    if value is None:
+        return "null"
+    if isinstance(from_type, DateType):
+        return date_format(value)
+    if isinstance(from_type, TimestampType):
+        return timestamp_format(value)
+    if isinstance(from_type, BooleanType):
+        return str(value).lower()
+    return str(value)
+
 
 def cast_to_binary(value, from_type, options):
     if isinstance(from_type, StringType):
