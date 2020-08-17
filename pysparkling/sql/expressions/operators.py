@@ -88,3 +88,10 @@ class LessThanOrEqual(TypeSafeBinaryOperation):
 
     def __str__(self):
         return "({0} <= {1})".format(self.arg1, self.arg2)
+
+class GreaterThan(TypeSafeBinaryOperation):
+    def unsafe_operation(self, value_1, value_2):
+        return value_1 > value_2
+
+    def __str__(self):
+        return "({0} > {1})".format(self.arg1, self.arg2)
