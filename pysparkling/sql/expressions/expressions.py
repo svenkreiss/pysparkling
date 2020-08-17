@@ -136,3 +136,15 @@ class Expression(object):
                 child.expr.recursive_pre_evaluation_schema(schema)
             elif isinstance(child, (list, set, tuple)):
                 Expression.children_pre_evaluation_schema(child, schema)
+
+
+class UnaryExpression(Expression):
+    def __init__(self, column):
+        super(UnaryExpression, self).__init__(column)
+        self.column = column
+
+    def eval(self, row, schema):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
