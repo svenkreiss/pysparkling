@@ -1,5 +1,5 @@
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
-    NullSafeBinaryOperation
+    NullSafeBinaryOperation, TypeSafeBinaryOperation
 
 
 class Negate(UnaryExpression):
@@ -65,3 +65,10 @@ class Pmod(NullSafeBinaryOperation):
     def __str__(self):
         return "pmod({0} % {1})".format(self.arg1, self.arg2)
 
+
+class Equal(TypeSafeBinaryOperation):
+    def unsafe_operation(self, value_1, value_2):
+        return value_1 == value_2
+
+    def __str__(self):
+        return "({0} = {1})".format(self.arg1, self.arg2)
