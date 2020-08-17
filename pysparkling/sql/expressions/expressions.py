@@ -248,3 +248,18 @@ class NullSafeBinaryOperation(BinaryOperation):
     def unsafe_operation(self, value1, value2):
         raise NotImplementedError
 
+
+class NullSafeColumnOperation(Expression):
+    def __init__(self, column, *args):
+        super(NullSafeColumnOperation, self).__init__(column, *args)
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        return self.unsafe_operation(value)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value):
+        raise NotImplementedError
