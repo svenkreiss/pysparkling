@@ -120,3 +120,14 @@ class Or(TypeSafeBinaryOperation):
 
     def __str__(self):
         return "({0} OR {1})".format(self.arg1, self.arg2)
+
+
+class Invert(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        if value is None:
+            return None
+        return not value
+
+    def __str__(self):
+        return "(NOT {0})".format(self.column)
