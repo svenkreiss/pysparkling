@@ -327,7 +327,9 @@ def cast_to_double(value, from_type, options):
 
 def cast_to_array(value, from_type, to_type, options):
     if isinstance(from_type, ArrayType):
-        caster = get_caster(from_type=from_type.elementType, to_type=to_type.elementType, options=options)
+        caster = get_caster(
+            from_type=from_type.elementType, to_type=to_type.elementType, options=options
+        )
         return [
             caster(sub_value) if sub_value is not None else None
             for sub_value in value
@@ -337,8 +339,12 @@ def cast_to_array(value, from_type, to_type, options):
 
 def cast_to_map(value, from_type, to_type, options):
     if isinstance(from_type, MapType):
-        key_caster = get_caster(from_type=from_type.keyType, to_type=to_type.keyType, options=options)
-        value_caster = get_caster(from_type=from_type.valueType, to_type=to_type.valueType, options=options)
+        key_caster = get_caster(
+            from_type=from_type.keyType, to_type=to_type.keyType, options=options
+        )
+        value_caster = get_caster(
+            from_type=from_type.valueType, to_type=to_type.valueType, options=options
+        )
         return {
             key_caster(key): (value_caster(sub_value) if sub_value is not None else None)
             for key, sub_value in value.items()
@@ -474,7 +480,7 @@ def get_sub_formatter(group):
     return lambda value: token
 
 
-@lru_cache
+@lru_cache(64)
 def get_time_formatter(java_time_format):
     """
     Convert a Java time format to a Python time format.
@@ -502,7 +508,7 @@ def get_unix_timestamp_parser(java_time_format):
     return time_parser
 
 
-@lru_cache
+@lru_cache(64)
 def get_datetime_parser(java_time_format):
     if java_time_format is None:
         return lambda value: cast_to_timestamp(value, StringType(), {})
