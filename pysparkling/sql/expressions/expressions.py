@@ -43,3 +43,20 @@ class Expression(object):
     @property
     def is_an_aggregation(self):
         return False
+
+    def merge(self, row, schema):
+        pass
+
+    def recursive_merge(self, row, schema):
+        self.merge(row, schema)
+        self.children_merge(self.children, row, schema)
+
+    @staticmethod
+    def children_merge(children, row, schema):
+        for child in children:
+            if isinstance(child, Expression):
+                child.recursive_merge(row, schema)
+            elif hasattr(child, "expr") and isinstance(child.expr, Expression):
+                child.expr.recursive_merge(row, schema)
+            elif isinstance(child, (list, set, tuple)):
+                Expression.children_merge(child, row, schema)
