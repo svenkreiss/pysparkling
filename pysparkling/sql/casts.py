@@ -60,6 +60,29 @@ def cast_to_date(value, from_type, options):
     raise AnalysisException("Cannot cast type {0} to date".format(from_type))
 
 
+def parse_time_as_string(time_as_string):
+    time_as_string = time_as_string.strip()
+    match = TIME_REGEX.match(time_as_string)
+    if not match:
+        return None
+
+    hour, minute, second, microsecond, tz_as_string = match.groups()
+    if microsecond:
+        microsecond = microsecond[:6]  # mimic Spark behaviour
+
+    tzinfo = parse_timezone(tz_as_string)
+    if tzinfo is None:  # Unable to parse
+        return None
+
+    return dict(
+        hour=int(hour),
+        minute=int(minute) if minute else 0,
+        second=int(second) if second else 0,
+        microsecond=int(microsecond) if microsecond else 0,
+        tzinfo=tzinfo
+    )
+
+
 def parse_timezone(tz_as_string):
     if tz_as_string:
         if tz_as_string == "Z":
