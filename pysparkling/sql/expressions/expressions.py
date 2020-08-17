@@ -114,3 +114,25 @@ class Expression(object):
 
     def initialize(self, partition_index):
         pass
+
+    # Adding information about the schema that was defined in the step prior the evaluation
+    def with_pre_evaluation_schema(self, schema):
+        self.pre_evaluation_schema = schema
+
+    def recursive_pre_evaluation_schema(self, schema):
+        self.with_pre_evaluation_schema(schema)
+        self.children_pre_evaluation_schema(self.children, schema)
+
+    @staticmethod
+    def children_pre_evaluation_schema(children, schema):
+        # # Top level import would cause cyclic dependencies
+        # # pylint: disable=import-outside-toplevel
+        # from pysparkling.sql.column import Column
+        for child in children:
+            if isinstance(child, Expression):
+                child.recursive_pre_evaluation_schema(schema)
+            # todo: elif isinstance(child, Column) and isinstance(child.expr, Expression):
+            elif isinstance(child.expr, Expression):
+                child.expr.recursive_pre_evaluation_schema(schema)
+            elif isinstance(child, (list, set, tuple)):
+                Expression.children_pre_evaluation_schema(child, schema)
