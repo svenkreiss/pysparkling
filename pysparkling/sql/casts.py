@@ -319,6 +319,10 @@ def cast_value(value, options):
     raise ValueError("Unable to cast from value")
 
 
+def cast_to_double(value, from_type, options):
+    return cast_to_float(value, from_type, options=options)
+
+
 def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
 
