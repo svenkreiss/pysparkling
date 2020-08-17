@@ -1,13 +1,14 @@
 import datetime
 import re
 import time
-from functools import lru_cache
+from functools import lru_cache, partial
 
 import pytz
 from dateutil.tz import tzlocal
 
 from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
-    ArrayType, MapType, FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, UserDefinedType, DecimalType
+    ArrayType, MapType, FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, UserDefinedType, DecimalType, \
+    NullType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -348,6 +349,22 @@ CASTERS = {
     DoubleType: cast_to_double,
     UserDefinedType: cast_to_user_defined_type,
 }
+
+
+def get_caster(from_type, to_type, options):
+    to_type_class = to_type.__class__
+    if from_type == to_type:
+        return partial(identity, options=options)
+    if to_type_class == NullType:
+        return partial(cast_from_none, from_type=from_type, options=options)
+    if to_type_class == TimestampType:
+        return get_datetime_parser(options.get("timestampFormat"))
+    if to_type_class in DESTINATION_DEPENDENT_CASTERS:
+        caster = DESTINATION_DEPENDENT_CASTERS[to_type_class]
+        return partial(caster, from_type=from_type, to_type=to_type, options=options)
+    if to_type_class in CASTERS:
+        return partial(CASTERS[to_type_class], from_type=from_type, options=options)
+    raise AnalysisException("Cannot cast from {0} to {1}".format(from_type, to_type))
 
 
 FORMAT_MAPPING = {
