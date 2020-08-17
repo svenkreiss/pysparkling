@@ -7,7 +7,7 @@ import pytz
 from dateutil.tz import tzlocal
 
 from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
-    ArrayType, MapType, FloatType
+    ArrayType, MapType, FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, UserDefinedType, DecimalType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -325,6 +325,25 @@ def cast_to_double(value, from_type, options):
 
 def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
+
+
+CASTERS = {
+    StringType: cast_to_string,
+    BinaryType: cast_to_binary,
+    DateType: cast_to_date,
+    TimestampType: cast_to_timestamp,
+    # The ticket to expose CalendarIntervalType, in pyspark is SPARK-28492
+    # It is open as this function is written, so we do not support it at the moment.
+    # CalendarIntervalType: cast_to_interval,
+    BooleanType: cast_to_boolean,
+    ByteType: cast_to_byte,
+    ShortType: cast_to_short,
+    IntegerType: cast_to_int,
+    FloatType: cast_to_float,
+    LongType: cast_to_long,
+    DoubleType: cast_to_double,
+    UserDefinedType: cast_to_user_defined_type,
+}
 
 
 FORMAT_MAPPING = {
