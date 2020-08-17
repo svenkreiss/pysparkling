@@ -8,7 +8,7 @@ from dateutil.tz import tzlocal
 
 from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
     ArrayType, MapType, FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, UserDefinedType, DecimalType, \
-    NullType
+    NullType, create_row
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -343,6 +343,23 @@ def cast_to_map(value, from_type, to_type, options):
             for key, sub_value in value.items()
         }
     raise AnalysisException("Cannot cast type {0} to map".format(from_type))
+
+
+def get_struct_caster(from_type, to_type, options):
+    names = [to_field.name for to_field in to_type.fields]
+    casters = [
+        get_caster(from_field.dataType, to_field.dataType, options)
+        for from_field, to_field in zip(from_type.fields, to_type.fields)
+    ]
+
+    def do_cast_to_struct(value):
+        return create_row(
+            names,
+            (caster(sub_value) for caster, sub_value in zip(casters, value)),
+            metadata=value.get_metadata()
+        )
+
+    return do_cast_to_struct
 
 
 def cast_to_user_defined_type(value, from_type, options):
