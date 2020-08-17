@@ -12,6 +12,8 @@ class RuntimeConfig(object):
         self._checkType(key, "key")
         if default is _sentinel:
             return self._conf.get(key)
+        if default is not None:
+            self._checkType(default, "default")
         return self._conf.get(key, default)
 
     def unset(self, key):
