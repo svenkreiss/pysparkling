@@ -1,7 +1,8 @@
 import sys
 from threading import RLock
 
-from pysparkling.sql.types import StructType, _create_converter, _infer_schema, _has_nulltype, _merge_type
+from pysparkling.sql.types import StructType, _create_converter, _infer_schema, \
+    _has_nulltype, _merge_type
 
 import pysparkling
 from pysparkling.context import Context
@@ -167,9 +168,11 @@ class SparkSession(object):
             data = list(data)
 
         if schema is None or isinstance(schema, (list, tuple)):
-            raise NotImplementedError("Implementation requires schema utils that are not yet merged")
+            raise NotImplementedError(
+                "Implementation requires schema utils that are not yet merged"
+            )
 
-        elif not isinstance(schema, StructType):
+        if not isinstance(schema, StructType):
             raise TypeError("schema should be StructType or list or None, but got: %s" % schema)
 
         # convert python objects to sql data
@@ -213,7 +216,9 @@ class SparkSession(object):
         return [r.tolist() for r in np_records]
 
     def createDataFrame(self, data, schema=None, samplingRatio=None, verifySchema=True):
-        raise NotImplementedError("This method implementation requires DataFrame which are not yet merged")
+        raise NotImplementedError(
+            "This method implementation requires DataFrame which are not yet merged"
+        )
 
     def parse_pandas_dataframe(self, data, schema):
         require_minimum_pandas_version()
@@ -235,8 +240,12 @@ class SparkSession(object):
         if numPartitions is None:
             numPartitions = self._sc.defaultParallelism
 
-        raise NotImplementedError("This method implementation requires DataFrame which are not yet merged")
+        raise NotImplementedError(
+            "This method implementation requires DataFrame which are not yet merged"
+        )
 
     @property
     def read(self):
-        raise NotImplementedError("This method implementation requires DataFrameReader which are not yet merged")
+        raise NotImplementedError(
+            "This method implementation requires DataFrameReader which are not yet merged"
+        )
