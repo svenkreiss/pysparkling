@@ -6,7 +6,7 @@ from functools import lru_cache
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType
+from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -53,6 +53,24 @@ def cast_to_string(value, from_type, options):
     if isinstance(from_type, BooleanType):
         return str(value).lower()
     return str(value)
+
+
+def cast_sequence(value, from_type, options):
+    if isinstance(from_type, StructType):
+        types = [field.dataType for field in from_type.fields]
+    else:
+        types = [from_type.elementType] * len(value)
+    casted_values = [
+        cast_to_string(
+            sub_value, sub_value_type, options
+        ) if sub_value is not None else None
+        for sub_value, sub_value_type in zip(value, types)
+    ]
+    casted_value = "[{0}]".format(",".join(
+        ("" if casted_value is None else "{0}" if i == 0 else " {0}").format(casted_value)
+        for i, casted_value in enumerate(casted_values)
+    ))
+    return casted_value
 
 
 def cast_to_binary(value, from_type, options):
