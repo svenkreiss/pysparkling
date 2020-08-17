@@ -1,5 +1,6 @@
 import datetime
 import re
+import time
 from functools import lru_cache
 
 import pytz
@@ -227,6 +228,16 @@ def get_time_formatter(java_time_format):
         return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
 
     return time_formatter
+
+
+def get_unix_timestamp_parser(java_time_format):
+    datetime_parser = get_datetime_parser(java_time_format)
+
+    def time_parser(value):
+        dt = datetime_parser(value)
+        return int(time.mktime(dt.timetuple()))
+
+    return time_parser
 
 
 @lru_cache
