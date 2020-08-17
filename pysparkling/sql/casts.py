@@ -271,6 +271,17 @@ def cast_to_long(value, from_type, options):
     return _cast_to_bounded_type("long", min_value, max_value, value, from_type, options=options)
 
 
+def cast_to_decimal(value, from_type, to_type, options):
+    value_as_float = cast_to_float(value, from_type, options=options)
+    if value_as_float is None:
+        return None
+    if value_as_float >= 10 ** (to_type.precision - to_type.scale):
+        return None
+    if to_type.scale == 0:
+        return int(value_as_float)
+    return round(value_as_float, ndigits=to_type.scale)
+
+
 def cast_to_float(value, from_type, options):
     # NB: pysparkling does not mimic the loss of accuracy of Spark nor value
     # bounding between float min&max values
