@@ -324,6 +324,16 @@ def cast_to_double(value, from_type, options):
     return cast_to_float(value, from_type, options=options)
 
 
+def cast_to_array(value, from_type, to_type, options):
+    if isinstance(from_type, ArrayType):
+        caster = get_caster(from_type=from_type.elementType, to_type=to_type.elementType, options=options)
+        return [
+            caster(sub_value) if sub_value is not None else None
+            for sub_value in value
+        ]
+    raise AnalysisException("Cannot cast type {0} to array".format(from_type))
+
+
 def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
 
