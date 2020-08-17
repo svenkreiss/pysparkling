@@ -62,3 +62,27 @@ FORMAT_MAPPING = {
     "DDD": "%j",
     "D": "%-j",
 }
+
+
+def get_sub_formatter(group):
+    token, _ = group
+
+    if token in FORMAT_MAPPING:
+        return lambda value: value.strftime(FORMAT_MAPPING[token])
+
+    if token in ("'", "[", "]"):
+        return lambda value: ""
+
+    if "S" in token:
+        number_of_digits = len(token)
+        return lambda value: value.strftime("%f")[:number_of_digits]
+
+    if token == "XXX":
+        def timezone_formatter(value):
+            tz = value.strftime("%z")
+            return "{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
+
+        return timezone_formatter
+
+    return lambda value: token
+
