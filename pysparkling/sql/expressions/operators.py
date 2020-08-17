@@ -276,3 +276,10 @@ class IsIn(Expression):
             ", ".join(str(col) for col in self.cols)
         )
 
+
+class IsNotNull(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.eval(row, schema) is not None
+
+    def __str__(self):
+        return "({0} IS NOT NULL)".format(self.column)
