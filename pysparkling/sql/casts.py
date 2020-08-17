@@ -86,3 +86,19 @@ def get_sub_formatter(group):
 
     return lambda value: token
 
+
+def get_time_formatter(java_time_format):
+    """
+    Convert a Java time format to a Python time format.
+
+    This function currently only support a small subset of Java time formats.
+    """
+    sub_formatters = [
+        get_sub_formatter(token)
+        for token in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format)
+    ]
+
+    def time_formatter(value):
+        return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
+
+    return time_formatter
