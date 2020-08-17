@@ -31,3 +31,7 @@ class Expression(object):
     @property
     def is_nullable(self):
         return True
+
+    @property
+    def may_output_multiple_cols(self):
+        return False
