@@ -6,7 +6,8 @@ from functools import lru_cache
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType
+from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
+    ArrayType, MapType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -53,6 +54,14 @@ def cast_to_string(value, from_type, options):
     if isinstance(from_type, BooleanType):
         return str(value).lower()
     return str(value)
+
+
+def cast_nested_to_str(value, from_type, options):
+    if isinstance(from_type, (ArrayType, StructType)):
+        return cast_sequence(value, from_type, options)
+    if isinstance(from_type, MapType):
+        return cast_map(value, from_type, options)
+    raise TypeError("Unable to cast {0}".format(type(from_type)))
 
 
 def cast_map(value, from_type, options):
