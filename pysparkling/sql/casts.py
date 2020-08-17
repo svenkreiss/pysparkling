@@ -227,3 +227,16 @@ def get_time_formatter(java_time_format):
         return "".join(sub_formatter(value) for sub_formatter in sub_formatters)
 
     return time_formatter
+
+
+def get_datetime_parser(java_time_format):
+    if java_time_format is None:
+        return lambda value: cast_to_timestamp(value, StringType(), {})
+
+    if java_time_format is NO_TIMESTAMP_CONVERSION:
+        return lambda value: None
+
+    python_pattern = ""
+    for token, _ in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format):
+        python_pattern += FORMAT_MAPPING.get(token, token)
+    return lambda value: datetime.datetime.strptime(value, python_pattern)
