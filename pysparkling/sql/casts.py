@@ -3,6 +3,7 @@ import re
 from functools import lru_cache
 
 import pytz
+from dateutil.tz import tzlocal
 
 from pysparkling.sql.types import TimestampType, DateType, StringType
 from pysparkling.sql.utils import AnalysisException
@@ -57,6 +58,30 @@ def cast_to_date(value, from_type, options):
         return None  # other values would have been handle in the lines above
 
     raise AnalysisException("Cannot cast type {0} to date".format(from_type))
+
+
+def parse_timezone(tz_as_string):
+    if tz_as_string:
+        if tz_as_string == "Z":
+            tzinfo = GMT
+        else:
+            sign = tz_as_string[0]
+            coeff = 1 if sign == "+" else -1
+            if tz_as_string.count(":") == 1:
+                hours, minutes = tz_as_string[1:].split(":")
+                hours, minutes = int(hours), (int(minutes) if minutes else 0)
+            elif tz_as_string.count(":") == 0:
+                hours, minutes = int(tz_as_string[1:]), 0
+            else:
+                return None
+            offset = coeff * datetime.timedelta(
+                hours=hours,
+                minutes=minutes
+            )
+            tzinfo = datetime.timezone(offset)
+    else:
+        tzinfo = tzlocal()
+    return tzinfo
 
 
 def split_datetime_as_string(value):
