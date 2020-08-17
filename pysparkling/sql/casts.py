@@ -55,6 +55,21 @@ def cast_to_string(value, from_type, options):
     return str(value)
 
 
+def cast_map(value, from_type, options):
+    casted_values = [
+        (cast_to_string(key, from_type.keyType, options),
+         (cast_to_string(sub_value, from_type.valueType, options)
+          if sub_value is not None else None))
+        for key, sub_value in value.items()
+    ]
+    return "[{0}]".format(
+        ", ".join("{0} ->{1}".format(
+            casted_key,
+            " {0}".format(casted_value) if casted_value is not None else ""
+        ) for casted_key, casted_value in casted_values)
+    )
+
+
 def cast_sequence(value, from_type, options):
     if isinstance(from_type, StructType):
         types = [field.dataType for field in from_type.fields]
