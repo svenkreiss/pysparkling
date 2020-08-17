@@ -233,3 +233,16 @@ class Contains(Expression):
 
     def __str__(self):
         return "contains({0}, {1})".format(self.expr, self.value)
+
+
+class StartsWith(Expression):
+    def __init__(self, arg1, substr):
+        super(StartsWith, self).__init__(arg1, substr)
+        self.arg1 = arg1
+        self.substr = substr
+
+    def eval(self, row, schema):
+        return str(self.arg1.eval(row, schema)).startswith(self.substr)
+
+    def __str__(self):
+        return "startswith({0}, {1})".format(self.arg1, self.substr)
