@@ -104,3 +104,12 @@ class GreaterThanOrEqual(TypeSafeBinaryOperation):
 
     def __str__(self):
         return "({0} >= {1})".format(self.arg1, self.arg2)
+
+
+class And(TypeSafeBinaryOperation):
+    def unsafe_operation(self, value_1, value_2):
+        return value_1 and value_2
+
+    def __str__(self):
+        return "({0} AND {1})".format(self.arg1, self.arg2)
+
