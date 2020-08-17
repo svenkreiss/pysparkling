@@ -345,6 +345,12 @@ def cast_to_map(value, from_type, to_type, options):
     raise AnalysisException("Cannot cast type {0} to map".format(from_type))
 
 
+def cast_to_struct(value, from_type, to_type, options):
+    if isinstance(from_type, StructType):
+        return get_struct_caster(from_type, to_type, options)(value)
+    raise NotImplementedError("Pysparkling does not support yet cast to struct")
+
+
 def get_struct_caster(from_type, to_type, options):
     names = [to_field.name for to_field in to_type.fields]
     casters = [
