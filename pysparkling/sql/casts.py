@@ -271,6 +271,17 @@ def cast_to_long(value, from_type, options):
     return _cast_to_bounded_type("long", min_value, max_value, value, from_type, options=options)
 
 
+def cast_to_float(value, from_type, options):
+    # NB: pysparkling does not mimic the loss of accuracy of Spark nor value
+    # bounding between float min&max values
+    try:
+        return cast_value(value, options=options)
+    except ValueError:
+        if isinstance(from_type, (DateType, TimestampType, NumericType, StringType)):
+            return None
+        raise AnalysisException("Cannot cast type {0} to float".format(from_type))
+
+
 def cast_value(value, options):
     if value == "":
         return None
