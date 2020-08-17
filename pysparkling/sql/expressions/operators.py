@@ -323,3 +323,28 @@ class Substring(Expression):
 
     def __str__(self):
         return "substring({0}, {1}, {2})".format(self.expr, self.start, self.length)
+
+
+class Alias(Expression):
+    def __init__(self, expr, alias):
+        super(Alias, self).__init__(expr, alias)
+        self.expr = expr
+        self.alias = alias
+
+    @property
+    def may_output_multiple_cols(self):
+        return self.expr.may_output_multiple_cols
+
+    @property
+    def may_output_multiple_rows(self):
+        return self.expr.may_output_multiple_rows
+
+    @property
+    def is_an_aggregation(self):
+        return self.expr.is_an_aggregation
+
+    def eval(self, row, schema):
+        return self.expr.eval(row, schema)
+
+    def __str__(self):
+        return self.alias
