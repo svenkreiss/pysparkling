@@ -374,6 +374,9 @@ def cast_to_user_defined_type(value, from_type, options):
 
 DESTINATION_DEPENDENT_CASTERS = {
     DecimalType: cast_to_decimal,
+    ArrayType: cast_to_array,
+    MapType: cast_to_map,
+    StructType: cast_to_struct,
 }
 
 CASTERS = {
