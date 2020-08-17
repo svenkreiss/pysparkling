@@ -5,8 +5,8 @@ class RuntimeConfig(object):
     def set(self, key, value):
         self._conf[key] = value
 
-    def get(self, key):
-        return self._conf.get(key)
+    def get(self, key, default):
+        return self._conf.get(key, default)
 
     def unset(self, key):
         del self._conf[key]
