@@ -1,6 +1,22 @@
 from pysparkling.sql.types import StructField
 
+from pysparkling.sql.expressions.expressions import Expression
 from pysparkling.sql.utils import AnalysisException
+
+
+class FieldAsExpression(Expression):
+    def __init__(self, field):
+        super(FieldAsExpression, self).__init__()
+        self.field = field
+
+    def eval(self, row, schema):
+        return row[find_position_in_schema(schema, self.field)]
+
+    def __str__(self):
+        return self.field.name
+
+    def output_fields(self, schema):
+        return [self.field]
 
 
 def find_position_in_schema(schema, expr):
@@ -8,6 +24,8 @@ def find_position_in_schema(schema, expr):
         show_id = False
         field_name = expr
         matches = set(i for i, field in enumerate(schema.fields) if field_name == field.name)
+    elif isinstance(expr, FieldAsExpression):
+        return find_position_in_schema(schema, expr.field)
     elif isinstance(expr, StructField) and hasattr(expr, "id"):
         show_id = True
         field_name = format_field(expr, show_id=show_id)
