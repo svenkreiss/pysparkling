@@ -1,4 +1,7 @@
-from pysparkling.sql.types import StructField, DataType
+from pysparkling.sql.casts import get_caster
+from pysparkling.sql.types import StructField, DataType, \
+    INTERNAL_TYPE_ORDER, python_to_spark_type
+from pysparkling.sql.utils import AnalysisException
 
 
 class Expression(object):
@@ -164,4 +167,49 @@ class BinaryOperation(Expression):
         raise NotImplementedError
 
     def __str__(self):
+        raise NotImplementedError
+
+
+class TypeSafeBinaryOperation(BinaryOperation):
+    """
+    Perform a type and null-safe binary operation using *comparison* type cast rules:
+
+    It converts values if they are of different types following PySpark rules:
+
+    lit(datetime.date(2019, 1, 1))==lit("2019-01-01") is True
+    """
+
+    def eval(self, row, schema):
+        value_1 = self.arg1.eval(row, schema)
+        value_2 = self.arg2.eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+
+        type_1 = value_1.__class__
+        type_2 = value_2.__class__
+        if type_1 == type_2:
+            return self.unsafe_operation(value_1, value_2)
+
+        try:
+            order_1 = INTERNAL_TYPE_ORDER.index(type_1)
+            order_2 = INTERNAL_TYPE_ORDER.index(type_2)
+        except ValueError as e:
+            raise AnalysisException("Unable to process type: {0}".format(e))
+
+        spark_type_1 = python_to_spark_type(type_1)
+        spark_type_2 = python_to_spark_type(type_2)
+
+        if order_1 > order_2:
+            caster = get_caster(from_type=spark_type_2, to_type=spark_type_1, options={})
+            value_2 = caster(value_2)
+        elif order_1 < order_2:
+            caster = get_caster(from_type=spark_type_1, to_type=spark_type_2, options={})
+            value_1 = caster(value_1)
+
+        return self.unsafe_operation(value_1, value_2)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def unsafe_operation(self, value_1, value_2):
         raise NotImplementedError
