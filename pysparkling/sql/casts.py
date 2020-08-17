@@ -153,6 +153,10 @@ def split_datetime_as_string(value):
     return date_as_string, time_as_string
 
 
+def cast_to_user_defined_type(value, from_type, options):
+    raise NotImplementedError("Pysparkling does not support yet cast to UDF")
+
+
 FORMAT_MAPPING = {
     "EEEE": "%A",
     "EEE": "%a",
