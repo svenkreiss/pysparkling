@@ -1,14 +1,15 @@
 import datetime
 import re
 import time
-from functools import lru_cache, partial
+from functools import partial, lru_cache
 
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
-    ArrayType, MapType, FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, UserDefinedType, DecimalType, \
-    NullType, create_row
+from pysparkling.sql.types import UserDefinedType, NumericType, DateType, \
+    TimestampType, ArrayType, StructType, MapType, BooleanType, StringType, BinaryType, \
+    FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, NullType, \
+    DecimalType, create_row
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
