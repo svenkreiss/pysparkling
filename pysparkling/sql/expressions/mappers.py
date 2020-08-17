@@ -43,3 +43,37 @@ class CaseWhen(Expression):
             self.conditions + [condition],
             self.values + [value]
         )
+
+    def set_otherwise(self, default):
+        return Otherwise(
+            self.conditions,
+            self.values,
+            default
+        )
+
+
+class Otherwise(Expression):
+    def __init__(self, conditions, values, default):
+        super(Otherwise, self).__init__(conditions, values, default)
+
+        self.conditions = conditions
+        self.values = values
+        self.default = default
+
+    def eval(self, row, schema):
+        for condition, function in zip(self.conditions, self.values):
+            condition_value = condition.eval(row, schema)
+            if condition_value:
+                return function.eval(row, schema)
+        if self.default is not None:
+            return self.default.eval(row, schema)
+        return None
+
+    def __str__(self):
+        return "CASE {0} ELSE {1} END".format(
+            " ".join(
+                "WHEN {0} THEN {1}".format(condition, value)
+                for condition, value in zip(self.conditions, self.values)
+            ),
+            self.default
+        )
