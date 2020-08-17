@@ -236,6 +236,22 @@ def cast_to_boolean(value, from_type, options):
     raise AnalysisException("Cannot cast type {0} to boolean".format(from_type))
 
 
+def _cast_to_bounded_type(name, min_value, max_value, value, from_type, options):
+    if value == "" or value is None:
+        return None
+    size = max_value - min_value + 1
+    if isinstance(from_type, DateType):
+        return None
+    if isinstance(from_type, StringType):
+        casted_value = int(value)
+        return casted_value if min_value <= casted_value <= max_value else None
+    if isinstance(from_type, (NumericType, BooleanType)):
+        value = int(value)
+        return value % size if value % size <= max_value else value % -size
+    raise AnalysisException("Cannot cast type {0} to {1}".format(from_type, name))
+
+
+
 def cast_value(value, options):
     if value == "":
         return None
