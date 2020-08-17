@@ -5,7 +5,7 @@ from functools import lru_cache
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import TimestampType, DateType, StringType
+from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -105,6 +105,35 @@ def parse_timezone(tz_as_string):
     else:
         tzinfo = tzlocal()
     return tzinfo
+
+
+def cast_to_timestamp(value, from_type, options):
+    if value == "" or value is None:
+        return None
+    if isinstance(value, str):
+        date_as_string, time_as_string = split_datetime_as_string(value)
+        date = cast_to_date(date_as_string, from_type, options=options)
+        time_of_day = parse_time_as_string(time_as_string)
+
+        return None if date is None or time_of_day is None else datetime.datetime(
+            year=date.year,
+            month=date.month,
+            day=date.day,
+            **time_of_day
+        ).astimezone(tzlocal()).replace(tzinfo=None)
+    if isinstance(value, datetime.datetime):
+        return value
+    if isinstance(value, datetime.date):
+        return datetime.datetime(
+            year=value.year,
+            month=value.month,
+            day=value.day
+        )
+    if isinstance(value, (int, float)):
+        return datetime.datetime.fromtimestamp(value)
+    if isinstance(from_type, (StringType, TimestampType, NumericType, BooleanType)):
+        return None
+    raise AnalysisException("Cannot cast type {0} to timestamp".format(from_type))
 
 
 def split_datetime_as_string(value):
