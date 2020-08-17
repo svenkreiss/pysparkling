@@ -1,3 +1,4 @@
+import datetime
 import re
 from functools import lru_cache
 
@@ -28,6 +29,22 @@ def cast_from_none(value, from_type, options):
             value
         )
     )
+
+
+def split_datetime_as_string(value):
+    first_space_position = (value.find(' ') + 1) or len(value)
+    first_t_position = (value.find('T') + 1) or len(value)
+    if first_space_position == len(value) and first_t_position == len(value):
+        if ":" in value:
+            # Value is only a time
+            return datetime.date.today().strftime("%Y-%m-%d"), value
+        # Value is only a date
+        return value, "00:00:00"
+    # Value is a datetime
+    separation = min(first_space_position, first_t_position)
+    date_as_string = value[:separation]
+    time_as_string = value[separation:]
+    return date_as_string, time_as_string
 
 
 FORMAT_MAPPING = {
