@@ -1,5 +1,6 @@
 import re
 import pytz
+from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
 
@@ -14,3 +15,14 @@ GMT = pytz.timezone("GMT")
 
 def identity(value, options):
     return value
+
+
+def cast_from_none(value, from_type, options):
+    if value is None:
+        return None
+    raise AnalysisException(
+        "Expected a null value from a field with type {0}, got {1}".format(
+            from_type,
+            value
+        )
+    )
