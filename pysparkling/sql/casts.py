@@ -3,6 +3,8 @@ import re
 from functools import lru_cache
 
 import pytz
+
+from pysparkling.sql.types import TimestampType, DateType, StringType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -29,6 +31,32 @@ def cast_from_none(value, from_type, options):
             value
         )
     )
+
+
+def cast_to_date(value, from_type, options):
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    if isinstance(value, str):
+        # Spark cast only considers the first non empty part before a ' ' or a 'T'
+        if ' ' in value:
+            value = value.strip().split(" ")[0]
+        if 'T' in value:
+            value = value.split("T")[0]
+        date_components = value.split("-")
+        if len(date_components) > 3 or len(date_components[0]) != 4:
+            return None
+        # default month and day to 1
+        date_components += ([1] * (3 - len(date_components)))
+        try:
+            return datetime.date(*map(int, date_components))
+        except ValueError:
+            return None
+    if isinstance(from_type, (TimestampType, DateType, StringType)):
+        return None  # other values would have been handle in the lines above
+
+    raise AnalysisException("Cannot cast type {0} to date".format(from_type))
 
 
 def split_datetime_as_string(value):
