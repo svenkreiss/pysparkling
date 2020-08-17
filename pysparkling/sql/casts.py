@@ -334,6 +334,17 @@ def cast_to_array(value, from_type, to_type, options):
     raise AnalysisException("Cannot cast type {0} to array".format(from_type))
 
 
+def cast_to_map(value, from_type, to_type, options):
+    if isinstance(from_type, MapType):
+        key_caster = get_caster(from_type=from_type.keyType, to_type=to_type.keyType, options=options)
+        value_caster = get_caster(from_type=from_type.valueType, to_type=to_type.valueType, options=options)
+        return {
+            key_caster(key): (value_caster(sub_value) if sub_value is not None else None)
+            for key, sub_value in value.items()
+        }
+    raise AnalysisException("Cannot cast type {0} to map".format(from_type))
+
+
 def cast_to_user_defined_type(value, from_type, options):
     raise NotImplementedError("Pysparkling does not support yet cast to UDF")
 
