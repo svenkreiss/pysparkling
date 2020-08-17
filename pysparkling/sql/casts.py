@@ -6,7 +6,7 @@ from functools import lru_cache
 import pytz
 from dateutil.tz import tzlocal
 
-from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType
+from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -33,6 +33,15 @@ def cast_from_none(value, from_type, options):
             value
         )
     )
+
+
+def cast_to_binary(value, from_type, options):
+    if isinstance(from_type, StringType):
+        # noinspection PyTypeChecker
+        return bytearray(value, 'utf-8')
+    if isinstance(from_type, BinaryType):
+        return value
+    raise AnalysisException("Cannot cast type {0} to binary".format(from_type))
 
 
 def cast_to_date(value, from_type, options):
