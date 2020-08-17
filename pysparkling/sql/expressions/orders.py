@@ -29,3 +29,7 @@ class DescNullsFirst(SortOrder):
 
 class DescNullsLast(SortOrder):
     sort_order = "DESC NULLS LAST"
+
+
+Asc = AscNullsFirst
+Desc = DescNullsLast
