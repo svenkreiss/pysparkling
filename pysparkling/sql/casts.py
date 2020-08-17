@@ -7,7 +7,7 @@ import pytz
 from dateutil.tz import tzlocal
 
 from pysparkling.sql.types import TimestampType, DateType, StringType, NumericType, BooleanType, BinaryType, StructType, \
-    ArrayType, MapType
+    ArrayType, MapType, FloatType
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -242,6 +242,15 @@ def _cast_to_bounded_type(name, min_value, max_value, value, from_type, options)
     size = max_value - min_value + 1
     if isinstance(from_type, DateType):
         return None
+    if isinstance(from_type, TimestampType):
+        return _cast_to_bounded_type(
+            name,
+            min_value,
+            max_value,
+            cast_to_float(value, from_type, options=options),
+            FloatType(),
+            options=options
+        )
     if isinstance(from_type, StringType):
         casted_value = int(value)
         return casted_value if min_value <= casted_value <= max_value else None
