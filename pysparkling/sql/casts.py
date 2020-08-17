@@ -51,6 +51,8 @@ def cast_to_string(value, from_type, options):
         return date_format(value)
     if isinstance(from_type, TimestampType):
         return timestamp_format(value)
+    if isinstance(from_type, (ArrayType, StructType, MapType)):
+        return cast_nested_to_str(value, from_type, options)
     if isinstance(from_type, BooleanType):
         return str(value).lower()
     return str(value)
