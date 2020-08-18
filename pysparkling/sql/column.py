@@ -678,6 +678,16 @@ class Column(object):
 
     __bool__ = __nonzero__
 
+    @property
+    def data_type(self):
+        # pylint: disable=W0511
+        # todo: be more specific
+        return DataType()
+
+    @property
+    def is_nullable(self):
+        return True
+
 
 def parse(arg):
     """
