@@ -153,6 +153,13 @@ class Column(object):
             raise AttributeError(item)
         return self.getField(item)
 
+    def __getitem__(self, k):
+        if isinstance(k, slice):
+            if k.step is not None:
+                raise ValueError("slice with step is not supported.")
+            return self.substr(k.start, k.stop)
+        return self.getField(k)
+
 
 def parse_operator(arg):
     """
