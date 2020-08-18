@@ -639,6 +639,16 @@ class Column(object):
             self.expr.recursive_merge_stats(row, schema)
         return self
 
+    def initialize(self, partition_index):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_initialize(partition_index)
+        return self
+
+    def with_pre_evaluation_schema(self, pre_evaluation_schema):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_pre_evaluation_schema(pre_evaluation_schema)
+        return self
+
 
 def parse(arg):
     """
