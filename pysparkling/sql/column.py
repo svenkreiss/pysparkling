@@ -1,6 +1,7 @@
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
-from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow
+from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
+    LessThanOrEqual, GreaterThanOrEqual, GreaterThan
 
 
 class Column(object):
@@ -68,6 +69,25 @@ class Column(object):
 
     def __rpow__(self, power):
         return Column(Pow(parse_operator(power), self))
+
+    # logic operators
+    def __eq__(self, other):
+        return Column(Equal(self, parse_operator(other)))
+
+    def __ne__(self, other):
+        return Column(Negate(Equal(self, parse_operator(other))))
+
+    def __lt__(self, other):
+        return Column(LessThan(self, parse_operator(other)))
+
+    def __le__(self, other):
+        return Column(LessThanOrEqual(self, parse_operator(other)))
+
+    def __ge__(self, other):
+        return Column(GreaterThanOrEqual(self, parse_operator(other)))
+
+    def __gt__(self, other):
+        return Column(GreaterThan(self, parse_operator(other)))
 
 
 def parse_operator(arg):
