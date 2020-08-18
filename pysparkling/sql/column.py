@@ -672,6 +672,12 @@ class Column(object):
         """
         raise NotImplementedError("window functions are not yet supported by pysparkling")
 
+    def __nonzero__(self):
+        raise ValueError("Cannot convert column into bool: please use '&' for 'and', '|' for 'or', "
+                         "'~' for 'not' when building DataFrame boolean expressions.")
+
+    __bool__ = __nonzero__
+
 
 def parse(arg):
     """
