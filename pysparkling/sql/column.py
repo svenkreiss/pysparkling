@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring
+    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn
 
 
 class Column(object):
@@ -232,6 +232,26 @@ class Column(object):
 
     def isNotNull(self):
         return Column(IsNotNull(self))
+
+    def isin(self, *exprs):
+        """
+        A boolean expression that is evaluated to true if the value of this
+        expression is contained by the evaluated values of the arguments.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df[df.name.isin("Bob", "Mike")].collect()
+        [Row(age=5, name='Bob')]
+        >>> df[df.age.isin([1, 2, 3])].collect()
+        [Row(age=2, name='Alice')]
+        """
+        if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
+            exprs = exprs[0]
+        return Column(IsIn(self, exprs))
 
 
 def parse_operator(arg):
