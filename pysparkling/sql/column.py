@@ -598,6 +598,18 @@ class Column(object):
     def find_position_in_schema(self, schema):
         return find_position_in_schema(schema, self.expr)
 
+    @property
+    def may_output_multiple_cols(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.may_output_multiple_cols
+        return False
+
+    @property
+    def may_output_multiple_rows(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.may_output_multiple_rows
+        return False
+
 
 def parse(arg):
     """
