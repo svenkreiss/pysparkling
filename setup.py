@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # workaround: nosetests don't exit cleanly with older
 # python version (<=2.6 and even <2.7.4)
@@ -17,15 +17,7 @@ with open('pysparkling/__init__.py', 'r') as f:
 setup(
     name='pysparkling',
     version=VERSION,
-    packages=[
-        'pysparkling',
-        'pysparkling.sql',
-        'pysparkling.fileio',
-        'pysparkling.fileio.fs',
-        'pysparkling.fileio.codec',
-        'pysparkling.streaming',
-        'pysparkling.tests',
-    ],
+    packages=find_packages(),
     license='MIT',
     description='Pure Python implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
@@ -66,10 +58,12 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: PyPy',
     ]
 )
