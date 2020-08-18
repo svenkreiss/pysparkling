@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField
+    GetField, Contains
 
 
 class Column(object):
@@ -186,6 +186,9 @@ class Column(object):
 
     def __iter__(self):
         raise TypeError("Column is not iterable")
+
+    def contains(self, other):
+        return Column(Contains(self, parse_operator(other)))
 
 
 def parse_operator(arg):
