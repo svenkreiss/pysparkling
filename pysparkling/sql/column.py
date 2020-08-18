@@ -1,7 +1,7 @@
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
-    LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert
+    LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor
 
 
 class Column(object):
@@ -108,6 +108,15 @@ class Column(object):
 
     def __ror__(self, other):
         return Column(Or(parse_operator(other), self))
+
+    def bitwiseOR(self, other):
+        return Column(BitwiseOr(self, parse_operator(other)))
+
+    def bitwiseAND(self, other):
+        return Column(BitwiseAnd(self, parse_operator(other)))
+
+    def bitwiseXOR(self, other):
+        return Column(BitwiseXor(self, parse_operator(other)))
 
 
 def parse_operator(arg):
