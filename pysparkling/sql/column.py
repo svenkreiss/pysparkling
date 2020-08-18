@@ -109,6 +109,10 @@ class Column(object):
     def __ror__(self, other):
         return Column(Or(parse_operator(other), self))
 
+    def __contains__(self, item):
+        raise ValueError("Cannot apply 'in' operator against a column: please use 'contains' "
+                         "in a string column or 'array_contains' function for an array column.")
+
     def bitwiseOR(self, other):
         return Column(BitwiseOr(self, parse_operator(other)))
 
