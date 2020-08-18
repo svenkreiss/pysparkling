@@ -1,7 +1,8 @@
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
-    LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor
+    LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
+    GetField
 
 
 class Column(object):
@@ -121,6 +122,31 @@ class Column(object):
 
     def bitwiseXOR(self, other):
         return Column(BitwiseXor(self, parse_operator(other)))
+
+    def getField(self, name):
+        """
+        An expression that gets a field by name in a StructField.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([Row(r=Row(a=1, b="b"))])
+        >>> df.select(df.r.getField("b")).show()
+        +---+
+        |r.b|
+        +---+
+        |  b|
+        +---+
+        >>> df.select(df.r.a).show()
+        +---+
+        |r.a|
+        +---+
+        |  1|
+        +---+
+        """
+        if not isinstance(name, Column):
+            name = Literal(name)
+        return Column(GetField(self, name))
 
 
 def parse_operator(arg):
