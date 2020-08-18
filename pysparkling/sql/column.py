@@ -688,6 +688,16 @@ class Column(object):
     def is_nullable(self):
         return True
 
+    def __str__(self):
+        return str(self.expr)
+
+    @property
+    def col_name(self):
+        return str(self)
+
+    def __repr__(self):
+        return "Column<{0!r}>".format(self.expr)
+
 
 def parse(arg):
     """
