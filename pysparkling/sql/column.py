@@ -656,6 +656,23 @@ class Column(object):
             return self.expr.sort_order
         return "ASC NULLS FIRST"
 
+    # pylint: disable=W0511
+    # todo: support of window functions
+    def over(self, window):
+        """
+        Define a windowing column.
+
+        :param window: a :class:`WindowSpec`
+        :return: a Column
+
+        >>> from pyspark.sql import Window
+        >>> window = Window.partitionBy("name").orderBy("age").rowsBetween(-1, 1)
+        >>> from pysparkling.sql.functions import rank, min
+        >>> # df.select(rank().over(window), min('age').over(window))
+        """
+        raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
 def parse(arg):
     """
     :rtype: Column
