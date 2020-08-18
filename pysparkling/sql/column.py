@@ -610,6 +610,16 @@ class Column(object):
             return self.expr.may_output_multiple_rows
         return False
 
+    @property
+    def is_an_aggregation(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.is_an_aggregation
+        if isinstance(self.expr, str):
+            return False
+        raise NotImplementedError(
+            "Not implemented column expression type: {0}".format(type(self.expr))
+        )
+
 
 def parse(arg):
     """
