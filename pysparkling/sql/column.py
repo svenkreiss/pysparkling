@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains
+    GetField, Contains, IsNull, IsNotNull
 
 
 class Column(object):
@@ -197,6 +197,12 @@ class Column(object):
 
     def like(self, other):
         raise NotImplementedError("like is not yet implemented in pysparkling")
+
+    def isNull(self):
+        return Column(IsNull(self))
+
+    def isNotNull(self):
+        return Column(IsNotNull(self))
 
 
 def parse_operator(arg):
