@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains, IsNull, IsNotNull, StartsWith
+    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith
 
 
 class Column(object):
@@ -200,6 +200,9 @@ class Column(object):
 
     def startswith(self, substr):
         return Column(StartsWith(self, parse_operator(substr)))
+
+    def endswith(self, substr):
+        return Column(EndsWith(self, parse_operator(substr)))
 
     def isNull(self):
         return Column(IsNull(self))
