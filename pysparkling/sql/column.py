@@ -2,8 +2,9 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn, Alias
+    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn, Alias, Cast
 from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, AscNullsLast, AscNullsFirst, Asc
+from pysparkling.sql.types import string_to_type, DataType
 
 
 class Column(object):
@@ -448,6 +449,49 @@ class Column(object):
 
     def name(self, *alias, **kwargs):
         return self.alias(*alias, **kwargs)
+
+    def cast(self, dataType):
+        """ Convert the column into type ``dataType``.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.types import StringType
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select(df.name, df.age.between(2, 4).alias('taapero')).collect()
+        [Row(name='Alice', taapero=True), Row(name='Bob', taapero=False)]
+        >>> df.select(df.age.cast("string").alias('ages')).collect()
+        [Row(ages='2'), Row(ages='5')]
+        >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
+        [Row(ages='2'), Row(ages='5')]
+        >>> df.select(df.age.cast('float')).show()
+        +---+
+        |age|
+        +---+
+        |2.0|
+        |5.0|
+        +---+
+        >>> df.select(df.age.cast('decimal(5, 0)')).show()
+        +---+
+        |age|
+        +---+
+        |  2|
+        |  5|
+        +---+
+
+        """
+
+        if isinstance(dataType, str):
+            dataType = string_to_type(dataType)
+        elif not isinstance(dataType, DataType):
+            raise NotImplementedError("Unknown cast type: {}".format(dataType))
+
+        return Column(Cast(self, dataType))
+
+    def astype(self, dataType):
+        return self.cast(dataType)
 
 
 def parse_operator(arg):
