@@ -584,6 +584,11 @@ class Column(object):
 
         return Column(self.expr.set_otherwise(parse(value)))
 
+    def find_fields_in_schema(self, schema):
+        if isinstance(self.expr, Expression):
+            return self.expr.output_fields(schema)
+        return [schema[self.find_position_in_schema(schema)]]
+
     def find_position_in_schema(self, schema):
         return find_position_in_schema(schema, self.expr)
 
