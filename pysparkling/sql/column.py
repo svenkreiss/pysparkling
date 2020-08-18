@@ -1,4 +1,5 @@
 from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.fields import find_position_in_schema
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator, CaseWhen
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
@@ -582,6 +583,9 @@ class Column(object):
             )
 
         return Column(self.expr.set_otherwise(parse(value)))
+
+    def find_position_in_schema(self, schema):
+        return find_position_in_schema(schema, self.expr)
 
 
 def parse(arg):
