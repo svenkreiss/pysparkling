@@ -446,6 +446,9 @@ class Column(object):
         # todo: support it
         raise ValueError('Pysparkling does not support multiple aliases')
 
+    def name(self, *alias, **kwargs):
+        return self.alias(*alias, **kwargs)
+
 
 def parse_operator(arg):
     """
