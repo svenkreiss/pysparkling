@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith
+    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring
 
 
 class Column(object):
@@ -203,6 +203,29 @@ class Column(object):
 
     def endswith(self, substr):
         return Column(EndsWith(self, parse_operator(substr)))
+
+    def substr(self, startPos, length):
+        """
+        Return a :class:`Column` which is a substring of the column.
+
+        :param startPos: start position (int or Column)
+        :param length:  length of the substring (int or Column)
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select(df.name.substr(1, 3).alias("col")).collect()
+        [Row(col='Ali'), Row(col='Bob')]
+        """
+        if not isinstance(startPos, type(length)):
+            raise TypeError(
+                "startPos and length must be the same type. "
+                "Got {0} and {1}, respectively.".format(type(startPos), type(length))
+            )
+        return Column(Substring(self, startPos, length))
 
     def isNull(self):
         return Column(IsNull(self))
