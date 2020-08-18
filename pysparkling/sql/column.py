@@ -1,3 +1,7 @@
+from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.expressions.mappers import StarOperator
+
+
 class Column(object):
     """
     A column in a DataFrame.
@@ -13,8 +17,20 @@ class Column(object):
         df.colName + 1
         1 / df.colName
 
-    .. versionadded:: 1.3
     """
 
     def __init__(self, expr):
         self.expr = expr
+
+
+def parse_operator(arg):
+    """
+    Column operations such as df.name == "Alice" consider "Alice" as a lit, not a column
+
+    :rtype: Column
+    """
+    if isinstance(arg, Column):
+        return arg
+    if arg == "*":
+        return Column(StarOperator())
+    return Literal(value=arg)
