@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divi
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
     GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn, Alias, Cast
 from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, AscNullsLast, AscNullsFirst, Asc
-from pysparkling.sql.types import string_to_type, DataType
+from pysparkling.sql.types import string_to_type, DataType, StructField
 from pysparkling.sql.utils import IllegalArgumentException
 
 
@@ -619,6 +619,15 @@ class Column(object):
         raise NotImplementedError(
             "Not implemented column expression type: {0}".format(type(self.expr))
         )
+
+    def output_fields(self, schema):
+        if isinstance(self.expr, Expression):
+            return self.expr.output_fields(schema)
+        return [StructField(
+            name=self.col_name,
+            dataType=self.data_type,
+            nullable=self.is_nullable
+        )]
 
 
 def parse(arg):
