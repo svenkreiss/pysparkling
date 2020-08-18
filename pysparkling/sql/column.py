@@ -45,8 +45,29 @@ class Column(object):
     def __mod__(self, other):
         return Column(Mod(self, parse_operator(other)))
 
+    def __radd__(self, other):
+        return Column(Add(self, parse_operator(other)))
+
+    def __rsub__(self, other):
+        return Column(Minus(parse_operator(other), self))
+
+    def __rmul__(self, other):
+        return Column(Time(parse_operator(other), self))
+
+    def __rdiv__(self, other):
+        return Column(Divide(parse_operator(other), self))
+
+    def __rtruediv__(self, other):
+        return Column(Divide(parse_operator(other), self))
+
+    def __rmod__(self, other):
+        return Column(Mod(parse_operator(other), self))
+
     def __pow__(self, power):
         return Column(Pow(self, parse_operator(power)))
+
+    def __rpow__(self, power):
+        return Column(Pow(parse_operator(power), self))
 
 
 def parse_operator(arg):
