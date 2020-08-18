@@ -123,6 +123,30 @@ class Column(object):
     def bitwiseXOR(self, other):
         return Column(BitwiseXor(self, parse_operator(other)))
 
+    def getItem(self, key):
+        """
+        An expression that gets an item at position ``ordinal`` out of a list,
+        or gets an item by key out of a dict.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([([1, 2], {"key": "value"})], ["l", "d"])
+        >>> df.select(df.l.getItem(0), df.d.getItem("key")).show()
+        +----+------+
+        |l[0]|d[key]|
+        +----+------+
+        |   1| value|
+        +----+------+
+        >>> df.select(df.l[0], df.d["key"]).show()
+        +----+------+
+        |l[0]|d[key]|
+        +----+------+
+        |   1| value|
+        +----+------+
+        """
+        return self[key]
+
     def getField(self, name):
         """
         An expression that gets a field by name in a StructField.
