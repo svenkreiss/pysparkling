@@ -2,7 +2,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
-    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn
+    GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn, Alias
 from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, AscNullsLast, AscNullsFirst, Asc
 
 
@@ -399,6 +399,52 @@ class Column(object):
 
     def isNotNull(self):
         return Column(IsNotNull(self))
+
+    def alias(self, *alias, **kwargs):
+        """
+        Returns this column aliased with a new name or names (in the case of expressions that
+        return more than one column, such as explode).
+
+        :param alias: strings of desired column names (collects all positional arguments passed)
+        :param metadata: a dict of information to be stored in ``metadata`` attribute of the
+            corresponding :class: `StructField` (optional, keyword only argument)
+
+        .. versionchanged:: 2.2
+           Added optional ``metadata`` argument.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select(df.age.alias("age2")).collect()
+        [Row(age2=2), Row(age2=5)]
+        >>> from pysparkling.sql.functions import map_from_arrays, array
+        >>> spark.range(3).select(map_from_arrays(array("id"), array("id"))).show()
+        +-------------------------------------+
+        |map_from_arrays(array(id), array(id))|
+        +-------------------------------------+
+        |                             [0 -> 0]|
+        |                             [1 -> 1]|
+        |                             [2 -> 2]|
+        +-------------------------------------+
+
+        """
+
+        metadata = kwargs.pop('metadata', None)
+        assert not kwargs, 'Unexpected kwargs where passed: %s' % kwargs
+
+        if metadata:
+            # pylint: disable=W0511
+            # todo: support it
+            raise ValueError('Pysparkling does not support alias with metadata')
+
+        if len(alias) == 1:
+            return Column(Alias(self, alias[0]))
+        # pylint: disable=W0511
+        # todo: support it
+        raise ValueError('Pysparkling does not support multiple aliases')
 
 
 def parse_operator(arg):
