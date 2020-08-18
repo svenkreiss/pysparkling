@@ -227,12 +227,6 @@ class Column(object):
             )
         return Column(Substring(self, startPos, length))
 
-    def isNull(self):
-        return Column(IsNull(self))
-
-    def isNotNull(self):
-        return Column(IsNotNull(self))
-
     def isin(self, *exprs):
         """
         A boolean expression that is evaluated to true if the value of this
@@ -252,6 +246,12 @@ class Column(object):
         if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
             exprs = exprs[0]
         return Column(IsIn(self, exprs))
+
+    def isNull(self):
+        return Column(IsNull(self))
+
+    def isNotNull(self):
+        return Column(IsNotNull(self))
 
 
 def parse_operator(arg):
