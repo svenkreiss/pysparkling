@@ -160,6 +160,9 @@ class Column(object):
             return self.substr(k.start, k.stop)
         return self.getField(k)
 
+    def __iter__(self):
+        raise TypeError("Column is not iterable")
+
 
 def parse_operator(arg):
     """
