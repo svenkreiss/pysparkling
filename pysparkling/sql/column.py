@@ -629,6 +629,16 @@ class Column(object):
             nullable=self.is_nullable
         )]
 
+    def merge(self, row, schema):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_merge(row, schema)
+        return self
+
+    def mergeStats(self, row, schema):
+        if isinstance(self.expr, Expression):
+            self.expr.recursive_merge_stats(row, schema)
+        return self
+
 
 def parse(arg):
     """
