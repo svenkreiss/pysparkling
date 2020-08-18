@@ -1,3 +1,4 @@
+from pysparkling.sql.expressions.expressions import Expression
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import StarOperator
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
@@ -513,6 +514,19 @@ class Column(object):
 
     def astype(self, dataType):
         return self.cast(dataType)
+
+
+def parse(arg):
+    """
+    :rtype: Column
+    """
+    if isinstance(arg, Column):
+        return arg
+    if arg == "*":
+        return Column(StarOperator())
+    if isinstance(arg, (str, Expression)):
+        return Column(arg)
+    return Literal(value=arg)
 
 
 def parse_operator(arg):
