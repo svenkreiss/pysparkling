@@ -190,6 +190,14 @@ class Column(object):
     def contains(self, other):
         return Column(Contains(self, parse_operator(other)))
 
+    # pylint: disable=W0511
+    # todo: Like
+    def rlike(self, other):
+        raise NotImplementedError("rlike is not yet implemented in pysparkling")
+
+    def like(self, other):
+        raise NotImplementedError("like is not yet implemented in pysparkling")
+
 
 def parse_operator(arg):
     """
