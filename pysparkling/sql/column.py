@@ -5,7 +5,8 @@ from pysparkling.sql.expressions.mappers import StarOperator, CaseWhen
 from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divide, Mod, Pow, Equal, LessThan, \
     LessThanOrEqual, GreaterThanOrEqual, GreaterThan, EqNullSafe, And, Or, Invert, BitwiseOr, BitwiseAnd, BitwiseXor, \
     GetField, Contains, IsNull, IsNotNull, StartsWith, EndsWith, Substring, IsIn, Alias, Cast
-from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, AscNullsLast, AscNullsFirst, Asc
+from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, AscNullsLast, AscNullsFirst, Asc, \
+    SortOrder
 from pysparkling.sql.types import string_to_type, DataType, StructField
 from pysparkling.sql.utils import IllegalArgumentException
 
@@ -649,6 +650,11 @@ class Column(object):
             self.expr.recursive_pre_evaluation_schema(pre_evaluation_schema)
         return self
 
+    @property
+    def sort_order(self):
+        if isinstance(self.expr, SortOrder):
+            return self.expr.sort_order
+        return "ASC NULLS FIRST"
 
 def parse(arg):
     """
