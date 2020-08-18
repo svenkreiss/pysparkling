@@ -148,6 +148,11 @@ class Column(object):
             name = Literal(name)
         return Column(GetField(self, name))
 
+    def __getattr__(self, item):
+        if item.startswith("__"):
+            raise AttributeError(item)
+        return self.getField(item)
+
 
 def parse_operator(arg):
     """
