@@ -75,3 +75,10 @@ class DataFrameInternal(object):
     def unbound_schema(self):
         schema = deepcopy(self.bound_schema)
         return FieldIdGenerator.unbind_schema(schema)
+
+    def _with_rdd(self, rdd, schema):
+        return DataFrameInternal(
+            self._sc,
+            rdd,
+            schema=schema
+        )
