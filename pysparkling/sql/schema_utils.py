@@ -1,7 +1,7 @@
 from functools import reduce
 
 from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, \
-    _get_null_fields
+    StructType, _get_null_fields
 
 
 def infer_schema_from_rdd(rdd):
@@ -33,3 +33,10 @@ def infer_schema_from_list(data, names=None):
             )
         )
     return schema
+
+
+def get_schema_from_cols(cols, current_schema):
+    new_schema = StructType(fields=[
+        field for col in cols for field in col.find_fields_in_schema(current_schema)
+    ])
+    return new_schema
