@@ -816,3 +816,30 @@ class DataFrameInternal(object):
         self_prepared_rdd = prepare_rdd(self.rdd())
         other_prepared_rdd = prepare_rdd(other.rdd())
         return self_prepared_rdd, other_prepared_rdd
+
+    def drop(self, cols):
+        positions_to_drop = []
+        for col in cols:
+            if isinstance(col, str):
+                if col == "*":
+                    continue
+                col = parse(col)
+            try:
+                positions_to_drop.append(col.find_position_in_schema(self.bound_schema))
+            except ValueError:
+                pass
+
+        new_schema = StructType([
+            field
+            for i, field in enumerate(self.bound_schema.fields)
+            if i not in positions_to_drop
+        ])
+
+        return self._with_rdd(
+            self.rdd().map(lambda row: row_from_keyed_values([
+                (field, row[i])
+                for i, field in enumerate(row.__fields__)
+                if i not in positions_to_drop
+            ])),
+            new_schema
+        )
