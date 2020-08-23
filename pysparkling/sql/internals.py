@@ -779,6 +779,24 @@ class DataFrameInternal(object):
 
         return self.applyFunctionOnHashPartitionedRdds(other, intersect_all_within_partition)
 
+    def intersect(self, other):
+        def intersect_within_partition(self_partition, other_partition):
+            min_other = next(other_partition, None)
+            for item in self_partition:
+                if min_other is None:
+                    return
+                if min_other > item:
+                    continue
+                if min_other < item:
+                    while min_other < item or min_other is None:
+                        min_other = next(other_partition, None)
+                else:
+                    yield item
+                    while min_other == item:
+                        min_other = next(other_partition, None)
+
+        return self.applyFunctionOnHashPartitionedRdds(other, intersect_within_partition)
+
     def applyFunctionOnHashPartitionedRdds(self, other, func):
         self_prepared_rdd, other_prepared_rdd = self.hash_partition_and_sort(other)
 
