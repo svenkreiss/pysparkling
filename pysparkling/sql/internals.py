@@ -99,3 +99,6 @@ class DataFrameInternal(object):
 
     def count(self):
         return self._rdd.count()
+
+    def collect(self):
+        return self._rdd.collect()
