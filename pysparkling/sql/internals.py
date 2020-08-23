@@ -96,3 +96,6 @@ class DataFrameInternal(object):
             numSlices=numPartitions
         )
         return DataFrameInternal(sc, rdd, ["id"], True)
+
+    def count(self):
+        return self._rdd.count()
