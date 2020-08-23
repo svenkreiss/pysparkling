@@ -82,3 +82,6 @@ class DataFrameInternal(object):
             rdd,
             schema=schema
         )
+
+    def rdd(self):
+        return self._rdd
