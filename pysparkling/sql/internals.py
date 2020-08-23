@@ -85,3 +85,14 @@ class DataFrameInternal(object):
 
     def rdd(self):
         return self._rdd
+
+    @staticmethod
+    def range(sc, start, end=None, step=1, numPartitions=None):
+        if end is None:
+            start, end = 0, start
+
+        rdd = sc.parallelize(
+            ([i] for i in range(start, end, step)),
+            numSlices=numPartitions
+        )
+        return DataFrameInternal(sc, rdd, ["id"], True)
