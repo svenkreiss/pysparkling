@@ -38,9 +38,9 @@ class SparkSession(object):
     def __init__(self, sparkContext, jsparkSession=None):
         # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
-        # from pysparkling.sql.context import SQLContext
+        from pysparkling.sql.context import SQLContext
         self._sc = sparkContext
-        # self._wrapped = SQLContext(self._sc, self)
+        self._wrapped = SQLContext(self._sc, self)
         SparkSession._instantiatedSession = self
         SparkSession._activeSession = self
 
