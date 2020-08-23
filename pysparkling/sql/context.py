@@ -30,3 +30,8 @@ class SQLContext(object):
         table cache.
         """
         return self.__class__(self._sc, self.sparkSession.newSession())
+
+    def setConf(self, key, value):
+        """Sets the given Spark SQL configuration property.
+        """
+        self.sparkSession.conf.set(key, value)
