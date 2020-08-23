@@ -1,9 +1,11 @@
+import math
 from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
 from pysparkling.sql.types import StructType, create_row
+from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
 
 
 class FieldIdGenerator(object):
@@ -172,3 +174,27 @@ class DataFrameInternal(object):
             return sum(hash(c.eval(row, self.bound_schema)) for c in cols)
 
         return self.repartitionByValues(numPartitions, partitioner)
+
+    @staticmethod
+    def sketch_rdd(rdd, sample_size_per_partition):
+        """
+        Get a subset per partition of an RDD
+
+        Sampling algorithm is reservoir sampling.
+
+        :param rdd:
+        :param sample_size_per_partition:
+        :return:
+        """
+
+        def sketch_partition(idx, x):
+            sample, original_size = reservoir_sample_and_size(
+                x,
+                sample_size_per_partition,
+                seed=rdd.id() + idx
+            )
+            return [(idx, (original_size, sample))]
+
+        sketched_rdd_content = rdd.mapPartitionsWithIndex(sketch_partition).collect()
+
+        return dict(sketched_rdd_content)
