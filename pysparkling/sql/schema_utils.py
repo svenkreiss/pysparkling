@@ -1,7 +1,10 @@
 from functools import reduce
 
+from pysparkling.sql.internal_utils.joins import INNER_JOIN, CROSS_JOIN, LEFT_JOIN,\
+    LEFT_ANTI_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN, FULL_JOIN
 from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, \
-    StructType, _get_null_fields
+    StructType, StructField, _get_null_fields
+from pysparkling.sql.utils import IllegalArgumentException
 
 
 def infer_schema_from_rdd(rdd):
@@ -33,6 +36,12 @@ def infer_schema_from_list(data, names=None):
             )
         )
     return schema
+
+
+def get_on_fields(left_schema, right_schema, on):
+    left_on_fields = [next(field for field in left_schema if field.name == c) for c in on]
+    right_on_fields = [next(field for field in right_schema if field.name == c) for c in on]
+    return left_on_fields, right_on_fields
 
 
 def get_schema_from_cols(cols, current_schema):
