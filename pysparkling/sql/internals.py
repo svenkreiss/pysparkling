@@ -157,3 +157,6 @@ class DataFrameInternal(object):
 
     def is_cached(self):
         return hasattr(self._rdd, "storageLevel")
+
+    def simple_repartition(self, numPartitions):
+        return self._with_rdd(self._rdd.repartition(numPartitions), self.bound_schema)
