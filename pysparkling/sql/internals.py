@@ -385,3 +385,6 @@ class DataFrameInternal(object):
                 base_row[:generator_position] + sub_row + base_row[generator_position:]
             )
         return additional_fields
+
+    def selectExpr(self, *cols):
+        raise NotImplementedError("Pysparkling does not currently support DF.selectExpr")
