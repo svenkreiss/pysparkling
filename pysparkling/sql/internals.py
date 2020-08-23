@@ -131,3 +131,6 @@ class DataFrameInternal(object):
 
     def coalesce(self, numPartitions):
         return self._with_rdd(self._rdd.coalesce(numPartitions), self.bound_schema)
+
+    def distinct(self):
+        return self._with_rdd(self._rdd.distinct(), self.bound_schema)
