@@ -613,3 +613,12 @@ class DataFrameInternal(object):
             output += body + "\n"
         output += sep
         return output
+
+    def approxQuantile(self, exprs, quantiles, relative_error):
+        stat_helper = self.get_stat_helper(exprs, percentiles_relative_error=relative_error)
+        return [
+            [
+                stat_helper.get_col_quantile(col, quantile)
+                for quantile in quantiles
+            ] for col in stat_helper.col_names
+        ]
