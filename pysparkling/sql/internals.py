@@ -118,3 +118,6 @@ class DataFrameInternal(object):
 
     def foreachPartition(self, f):
         self._rdd.foreachPartition(f)
+
+    def cache(self):
+        return self._with_rdd(self._rdd.cache(), self.bound_schema)
