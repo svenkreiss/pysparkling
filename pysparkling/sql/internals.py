@@ -128,3 +128,6 @@ class DataFrameInternal(object):
 
     def unpersist(self, blocking=False):
         return self._with_rdd(self._rdd.unpersist(blocking), self.bound_schema)
+
+    def coalesce(self, numPartitions):
+        return self._with_rdd(self._rdd.coalesce(numPartitions), self.bound_schema)
