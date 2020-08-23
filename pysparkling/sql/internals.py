@@ -748,6 +748,30 @@ class DataFrameInternal(object):
     def crossJoin(self, other):
         return self.join(other, on=None, how="cross")
 
+    def exceptAll(self, other):
+        def except_all_within_partition(self_partition, other_partition):
+            min_other = next(other_partition, None)
+            for item in self_partition:
+                if min_other is None or min_other > item:
+                    yield item
+                elif min_other < item:
+                    while min_other < item or min_other is None:
+                        min_other = next(other_partition, None)
+                else:
+                    min_other = next(other_partition, None)
+
+        return self.applyFunctionOnHashPartitionedRdds(other, except_all_within_partition)
+
+    def applyFunctionOnHashPartitionedRdds(self, other, func):
+        self_prepared_rdd, other_prepared_rdd = self.hash_partition_and_sort(other)
+
+        def filter_partition(partition_id, self_partition):
+            other_partition = other_prepared_rdd.partitions()[partition_id].x()
+            return func(iter(self_partition), iter(other_partition))
+
+        filtered_rdd = self_prepared_rdd.mapPartitionsWithIndex(filter_partition)
+        return self._with_rdd(filtered_rdd, self.bound_schema)
+
     def hash_partition_and_sort(self, other):
         num_partitions = max(self.rdd().getNumPartitions(), 200)
 
