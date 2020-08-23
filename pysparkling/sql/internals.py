@@ -112,3 +112,6 @@ class DataFrameInternal(object):
 
     def take(self, n):
         return self._rdd.take(n)
+
+    def foreach(self, f):
+        self._rdd.foreach(f)
