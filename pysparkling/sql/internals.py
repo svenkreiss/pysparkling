@@ -1,6 +1,7 @@
 from copy import deepcopy
 from functools import partial
 
+from pysparkling import StorageLevel
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
 from pysparkling.sql.types import StructType, create_row
 
@@ -121,3 +122,6 @@ class DataFrameInternal(object):
 
     def cache(self):
         return self._with_rdd(self._rdd.cache(), self.bound_schema)
+
+    def persist(self, storageLevel=StorageLevel.MEMORY_ONLY):
+        return self._with_rdd(self._rdd.persist(storageLevel), self.bound_schema)
