@@ -109,3 +109,6 @@ class DataFrameInternal(object):
     def limit(self, n):
         jdf = self._sc.parallelize(self._rdd.take(n))
         return self._with_rdd(jdf, self.bound_schema)
+
+    def take(self, n):
+        return self._rdd.take(n)
