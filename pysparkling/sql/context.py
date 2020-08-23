@@ -11,3 +11,14 @@ class SQLContext(object):
         self.sparkSession = sparkSession
         if SQLContext._instantiatedContext is None:
             SQLContext._instantiatedContext = self
+
+    @classmethod
+    def getOrCreate(cls, sc):
+        """
+        Get the existing SQLContext or create a new one with given SparkContext.
+
+        :param sc: SparkContext
+        """
+        if cls._instantiatedContext is None:
+            cls(sc, SparkSession(sc), None)
+        return cls._instantiatedContext
