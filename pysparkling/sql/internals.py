@@ -150,3 +150,7 @@ class DataFrameInternal(object):
             self._rdd.randomSplit(weights=weights, seed=seed),
             self.bound_schema
         )
+
+    @property
+    def storageLevel(self):
+        return getattr(self._rdd, "storageLevel", StorageLevel(False, False, False, False))
