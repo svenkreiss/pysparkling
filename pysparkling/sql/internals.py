@@ -843,3 +843,15 @@ class DataFrameInternal(object):
             ])),
             new_schema
         )
+
+    def freqItems(self, cols, support):
+        raise NotImplementedError("pysparkling does not support yet freqItems")
+
+    def dropna(self, thresh, subset):
+        raise NotImplementedError("pysparkling does not support yet dropna")
+
+    def fillna(self, value, subset):
+        raise NotImplementedError("pysparkling does not support yet fillna")
+
+    def replace(self, to_replace, value, subset=None):
+        raise NotImplementedError("pysparkling does not support yet replace")
