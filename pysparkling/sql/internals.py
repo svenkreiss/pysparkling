@@ -144,3 +144,9 @@ class DataFrameInternal(object):
             ),
             self.bound_schema
         )
+
+    def randomSplit(self, weights, seed):
+        return self._with_rdd(
+            self._rdd.randomSplit(weights=weights, seed=seed),
+            self.bound_schema
+        )
