@@ -22,3 +22,11 @@ class SQLContext(object):
         if cls._instantiatedContext is None:
             cls(sc, SparkSession(sc), None)
         return cls._instantiatedContext
+
+    def newSession(self):
+        """
+        Returns a new SQLContext as new session, that has separate SQLConf,
+        registered temporary views and UDFs, but shared SparkContext and
+        table cache.
+        """
+        return self.__class__(self._sc, self.sparkSession.newSession())
