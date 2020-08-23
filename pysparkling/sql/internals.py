@@ -134,3 +134,13 @@ class DataFrameInternal(object):
 
     def distinct(self):
         return self._with_rdd(self._rdd.distinct(), self.bound_schema)
+
+    def sample(self, withReplacement=None, fraction=None, seed=None):
+        return self._with_rdd(
+            self._rdd.sample(
+                withReplacement=withReplacement,
+                fraction=fraction,
+                seed=seed
+            ),
+            self.bound_schema
+        )
