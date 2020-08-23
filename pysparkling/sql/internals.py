@@ -14,7 +14,7 @@ from pysparkling.sql.column import parse
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size, pad_cell, \
-    str_half_width, format_cell, merge_rows, merge_rows_joined_on_values
+    str_half_width, format_cell, merge_rows, merge_rows_joined_on_values, portable_hash
 
 
 class FieldIdGenerator(object):
@@ -747,3 +747,13 @@ class DataFrameInternal(object):
 
     def crossJoin(self, other):
         return self.join(other, on=None, how="cross")
+
+    def hash_partition_and_sort(self, other):
+        num_partitions = max(self.rdd().getNumPartitions(), 200)
+
+        def prepare_rdd(rdd):
+            return rdd.partitionBy(num_partitions, portable_hash).mapPartitions(sorted)
+
+        self_prepared_rdd = prepare_rdd(self.rdd())
+        other_prepared_rdd = prepare_rdd(other.rdd())
+        return self_prepared_rdd, other_prepared_rdd
