@@ -6,6 +6,7 @@ from functools import partial
 from pysparkling import StorageLevel
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
 from pysparkling.sql.types import StructType, create_row
+from pysparkling.sql.column import parse
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
 
 
@@ -286,3 +287,14 @@ class DataFrameInternal(object):
         :rtype: RDD
         """
         return self._rdd.map(lambda row: json.dumps(row.asDict(True), ensure_ascii=not use_unicode))
+
+    def sortWithinPartitions(self, cols, ascending):
+        key = get_keyfunc([parse(c) for c in cols], self.bound_schema)
+
+        def partition_sort(data):
+            return sorted(data, key=key, reverse=not ascending)
+
+        return self._with_rdd(
+            self._rdd.mapPartitions(partition_sort),
+            self.bound_schema
+        )
