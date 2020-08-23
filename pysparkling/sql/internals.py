@@ -1,3 +1,4 @@
+import json
 import math
 from copy import deepcopy
 from functools import partial
@@ -278,3 +279,10 @@ class DataFrameInternal(object):
         sketched_rdd_content = rdd.mapPartitionsWithIndex(sketch_partition).collect()
 
         return dict(sketched_rdd_content)
+
+    def toJSON(self, use_unicode):
+        """
+
+        :rtype: RDD
+        """
+        return self._rdd.map(lambda row: json.dumps(row.asDict(True), ensure_ascii=not use_unicode))
