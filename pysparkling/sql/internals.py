@@ -10,7 +10,8 @@ from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_
 from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, StringType
 from pysparkling.sql.column import parse
 from pysparkling.stat_counter import RowStatHelper
-from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
+from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size, pad_cell, \
+    str_half_width, format_cell
 
 
 class FieldIdGenerator(object):
@@ -536,3 +537,79 @@ class DataFrameInternal(object):
 
     def aggregate(self, zeroValue, seqOp, combOp):
         return self._rdd.aggregate(zeroValue, seqOp, combOp)
+
+    def showString(self, n, truncate=20, vertical=False):
+        n = max(0, n)
+        if n:
+            sample = self.take(n + 1)
+            rows = sample[:n]
+            contains_more = len(sample) == n + 1
+        else:
+            rows = self.collect()
+            contains_more = False
+
+        min_col_width = 3
+
+        cols = [field.name for field in self.bound_schema.fields]
+        if not vertical:
+            output = self.horizontal_show(rows, cols, truncate, min_col_width)
+        else:
+            output = self.vertical_show(rows, min_col_width)
+
+        if not rows[1:] and vertical:
+            output += "(0 rows)\n"
+        elif contains_more:
+            output += "only showing top {0} row{1}\n".format(n, "s" if len(rows) > 1 else "")
+
+        # Last \n will be added by print()
+        return output[:-1]
+
+    def vertical_show(self, rows, min_col_width):
+        output = ""
+        field_names = [field.name for field in self.bound_schema.fields]
+        field_names_col_width = max(
+            min_col_width,
+            *(str_half_width(field_name) for field_name in field_names)
+        )
+        data_col_width = max(
+            min_col_width,
+            *(str_half_width(cell) for data_row in rows for cell in data_row)
+        )
+        for i, row in enumerate(rows):
+            row_header = "-RECORD {0}".format(i).ljust(
+                field_names_col_width + data_col_width + 5,
+                "-"
+            )
+            output += row_header + "\n"
+            for field_name, cell in zip(field_names, row):
+                formatted_field_name = field_name.ljust(
+                    field_names_col_width - str_half_width(field_name) + len(field_name)
+                )
+                data = format_cell(cell).ljust(data_col_width - str_half_width(cell))
+                output += " {0} | {1} \n".format(formatted_field_name, data)
+        return output
+
+    @staticmethod
+    def horizontal_show(rows, cols, truncate, min_col_width):
+        output = ""
+        col_widths = [max(min_col_width, str_half_width(col)) for col in cols]
+        for row in rows:
+            col_widths = [
+                max(cur_width, str_half_width(cell))
+                for cur_width, cell in zip(col_widths, row)
+            ]
+        padded_header = (pad_cell(col, truncate, col_width)
+                         for col, col_width in zip(cols, col_widths))
+        padded_rows = (
+            [pad_cell(cell, truncate, col_width) for cell, col_width in zip(row, col_widths)]
+            for row in rows
+        )
+        sep = "+" + "+".join("-" * col_width for col_width in col_widths) + "+\n"
+        output += sep
+        output += "|{0}|\n".format("|".join(padded_header))
+        output += sep
+        body = "\n".join("|{0}|".format("|".join(padded_row)) for padded_row in padded_rows)
+        if body:
+            output += body + "\n"
+        output += sep
+        return output
