@@ -115,3 +115,6 @@ class DataFrameInternal(object):
 
     def foreach(self, f):
         self._rdd.foreach(f)
+
+    def foreachPartition(self, f):
+        self._rdd.foreachPartition(f)
