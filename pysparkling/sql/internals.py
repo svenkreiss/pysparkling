@@ -856,3 +856,56 @@ class DataFrameInternal(object):
 
     def replace(self, to_replace, value, subset=None):
         raise NotImplementedError("pysparkling does not support yet replace")
+
+
+class GroupedStats(object):
+    def __init__(self, grouping_cols, stats, pivot_col, pivot_values, groups=None):
+        self.grouping_cols = grouping_cols
+        self.stats = stats
+        self.pivot_col = pivot_col
+        self.pivot_values = pivot_values if pivot_values is not None else [None]
+        if groups is None:
+            self.groups = {}
+            # As python < 3.6 does not guarantee dict ordering
+            # we need to keep track of in which order the columns were
+            self.group_keys = []
+        else:
+            self.groups = groups
+            # The order is not used when initialized directly
+            self.group_keys = list(groups.keys())
+
+    def merge(self, row, schema):
+        group_key = tuple(col.eval(row, schema) for col in self.grouping_cols)
+        if group_key not in self.groups:
+            group_stats = {
+                pivot_value: [deepcopy(stat) for stat in self.stats]
+                for pivot_value in self.pivot_values
+            }
+            self.groups[group_key] = group_stats
+            self.group_keys.append(group_key)
+        else:
+            group_stats = self.groups[group_key]
+
+        pivot_value = self.pivot_col.eval(row, schema) if self.pivot_col is not None else None
+        if pivot_value in self.pivot_values:
+            for stat in group_stats[pivot_value]:
+                stat.merge(row, schema)
+
+        return self
+
+    def mergeStats(self, other, schema):
+        for group_key in other.group_keys:
+            if group_key not in self.group_keys:
+                self.groups[group_key] = other.groups[group_key]
+                self.group_keys.append(group_key)
+            else:
+                group_stats = self.groups[group_key]
+                other_stats = other.groups[group_key]
+                for pivot_value in self.pivot_values:
+                    for (stat, other_stat) in zip(
+                            group_stats[pivot_value],
+                            other_stats[pivot_value]
+                    ):
+                        stat.mergeStats(other_stat, schema)
+
+        return self
