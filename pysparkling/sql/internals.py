@@ -102,3 +102,6 @@ class DataFrameInternal(object):
 
     def collect(self):
         return self._rdd.collect()
+
+    def toLocalIterator(self):
+        return self._rdd.toLocalIterator()
