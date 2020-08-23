@@ -7,6 +7,7 @@ from pysparkling.sql.types import StructType, _create_converter, _infer_schema, 
 import pysparkling
 from pysparkling.context import Context
 from pysparkling.sql.conf import RuntimeConfig
+from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.sql.utils import require_minimum_pandas_version
 
 if sys.version >= '3':
@@ -168,11 +169,16 @@ class SparkSession(object):
             data = list(data)
 
         if schema is None or isinstance(schema, (list, tuple)):
-            raise NotImplementedError(
-                "Implementation requires schema utils that are not yet merged"
-            )
+            struct = infer_schema_from_list(data, names=schema)
+            converter = _create_converter(struct)
+            data = map(converter, data)
+            if isinstance(schema, (list, tuple)):
+                for i, name in enumerate(schema):
+                    struct.fields[i].name = name
+                    struct.names[i] = name
+            schema = struct
 
-        if not isinstance(schema, StructType):
+        elif not isinstance(schema, StructType):
             raise TypeError("schema should be StructType or list or None, but got: %s" % schema)
 
         # convert python objects to sql data
