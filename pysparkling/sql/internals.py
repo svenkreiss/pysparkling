@@ -125,3 +125,6 @@ class DataFrameInternal(object):
 
     def persist(self, storageLevel=StorageLevel.MEMORY_ONLY):
         return self._with_rdd(self._rdd.persist(storageLevel), self.bound_schema)
+
+    def unpersist(self, blocking=False):
+        return self._with_rdd(self._rdd.unpersist(blocking), self.bound_schema)
