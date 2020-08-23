@@ -401,3 +401,26 @@ class DataFrameInternal(object):
             self.bound_schema
         )
 
+    def union(self, other):
+        self_field_names = [field.name for field in self.bound_schema.fields]
+        other_field_names = [field.name for field in other.bound_schema.fields]
+        if len(self_field_names) != len(other_field_names):
+            raise Exception(
+                "Union can only be performed on tables with the same number "
+                "of columns, but the first table has {0} columns and the "
+                "second table has {1} columns".format(
+                    len(self_field_names),
+                    len(other_field_names)
+                )
+            )
+
+        def change_col_names(row):
+            return row_from_keyed_values([
+                (field.name, value) for field, value in zip(self.bound_schema.fields, row)
+            ])
+
+        # This behavior (keeping the columns of self) is the same as in PySpark
+        return self._with_rdd(
+            self._rdd.union(other.rdd().map(change_col_names)),
+            self.bound_schema
+        )
