@@ -105,3 +105,7 @@ class DataFrameInternal(object):
 
     def toLocalIterator(self):
         return self._rdd.toLocalIterator()
+
+    def limit(self, n):
+        jdf = self._sc.parallelize(self._rdd.take(n))
+        return self._with_rdd(jdf, self.bound_schema)
