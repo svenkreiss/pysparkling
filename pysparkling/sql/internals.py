@@ -504,5 +504,35 @@ class DataFrameInternal(object):
 
         return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
 
+    def describe(self, cols):
+        stat_helper = self.get_stat_helper(cols)
+        exprs = [parse(col) for col in cols]
+
+        return DataFrameInternal(
+            self._sc,
+            self._sc.parallelize(stat_helper.get_as_rows()),
+            schema=self.get_summary_schema(exprs)
+        )
+
+    def get_summary_schema(self, exprs):
+        return StructType(
+            [
+                StructField("summary", StringType(), True)
+            ] + [
+                StructField(field.name, StringType(), True)
+                for field in get_schema_from_cols(exprs, self.bound_schema).fields
+            ]
+        )
+
+    def get_stat_helper(self, exprs, percentiles_relative_error=1 / 10000):
+        """
+        :rtype: RowStatHelper
+        """
+        return self.aggregate(
+            RowStatHelper(exprs, percentiles_relative_error),
+            lambda counter, row: counter.merge(row, self.bound_schema),
+            lambda counter1, counter2: counter1.mergeStats(counter2)
+        )
+
     def aggregate(self, zeroValue, seqOp, combOp):
         return self._rdd.aggregate(zeroValue, seqOp, combOp)
