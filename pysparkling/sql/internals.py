@@ -7,7 +7,7 @@ from functools import partial
 from pysparkling import StorageLevel
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols
-from pysparkling.sql.types import StructType, create_row, row_from_keyed_values
+from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField
 from pysparkling.sql.column import parse
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
 
@@ -481,6 +481,24 @@ class DataFrameInternal(object):
                 field.dataType,
                 field.nullable
             ) for field in self.bound_schema.fields
+        ])
+
+        return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
+
+    def toDF(self, new_names):
+        def mapper(row):
+            keyed_values = [
+                (new_name, row[old])
+                for new_name, old in zip(new_names, row.__fields__)
+            ]
+            return row_from_keyed_values(keyed_values)
+
+        new_schema = StructType([
+            StructField(
+                new_name,
+                field.dataType,
+                field.nullable
+            ) for new_name, field in zip(new_names, self.bound_schema.fields)
         ])
 
         return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
