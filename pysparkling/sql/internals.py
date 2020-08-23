@@ -466,3 +466,21 @@ class DataFrameInternal(object):
 
     def withColumn(self, colName, col):
         return self.select(parse("*"), parse(col).alias(colName))
+
+    def withColumnRenamed(self, existing, new):
+        def mapper(row):
+            keyed_values = [
+                (new, row[col]) if col == existing else (col, row[col])
+                for col in row.__fields__
+            ]
+            return row_from_keyed_values(keyed_values)
+
+        new_schema = StructType([
+            field if field.name != existing else StructField(
+                new,
+                field.dataType,
+                field.nullable
+            ) for field in self.bound_schema.fields
+        ])
+
+        return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
