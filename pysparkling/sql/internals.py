@@ -4,8 +4,9 @@ from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
-from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import StructType, create_row
+from pysparkling.sql.internal_utils.column import resolve_column
+from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols
+from pysparkling.sql.types import StructType, create_row, row_from_keyed_values
 from pysparkling.sql.column import parse
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
 
@@ -313,3 +314,74 @@ class DataFrameInternal(object):
             key = get_keyfunc([col], self.bound_schema, nulls_are_smaller=nulls_are_smaller)
             sorted_rdd = sorted_rdd.sortBy(key, ascending=ascending)
         return self._with_rdd(sorted_rdd, self.bound_schema)
+
+    def select(self, *exprs):
+        cols = [parse(e) for e in exprs]
+
+        if any(col.is_an_aggregation for col in cols):
+            # todo: add support
+            raise NotImplementedError
+            # df_as_group = InternalGroupedDataFrame(self, [])
+            # return df_as_group.agg(exprs)
+
+        def select_mapper(partition_index, partition):
+            # Initialize non deterministic functions so that they are reproducible
+            initialized_cols = [col.initialize(partition_index) for col in cols]
+            generators = [col for col in initialized_cols if col.may_output_multiple_rows]
+            non_generators = [col for col in initialized_cols if not col.may_output_multiple_rows]
+            number_of_generators = len(generators)
+            if number_of_generators > 1:
+                raise Exception(
+                    "Only one generator allowed per select clause but found {0}: {1}".format(
+                        number_of_generators,
+                        ", ".join(generators)
+                    )
+                )
+
+            return self.get_select_output_field_lists(
+                partition,
+                non_generators,
+                initialized_cols,
+                generators[0] if generators else None
+            )
+
+        new_schema = get_schema_from_cols(cols, self.bound_schema)
+        return self._with_rdd(
+            self._rdd.mapPartitionsWithIndex(select_mapper),
+            schema=new_schema
+        )
+
+    def get_select_output_field_lists(self, partition, non_generators, initialized_cols, generator):
+        output_rows = []
+        for row in partition:
+            base_row_fields = []
+            for col in non_generators:
+                output_cols, output_values = resolve_column(col, row, schema=self.bound_schema)
+                base_row_fields += zip(output_cols, output_values[0])
+
+            if generator is not None:
+                generated_row_fields = self.get_generated_row_fields(
+                    generator, row, initialized_cols, base_row_fields
+                )
+                for generated_row in generated_row_fields:
+                    output_rows.append(
+                        row_from_keyed_values(generated_row, metadata=row.get_metadata())
+                    )
+            else:
+                output_rows.append(
+                    row_from_keyed_values(base_row_fields, metadata=row.get_metadata())
+                )
+        return output_rows
+
+    def get_generated_row_fields(self, generator, row, initialized_cols, base_row):
+        additional_fields = []
+        generator_position = initialized_cols.index(generator)
+        generated_cols, generated_sub_rows = resolve_column(
+            generator, row, schema=self.bound_schema
+        )
+        for generated_sub_row in generated_sub_rows:
+            sub_row = list(zip(generated_cols, generated_sub_row))
+            additional_fields.append(
+                base_row[:generator_position] + sub_row + base_row[generator_position:]
+            )
+        return additional_fields
