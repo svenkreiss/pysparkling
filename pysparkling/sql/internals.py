@@ -160,3 +160,9 @@ class DataFrameInternal(object):
 
     def simple_repartition(self, numPartitions):
         return self._with_rdd(self._rdd.repartition(numPartitions), self.bound_schema)
+
+    def repartitionByValues(self, numPartitions, partitioner=None):
+        return self._with_rdd(
+            self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values(),
+            self.bound_schema
+        )
