@@ -388,3 +388,16 @@ class DataFrameInternal(object):
 
     def selectExpr(self, *cols):
         raise NotImplementedError("Pysparkling does not currently support DF.selectExpr")
+
+    def filter(self, condition):
+        condition = parse(condition)
+
+        def mapper(partition_index, partition):
+            initialized_condition = condition.initialize(partition_index)
+            return (row for row in partition if initialized_condition.eval(row, self.bound_schema))
+
+        return self._with_rdd(
+            self._rdd.mapPartitionsWithIndex(mapper),
+            self.bound_schema
+        )
+
