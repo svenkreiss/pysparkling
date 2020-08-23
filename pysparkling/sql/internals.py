@@ -298,3 +298,18 @@ class DataFrameInternal(object):
             self._rdd.mapPartitions(partition_sort),
             self.bound_schema
         )
+
+    def sort(self, cols):
+        # Pysparkling implementation of RDD.sortBy is an in-order sort,
+        # calling it multiple times allow sorting
+        # based on multiple criteria and ascending orders
+        # pylint: disable=W0511
+        # Todo: this could be optimized as it's possible to sort
+        #  together columns that are in the same ascending order
+        sorted_rdd = self._rdd
+        for col in cols[::-1]:
+            ascending = col.sort_order in ["ASC NULLS FIRST", "ASC NULLS LAST"]
+            nulls_are_smaller = col.sort_order in ["DESC NULLS LAST", "ASC NULLS FIRST"]
+            key = get_keyfunc([col], self.bound_schema, nulls_are_smaller=nulls_are_smaller)
+            sorted_rdd = sorted_rdd.sortBy(key, ascending=ascending)
+        return self._with_rdd(sorted_rdd, self.bound_schema)
