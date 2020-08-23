@@ -1,12 +1,15 @@
 import sys
 from threading import RLock
 
-from pysparkling.sql.types import StructType, _create_converter, _infer_schema, \
-    _has_nulltype, _merge_type
+from pysparkling.sql.types import _make_type_verifier, DataType, StructType, \
+    _create_converter, _infer_schema, _has_nulltype, _merge_type
 
 import pysparkling
+from pysparkling import RDD
 from pysparkling.context import Context
 from pysparkling.sql.conf import RuntimeConfig
+from pysparkling.sql.internals import DataFrameInternal
+from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.sql.utils import require_minimum_pandas_version
 
@@ -222,9 +225,62 @@ class SparkSession(object):
         return [r.tolist() for r in np_records]
 
     def createDataFrame(self, data, schema=None, samplingRatio=None, verifySchema=True):
-        raise NotImplementedError(
-            "This method implementation requires DataFrame which are not yet merged"
-        )
+        SparkSession._activeSession = self
+
+        if isinstance(data, DataFrame):
+            raise TypeError("data is already a DataFrame")
+
+        if isinstance(schema, basestring):
+            schema = StructType.fromDDL(schema)
+        elif isinstance(schema, (list, tuple)):
+            # Must re-encode any unicode strings to be consistent with StructField names
+            schema = [x.encode('utf-8') if not isinstance(x, str) else x for x in schema]
+
+        try:
+            # pandas is an optional dependency
+            # pylint: disable=import-outside-toplevel
+            has_pandas = True
+            import pandas
+        except ImportError:
+            has_pandas = False
+
+        if has_pandas and isinstance(data, pandas.DataFrame):
+            data, schema = self.parse_pandas_dataframe(data, schema)
+
+        no_check = lambda _: True
+        if isinstance(schema, StructType):
+            verify_func = _make_type_verifier(schema) if verifySchema else no_check
+
+            def prepare(obj):
+                verify_func(obj)
+                return obj
+
+        elif isinstance(schema, DataType):
+            dataType = schema
+            schema = StructType().add("value", schema)
+
+            verify_func = _make_type_verifier(
+                dataType, name="field value"
+            ) if verifySchema else no_check
+
+            def prepare(obj):
+                verify_func(obj)
+                return tuple([obj])
+        else:
+            def prepare(obj):
+                return obj
+
+        if isinstance(data, RDD):
+            rdd, schema = self._createFromRDD(data.map(prepare), schema, samplingRatio)
+        else:
+            rdd, schema = self._createFromLocal(map(prepare, data), schema)
+
+        cols = [
+            col_type.name if hasattr(col_type, "name") else "_" + str(i)
+            for i, col_type in enumerate(schema)
+        ]
+        df = DataFrame(DataFrameInternal(self._sc, rdd, cols, True, schema), self._wrapped)
+        return df
 
     def parse_pandas_dataframe(self, data, schema):
         require_minimum_pandas_version()
