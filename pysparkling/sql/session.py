@@ -302,9 +302,8 @@ class SparkSession(object):
         if numPartitions is None:
             numPartitions = self._sc.defaultParallelism
 
-        raise NotImplementedError(
-            "This method implementation requires DataFrame which are not yet merged"
-        )
+        idf = DataFrameInternal.range(self.sparkContext, start, end, step, numPartitions)
+        return DataFrame(idf, self._wrapped)
 
     @property
     def read(self):
