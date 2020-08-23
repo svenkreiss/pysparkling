@@ -7,8 +7,9 @@ from functools import partial
 from pysparkling import StorageLevel
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols
-from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField
+from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, StringType
 from pysparkling.sql.column import parse
+from pysparkling.stat_counter import RowStatHelper
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size
 
 
@@ -502,3 +503,6 @@ class DataFrameInternal(object):
         ])
 
         return self._with_rdd(self._rdd.map(mapper), schema=new_schema)
+
+    def aggregate(self, zeroValue, seqOp, combOp):
+        return self._rdd.aggregate(zeroValue, seqOp, combOp)
