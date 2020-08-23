@@ -4,6 +4,10 @@ from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, \
     _get_null_fields
 
 
+def infer_schema_from_rdd(rdd):
+    return infer_schema_from_list(rdd.takeSample(withReplacement=False, num=200))
+
+
 def infer_schema_from_list(data, names=None):
     """
     Infer schema from list of Row or tuple.
