@@ -166,3 +166,9 @@ class DataFrameInternal(object):
             self._rdd.map(lambda x: (x, x)).partitionBy(numPartitions, partitioner).values(),
             self.bound_schema
         )
+
+    def repartition(self, numPartitions, cols):
+        def partitioner(row):
+            return sum(hash(c.eval(row, self.bound_schema)) for c in cols)
+
+        return self.repartitionByValues(numPartitions, partitioner)
