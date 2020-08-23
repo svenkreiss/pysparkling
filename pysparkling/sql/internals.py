@@ -9,7 +9,7 @@ from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols
 from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, StringType
 from pysparkling.sql.column import parse
-from pysparkling.stat_counter import RowStatHelper
+from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
 from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size, pad_cell, \
     str_half_width, format_cell
 
@@ -622,3 +622,22 @@ class DataFrameInternal(object):
                 for quantile in quantiles
             ] for col in stat_helper.col_names
         ]
+
+    def corr(self, col1, col2, method):
+        covariance_helper = self._get_covariance_helper(method, col1, col2)
+        return covariance_helper.pearson_correlation
+
+    def cov(self, col1, col2):
+        covariance_helper = self._get_covariance_helper("pearson", col1, col2)
+        return covariance_helper.covar_samp
+
+    def _get_covariance_helper(self, method, col1, col2):
+        """
+        :rtype: CovarianceCounter
+        """
+        covariance_helper = self._rdd.treeAggregate(
+            CovarianceCounter(method),
+            seqOp=lambda counter, row: counter.add(row[col1], row[col2]),
+            combOp=lambda baseCounter, other: baseCounter.merge(other)
+        )
+        return covariance_helper
