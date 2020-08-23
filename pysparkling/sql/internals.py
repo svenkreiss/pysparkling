@@ -1,5 +1,6 @@
 import json
 import math
+from collections import Counter
 from copy import deepcopy
 from functools import partial
 
@@ -422,5 +423,43 @@ class DataFrameInternal(object):
         # This behavior (keeping the columns of self) is the same as in PySpark
         return self._with_rdd(
             self._rdd.union(other.rdd().map(change_col_names)),
+            self.bound_schema
+        )
+
+    def unionByName(self, other):
+        self_field_names = [field.name for field in self.bound_schema.fields]
+        other_field_names = [field.name for field in other.bound_schema.fields]
+        if len(self_field_names) != len(set(self_field_names)):
+            raise Exception(
+                "Found duplicate column(s) in the left attributes: {0}".format(
+                    name for name, cnt in Counter(self_field_names).items() if cnt > 1
+                )
+            )
+
+        if len(other_field_names) != len(set(other_field_names)):
+            raise Exception(
+                "Found duplicate column(s) in the right attributes: {0}".format(
+                    name for name, cnt in Counter(other_field_names).items() if cnt > 1
+                )
+            )
+
+        if len(self_field_names) != len(other_field_names):
+            raise Exception(
+                "Union can only be performed on tables with the same number "
+                "of columns, but the first table has {0} columns and the "
+                "second table has {1} columns".format(
+                    len(self_field_names),
+                    len(other_field_names)
+                )
+            )
+
+        def change_col_order(row):
+            return row_from_keyed_values([
+                (field.name, row[field.name]) for field in self.bound_schema.fields
+            ])
+
+        # This behavior (keeping the columns of self) is the same as in PySpark
+        return self._with_rdd(
+            self._rdd.union(other.rdd().map(change_col_order)),
             self.bound_schema
         )
