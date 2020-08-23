@@ -70,3 +70,8 @@ class DataFrameInternal(object):
     def _set_schema(self, schema):
         bound_schema = FieldIdGenerator.bind_schema(deepcopy(schema))
         self.bound_schema = bound_schema
+
+    @property
+    def unbound_schema(self):
+        schema = deepcopy(self.bound_schema)
+        return FieldIdGenerator.unbind_schema(schema)
