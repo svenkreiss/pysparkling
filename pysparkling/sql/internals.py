@@ -154,3 +154,6 @@ class DataFrameInternal(object):
     @property
     def storageLevel(self):
         return getattr(self._rdd, "storageLevel", StorageLevel(False, False, False, False))
+
+    def is_cached(self):
+        return hasattr(self._rdd, "storageLevel")
