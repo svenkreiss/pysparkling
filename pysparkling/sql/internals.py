@@ -175,6 +175,86 @@ class DataFrameInternal(object):
 
         return self.repartitionByValues(numPartitions, partitioner)
 
+    def repartitionByRange(self, numPartitions, *cols):
+        key = get_keyfunc(cols, self.bound_schema)
+        bounds = self._get_range_bounds(self._rdd, numPartitions, key=key)
+
+        def get_range_id(value):
+            return sum(1 for bound in bounds if key(bound) < key(value))
+
+        return self.repartitionByValues(numPartitions, partitioner=get_range_id)
+
+    @staticmethod
+    def _get_range_bounds(rdd, numPartitions, key):
+        if numPartitions == 0:
+            return []
+
+        # pylint: disable=W0511
+        # todo: check if sample_size is set in SQLConf.get.rangeExchangeSampleSizePerPartition
+        # sample_size = min(
+        #   SQLConf.get.rangeExchangeSampleSizePerPartition * rdd.getNumPartitions(),
+        #   1e6
+        # )
+        sample_size = 1e6
+        sample_size_per_partition = math.ceil(3 * sample_size / numPartitions)
+        sketched_rdd = DataFrameInternal.sketch_rdd(rdd, sample_size_per_partition)
+        rdd_size = sum(partition_size for partition_size, sample in sketched_rdd.values())
+
+        if rdd_size == 0:
+            return []
+
+        fraction = sample_size / rdd_size
+
+        candidates, imbalanced_partitions = DataFrameInternal._get_initial_candidates(
+            sketched_rdd,
+            sample_size_per_partition,
+            fraction
+        )
+
+        additional_candidates = DataFrameInternal._get_additional_candidates(
+            rdd,
+            imbalanced_partitions,
+            fraction
+        )
+
+        candidates += additional_candidates
+        bounds = compute_weighted_percentiles(
+            candidates,
+            min(numPartitions, len(candidates)) + 1,
+            key=key
+        )[1:-1]
+        return bounds
+
+    @staticmethod
+    def _get_initial_candidates(sketched_rdd, sample_size_per_partition, fraction):
+        candidates = []
+        imbalanced_partitions = set()
+        for idx, (partition_size, sample) in sketched_rdd.items():
+            # Partition is bigger than (3 times) average and more than sample_size_per_partition
+            # is needed to get accurate information on its distribution
+            if fraction * partition_size > sample_size_per_partition:
+                imbalanced_partitions.add(idx)
+            else:
+                # The weight is 1 over the sampling probability.
+                weight = partition_size / len(sample)
+                candidates += [(key, weight) for key in sample]
+        return candidates, imbalanced_partitions
+
+    @staticmethod
+    def _get_additional_candidates(rdd, imbalanced_partitions, fraction):
+        additional_candidates = []
+        if imbalanced_partitions:
+            # Re-sample imbalanced partitions with the desired sampling probability.
+            def keep_imbalanced_partitions(partition_id, x):
+                return x if partition_id in imbalanced_partitions else []
+
+            resampled = (rdd.mapPartitionsWithIndex(keep_imbalanced_partitions)
+                         .sample(withReplacement=False, fraction=fraction, seed=rdd.id())
+                         .collect())
+            weight = (1.0 / fraction).toFloat
+            additional_candidates += [(x, weight) for x in resampled]
+        return additional_candidates
+
     @staticmethod
     def sketch_rdd(rdd, sample_size_per_partition):
         """
