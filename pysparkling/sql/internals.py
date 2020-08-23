@@ -463,3 +463,6 @@ class DataFrameInternal(object):
             self._rdd.union(other.rdd().map(change_col_order)),
             self.bound_schema
         )
+
+    def withColumn(self, colName, col):
+        return self.select(parse("*"), parse(col).alias(colName))
