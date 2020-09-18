@@ -1872,7 +1872,7 @@ class SqlBaseLexer(Lexer):
 
     def BRACKETED_COMMENT_sempred(self, localctx:RuleContext, predIndex:int):
             if predIndex == 4:
-                return not isHint()
-         
+                return not self.isHint()
+
 
 
