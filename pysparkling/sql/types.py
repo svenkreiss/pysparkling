@@ -1869,6 +1869,8 @@ def parsed_string_to_type(data_type, arguments):
         else:
             raise ParseException("Unrecognized decimal parameters: {0}".format(arguments))
         return DecimalType(precision=int(precision), scale=int(scale))
+    if data_type == "array" and len(arguments) == 1:
+        return ArrayType(arguments[0])
     raise ParseException("Unable to parse data type {0}{1}".format(data_type, arguments if arguments else ""))
 
 

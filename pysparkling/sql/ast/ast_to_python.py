@@ -84,6 +84,12 @@ def detect_data_type(*children):
     return parsed_string_to_type(data_type, params)
 
 
+def detect_complex_data_type(*children):
+    data_type = convert_tree(children[0])
+    params = [convert_tree(c) for c in children[2:-1:2]]
+    return parsed_string_to_type(data_type, params)
+
+
 def unary_operation(*children):
     check_children(2, children)
     operator, value = children
@@ -294,6 +300,7 @@ CONVERTERS = {
     'JoinTypeContext': concat_keywords,
     'CastContext': cast_context,
     'PrimitiveDataTypeContext': detect_data_type,
+    'ComplexDataTypeContext': detect_complex_data_type,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
