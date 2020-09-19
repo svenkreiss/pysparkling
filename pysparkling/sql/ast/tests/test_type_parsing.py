@@ -1,7 +1,6 @@
 from unittest import TestCase
 
-import pytest
-from numpy.testing._private.parameterized import parameterized
+from parameterized import parameterized
 
 from pysparkling.sql.types import *
 
