@@ -1873,6 +1873,11 @@ def parsed_string_to_type(data_type, arguments):
         return ArrayType(arguments[0])
     if data_type == "map" and len(arguments) == 2:
         return MapType(arguments[0], arguments[1])
+    if data_type == "struct" and len(arguments) == 1:
+        return StructType([
+            StructField(name, data_type)
+            for name, data_type in arguments[0]
+        ])
     raise ParseException("Unable to parse data type {0}{1}".format(data_type, arguments if arguments else ""))
 
 

@@ -30,8 +30,14 @@ class TypeParsingTest(TestCase):
         "decimal(5, 2)": DecimalType(5, 2),
         "dec": DecimalType(10, 0),
         "numeric": DecimalType(10, 0),
-        "array<string>": ArrayType(StringType()),
-        "array<int>": ArrayType(IntegerType()),
+        "Array<string>": ArrayType(StringType()),
+        "Array<int>": ArrayType(IntegerType()),
+        "Map<string, int>": MapType(StringType(), IntegerType()),
+        "Map < integer, String >": MapType(IntegerType(), StringType()),
+        "Struct<name: string, age: int>": StructType([
+            StructField(name="name", dataType=StringType()),
+            StructField(name="age", dataType=IntegerType()),
+        ]),
         # todo: "interval": CalendarIntervalType(),
         # todo: "char": CharType(), + with param
         # todo: "character": CharType(), + with param

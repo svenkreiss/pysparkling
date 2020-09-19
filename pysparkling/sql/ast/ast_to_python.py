@@ -228,6 +228,7 @@ CONVERTERS = {
     'ColTypeListContext': implicit_list,
     'ComplexColTypeListContext': implicit_list,
     'QualifiedNameListContext': implicit_list,
+    'ComplexColTypeContext': implicit_list,
     "ComparisonContext": binary_operation,
     "ArithmeticBinaryContext": binary_operation,
     "LogicalBinaryContext": binary_operation,
