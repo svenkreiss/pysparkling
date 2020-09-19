@@ -106,6 +106,10 @@ def concat_to_literal(*children):
     return Literal(ast.literal_eval("".join(convert_tree(c) for c in children)))
 
 
+def concat_keywords(*children):
+    return " ".join(convert_tree(c) for c in children)
+
+
 CONVERTERS = {
     "SingleStatementContext": first_child_only,
     "SingleExpressionContext": child_and_eof,
@@ -260,6 +264,7 @@ CONVERTERS = {
     'DescribeNamespaceContext': unsupported,
     'CommentNamespaceContext': unsupported,
     'UseContext': unsupported,
+    'JoinTypeContext': concat_keywords,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
