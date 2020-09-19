@@ -4,7 +4,7 @@ from parameterized import parameterized
 
 from pysparkling.sql.types import *
 
-from pysparkling.sql.ast.ast_to_python import string_to_type
+from pysparkling.sql.ast.ast_to_python import parse_data_type
 
 
 class TypeParsingTest(TestCase):
@@ -31,8 +31,11 @@ class TypeParsingTest(TestCase):
         "dec": DecimalType(10, 0),
         "numeric": DecimalType(10, 0),
         # todo: "interval": CalendarIntervalType(),
+        # todo: "char": CharType(), + with param
+        # todo: "character": CharType(), + with param
+        # todo: "varchar": VarChar(), + with param
     }
 
     @parameterized.expand(SCENARIOS.items())
     def test_equal(self, string, data_type):
-        self.assertEqual(string_to_type(string), data_type)
+        self.assertEqual(parse_data_type(string), data_type)

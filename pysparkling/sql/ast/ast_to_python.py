@@ -341,6 +341,6 @@ def parse_sql(string, rule):
     return convert_tree(tree)
 
 
-def string_to_type(string):
-    ret = parse_sql(string, "singleDataType")
-    return ret
+def parse_data_type(string):
+    return parse_sql(string, "singleDataType")
+
