@@ -1,4 +1,5 @@
 import ast
+import logging
 
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
@@ -20,6 +21,11 @@ def check_children(expected, children):
 def unwrap(*children):
     check_children(1, children)
     return convert_tree(children[0])
+
+
+def never_found(*children):
+    logging.warning("We should never have encounter this node.")
+    return unwrap(*children)
 
 
 def empty(*children):
@@ -122,6 +128,25 @@ CONVERTERS = {
     'IntervalUnitContext': unwrap,
     'FunctionNameContext': unwrap,
     'BooleanLiteralContext': unwrap,
+    "BooleanExpressionContext": never_found,
+    "ConstantContext": never_found,
+    "DataTypeContext": never_found,
+    "DmlStatementNoWithContext": never_found,
+    "ErrorCapturingIdentifierExtraContext": never_found,
+    "FileFormatContext": never_found,
+    "InsertIntoContext": never_found,
+    "NumberContext": never_found,
+    "PrimaryExpressionContext": never_found,
+    "QueryPrimaryContext": never_found,
+    "QueryTermContext": never_found,
+    "RelationPrimaryContext": never_found,
+    "RowFormatContext": never_found,
+    "SampleMethodContext": never_found,
+    "StatementContext": never_found,
+    "StrictIdentifierContext": never_found,
+    "TransformContext": never_found,
+    "ValueExpressionContext": never_found,
+    "WindowSpecContext": never_found,
     'ExponentLiteralContext': concat_to_literal,
     'DecimalLiteralContext': concat_to_literal,
     'LegacyDecimalLiteralContext': concat_to_literal,
@@ -131,7 +156,6 @@ CONVERTERS = {
     'TinyIntLiteralContext': concat_to_literal,
     'DoubleLiteralContext': concat_to_literal,
     'BigDecimalLiteralContext': concat_to_literal,
-    'NumberContext': concat_to_literal,
     'TablePropertyListContext': explicit_list,
     'ConstantListContext': explicit_list,
     'NestedConstantListContext': explicit_list,
