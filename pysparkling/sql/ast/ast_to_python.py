@@ -79,7 +79,6 @@ def cast_context(*children):
 
 
 def detect_data_type(*children):
-    # check_children(1, children)
     data_type = convert_tree(children[0])
     params = [convert_tree(c) for c in children[2:-1:2]]
     return parsed_string_to_type(data_type, params)
