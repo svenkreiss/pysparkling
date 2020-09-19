@@ -1845,12 +1845,15 @@ STRING_TO_TYPE = dict(
     bigint=LongType(),
     long=LongType(),
     float=FloatType(),
+    real=FloatType(),
     double=DoubleType(),
     date=DateType(),
     timestamp=TimestampType(),
     string=StringType(),
     binary=BinaryType(),
-    decimal=DecimalType()
+    decimal=DecimalType(),
+    dec=DecimalType(),
+    numeric=DecimalType()
 )
 
 
