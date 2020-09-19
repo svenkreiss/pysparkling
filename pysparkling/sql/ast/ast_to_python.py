@@ -1,8 +1,10 @@
 import ast
 
+from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
-    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or
-from pysparkling.sql.functions import concat
+    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
+    BitwiseNot, UnaryPositive
+from pysparkling.sql.functions import Concat
 from pysparkling.sql.types import DoubleType, StringType
 
 
@@ -52,6 +54,15 @@ def binary_operation(*children):
     )
 
 
+def unary_operation(*children):
+    check_children(2, children)
+    operator, value = children
+    cls = unary_operations[convert_tree(operator)]
+    return cls(
+        convert_tree(value)
+    )
+
+
 def parenthesis_context(*children):
     check_children(3, children)
     return convert_tree(children[1])
@@ -82,7 +93,7 @@ def implicit_list(*children):
 
 
 def concat_to_literal(*children):
-    return ast.literal_eval("".join(convert_tree(c) for c in children))
+    return Literal(ast.literal_eval("".join(convert_tree(c) for c in children)))
 
 
 CONVERTERS = {
@@ -138,6 +149,7 @@ CONVERTERS = {
     "LogicalBinaryContext": binary_operation,
     "RealIdentContext": empty,
     "ParenthesizedExpressionContext": parenthesis_context,
+    "ArithmeticUnaryContext": unary_operation,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
@@ -173,8 +185,14 @@ binary_operations = {
     'DIV': lambda a, b: Divide(Cast(a, DoubleType), Cast(b, DoubleType)),
     '&': BitwiseAnd,
     '|': BitwiseOr,
-    '||': lambda a, b: concat(Cast(a, StringType), Cast(b, StringType)),
+    '||': lambda a, b: Concat([Cast(a, StringType), Cast(b, StringType)]),
     '^': BitwiseXor,
     'AND': And,
     'OR': Or,
+}
+
+unary_operations = {
+    "+": UnaryPositive,
+    "-": Negate,
+    "~": BitwiseNot,
 }
