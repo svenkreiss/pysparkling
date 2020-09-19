@@ -88,6 +88,11 @@ def get_leaf_value(*children):
     return value.symbol.text
 
 
+def remove_delimiter(*children):
+    delimited_value = get_leaf_value(*children)
+    return delimited_value[1:-1]
+
+
 def explicit_list(*children):
     return tuple(
         convert_tree(c)
@@ -129,7 +134,7 @@ CONVERTERS = {
     'StrictNonReservedContext': get_leaf_value,
     'NonReservedContext': get_leaf_value,
     'TerminalNodeImpl': get_leaf_value,
-    "StringLiteralContext": get_leaf_value,
+    "StringLiteralContext": remove_delimiter,
     "UnquotedIdentifierContext": get_leaf_value,
     'DescribeFuncNameContext': unwrap,
     'TablePropertyValueContext': unwrap,
