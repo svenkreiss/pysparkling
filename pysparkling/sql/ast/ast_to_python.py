@@ -130,6 +130,7 @@ CONVERTERS = {
     'NonReservedContext': get_leaf_value,
     'TerminalNodeImpl': get_leaf_value,
     "StringLiteralContext": get_leaf_value,
+    "UnquotedIdentifierContext": get_leaf_value,
     'DescribeFuncNameContext': unwrap,
     'TablePropertyValueContext': unwrap,
     'TransformArgumentContext': unwrap,
@@ -154,6 +155,7 @@ CONVERTERS = {
     'NumericLiteralContext': unwrap,
     'BooleanLiteralContext': unwrap,
     'QuotedIdentifierAlternativeContext': unwrap,
+    "IdentifierContext": unwrap,
     "BooleanExpressionContext": never_found,
     "ConstantContext": never_found,
     "DataTypeContext": never_found,
@@ -271,8 +273,6 @@ CONVERTERS = {
     #  and definition #xxx
     "NamedExpressionContext": unwrap,
     "PredicatedContext": unwrap,
-    "IdentifierContext": unwrap,
-    "UnquotedIdentifierContext": get_leaf_value,
 }
 
 binary_operations = {
