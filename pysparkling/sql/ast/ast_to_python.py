@@ -1,6 +1,9 @@
 import ast
 
-from pysparkling.sql.expressions.operators import Equal
+from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
+    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or
+from pysparkling.sql.functions import concat
+from pysparkling.sql.types import DoubleType, StringType
 
 
 class SqlParsingError(Exception):
@@ -15,6 +18,10 @@ def check_children(expected, children):
 def unwrap(*children):
     check_children(1, children)
     return convert_tree(children[0])
+
+
+def empty(*children):
+    check_children(0, children)
 
 
 def first_child_only(*children):
@@ -35,14 +42,19 @@ def convert_tree(tree):
     return converter(*tree.children)
 
 
-def ctx_to_comparison(*children):
+def binary_operation(*children):
     check_children(3, children)
     left, operator, right = children
-    cls = comparison_converters[convert_tree(operator)]
+    cls = binary_operations[convert_tree(operator)]
     return cls(
         convert_tree(left),
         convert_tree(right)
     )
+
+
+def parenthesis_context(*children):
+    check_children(3, children)
+    return convert_tree(children[1])
 
 
 def get_leaf_value(*children):
@@ -121,6 +133,11 @@ CONVERTERS = {
     'ColTypeListContext': implicit_list,
     'ComplexColTypeListContext': implicit_list,
     'QualifiedNameListContext': implicit_list,
+    "ComparisonContext": binary_operation,
+    "ArithmeticBinaryContext": binary_operation,
+    "LogicalBinaryContext": binary_operation,
+    "RealIdentContext": empty,
+    "ParenthesizedExpressionContext": parenthesis_context,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
@@ -129,7 +146,6 @@ CONVERTERS = {
     "PredicatedContext": unwrap,
     "ValueExpressionDefaultContext": unwrap,
     "ColumnReferenceContext": unwrap,
-    "ComparisonContext": ctx_to_comparison,
     "IdentifierContext": unwrap,
     "ConstantDefaultContext": unwrap,
     "NumericLiteralContext": unwrap,
@@ -138,6 +154,27 @@ CONVERTERS = {
     "StringLiteralContext": get_leaf_value,
 }
 
-comparison_converters = {
-    "=": Equal
+binary_operations = {
+    "=": Equal,
+    "==": Equal,
+    "<>": lambda *args: Invert(Equal(*args)),
+    "!=": lambda *args: Invert(Equal(*args)),
+    "<": LessThan,
+    "<=": LessThanOrEqual,
+    "!>": LessThanOrEqual,
+    ">": GreaterThan,
+    ">=": GreaterThanOrEqual,
+    "!<": GreaterThanOrEqual,
+    "+": Add,
+    "-": Minus,
+    '*': Time,
+    '/': lambda a, b: Divide(Cast(a, DoubleType), Cast(b, DoubleType)),
+    '%': Mod,
+    'DIV': lambda a, b: Divide(Cast(a, DoubleType), Cast(b, DoubleType)),
+    '&': BitwiseAnd,
+    '|': BitwiseOr,
+    '||': lambda a, b: concat(Cast(a, StringType), Cast(b, StringType)),
+    '^': BitwiseXor,
+    'AND': And,
+    'OR': Or,
 }
