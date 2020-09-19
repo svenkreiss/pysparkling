@@ -1871,6 +1871,8 @@ def parsed_string_to_type(data_type, arguments):
         return DecimalType(precision=int(precision), scale=int(scale))
     if data_type == "array" and len(arguments) == 1:
         return ArrayType(arguments[0])
+    if data_type == "map" and len(arguments) == 2:
+        return MapType(arguments[0], arguments[1])
     raise ParseException("Unable to parse data type {0}{1}".format(data_type, arguments if arguments else ""))
 
 
