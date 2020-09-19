@@ -174,6 +174,8 @@ CONVERTERS = {
     "LogicalBinaryContext": binary_operation,
     "RealIdentContext": empty,
     "ParenthesizedExpressionContext": parenthesis_context,
+    "SubqueryContext": parenthesis_context,
+    "SubqueryExpressionContext": parenthesis_context,
     "ArithmeticUnaryContext": unary_operation,
     # WIP!
     # todo: check that all context are there
