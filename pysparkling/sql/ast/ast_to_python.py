@@ -47,7 +47,7 @@ def child_and_eof(*children):
 
 def convert_tree(tree):
     tree_type = tree.__class__.__name__
-    print(tree_type)
+    logging.warning(tree_type)
     if not hasattr(tree, "children"):
         return get_leaf_value(tree)
     converter = CONVERTERS[tree_type]
