@@ -1,3 +1,4 @@
+from .ast.ast_to_python import string_to_type
 from .expressions.expressions import Expression
 from .expressions.fields import find_position_in_schema
 from .expressions.literals import Literal
@@ -8,7 +9,7 @@ from .expressions.operators import (
     Or, Pow, StartsWith, Substring, Time
 )
 from .expressions.orders import Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, SortOrder
-from .types import DataType, string_to_type, StructField
+from .types import DataType, StructField
 from .utils import AnalysisException, IllegalArgumentException
 
 

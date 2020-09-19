@@ -1854,17 +1854,19 @@ STRING_TO_TYPE = dict(
 )
 
 
-def string_to_type(string):
-    if string in STRING_TO_TYPE:
-        return STRING_TO_TYPE[string]
-    if string.startswith("decimal("):
-        arguments = string[8:-1]
-        if arguments.count(",") == 1:
-            precision, scale = arguments.split(",")
+def parsed_string_to_type(data_type, arguments):
+    data_type = data_type.lower()
+    if not arguments and data_type in STRING_TO_TYPE:
+        return STRING_TO_TYPE[data_type]
+    if data_type == "decimal":
+        if len(arguments) == 2:
+            precision, scale = arguments
+        elif len(arguments) == 1:
+            precision, scale = arguments[0], 0
         else:
-            precision, scale = arguments, 0
+            raise ParseException("Unrecognized decimal parameters: {0}".format(arguments))
         return DecimalType(precision=int(precision), scale=int(scale))
-    raise ParseException(f"Unable to parse data type {string}")
+    raise ParseException("Unable to parse data type {0}{1}".format(data_type, arguments if arguments else ""))
 
 
 # Internal type hierarchy:

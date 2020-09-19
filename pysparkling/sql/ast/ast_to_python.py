@@ -1,12 +1,14 @@
 import ast
 import logging
 
+from pysparkling.sql.ast.parser import ast_parser
+from pysparkling.sql.column import parse
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
     GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
     BitwiseNot, UnaryPositive
 from pysparkling.sql.functions import Concat
-from pysparkling.sql.types import DoubleType, StringType
+from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
 
 
 class SqlParsingError(Exception):
@@ -62,6 +64,25 @@ def binary_operation(*children):
         convert_tree(left),
         convert_tree(right)
     )
+
+
+def cast_context(*children):
+    """
+    Children are:
+    CAST '(' expression AS dataType ')'
+
+    """
+    check_children(6, children)
+    expression = convert_tree(children[2])
+    data_type = convert_tree(children[4])
+    return parse(expression).cast(data_type)
+
+
+def detect_data_type(*children):
+    # check_children(1, children)
+    data_type = convert_tree(children[0])
+    params = [convert_tree(c) for c in children[2:-1:2]]
+    return parsed_string_to_type(data_type, params)
 
 
 def unary_operation(*children):
@@ -272,6 +293,8 @@ CONVERTERS = {
     'CommentNamespaceContext': unsupported,
     'UseContext': unsupported,
     'JoinTypeContext': concat_keywords,
+    'CastContext': cast_context,
+    'PrimitiveDataTypeContext': detect_data_type,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
@@ -310,3 +333,14 @@ unary_operations = {
     "-": Negate,
     "~": BitwiseNot,
 }
+
+
+def parse_sql(string, rule):
+    parser = ast_parser(string)
+    tree = getattr(parser, rule)()
+    return convert_tree(tree)
+
+
+def string_to_type(string):
+    ret = parse_sql(string, "singleDataType")
+    return ret
