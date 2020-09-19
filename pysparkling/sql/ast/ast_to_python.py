@@ -253,6 +253,13 @@ CONVERTERS = {
     'LateralViewContext': unsupported,
     'AlterViewQueryContext': unsupported,
     'ShowViewsContext': unsupported,
+    'SetNamespacePropertiesContext': unsupported,
+    'SetNamespaceLocationContext': unsupported,
+    'ShowNamespacesContext': unsupported,
+    'ShowCurrentNamespaceContext': unsupported,
+    'DescribeNamespaceContext': unsupported,
+    'CommentNamespaceContext': unsupported,
+    'UseContext': unsupported,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
