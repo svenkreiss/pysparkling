@@ -6,19 +6,22 @@ from pysparkling.sql.ast.generated.SqlBaseParser import SqlBaseParser
 
 
 class PostProcessor(antlr4.ParseTreeListener):
-    def exitQuotedIdentifier(self, ctx):
+    @staticmethod
+    def exitQuotedIdentifier(ctx):
         def identity(token):
             return token
 
         return identity
 
-    def enterNonReserved(self, ctx):
+    @staticmethod
+    def enterNonReserved(ctx):
         def add_backtick(token):
             return "`{0}`".format(token)
 
         return add_backtick
 
-    def replace_token_by_identifier(self, ctx):
+    @staticmethod
+    def replace_token_by_identifier(ctx):
         def do_replace_token_by_identifier(token):
             parent = ctx.parent
             parent.removeLastChild()
