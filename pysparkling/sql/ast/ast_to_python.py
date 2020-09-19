@@ -121,6 +121,7 @@ CONVERTERS = {
     'ExpressionContext': unwrap,
     'IntervalUnitContext': unwrap,
     'FunctionNameContext': unwrap,
+    'BooleanLiteralContext': unwrap,
     'ExponentLiteralContext': concat_to_literal,
     'DecimalLiteralContext': concat_to_literal,
     'LegacyDecimalLiteralContext': concat_to_literal,
