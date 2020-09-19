@@ -1,4 +1,5 @@
 import antlr4
+from antlr4 import InputStream
 from antlr4.error.ErrorListener import ErrorListener
 
 from pysparkling.sql.ast.generated.SqlBaseLexer import SqlBaseLexer
@@ -71,3 +72,7 @@ def build_ast(stream):
     parser.removeErrorListeners()
     parser.addErrorListener(ParseErrorListener())
     return parser
+
+
+def ast_parser(string):
+    return build_ast(InputStream(string))
