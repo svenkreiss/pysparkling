@@ -13,5 +13,12 @@ class TestParser(TestCase):
         print_tree(tree)
         sys.stdin.flush()
         col = convert_tree(tree)
-        print(col)
         self.assertEqual(str(col), "(doesItWorks = In progress!)")
+
+    def test_struct(self):
+        parser = ast_parser("Struct('Alice', 2)")
+        tree = parser.primaryExpression()
+        print_tree(tree)
+        sys.stdin.flush()
+        col = convert_tree(tree)
+        self.assertEqual(str(col), "struct(Alice, 2)")

@@ -4,6 +4,7 @@ import logging
 from pysparkling.sql.ast.parser import ast_parser
 from pysparkling.sql.column import parse
 from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.expressions.mappers import CreateStruct
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
     GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
     BitwiseNot, UnaryPositive
@@ -133,6 +134,10 @@ def concat_to_literal(*children):
 
 def concat_keywords(*children):
     return " ".join(convert_tree(c) for c in children)
+
+
+def build_struct(*children):
+    return CreateStruct([convert_tree(c) for c in children[2:-1:2]])
 
 
 CONVERTERS = {
@@ -296,6 +301,7 @@ CONVERTERS = {
     'CastContext': cast_context,
     'PrimitiveDataTypeContext': detect_data_type,
     'ComplexDataTypeContext': detect_data_type,
+    'StructContext': build_struct,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
