@@ -90,7 +90,7 @@ def detect_data_type(*children):
 def unary_operation(*children):
     check_children(2, children)
     operator, value = children
-    cls = unary_operations[convert_tree(operator).lower()]
+    cls = unary_operations[convert_tree(operator).upper()]
     return cls(
         convert_tree(value)
     )
