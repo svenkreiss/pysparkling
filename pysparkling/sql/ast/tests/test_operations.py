@@ -48,6 +48,11 @@ class TestOperations(TestCase):
         'True or False': ('LOGICAL_OR', '(true OR false)', True),
         'false or false': ('LOGICAL_OR', '(false OR false)', False),
         'true or NULL': ('LOGICAL_OR', '(true OR NULL)', None),
+        "+1": ("UNARY_PLUS", '(+ 1)', 1),
+        "-(1)": ("UNARY_MINUS", '(- 1)', -1),
+        "~8": ("BITWISE_NOT", '~8', -9),
+        'not true': ("NOT", '(NOT true)', False),
+        'Not Null': ("NOT", '(NOT NULL)', None),
     }
 
     @parameterized.expand(SCENARIOS.items(), name_func=format_test_name)
