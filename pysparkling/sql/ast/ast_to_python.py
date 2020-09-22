@@ -34,7 +34,7 @@ def never_found(*children):
 
 
 def unsupported(*children):
-    raise Exception("Unsupported statement")
+    raise SqlParsingError("Unsupported statement")
 
 
 def empty(*children):
@@ -105,9 +105,9 @@ def get_leaf_value(*children):
     check_children(1, children)
     value = children[0]
     if value.__class__.__name__ != "TerminalNodeImpl":
-        raise Exception("Expecting TerminalNodeImpl, got {0}".format(value.__class__.__name__))
+        raise SqlParsingError("Expecting TerminalNodeImpl, got {0}".format(value.__class__.__name__))
     if not hasattr(value, "symbol"):
-        raise Exception("Got leaf value but without symbol")
+        raise SqlParsingError("Got leaf value but without symbol")
     return value.symbol.text
 
 
