@@ -370,8 +370,9 @@ def parse_sql(string, rule, debug=False):
     parser = ast_parser(string)
     tree = getattr(parser, rule)()
     if debug:
+        sys.stderr.flush()
         print_tree(tree)
-        sys.stdin.flush()
+        sys.stdout.flush()
     return convert_tree(tree)
 
 
