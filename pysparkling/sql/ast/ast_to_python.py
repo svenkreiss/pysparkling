@@ -101,6 +101,26 @@ def parenthesis_context(*children):
     return convert_tree(children[1])
 
 
+def parse_boolean(*children):
+    check_children(1, children)
+    value = convert_tree(children[0])
+    if value.lower() == "false":
+        return False
+    if value.lower() == "true":
+        return True
+    raise SqlParsingError("Expecting boolean value, got {0}".format(children))
+
+
+def convert_to_literal(*children):
+    check_children(1, children)
+    value = convert_tree(children[0])
+    return Literal(value)
+
+
+def convert_to_null(*children):
+    return None
+
+
 def get_leaf_value(*children):
     check_children(1, children)
     value = children[0]
@@ -130,8 +150,8 @@ def implicit_list(*children):
     )
 
 
-def concat_to_literal(*children):
-    return Literal(ast.literal_eval("".join(convert_tree(c) for c in children)))
+def concat_to_value(*children):
+    return ast.literal_eval("".join(convert_tree(c) for c in children))
 
 
 def concat_keywords(*children):
@@ -155,7 +175,7 @@ CONVERTERS = {
     'ComparisonOperatorContext': get_leaf_value,
     'ArithmeticOperatorContext': get_leaf_value,
     'PredicateOperatorContext': get_leaf_value,
-    'BooleanValueContext': get_leaf_value,
+    'BooleanValueContext': parse_boolean,
     'QuotedIdentifierContext': get_leaf_value,
     'AnsiNonReservedContext': get_leaf_value,
     'StrictNonReservedContext': get_leaf_value,
@@ -180,9 +200,9 @@ CONVERTERS = {
     'TableValuedFunctionContext': unwrap,
     'IdentityTransformContext': unwrap,
     'ValueExpressionDefaultContext': unwrap,
-    'ConstantDefaultContext': unwrap,
+    'ConstantDefaultContext': convert_to_literal,
     'ColumnReferenceContext': unwrap,
-    'NullLiteralContext': unwrap,
+    'NullLiteralContext': convert_to_null,
     'IntervalLiteralContext': unwrap,
     'NumericLiteralContext': unwrap,
     'BooleanLiteralContext': unwrap,
@@ -207,15 +227,15 @@ CONVERTERS = {
     "TransformContext": never_found,
     "ValueExpressionContext": never_found,
     "WindowSpecContext": never_found,
-    'ExponentLiteralContext': concat_to_literal,
-    'DecimalLiteralContext': concat_to_literal,
-    'LegacyDecimalLiteralContext': concat_to_literal,
-    'IntegerLiteralContext': concat_to_literal,
-    'BigIntLiteralContext': concat_to_literal,
-    'SmallIntLiteralContext': concat_to_literal,
-    'TinyIntLiteralContext': concat_to_literal,
-    'DoubleLiteralContext': concat_to_literal,
-    'BigDecimalLiteralContext': concat_to_literal,
+    'ExponentLiteralContext': concat_to_value,
+    'DecimalLiteralContext': concat_to_value,
+    'LegacyDecimalLiteralContext': concat_to_value,
+    'IntegerLiteralContext': concat_to_value,
+    'BigIntLiteralContext': concat_to_value,
+    'SmallIntLiteralContext': concat_to_value,
+    'TinyIntLiteralContext': concat_to_value,
+    'DoubleLiteralContext': concat_to_value,
+    'BigDecimalLiteralContext': concat_to_value,
     'TablePropertyListContext': explicit_list,
     'ConstantListContext': explicit_list,
     'NestedConstantListContext': explicit_list,
