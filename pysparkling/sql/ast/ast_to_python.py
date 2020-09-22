@@ -258,7 +258,7 @@ CONVERTERS = {
     "SubqueryContext": parenthesis_context,
     "SubqueryExpressionContext": parenthesis_context,
     "ArithmeticUnaryContext": unary_operation,
-    "LogicalNot": unary_operation,
+    "LogicalNotContext": unary_operation,
     'CreateTableHeaderContext': unsupported,
     'ReplaceTableHeaderContext': unsupported,
     'CreateTableClausesContext': unsupported,
