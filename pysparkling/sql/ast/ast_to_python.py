@@ -355,6 +355,9 @@ def parse_sql(string, rule, debug=False):
     return convert_tree(tree)
 
 
-def parse_data_type(string):
-    return parse_sql(string, "singleDataType")
+def parse_data_type(string, debug=False):
+    return parse_sql(string, "singleDataType", debug)
 
+
+def parse_expression(string, debug=False):
+    return parse_sql(string, "singleExpression", debug)
