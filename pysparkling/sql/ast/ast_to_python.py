@@ -9,7 +9,7 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
     GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
-    BitwiseNot, UnaryPositive
+    BitwiseNot, UnaryPositive, Alias
 from pysparkling.sql.functions import Concat
 from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
 
@@ -158,9 +158,39 @@ def concat_keywords(*children):
     return " ".join(convert_tree(c) for c in children)
 
 
+def concat_strings(*children):
+    return "".join(convert_tree(c) for c in children)
+
+
 def build_struct(*children):
     return CreateStruct([convert_tree(c) for c in children[2:-1:2]])
 
+
+def potential_alias(*chidren):
+    if len(chidren) == 1:
+        return convert_tree(chidren[0])
+    if len(chidren) in (2, 3):
+        return Alias(
+            convert_tree(chidren[0]),
+            convert_tree(chidren[-1])
+        )
+    raise SqlParsingError("Expecting 1, 2 or 3 children, got {0}".format(len(chidren)))
+
+
+def check_identifier(*children):
+    check_children(2, children)
+    identifier = convert_tree(children[0])
+    if children[1].children:
+        extra = convert_tree(children[1])
+        raise SqlParsingError((
+            "Possibly unquoted identifier {0}{1} detected. "
+            "Please consider quoting it with back-quotes as `{0}{1}`"
+        ).format(identifier, extra))
+    return identifier
+
+
+def debug(*children):
+    pass
 
 CONVERTERS = {
     "SingleStatementContext": first_child_only,
@@ -325,11 +355,13 @@ CONVERTERS = {
     'PrimitiveDataTypeContext': detect_data_type,
     'ComplexDataTypeContext': detect_data_type,
     'StructContext': build_struct,
+    "NamedExpressionContext": potential_alias,
+    "ErrorCapturingIdentifierContext": check_identifier,
+    "ErrorIdentContext": concat_strings,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
     #  and definition #xxx
-    "NamedExpressionContext": unwrap,
     "PredicatedContext": unwrap,
 }
 
