@@ -62,7 +62,7 @@ def convert_tree(tree):
 def binary_operation(*children):
     check_children(3, children)
     left, operator, right = children
-    cls = binary_operations[convert_tree(operator)]
+    cls = binary_operations[convert_tree(operator).upper()]
     return cls(
         convert_tree(left),
         convert_tree(right)
@@ -90,7 +90,7 @@ def detect_data_type(*children):
 def unary_operation(*children):
     check_children(2, children)
     operator, value = children
-    cls = unary_operations[convert_tree(operator)]
+    cls = unary_operations[convert_tree(operator).lower()]
     return cls(
         convert_tree(value)
     )
