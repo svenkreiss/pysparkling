@@ -11,7 +11,7 @@ ROW = Row()
 SCHEMA = StructType()
 
 
-def test_name(func, num, p):
+def format_test_name(func, num, p):
     base_name = default_name_func(func, num, p)
     if len(p.args) > 1 and isinstance(p.args[1], tuple) and isinstance(p.args[1][0], str):
         return base_name + "_" + parameterized.to_safe_name(p.args[1][0])
@@ -50,7 +50,7 @@ class TestOperations(TestCase):
         'true or NULL': ('LOGICAL_OR', '(true OR NULL)', None),
     }
 
-    @parameterized.expand(SCENARIOS.items(), name_func=test_name)
+    @parameterized.expand(SCENARIOS.items(), name_func=format_test_name)
     def test_operations(self, string, expected):
         operator, expected_parsed, expected_result = expected
         actual_parsed = parse_expression(string, True)
