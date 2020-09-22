@@ -1,7 +1,9 @@
 import ast
 import logging
+import sys
 
 from pysparkling.sql.ast.parser import ast_parser
+from pysparkling.sql.ast.utils import print_tree
 from pysparkling.sql.column import parse
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct
@@ -344,9 +346,12 @@ unary_operations = {
 }
 
 
-def parse_sql(string, rule):
+def parse_sql(string, rule, debug=False):
     parser = ast_parser(string)
     tree = getattr(parser, rule)()
+    if debug:
+        print_tree(tree)
+        sys.stdin.flush()
     return convert_tree(tree)
 
 
