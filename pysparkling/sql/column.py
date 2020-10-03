@@ -102,19 +102,19 @@ class Column(object):
         A boolean expression that is evaluated to true if the value of this
         expression is between the given columns.
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.name, df.age.between(2, 4)).show()
-        +-----+---------------------------+
-        | name|((age >= 2) AND (age <= 4))|
-        +-----+---------------------------+
-        |Alice|                       true|
-        |  Bob|                      false|
-        +-----+---------------------------+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.name, df.age.between(2, 4)).show()
+        # +-----+---------------------------+
+        # | name|((age >= 2) AND (age <= 4))|
+        # +-----+---------------------------+
+        # |Alice|                       true|
+        # |  Bob|                      false|
+        # +-----+---------------------------+
         """
         return (self >= lowerBound) & (self <= upperBound)
 
@@ -156,22 +156,22 @@ class Column(object):
         An expression that gets an item at position ``ordinal`` out of a list,
         or gets an item by key out of a dict.
 
-        >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame([([1, 2], {"key": "value"})], ["l", "d"])
-        >>> df.select(df.l.getItem(0), df.d.getItem("key")).show()
-        +----+------+
-        |l[0]|d[key]|
-        +----+------+
-        |   1| value|
-        +----+------+
-        >>> df.select(df.l[0], df.d["key"]).show()
-        +----+------+
-        |l[0]|d[key]|
-        +----+------+
-        |   1| value|
-        +----+------+
+        # >>> from pysparkling import Context
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame([([1, 2], {"key": "value"})], ["l", "d"])
+        # >>> df.select(df.l.getItem(0), df.d.getItem("key")).show()
+        # +----+------+
+        # |l[0]|d[key]|
+        # +----+------+
+        # |   1| value|
+        # +----+------+
+        # >>> df.select(df.l[0], df.d["key"]).show()
+        # +----+------+
+        # |l[0]|d[key]|
+        # +----+------+
+        # |   1| value|
+        # +----+------+
         """
         return self[key]
 
@@ -179,22 +179,22 @@ class Column(object):
         """
         An expression that gets a field by name in a StructField.
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame([Row(r=Row(a=1, b="b"))])
-        >>> df.select(df.r.getField("b")).show()
-        +---+
-        |r.b|
-        +---+
-        |  b|
-        +---+
-        >>> df.select(df.r.a).show()
-        +---+
-        |r.a|
-        +---+
-        |  1|
-        +---+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame([Row(r=Row(a=1, b="b"))])
+        # >>> df.select(df.r.getField("b")).show()
+        # +---+
+        # |r.b|
+        # +---+
+        # |  b|
+        # +---+
+        # >>> df.select(df.r.a).show()
+        # +---+
+        # |r.a|
+        # +---+
+        # |  1|
+        # +---+
         """
         if not isinstance(name, Column):
             name = Literal(name)
@@ -239,14 +239,14 @@ class Column(object):
         :param startPos: start position (int or Column)
         :param length:  length of the substring (int or Column)
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.name.substr(1, 3).alias("col")).collect()
-        [Row(col='Ali'), Row(col='Bob')]
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.name.substr(1, 3).alias("col")).collect()
+        # [Row(col='Ali'), Row(col='Bob')]
         """
         if not isinstance(startPos, type(length)):
             raise TypeError(
@@ -260,16 +260,16 @@ class Column(object):
         A boolean expression that is evaluated to true if the value of this
         expression is contained by the evaluated values of the arguments.
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df[df.name.isin("Bob", "Mike")].collect()
-        [Row(age=5, name='Bob')]
-        >>> df[df.age.isin([1, 2, 3])].collect()
-        [Row(age=2, name='Alice')]
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df[df.name.isin("Bob", "Mike")].collect()
+        # [Row(age=5, name='Bob')]
+        # >>> df[df.age.isin([1, 2, 3])].collect()
+        # [Row(age=2, name='Alice')]
         """
         if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
             exprs = exprs[0]
@@ -277,57 +277,57 @@ class Column(object):
 
     def asc(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> # asc is the default order
-        >>> df = spark.range(5).withColumn(
-        ...   "order", when(col('id')%2 == 0, col('id'))
-        ... ).orderBy("order").show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  1| null|
-        |  3| null|
-        |  0|    0|
-        |  2|    2|
-        |  4|    4|
-        +---+-----+
-        >>> df = spark.range(5).withColumn(
-        ...   "order", when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").asc()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  1| null|
-        |  3| null|
-        |  0|    0|
-        |  2|    2|
-        |  4|    4|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> # asc is the default order
+        # >>> df = spark.range(5).withColumn(
+        # ...   "order", when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy("order").show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  1| null|
+        # |  3| null|
+        # |  0|    0|
+        # |  2|    2|
+        # |  4|    4|
+        # +---+-----+
+        # >>> df = spark.range(5).withColumn(
+        # ...   "order", when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").asc()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  1| null|
+        # |  3| null|
+        # |  0|    0|
+        # |  2|    2|
+        # |  4|    4|
+        # +---+-----+
 
         """
         return Column(Asc(self))
 
     def asc_nulls_first(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(5).withColumn("order",
-        ...   when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").asc_nulls_first()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  1| null|
-        |  3| null|
-        |  0|    0|
-        |  2|    2|
-        |  4|    4|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.range(5).withColumn("order",
+        # ...   when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").asc_nulls_first()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  1| null|
+        # |  3| null|
+        # |  0|    0|
+        # |  2|    2|
+        # |  4|    4|
+        # +---+-----+
 
 
         """
@@ -335,88 +335,88 @@ class Column(object):
 
     def asc_nulls_last(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(5).withColumn("order",
-        ...   when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").asc_nulls_last()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  0|    0|
-        |  2|    2|
-        |  4|    4|
-        |  1| null|
-        |  3| null|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.range(5).withColumn("order",
+        # ...   when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").asc_nulls_last()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  0|    0|
+        # |  2|    2|
+        # |  4|    4|
+        # |  1| null|
+        # |  3| null|
+        # +---+-----+
 
         """
         return Column(AscNullsLast(self))
 
     def desc(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(5).withColumn("order",
-        ...   when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").desc()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  4|    4|
-        |  2|    2|
-        |  0|    0|
-        |  1| null|
-        |  3| null|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.range(5).withColumn("order",
+        # ...   when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").desc()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  4|    4|
+        # |  2|    2|
+        # |  0|    0|
+        # |  1| null|
+        # |  3| null|
+        # +---+-----+
 
         """
         return Column(Desc(self))
 
     def desc_nulls_first(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(5).withColumn("order",
-        ...   when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").desc_nulls_first()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  1| null|
-        |  3| null|
-        |  4|    4|
-        |  2|    2|
-        |  0|    0|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.range(5).withColumn("order",
+        # ...   when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").desc_nulls_first()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  1| null|
+        # |  3| null|
+        # |  4|    4|
+        # |  2|    2|
+        # |  0|    0|
+        # +---+-----+
 
         """
         return Column(DescNullsFirst(self))
 
     def desc_nulls_last(self):
         """
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import when, col
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(5).withColumn("order",
-        ...   when(col('id')%2 == 0, col('id'))
-        ... ).orderBy(col("order").desc_nulls_last()).show()
-        +---+-----+
-        | id|order|
-        +---+-----+
-        |  4|    4|
-        |  2|    2|
-        |  0|    0|
-        |  1| null|
-        |  3| null|
-        +---+-----+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import when, col
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.range(5).withColumn("order",
+        # ...   when(col('id')%2 == 0, col('id'))
+        # ... ).orderBy(col("order").desc_nulls_last()).show()
+        # +---+-----+
+        # | id|order|
+        # +---+-----+
+        # |  4|    4|
+        # |  2|    2|
+        # |  0|    0|
+        # |  1| null|
+        # |  3| null|
+        # +---+-----+
 
         """
         return Column(DescNullsLast(self))
@@ -439,23 +439,23 @@ class Column(object):
         .. versionchanged:: 2.2
            Added optional ``metadata`` argument.
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.age.alias("age2")).collect()
-        [Row(age2=2), Row(age2=5)]
-        >>> from pysparkling.sql.functions import map_from_arrays, array
-        >>> spark.range(3).select(map_from_arrays(array("id"), array("id"))).show()
-        +-------------------------------------+
-        |map_from_arrays(array(id), array(id))|
-        +-------------------------------------+
-        |                             [0 -> 0]|
-        |                             [1 -> 1]|
-        |                             [2 -> 2]|
-        +-------------------------------------+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.age.alias("age2")).collect()
+        # [Row(age2=2), Row(age2=5)]
+        # >>> from pysparkling.sql.functions import map_from_arrays, array
+        # >>> spark.range(3).select(map_from_arrays(array("id"), array("id"))).show()
+        # +-------------------------------------+
+        # |map_from_arrays(array(id), array(id))|
+        # +-------------------------------------+
+        # |                             [0 -> 0]|
+        # |                             [1 -> 1]|
+        # |                             [2 -> 2]|
+        # +-------------------------------------+
 
         """
 
@@ -479,33 +479,33 @@ class Column(object):
     def cast(self, dataType):
         """ Convert the column into type ``dataType``.
 
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.types import StringType
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.name, df.age.between(2, 4).alias('taapero')).collect()
-        [Row(name='Alice', taapero=True), Row(name='Bob', taapero=False)]
-        >>> df.select(df.age.cast("string").alias('ages')).collect()
-        [Row(ages='2'), Row(ages='5')]
-        >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
-        [Row(ages='2'), Row(ages='5')]
-        >>> df.select(df.age.cast('float')).show()
-        +---+
-        |age|
-        +---+
-        |2.0|
-        |5.0|
-        +---+
-        >>> df.select(df.age.cast('decimal(5, 0)')).show()
-        +---+
-        |age|
-        +---+
-        |  2|
-        |  5|
-        +---+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.types import StringType
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.name, df.age.between(2, 4).alias('taapero')).collect()
+        # [Row(name='Alice', taapero=True), Row(name='Bob', taapero=False)]
+        # >>> df.select(df.age.cast("string").alias('ages')).collect()
+        # [Row(ages='2'), Row(ages='5')]
+        # >>> df.select(df.age.cast(StringType()).alias('ages')).collect()
+        # [Row(ages='2'), Row(ages='5')]
+        # >>> df.select(df.age.cast('float')).show()
+        # +---+
+        # |age|
+        # +---+
+        # |2.0|
+        # |5.0|
+        # +---+
+        # >>> df.select(df.age.cast('decimal(5, 0)')).show()
+        # +---+
+        # |age|
+        # +---+
+        # |  2|
+        # |  5|
+        # +---+
 
         """
 
@@ -529,20 +529,20 @@ class Column(object):
         :param condition: a boolean :class:`Column` expression.
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pysparkling.sql import functions as F
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.name, F.when(df.age > 4, 1).when(df.age < 3, -1).otherwise(0)).show()
-        +-----+------------------------------------------------------------+
-        | name|CASE WHEN (age > 4) THEN 1 WHEN (age < 3) THEN -1 ELSE 0 END|
-        +-----+------------------------------------------------------------+
-        |Alice|                                                          -1|
-        |  Bob|                                                           1|
-        +-----+------------------------------------------------------------+
+        # >>> from pysparkling.sql import functions as F
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.name, F.when(df.age > 4, 1).when(df.age < 3, -1).otherwise(0)).show()
+        # +-----+------------------------------------------------------------+
+        # | name|CASE WHEN (age > 4) THEN 1 WHEN (age < 3) THEN -1 ELSE 0 END|
+        # +-----+------------------------------------------------------------+
+        # |Alice|                                                          -1|
+        # |  Bob|                                                           1|
+        # +-----+------------------------------------------------------------+
         """
         if not isinstance(condition, Column):
             raise TypeError("condition should be a Column")
@@ -563,20 +563,20 @@ class Column(object):
 
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pysparkling.sql import functions as F
-        >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.createDataFrame(
-        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        ... )
-        >>> df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
-        +-----+-------------------------------------+
-        | name|CASE WHEN (age > 3) THEN 1 ELSE 0 END|
-        +-----+-------------------------------------+
-        |Alice|                                    0|
-        |  Bob|                                    1|
-        +-----+-------------------------------------+
+        # >>> from pysparkling.sql import functions as F
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        # ... )
+        # >>> df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
+        # +-----+-------------------------------------+
+        # | name|CASE WHEN (age > 3) THEN 1 ELSE 0 END|
+        # +-----+-------------------------------------+
+        # |Alice|                                    0|
+        # |  Bob|                                    1|
+        # +-----+-------------------------------------+
 
         """
         if not isinstance(self.expr, CaseWhen):
@@ -666,10 +666,10 @@ class Column(object):
         :param window: a :class:`WindowSpec`
         :return: a Column
 
-        >>> from pyspark.sql import Window
-        >>> window = Window.partitionBy("name").orderBy("age").rowsBetween(-1, 1)
-        >>> from pysparkling.sql.functions import rank, min
-        >>> # df.select(rank().over(window), min('age').over(window))
+        # >>> from pyspark.sql import Window
+        # >>> window = Window.partitionBy("name").orderBy("age").rowsBetween(-1, 1)
+        # >>> from pysparkling.sql.functions import rank, min
+        # >>> # df.select(rank().over(window), min('age').over(window))
         """
         raise NotImplementedError("window functions are not yet supported by pysparkling")
 
