@@ -1355,6 +1355,9 @@ class DataFrame(object):
                     _check_series_convert_timestamps_local_tz(pdf[field.name], timezone)
         return pdf
 
+    def drop_duplicates(self, subset=None):
+        return self.dropDuplicates(subset)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
