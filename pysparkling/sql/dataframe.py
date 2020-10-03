@@ -14,3 +14,7 @@ class DataFrame(object):
         [Row(id=0), Row(id=1)]
         """
         return self._jdf.collect()
+
+    @property
+    def rdd(self):
+        return self._jdf.rdd()
