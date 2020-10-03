@@ -219,6 +219,13 @@ class DataFrame(object):
             raise ValueError("col2 should be a string.")
         return self._jdf.cov(col1, col2)
 
+    def crosstab(self, col1, col2):
+        if not isinstance(col1, str):
+            raise ValueError("col1 should be a string.")
+        if not isinstance(col2, str):
+            raise ValueError("col2 should be a string.")
+        return DataFrame(self._jdf.crosstab(self, col1, col2), self.sql_ctx)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
