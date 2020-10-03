@@ -204,6 +204,22 @@ class DataFrame(object):
         """
         return self._jdf.toLocalIterator()
 
+    def limit(self, n):
+        """Restrict the DataFrame to the first n items
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2).limit(1)
+        >>> df.show()
+        +---+
+        | id|
+        +---+
+        |  0|
+        +---+
+        """
+        return DataFrame(self._jdf.limit(n), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
