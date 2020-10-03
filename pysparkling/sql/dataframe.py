@@ -616,6 +616,9 @@ class DataFrame(object):
         sorted_jdf = self._jdf.sort(sorting_cols)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
+    def orderBy(self, *cols, **kwargs):
+        return self.sort(*cols, **kwargs)
+
     @staticmethod
     def _sort_cols(cols, kwargs):
         """ Return a list of Columns that describes the sort order
