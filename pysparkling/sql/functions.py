@@ -1,4 +1,5 @@
 from pysparkling.sql.column import Column, parse
+from pysparkling.sql.expressions.arrays import ArrayColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
 from pysparkling.sql.expressions.literals import Literal
 
@@ -89,3 +90,11 @@ def struct(*exprs):
     """
     cols = [parse(e) for e in exprs]
     return col(CreateStruct(cols))
+
+
+def array(*exprs):
+    """
+    :rtype: Column
+    """
+    columns = [parse(e) for e in exprs]
+    return col(ArrayColumn(columns))
