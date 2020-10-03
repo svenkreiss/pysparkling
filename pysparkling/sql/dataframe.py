@@ -571,6 +571,51 @@ class DataFrame(object):
         sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
+    def sort(self, *cols, **kwargs):
+        """Returns a new :class:`DataFrame` sorted by the specified column(s).
+
+        :param cols: list of :class:`Column` or column names to sort by.
+        :param ascending: boolean or list of boolean (default True).
+            Sort ascending vs. descending. Specify list for multiple sort orders.
+            If a list is specified, length of the list must equal length of the `cols`.
+
+        # >>> df.orderBy(desc("age"), "name").collect()
+        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        # >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
+        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.sort("age", ascending=False).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> df.sort("age", ascending=False).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> df.sort("age").show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        """
+        exprs = [parse(col) for col in cols]
+        sorting_cols = self._sort_cols(exprs, kwargs)
+        sorted_jdf = self._jdf.sort(sorting_cols)
+        return DataFrame(sorted_jdf, self.sql_ctx)
+
     @staticmethod
     def _sort_cols(cols, kwargs):
         """ Return a list of Columns that describes the sort order
