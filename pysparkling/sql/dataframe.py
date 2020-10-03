@@ -1,3 +1,6 @@
+_NoValue = object()
+
+
 class DataFrame(object):
     def __init__(self, jdf, sql_ctx):
         self._jdf = jdf
@@ -22,3 +25,20 @@ class DataFrame(object):
     @property
     def is_cached(self):
         return self._jdf.is_cached()
+
+    def dropna(self, how='any', thresh=None, subset=None):
+        if how is not None and how not in ['any', 'all']:
+            raise ValueError("how ('" + how + "') should be 'any' or 'all'")
+
+        if subset is None:
+            subset = self.columns
+        elif isinstance(subset, str):
+            subset = [subset]
+        elif not isinstance(subset, (list, tuple)):
+            raise ValueError("subset should be a list or tuple of column names")
+
+        if thresh is None:
+            thresh = len(subset) if how == 'any' else 1
+
+        return DataFrame(self._jdf.dropna(thresh, subset), self.sql_ctx)
+
