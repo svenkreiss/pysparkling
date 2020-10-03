@@ -6,6 +6,7 @@ from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
+from pysparkling.sql.functions import array, map_from_arrays, lit, rand
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, \
     FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
@@ -290,6 +291,17 @@ class DataFrameInternal(object):
         sketched_rdd_content = rdd.mapPartitionsWithIndex(sketch_partition).collect()
 
         return dict(sketched_rdd_content)
+
+    def sampleBy(self, col, fractions, seed):
+        fractions_as_col = map_from_arrays(
+            array(*(map(lit, fractions.keys()))),
+            array(*map(lit, fractions.values()))
+        )
+
+        return self._with_rdd(
+            self.filter(rand(seed) < fractions_as_col[col]),
+            self.bound_schema
+        )
 
     def toJSON(self, use_unicode):
         """
