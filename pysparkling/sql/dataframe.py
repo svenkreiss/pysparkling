@@ -245,6 +245,21 @@ class DataFrame(object):
         """
         self._jdf.foreach(f)
 
+    def foreachPartition(self, f):
+        """Execute a function for each partition of the DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> result = (spark.range(4, numPartitions=2)
+        ...                .foreachPartition(lambda partition: print(list(partition))))
+        [Row(id=0), Row(id=1)]
+        [Row(id=2), Row(id=3)]
+        >>> result is None
+        True
+        """
+        self._jdf.foreachPartition(f)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
