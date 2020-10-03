@@ -29,20 +29,20 @@ def typedLit(literal):
 
 def when(condition, value):
     """
-    >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> df = spark.createDataFrame(
-    ...    [Row(age=2, name='Alice'), Row(age=5, name='Bob'), Row(age=4, name='Lisa')]
-    ... )
-    >>> df.select(df.name, when(df.age > 4, -1).when(df.age < 3, 1).otherwise(0)).show()
-    +-----+------------------------------------------------------------+
-    | name|CASE WHEN (age > 4) THEN -1 WHEN (age < 3) THEN 1 ELSE 0 END|
-    +-----+------------------------------------------------------------+
-    |Alice|                                                           1|
-    |  Bob|                                                          -1|
-    | Lisa|                                                           0|
-    +-----+------------------------------------------------------------+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.createDataFrame(
+    # ...    [Row(age=2, name='Alice'), Row(age=5, name='Bob'), Row(age=4, name='Lisa')]
+    # ... )
+    # >>> df.select(df.name, when(df.age > 4, -1).when(df.age < 3, 1).otherwise(0)).show()
+    # +-----+------------------------------------------------------------+
+    # | name|CASE WHEN (age > 4) THEN -1 WHEN (age < 3) THEN 1 ELSE 0 END|
+    # +-----+------------------------------------------------------------+
+    # |Alice|                                                           1|
+    # |  Bob|                                                          -1|
+    # | Lisa|                                                           0|
+    # +-----+------------------------------------------------------------+
 
     :rtype: Column
     """
@@ -54,19 +54,19 @@ def rand(seed=None):
 
     :rtype: Column
 
-    >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> df = spark.range(4, numPartitions=2)
-    >>> df.select((rand(seed=42) * 3).alias("rand")).show()
-    +------------------+
-    |              rand|
-    +------------------+
-    |2.3675439190260485|
-    |1.8992753422855404|
-    |1.5878851952491426|
-    |0.8800146499990725|
-    +------------------+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.range(4, numPartitions=2)
+    # >>> df.select((rand(seed=42) * 3).alias("rand")).show()
+    # +------------------+
+    # |              rand|
+    # +------------------+
+    # |2.3675439190260485|
+    # |1.8992753422855404|
+    # |1.5878851952491426|
+    # |0.8800146499990725|
+    # +------------------+
     """
     return col(Rand(seed))
 
@@ -75,19 +75,19 @@ def struct(*exprs):
     """
     :rtype: Column
 
-    >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
-    >>> df.select(struct("age", col("name")).alias("struct")).collect()
-    [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
-    >>> df.select(struct("age", col("name"))).show()
-    +----------------------------------+
-    |named_struct(age, age, name, name)|
-    +----------------------------------+
-    |                        [2, Alice]|
-    |                          [5, Bob]|
-    +----------------------------------+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    # >>> df.select(struct("age", col("name")).alias("struct")).collect()
+    # [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
+    # >>> df.select(struct("age", col("name"))).show()
+    # +----------------------------------+
+    # |named_struct(age, age, name, name)|
+    # +----------------------------------+
+    # |                        [2, Alice]|
+    # |                          [5, Bob]|
+    # +----------------------------------+
 
     """
     cols = [parse(e) for e in exprs]
@@ -109,16 +109,16 @@ def map_from_arrays(col1, col2):
     :param col2: name of column containing a set of values
     :rtype: Column
 
-    >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
-    >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
-    +----------------+
-    |             map|
-    +----------------+
-    |[2 -> a, 5 -> b]|
-    +----------------+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
+    # >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
+    # +----------------+
+    # |             map|
+    # +----------------+
+    # |[2 -> a, 5 -> b]|
+    # +----------------+
     """
     key_col = parse(col1)
     value_col = parse(col2)
@@ -129,14 +129,14 @@ def count(e):
     """
     :rtype: Column
 
-    >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> spark.range(5).select(count("*")).show()
-    +--------+
-    |count(1)|
-    +--------+
-    |       5|
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> spark.range(5).select(count("*")).show()
+    # +--------+
+    # |count(1)|
+    # +--------+
+    # |       5|
     +--------+
     """
     return col(Count(column=parse(e)))
