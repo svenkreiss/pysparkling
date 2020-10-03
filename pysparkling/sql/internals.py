@@ -7,7 +7,7 @@ from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
-from pysparkling.sql.functions import array, map_from_arrays, lit, rand, count, struct
+from pysparkling.sql.functions import array, map_from_arrays, lit, rand, count, struct, collect_set
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, \
     FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
@@ -1122,7 +1122,9 @@ class InternalGroupedDataFrame(object):
 
     def pivot(self, pivot_col, pivot_values):
         if pivot_values is None:
-            raise NotImplementedError("Pysparkling does not support yet pivot without values")
+            pivot_values = sorted(
+                self.jdf.select(collect_set(pivot_col)).collect()[0][0]
+            )
 
         return InternalGroupedDataFrame(
             jdf=self.jdf,
