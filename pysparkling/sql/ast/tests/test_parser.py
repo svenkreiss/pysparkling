@@ -32,3 +32,11 @@ class TestParser(TestCase):
     def test_struct(self):
         col = parse_sql("Struct('Alice', 2)", rule="primaryExpression")
         self.assertEqual("struct(Alice, 2)", str(col))
+
+    def test_function(self):
+        col = parse_sql("GREATEST(1,2,3)", rule="singleExpression")
+        self.assertEqual("greatest(1, 2, 3)", str(col))
+
+    # def test_where_filter(self):
+    #     col = parse_sql("concat(1,2 ,3) filter (where id<2)", rule="singleExpression")
+    #     self.assertEqual("..", str(col))

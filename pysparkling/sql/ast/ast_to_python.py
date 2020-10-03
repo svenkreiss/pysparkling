@@ -6,11 +6,11 @@ from pysparkling.sql.ast.parser import ast_parser
 from pysparkling.sql.ast.utils import print_tree
 from pysparkling.sql.column import parse
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.mappers import CreateStruct
+from pysparkling.sql.expressions.mappers import CreateStruct, Concat
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
     GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
     BitwiseNot, UnaryPositive, Alias
-from pysparkling.sql.functions import Concat
+from pysparkling.sql import functions
 from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
 
 
@@ -52,11 +52,37 @@ def child_and_eof(*children):
 
 def convert_tree(tree):
     tree_type = tree.__class__.__name__
-    logging.warning(tree_type)
     if not hasattr(tree, "children"):
         return get_leaf_value(tree)
     converter = CONVERTERS[tree_type]
     return converter(*tree.children)
+
+
+def call_function(*children):
+    raw_function_name = convert_tree(children[0])
+    function_name = next(
+        (name for name in functions.__all__ if name.lower() == raw_function_name.lower()),
+        None
+    )
+    function = getattr(functions, function_name)
+
+    params = [convert_tree(c) for c in children[2:-1]]
+
+    complex_function = ')' in params
+    if not complex_function:
+        last_argument_position = None
+        filter_clause = None
+        over_clause = None
+        set_clause = None
+    else:
+        last_argument_position = params.index(")")
+        filter_clause = ...  # todo
+        over_clause = ...  # todo
+        set_clause = ...  # todo
+
+    # parameters are comma separated
+    function_arguments = params[0:last_argument_position:2]
+    return function(*function_arguments)
 
 
 def binary_operation(*children):
@@ -183,14 +209,15 @@ def check_identifier(*children):
     if children[1].children:
         extra = convert_tree(children[1])
         raise SqlParsingError((
-            "Possibly unquoted identifier {0}{1} detected. "
-            "Please consider quoting it with back-quotes as `{0}{1}`"
-        ).format(identifier, extra))
+                                  "Possibly unquoted identifier {0}{1} detected. "
+                                  "Please consider quoting it with back-quotes as `{0}{1}`"
+                              ).format(identifier, extra))
     return identifier
 
 
 def debug(*children):
     pass
+
 
 CONVERTERS = {
     "SingleStatementContext": first_child_only,
@@ -358,6 +385,8 @@ CONVERTERS = {
     "NamedExpressionContext": potential_alias,
     "ErrorCapturingIdentifierContext": check_identifier,
     "ErrorIdentContext": concat_strings,
+    "FunctionCallContext": call_function,
+    "QualifiedNameContext": concat_strings,
     # WIP!
     # todo: check that all context are there
     #  including yyy: definition
