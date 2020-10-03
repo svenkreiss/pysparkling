@@ -1,4 +1,5 @@
 from pysparkling.sql.column import Column, parse
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
@@ -139,3 +140,10 @@ def count(e):
     +--------+
     """
     return col(Count(column=parse(e)))
+
+
+def collect_set(e):
+    """
+    :rtype: Column
+    """
+    return col(CollectSet(column=parse(e)))
