@@ -340,9 +340,8 @@ class DataFrameInternal(object):
         cols = [parse(e) for e in exprs]
 
         if any(col.is_an_aggregation for col in cols):
-            raise NotImplementedError
-            # df_as_group = InternalGroupedDataFrame(self, [])
-            # return df_as_group.agg(exprs)
+            df_as_group = InternalGroupedDataFrame(self, [])
+            return df_as_group.agg(exprs)
 
         def select_mapper(partition_index, partition):
             # Initialize non deterministic functions so that they are reproducible
