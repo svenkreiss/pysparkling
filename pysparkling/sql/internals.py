@@ -7,7 +7,7 @@ from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
-from pysparkling.sql.functions import array, map_from_arrays, lit, rand, count
+from pysparkling.sql.functions import array, map_from_arrays, lit, rand, count, struct
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, \
     FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
@@ -873,6 +873,26 @@ class DataFrameInternal(object):
                         min_other = next(other_partition, None)
 
         return self.applyFunctionOnHashPartitionedRdds(other, intersect_within_partition)
+
+    def dropDuplicates(self, cols):
+        key_column = (struct(*cols) if cols else struct("*")).alias("key")
+        value_column = struct("*").alias("value")
+        self_prepared_rdd = self.select(key_column, value_column).rdd()
+
+        def drop_duplicate_within_partition(self_partition):
+            def unique_generator():
+                seen = set()
+                for key, value in self_partition:
+                    if key not in seen:
+                        seen.add(key)
+                        yield value
+
+            return unique_generator()
+
+        unique_rdd = (self_prepared_rdd.partitionBy(200)
+                      .mapPartitions(drop_duplicate_within_partition))
+
+        return self._with_rdd(unique_rdd, self.bound_schema)
 
     def applyFunctionOnHashPartitionedRdds(self, other, func):
         self_prepared_rdd, other_prepared_rdd = self.hash_partition_and_sort(other)
