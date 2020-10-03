@@ -489,6 +489,10 @@ class DataFrame(object):
     def dtypes(self):
         return [(f.name, f.dataType.simpleString()) for f in self.schema.fields]
 
+    @property
+    def columns(self):
+        return [f.name for f in self.schema.fields]
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
