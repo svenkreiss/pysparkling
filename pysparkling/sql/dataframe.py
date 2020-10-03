@@ -331,6 +331,43 @@ class DataFrame(object):
         """
         return DataFrame(self._jdf.unpersist(blocking), self.sql_ctx)
 
+    def coalesce(self, numPartitions):
+        """Coalesce the dataframe
+
+        :param int numPartitions: Max number of partitions in the resulting dataframe.
+        :rtype: DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(4, numPartitions=2).coalesce(1).rdd.getNumPartitions()
+        1
+        >>> spark.range(4, numPartitions=2).coalesce(4).rdd.getNumPartitions()
+        2
+        >>> spark.range(3).coalesce(1).collect()
+        [Row(id=0), Row(id=1), Row(id=2)]
+        >>> df = spark.range(200).repartition(300)
+        >>> df = df.filter(df.id % 2 == 0).select(df.id * 2)
+        >>> df = df.coalesce(299)
+        >>> df.rdd.getNumPartitions()
+        299
+        >>> df = df.coalesce(298)
+        >>> df.rdd.getNumPartitions()
+        298
+        >>> df = df.coalesce(174)
+        >>> df.rdd.getNumPartitions()
+        174
+        >>> df = df.coalesce(75)
+        >>> df.rdd.getNumPartitions()
+        75
+        >>> df = df.coalesce(1)
+        >>> df.rdd.getNumPartitions()
+        1
+        >>> df.count()
+        100
+        """
+        return DataFrame(self._jdf.coalesce(numPartitions), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
