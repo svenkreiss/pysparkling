@@ -162,6 +162,24 @@ class DataFrame(object):
     def withWatermark(self, eventTime, delayThreshold):
         raise NotImplementedError("Streaming is not supported in PySparkling")
 
+    def hint(self, name, *parameters):
+        if len(parameters) == 1 and isinstance(parameters[0], list):
+            parameters = parameters[0]
+
+        if not isinstance(name, str):
+            raise TypeError("name should be provided as str, got {0}".format(type(name)))
+
+        allowed_types = (str, list, float, int)
+        for p in parameters:
+            if not isinstance(p, allowed_types):
+                raise TypeError(
+                    "all parameters should be in {0}, got {1} of type {2}".format(
+                        allowed_types, p, type(p)))
+
+        # No hint are supported by pysparkling hence nothing is done here
+        jdf = self._jdf
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
