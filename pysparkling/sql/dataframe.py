@@ -820,6 +820,35 @@ class DataFrame(object):
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
 
+    def selectExpr(self, *expr):
+        """Projects a set of SQL expressions and returns a new :class:`DataFrame`.
+
+        This is a variant of :func:`select` that accepts SQL expressions.
+
+        # >>> df.selectExpr("age * 2", "abs(age)").collect()
+        # [Row((age * 2)=4, abs(age)=2), Row((age * 2)=10, abs(age)=5)]
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.selectExpr("age").show()
+        +---+
+        |age|
+        +---+
+        |  2|
+        |  5|
+        +---+
+        """
+        if len(expr) == 1 and isinstance(expr[0], list):
+            expr = expr[0]
+        # pylint: disable=fixme
+        # todo: handle expr like abs(age)
+        jdf = self._jdf.select(*expr)
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
