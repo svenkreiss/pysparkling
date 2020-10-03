@@ -1,5 +1,7 @@
 import warnings
 
+from pysparkling.sql.column import parse
+
 _NoValue = object()
 
 
@@ -234,6 +236,20 @@ class DataFrame(object):
         if not support:
             support = 0.01
         return DataFrame(self._jdf.freqItems(cols, support), self.sql_ctx)
+
+    def sampleBy(self, col, fractions, seed=None):
+        """
+        Returns a stratified sample without replacement based on the
+        fraction given on each stratum.
+
+        :param col: column that defines strata
+        :param fractions:
+            sampling fraction for each stratum. If a stratum is not
+            specified, we treat its fraction as zero.
+        :param seed: random seed
+        :return: a new DataFrame that represents the stratified sample
+        """
+        return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
 
 
 class DataFrameNaFunctions(object):
