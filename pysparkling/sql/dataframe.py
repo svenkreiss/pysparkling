@@ -402,6 +402,49 @@ class DataFrame(object):
             return self.repartition(200, numPartitions, *cols)
         raise TypeError("numPartitions should be an int, str or Column")
 
+    def repartitionByRange(self, numPartitions, *cols):
+        """
+        Returns a new :class:`DataFrame` partitioned by the given partitioning expressions. The
+        resulting DataFrame is range partitioned.
+
+        :param numPartitions:
+            can be an int to specify the target number of partitions or a Column.
+            If it is a Column, it will be used as the first partitioning column. If not specified,
+            the default number of partitions is used.
+
+        At least one partition-by expression must be specified.
+
+        Note that due to performance reasons this method uses sampling to estimate the ranges.
+        Hence, the output may not be consistent, since sampling can return different values.
+
+        Sort orders are not supported in this pysparkling implementation
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(4, numPartitions=2).repartitionByRange(1, "id").rdd.getNumPartitions()
+        1
+        >>> spark.createDataFrame(
+        ...   [[0], [1], [1], [2], [4]],
+        ...   ["v"]
+        ... ).repartitionByRange(3, "v").rdd.foreachPartition(lambda x: print((list(x))))
+        [Row(v=0), Row(v=1), Row(v=1)]
+        [Row(v=2)]
+        [Row(v=4)]
+
+        """
+        # pylint: disable=fixme
+        # todo: support sort orders and assume "ascending nulls first" if needed
+        if isinstance(numPartitions, int):
+            if not cols:
+                raise ValueError("At least one partition-by expression must be specified.")
+            cols = [parse(col) for col in cols]
+            repartitioned_jdf = self._jdf.repartitionByRange(numPartitions, *cols)
+            return DataFrame(repartitioned_jdf, self.sql_ctx)
+        if isinstance(numPartitions, (str, Column)):
+            return self.repartitionByRange(200, numPartitions, *cols)
+        raise TypeError("numPartitions should be an int, str or Column")
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
