@@ -150,6 +150,9 @@ class DataFrame(object):
         else:
             print(self._jdf.showString(n, int(truncate), vertical))
 
+    def __repr__(self):
+        return "DataFrame[%s]" % (", ".join("%s: %s" % c for c in self.dtypes))
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
