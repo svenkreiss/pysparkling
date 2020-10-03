@@ -205,6 +205,20 @@ class DataFrame(object):
                              "coefficient is supported.")
         return self._jdf.corr(col1, col2, method)
 
+    def cov(self, col1, col2):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(50).cov('id', 'id')
+        212.5
+        """
+        if not isinstance(col1, str):
+            raise ValueError("col1 should be a string.")
+        if not isinstance(col2, str):
+            raise ValueError("col2 should be a string.")
+        return self._jdf.cov(col1, col2)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
