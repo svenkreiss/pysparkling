@@ -1,3 +1,5 @@
+import warnings
+
 _NoValue = object()
 
 
@@ -62,3 +64,30 @@ class DataFrame(object):
             raise ValueError("subset should be a list or tuple of column names")
 
         return DataFrame(self._jdf.fillna(value, subset), self.sql_ctx)
+
+    def _check_replace_inputs(self, subset, to_replace, value):
+        if value is _NoValue:
+            if isinstance(to_replace, dict):
+                value = None
+            else:
+                raise TypeError("value argument is required when to_replace is not a dictionary.")
+
+        # Validate input types
+        valid_types = (bool, float, int, str, list, tuple)
+        if not isinstance(to_replace, valid_types) and not isinstance(to_replace, dict):
+            raise ValueError(
+                "to_replace should be a bool, float, int, long, string, list, tuple, or dict. "
+                "Got {0}".format(type(to_replace)))
+        if not isinstance(value, valid_types) and value is not None \
+                and not isinstance(to_replace, dict):
+            raise ValueError("If to_replace is not a dict, value should be "
+                             "a bool, float, int, long, string, list, tuple or None. "
+                             "Got {0}".format(type(value)))
+        if isinstance(to_replace, (list, tuple)) and isinstance(value, (list, tuple)):
+            if len(to_replace) != len(value):
+                raise ValueError("to_replace and value lists should be of the same length. "
+                                 "Got {0} and {1}".format(len(to_replace), len(value)))
+        if not (subset is None or isinstance(subset, (list, tuple, str))):
+            raise ValueError("subset should be a list or tuple of column names, "
+                             "column name or None. Got {0}".format(type(subset)))
+        return value
