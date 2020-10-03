@@ -965,6 +965,10 @@ class DataFrame(object):
         # noinspection PyProtectedMember
         return DataFrame(self._jdf.intersectAll(other._jdf), self.sql_ctx)
 
+    def subtract(self, other):
+        # noinspection PyProtectedMember
+        return DataFrame(getattr(self._jdf, "except")(other._jdf), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
