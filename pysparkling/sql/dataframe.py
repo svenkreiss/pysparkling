@@ -924,6 +924,26 @@ class DataFrame(object):
         # noinspection PyProtectedMember
         return DataFrame(self._jdf.unionByName(other._jdf), self.sql_ctx)
 
+    def intersect(self, other):
+        """
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df1 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3), ("c", 4)], ["C1", "C2"])
+        >>> df2 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3)], ["C1", "C2"])
+
+        >>> df1.intersect(df2).sort("C1", "C2").show()
+        +---+---+
+        | C1| C2|
+        +---+---+
+        |  a|  1|
+        |  b|  3|
+        +---+---+
+        """
+        # noinspection PyProtectedMember
+        return DataFrame(self._jdf.intersect(other._jdf), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
