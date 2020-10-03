@@ -192,6 +192,18 @@ class DataFrame(object):
         """
         return self._jdf.collect()
 
+    def toLocalIterator(self):
+        """Returns an iterator on the content of this DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2)
+        >>> list(df.toLocalIterator())
+        [Row(id=0), Row(id=1)]
+        """
+        return self._jdf.toLocalIterator()
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
