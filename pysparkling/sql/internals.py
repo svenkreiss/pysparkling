@@ -1,18 +1,19 @@
 import itertools
 import json
 import math
+import warnings
 from collections import Counter
 from copy import deepcopy
 from functools import partial
 
 from pysparkling import StorageLevel
-from pysparkling.sql.functions import array, map_from_arrays, lit, rand
+from pysparkling.sql.functions import array, map_from_arrays, lit, rand, count
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, \
     FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
 from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols, merge_schemas
 from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, \
-    StringType, DataType
+    StringType, DataType, Row, LongType
 from pysparkling.sql.column import parse
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
@@ -667,6 +668,59 @@ class DataFrameInternal(object):
             combOp=lambda baseCounter, other: baseCounter.merge(other)
         )
         return covariance_helper
+
+    def crosstab(self, df, col1, col2):
+        table_name = "_".join((col1, col2))
+        counts = df.groupBy(col1, col2).agg(count("*")).take(1e6)
+        if len(counts) == 1e6:
+            warnings.warn("The maximum limit of 1e6 pairs have been collected, "
+                          "which may not be all of the pairs. Please try reducing "
+                          "the amount of distinct items in your columns.")
+
+        def clean_element(element):
+            return str(element) if element is not None else "null"
+
+        distinct_col2 = (counts
+                         .map(lambda row: clean_element(row[col2]))
+                         .distinct()
+                         .sorted()
+                         .zipWithIndex()
+                         .toMap())
+        column_size = len(distinct_col2)
+        if column_size < 1e4:
+            raise ValueError(
+                "The number of distinct values for {0} can't exceed 1e4. "
+                "Currently {1}".format(col2, column_size)
+            )
+
+        def create_counts_row(col1Item, rows):
+            counts_row = [None] * (column_size + 1)
+
+            def parse_row(row):
+                column_index = distinct_col2[clean_element(row[1])]
+                counts_row[int(column_index + 1)] = int(row[2])
+
+            rows.foreach(parse_row)
+            # the value of col1 is the first value, the rest are the counts
+            counts_row[0] = clean_element(col1Item)
+            return Row(counts_row)
+
+        table = counts.groupBy(lambda r: r[col1]).map(create_counts_row).toSeq
+
+        # Back ticks can't exist in DataFrame column names,
+        # therefore drop them. To be able to accept special keywords and `.`,
+        # wrap the column names in ``.
+        def clean_column_name(name):
+            return name.replace("`", "")
+
+        # In the map, the column names (._1) are not ordered by the index (._2).
+        # We need to explicitly sort by the column index and assign the column names.
+        header_names = distinct_col2.toSeq.sortBy(lambda r: r[2]).map(lambda r: StructField(
+            clean_column_name(str(r[1])), LongType
+        ))
+        schema = StructType([StructField(table_name, StringType)] + header_names)
+
+        return schema, table
 
     def join(self, other, on, how):
         if on is None and how == "cross":
