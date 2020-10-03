@@ -755,6 +755,9 @@ class DataFrame(object):
             return rs[0] if rs else None
         return self.take(n)
 
+    def first(self):
+        return self.head()
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
