@@ -25,15 +25,8 @@ import math
 import numbers
 from collections import namedtuple
 
+from pysparkling.sql.functions import parse
 from pysparkling.sql.types import row_from_keyed_values
-
-
-# pylint: disable=fixme
-# todo: replace parse with a method that convert an expression
-#  into the corresponding Spark SQL Columns
-def parse(x):
-    return x
-
 
 try:
     from numpy import maximum, minimum, sqrt

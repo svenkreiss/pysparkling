@@ -11,16 +11,12 @@ from operator import itemgetter
 import pytz
 from pytz import UnknownTimeZoneError
 
+from pysparkling.sql.casts import get_time_formatter
+from pysparkling.sql.schema_utils import get_on_fields
 from pysparkling.sql.internal_utils.joins import FULL_JOIN, RIGHT_JOIN, LEFT_JOIN, \
     CROSS_JOIN, INNER_JOIN, LEFT_SEMI_JOIN, LEFT_ANTI_JOIN
 from pysparkling.sql.types import Row, create_row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
-
-
-# pylint: disable=fixme
-# todo: implement get_on_fields
-def get_on_fields(*args):
-    raise NotImplementedError
 
 
 class Tokenizer(object):
@@ -568,7 +564,7 @@ def levenshtein_distance(str1, str2):
     )
 
 
-def get_json_encoder(date_formatter, timestamp_formatter):
+def get_json_encoder(options):
     """
     Returns a JsonEncoder which convert Rows to json with the same behavior
     and conversion logic as PySpark.
@@ -577,6 +573,11 @@ def get_json_encoder(date_formatter, timestamp_formatter):
     :param timestamp_formatter: a function that convert a timestamp into a string
     :return: type
     """
+    date_format = options.get("dateformat", "yyyy-MM-dd")
+    timestamp_format = options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    date_formatter = get_time_formatter(date_format)
+    timestamp_formatter = get_time_formatter(timestamp_format)
+
     class CustomJSONEncoder(json.JSONEncoder):
         def encode(self, o):
             def encode_rows(item):
