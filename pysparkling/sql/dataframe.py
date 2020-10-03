@@ -231,6 +231,20 @@ class DataFrame(object):
         """
         return self._jdf.take(n)
 
+    def foreach(self, f):
+        """Execute a function for each item of the DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> result = spark.range(2).foreach(print)
+        Row(id=0)
+        Row(id=1)
+        >>> result is None
+        True
+        """
+        self._jdf.foreach(f)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
