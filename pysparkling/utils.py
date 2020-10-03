@@ -261,7 +261,7 @@ class XORShiftRandom(object):
         self.haveNextNextGaussian = False
         self.nextNextGaussian = 0
 
-    def next(self, bits):
+    def nextValue(self, bits):
         seed = self.seed
         nextSeed = seed ^ (seed << 21)
         nextSeed ^= (nextSeed >> 35)
@@ -270,9 +270,9 @@ class XORShiftRandom(object):
         return int(nextSeed & ((1 << bits) - 1))
 
     def nextDouble(self):
-        # Pylint incorrectly identify self.next as not callable
-        # pylint: disable=not-callable
-        return ((self.next(26) << 27) + self.next(27)) * 1.1102230246251565E-16
+        a = self.nextValue(26)
+        b = self.nextValue(27)
+        return ((a << 27) + b) * 1.1102230246251565E-16
 
     def nextGaussian(self):
         if self.haveNextNextGaussian:
