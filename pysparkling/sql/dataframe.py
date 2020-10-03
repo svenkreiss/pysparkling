@@ -485,6 +485,10 @@ class DataFrame(object):
         rdd_array = self._jdf.randomSplit(weights, seed)
         return [DataFrame(rdd, self.sql_ctx) for rdd in rdd_array]
 
+    @property
+    def dtypes(self):
+        return [(f.name, f.dataType.simpleString()) for f in self.schema.fields]
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
