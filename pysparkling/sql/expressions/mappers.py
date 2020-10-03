@@ -1,4 +1,7 @@
+import random
+
 from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.utils import XORShiftRandom
 
 
 class StarOperator(Expression):
@@ -77,3 +80,19 @@ class Otherwise(Expression):
             ),
             self.default
         )
+
+
+class Rand(Expression):
+    def __init__(self, seed=None):
+        super(Rand, self).__init__()
+        self.seed = seed if seed is not None else random.random()
+        self.random_generator = None
+
+    def eval(self, row, schema):
+        return self.random_generator.nextDouble()
+
+    def initialize(self, partition_index):
+        self.random_generator = XORShiftRandom(self.seed + partition_index)
+
+    def __str__(self):
+        return "rand({0})".format(self.seed)
