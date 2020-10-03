@@ -1,5 +1,6 @@
 import warnings
 
+from pysparkling import StorageLevel
 from pysparkling.sql.column import parse
 
 _NoValue = object()
@@ -271,6 +272,24 @@ class DataFrame(object):
         True
         """
         return DataFrame(self._jdf.cache(), self.sql_ctx)
+
+    def persist(self, storageLevel=StorageLevel.MEMORY_ONLY):
+        """Cache the DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(4, numPartitions=2).persist()
+        >>> df.is_cached
+        True
+        >>> df.storageLevel == StorageLevel.MEMORY_ONLY
+        True
+        """
+        if storageLevel != StorageLevel.MEMORY_ONLY:
+            raise NotImplementedError(
+                "Pysparkling currently only supports memory as the storage level"
+            )
+        return DataFrame(self._jdf.persist(storageLevel), self.sql_ctx)
 
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
