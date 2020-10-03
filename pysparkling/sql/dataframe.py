@@ -4,8 +4,10 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
-from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType
-from pysparkling.sql.utils import IllegalArgumentException, AnalysisException
+from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType, IntegralType, \
+    TimestampType, _check_series_convert_timestamps_local_tz
+from pysparkling.sql.utils import IllegalArgumentException, AnalysisException, \
+    require_minimum_pandas_version
 
 _NoValue = object()
 
@@ -1304,6 +1306,54 @@ class DataFrame(object):
         assert isinstance(result, DataFrame), "Func returned an instance of type [%s], " \
                                               "should have been DataFrame." % type(result)
         return result
+
+    def toPandas(self):
+        require_minimum_pandas_version()
+
+        try:
+            # pandas is an optional dependency
+            # pylint: disable=import-outside-toplevel
+            import pandas as pd
+        except ImportError:
+            raise Exception("require_minimum_pandas_version() was not called")
+
+        # noinspection PyProtectedMember
+        sql_ctx_conf = self.sql_ctx._conf
+        if sql_ctx_conf.pandasRespectSessionTimeZone():
+            timezone = sql_ctx_conf.sessionLocalTimeZone()
+        else:
+            timezone = None
+
+        # pylint: disable=fixme
+        # todo: Handle sql_ctx_conf.arrowEnabled()
+        # Below is toPandas without Arrow optimization.
+        pdf = pd.DataFrame.from_records(self.collect(), columns=self.columns)
+
+        dtype = {}
+        for field in self.schema:
+            pandas_type = _to_corrected_pandas_type(field.dataType)
+            # SPARK-21766: if an integer field is nullable and has null values, it can be
+            # inferred by pandas as float column. Once we convert the column with NaN back
+            # to integer type e.g., np.int16, we will hit exception. So we use the inferred
+            # float type, not the corrected type from the schema in this case.
+            if pandas_type is not None and \
+                    not (isinstance(field.dataType, IntegralType) and field.nullable and
+                         pdf[field.name].isnull().any()):
+                dtype[field.name] = pandas_type
+
+        for f, t in dtype.items():
+            pdf[f] = pdf[f].astype(t, copy=False)
+
+        if timezone is None:
+            return pdf
+
+        for field in self.schema:
+            # pylint: disable=fixme
+            # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
+            if isinstance(field.dataType, TimestampType):
+                pdf[field.name] = \
+                    _check_series_convert_timestamps_local_tz(pdf[field.name], timezone)
+        return pdf
 
 
 class DataFrameNaFunctions(object):
