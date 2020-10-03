@@ -531,6 +531,16 @@ class DataFrameInternal(object):
             schema=self.get_summary_schema(exprs)
         )
 
+    def summary(self, statistics):
+        stat_helper = self.get_stat_helper(["*"])
+        if not statistics:
+            statistics = ("count", "mean", "stddev", "min", "25%", "50%", "75%", "max")
+        return DataFrameInternal(
+            self._sc,
+            self._sc.parallelize(stat_helper.get_as_rows(statistics)),
+            schema=self.get_summary_schema([parse("*")])
+        )
+
     def get_summary_schema(self, exprs):
         return StructType(
             [
