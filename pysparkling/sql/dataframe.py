@@ -108,6 +108,9 @@ class DataFrame(object):
         # noinspection PyProtectedMember
         return DataFrame(self._jdf.exceptAll(other._jdf), self.sql_ctx)
 
+    def isLocal(self):
+        return True
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
