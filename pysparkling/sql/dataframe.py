@@ -749,6 +749,12 @@ class DataFrame(object):
         jdf = self._jdf.summary(statistics)
         return DataFrame(jdf, self.sql_ctx)
 
+    def head(self, n=None):
+        if n is None:
+            rs = self.head(1)
+            return rs[0] if rs else None
+        return self.take(n)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
