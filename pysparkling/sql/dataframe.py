@@ -4,6 +4,7 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
+from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType
 from pysparkling.sql.utils import IllegalArgumentException, AnalysisException
 
 _NoValue = object()
@@ -1358,3 +1359,23 @@ class DataFrameStatFunctions(object):
         return self.df.sampleBy(col, fractions, seed)
 
     sampleBy.__doc__ = DataFrame.sampleBy.__doc__
+
+
+def _to_corrected_pandas_type(dt):
+    """
+    When converting Spark SQL records to Pandas DataFrame, the inferred data type may be wrong.
+    This method gets the corrected data type for Pandas if that type may be inferred uncorrectly.
+    """
+    # numpy is an optional dependency
+    # pylint: disable=import-outside-toplevel
+    import numpy as np
+
+    if isinstance(dt, ByteType):
+        return np.int8
+    if isinstance(dt, ShortType):
+        return np.int16
+    if isinstance(dt, IntegerType):
+        return np.int32
+    if isinstance(dt, FloatType):
+        return np.float32
+    return None
