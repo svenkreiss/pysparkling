@@ -10,18 +10,6 @@ class DataFrame(object):
         self._jdf = jdf
         self.sql_ctx = sql_ctx
 
-    def collect(self):
-        """Returns the number of rows in this :class:`DataFrame`.
-
-        >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
-        >>> spark = SparkSession(Context())
-        >>> df = spark.range(2)
-        >>> df.collect()
-        [Row(id=0), Row(id=1)]
-        """
-        return self._jdf.collect()
-
     @property
     def rdd(self):
         return self._jdf.rdd()
@@ -191,6 +179,18 @@ class DataFrame(object):
         2
         """
         return self._jdf.count()
+
+    def collect(self):
+        """Returns the number of rows in this :class:`DataFrame`.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2)
+        >>> df.collect()
+        [Row(id=0), Row(id=1)]
+        """
+        return self._jdf.collect()
 
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
