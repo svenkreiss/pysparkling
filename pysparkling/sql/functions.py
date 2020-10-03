@@ -10,6 +10,13 @@ def col(colName):
     return Column(colName)
 
 
+def lit(literal):
+    """
+    :rtype: Column
+    """
+    return col(typedLit(literal))
+
+
 def typedLit(literal):
     """
     :rtype: Column
