@@ -493,6 +493,10 @@ class DataFrame(object):
     def columns(self):
         return [f.name for f in self.schema.fields]
 
+    def alias(self, alias):
+        assert isinstance(alias, str), "alias should be a string"
+        raise NotImplementedError("Pysparkling does not currently support SQL catalog")
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
