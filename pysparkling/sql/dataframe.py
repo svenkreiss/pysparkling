@@ -62,6 +62,9 @@ class DataFrame(object):
     def createGlobalTempView(self, name):
         self._jdf.createGlobalTempView(name)
 
+    def createOrReplaceGlobalTempView(self, name):
+        self._jdf.createOrReplaceGlobalTempView(name)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
