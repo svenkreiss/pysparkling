@@ -554,6 +554,23 @@ class DataFrame(object):
 
         return DataFrame(self._jdf.join(other._jdf, on, how), self.sql_ctx)
 
+    def sortWithinPartitions(self, *cols, **kwargs):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(4, numPartitions=2)
+        >>> (df.sortWithinPartitions("id", ascending=False)
+        ...    .foreachPartition(lambda p: print(list(p))))
+        [Row(id=1), Row(id=0)]
+        [Row(id=3), Row(id=2)]
+        """
+        ascending = kwargs.pop("ascending", True)
+        if kwargs:
+            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
+        sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
+        return DataFrame(sorted_jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
