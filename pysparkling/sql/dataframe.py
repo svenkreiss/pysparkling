@@ -65,6 +65,46 @@ class DataFrame(object):
 
         return DataFrame(self._jdf.fillna(value, subset), self.sql_ctx)
 
+    def replace(self, to_replace, value=_NoValue, subset=None):
+        # Helper functions
+        def all_of(types):
+            def all_of_(xs):
+                return all(isinstance(x, types) for x in xs)
+
+            return all_of_
+
+        all_of_bool = all_of(bool)
+        all_of_str = all_of(str)
+        all_of_numeric = all_of((float, int))
+
+        value = self._check_replace_inputs(subset, to_replace, value)
+
+        # Reshape input arguments if necessary
+        if isinstance(to_replace, (float, int, str)):
+            to_replace = [to_replace]
+
+        if isinstance(to_replace, dict):
+            rep_dict = to_replace
+            if value is not None:
+                warnings.warn("to_replace is a dict and value is not None. value will be ignored.")
+        else:
+            if isinstance(value, (float, int, str)) or value is None:
+                value = [value for _ in range(len(to_replace))]
+            rep_dict = dict(zip(to_replace, value))
+
+        if isinstance(subset, str):
+            subset = [subset]
+
+        # Verify we were not passed in mixed type generics.
+        if not any(all_of_type(rep_dict.keys())
+                   and all_of_type(x for x in rep_dict.values() if x is not None)
+                   for all_of_type in [all_of_bool, all_of_str, all_of_numeric]):
+            raise ValueError("Mixed type replacements are not supported")
+
+        if subset is None:
+            return DataFrame(self._jdf.replace('*', rep_dict), self.sql_ctx)
+        return DataFrame(self._jdf.replace(subset, rep_dict), self.sql_ctx)
+
     def _check_replace_inputs(self, subset, to_replace, value):
         if value is _NoValue:
             if isinstance(to_replace, dict):
