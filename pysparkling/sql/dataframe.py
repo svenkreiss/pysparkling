@@ -138,6 +138,54 @@ class DataFrame(object):
                              "column name or None. Got {0}".format(type(subset)))
         return value
 
+    def approxQuantile(self, col, probabilities, relativeError):
+        """
+        Approximate a list of quantiles (probabilities) for one or a list of columns (col)
+        with an error related to relativeError.
+
+        More information in pysparkling.stat_counter.ColumnStatHelper
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.approxQuantile("age", [0.1, 0.5, 0.9], 1/1000)
+        [2.0, 2.0, 5.0]
+        >>> df.approxQuantile(["age"], [0.1, 0.5, 0.9], 1/1000)
+        [[2.0, 2.0, 5.0]]
+        """
+        if not isinstance(col, (str, list, tuple)):
+            raise ValueError("col should be a string, list or tuple, but got %r" % type(col))
+
+        isStr = isinstance(col, str)
+
+        if isinstance(col, tuple):
+            col = list(col)
+        elif isStr:
+            col = [col]
+
+        for c in col:
+            if not isinstance(c, str):
+                raise ValueError("columns should be strings, but got %r" % type(c))
+
+        if not isinstance(probabilities, (list, tuple)):
+            raise ValueError("probabilities should be a list or tuple")
+        if isinstance(probabilities, tuple):
+            probabilities = list(probabilities)
+        for p in probabilities:
+            if not isinstance(p, (float, int)) or p < 0 or p > 1:
+                raise ValueError("probabilities should be numerical (float, int, long) in [0,1].")
+
+        if not isinstance(relativeError, (float, int)) or relativeError < 0:
+            raise ValueError("relativeError should be numerical (float, int, long) >= 0.")
+        relativeError = float(relativeError)
+
+        jaq = self._jdf.approxQuantile(col, probabilities, relativeError)
+        jaq_list = [list(j) for j in jaq]
+        return jaq_list[0] if isStr else jaq_list
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
