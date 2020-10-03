@@ -1,5 +1,5 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.mappers import CaseWhen
+from pysparkling.sql.expressions.mappers import CaseWhen, Rand
 from pysparkling.sql.expressions.literals import Literal
 
 
@@ -44,3 +44,25 @@ def when(condition, value):
     :rtype: Column
     """
     return col(CaseWhen([parse(condition)], [parse(value)]))
+
+
+def rand(seed=None):
+    """
+
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(4, numPartitions=2)
+    >>> df.select((rand(seed=42) * 3).alias("rand")).show()
+    +------------------+
+    |              rand|
+    +------------------+
+    |2.3675439190260485|
+    |1.8992753422855404|
+    |1.5878851952491426|
+    |0.8800146499990725|
+    +------------------+
+    """
+    return col(Rand(seed))
