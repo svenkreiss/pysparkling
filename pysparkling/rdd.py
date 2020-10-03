@@ -2079,19 +2079,17 @@ class RDD(object):
         :param samplingRatio: the sample ratio of rows used for inferring
         :return: a DataFrame
 
-        # todo: Activate those tests once pysparkling.sql is implemented
-        # >>> from pysparkling import Context, Row
-        # >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
-        # >>> rdd.toDF().collect()
-        # [Row(age=1, name='Alice')]
+        >>> from pysparkling import Context, Row
+        >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
+        >>> rdd.toDF().collect()
+        [Row(age=1, name='Alice')]
         """
-        # # Top level import would cause cyclic dependencies
+        # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
-        # from pysparkling import Context
-        # from pysparkling.sql.session import SparkSession
-        # sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
-        # return sparkSession.createDataFrame(self, schema, sampleRatio)
-        return NotImplementedError
+        from pysparkling import Context
+        from pysparkling.sql.session import SparkSession
+        sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
+        return sparkSession.createDataFrame(self, schema, sampleRatio)
 
 
 class MapPartitionsRDD(RDD):
