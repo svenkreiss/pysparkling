@@ -1298,6 +1298,12 @@ class DataFrame(object):
         """
         return DataFrame(self._jdf.toDF(cols), self.sql_ctx)
 
+    def transform(self, func):
+        result = func(self)
+        assert isinstance(result, DataFrame), "Func returned an instance of type [%s], " \
+                                              "should have been DataFrame." % type(result)
+        return result
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
