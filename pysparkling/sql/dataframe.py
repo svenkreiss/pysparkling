@@ -72,6 +72,9 @@ class DataFrame(object):
     def printSchema(self):
         print(self.schema.treeString())
 
+    def explain(self, extended=False):
+        print("Pysparkling does not provide query execution explanation")
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
