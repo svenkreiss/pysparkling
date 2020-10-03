@@ -1233,6 +1233,9 @@ class DataFrame(object):
         assert isinstance(col, Column), "col should be Column"
         return DataFrame(self._jdf.withColumn(colName, col), self.sql_ctx)
 
+    def withColumnRenamed(self, existing, new):
+        return DataFrame(self._jdf.withColumnRenamed(existing, new), self.sql_ctx)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
