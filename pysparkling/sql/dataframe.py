@@ -131,3 +131,23 @@ class DataFrame(object):
             raise ValueError("subset should be a list or tuple of column names, "
                              "column name or None. Got {0}".format(type(subset)))
         return value
+
+
+class DataFrameNaFunctions(object):
+    def __init__(self, df):
+        self.df = df
+
+    def drop(self, how='any', thresh=None, subset=None):
+        return self.df.dropna(how=how, thresh=thresh, subset=subset)
+
+    drop.__doc__ = DataFrame.dropna.__doc__
+
+    def fill(self, value, subset=None):
+        return self.df.fillna(value=value, subset=subset)
+
+    fill.__doc__ = DataFrame.fillna.__doc__
+
+    def replace(self, to_replace, value=_NoValue, subset=None):
+        return self.df.replace(to_replace, value, subset)
+
+    replace.__doc__ = DataFrame.replace.__doc__
