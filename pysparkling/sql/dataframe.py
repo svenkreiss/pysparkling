@@ -53,6 +53,8 @@ class DataFrame(object):
         """
         return self._jdf.toJSON(use_unicode)
 
+    def createTempView(self, name):
+        self._jdf.createTempView(name)
 
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
