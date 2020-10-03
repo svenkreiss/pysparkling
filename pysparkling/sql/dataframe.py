@@ -881,6 +881,12 @@ class DataFrame(object):
         # noinspection PyProtectedMember
         return DataFrame(self._jdf.union(other._jdf), self.sql_ctx)
 
+    def unionAll(self, other):
+        """
+        Same as union
+        """
+        return self.union(other)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
