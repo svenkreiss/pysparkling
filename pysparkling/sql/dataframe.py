@@ -116,6 +116,40 @@ class DataFrame(object):
         # todo: Add support of streaming
         return False
 
+    def show(self, n=20, truncate=True, vertical=False):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> c = col("id")
+        >>> (spark.range(9, 11)
+        ...       .select(c, c*2, c**2)
+        ...       .show(vertical=True))  # doctest: +NORMALIZE_WHITESPACE
+        -RECORD 0-------------
+         id           | 9
+         (id * 2)     | 18
+         POWER(id, 2) | 81.0
+        -RECORD 1-------------
+         id           | 10
+         (id * 2)     | 20
+         POWER(id, 2) | 100.0
+        """
+        if truncate is True:
+            print(self._jdf.showString(n, 20, vertical))
+        else:
+            print(self._jdf.showString(n, int(truncate), vertical))
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
