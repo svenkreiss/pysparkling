@@ -497,6 +497,40 @@ class DataFrame(object):
         assert isinstance(alias, str), "alias should be a string"
         raise NotImplementedError("Pysparkling does not currently support SQL catalog")
 
+    def crossJoin(self, other):
+        """
+        Returns the cartesian product of self and other
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([
+        ...   Row(age=2, name='Alice'),
+        ...   Row(age=5, name='Bob')
+        ... ])
+        >>> df2 = spark.createDataFrame([
+        ...   Row(name='Tom', height=80),
+        ...   Row(name='Bob', height=85)
+        ... ])
+        >>> df.select("age", "name").collect()
+        [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        >>> df2.select("name", "height").collect()
+        [Row(name='Tom', height=80), Row(name='Bob', height=85)]
+        >>> df.crossJoin(df2.select("height")).select("age", "name", "height").show()
+        +---+-----+------+
+        |age| name|height|
+        +---+-----+------+
+        |  2|Alice|    80|
+        |  2|Alice|    85|
+        |  5|  Bob|    80|
+        |  5|  Bob|    85|
+        +---+-----+------+
+
+        """
+        # noinspection PyProtectedMember
+        jdf = self._jdf.crossJoin(other._jdf)
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
