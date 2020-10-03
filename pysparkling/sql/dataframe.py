@@ -849,6 +849,15 @@ class DataFrame(object):
         jdf = self._jdf.select(*expr)
         return DataFrame(jdf, self.sql_ctx)
 
+    def filter(self, condition):
+        if isinstance(condition, str):
+            jdf = self._jdf.filter(parse(condition))
+        elif isinstance(condition, Column):
+            jdf = self._jdf.filter(condition)
+        else:
+            raise TypeError("condition should be string or Column")
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
