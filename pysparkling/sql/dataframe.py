@@ -111,6 +111,11 @@ class DataFrame(object):
     def isLocal(self):
         return True
 
+    def isStreaming(self):
+        # pylint: disable=fixme
+        # todo: Add support of streaming
+        return False
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
