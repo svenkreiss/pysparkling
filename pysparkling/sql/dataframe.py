@@ -448,6 +448,35 @@ class DataFrame(object):
     def distinct(self):
         return DataFrame(self._jdf.distinct(), self.sql_ctx)
 
+    def sample(self, withReplacement=None, fraction=None, seed=None):
+        is_withReplacement_set = isinstance(withReplacement, bool) and isinstance(fraction, float)
+        is_withReplacement_omitted_kwargs = withReplacement is None and isinstance(fraction, float)
+        is_withReplacement_omitted_args = isinstance(withReplacement, float)
+
+        if not (is_withReplacement_set
+                or is_withReplacement_omitted_kwargs
+                or is_withReplacement_omitted_args):
+            argtypes = [
+                str(type(arg))
+                for arg in [withReplacement, fraction, seed]
+                if arg is not None
+            ]
+            raise TypeError(
+                "withReplacement (optional), fraction (required) and seed (optional)"
+                " should be a bool, float and number; however, "
+                "got [%s]." % ", ".join(argtypes))
+
+        if is_withReplacement_omitted_args:
+            if fraction is not None:
+                seed = fraction
+            fraction = withReplacement
+            withReplacement = None
+
+        seed = int(seed) if seed is not None else None
+        args = [arg for arg in [withReplacement, fraction, seed] if arg is not None]
+        jdf = self._jdf.sample(*args)
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
