@@ -186,6 +186,25 @@ class DataFrame(object):
         jaq_list = [list(j) for j in jaq]
         return jaq_list[0] if isStr else jaq_list
 
+    def corr(self, col1, col2, method=None):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(50).corr('id', 'id')
+        1.0
+        """
+        if not isinstance(col1, str):
+            raise ValueError("col1 should be a string.")
+        if not isinstance(col2, str):
+            raise ValueError("col2 should be a string.")
+        if not method:
+            method = "pearson"
+        if method != "pearson":
+            raise ValueError("Currently only the calculation of the Pearson Correlation " +
+                             "coefficient is supported.")
+        return self._jdf.corr(col1, col2, method)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
