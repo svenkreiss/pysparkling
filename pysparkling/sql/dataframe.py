@@ -226,6 +226,15 @@ class DataFrame(object):
             raise ValueError("col2 should be a string.")
         return DataFrame(self._jdf.crosstab(self, col1, col2), self.sql_ctx)
 
+    def freqItems(self, cols, support=None):
+        if isinstance(cols, tuple):
+            cols = list(cols)
+        if not isinstance(cols, list):
+            raise ValueError("cols must be a list or tuple of column names as strings.")
+        if not support:
+            support = 0.01
+        return DataFrame(self._jdf.freqItems(cols, support), self.sql_ctx)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
