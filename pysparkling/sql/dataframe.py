@@ -1277,6 +1277,27 @@ class DataFrame(object):
 
         return DataFrame(jdf, self.sql_ctx)
 
+    def toDF(self, *cols):
+        """Returns a new class:`DataFrame` that with new specified column names
+
+        :param cols: list of new column names (string)
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.toDF('f1', 'f2').show()
+        +---+-----+
+        | f1|   f2|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        """
+        return DataFrame(self._jdf.toDF(cols), self.sql_ctx)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
