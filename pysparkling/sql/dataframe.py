@@ -571,6 +571,29 @@ class DataFrame(object):
         sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
+    @staticmethod
+    def _sort_cols(cols, kwargs):
+        """ Return a list of Columns that describes the sort order
+        """
+        if not cols:
+            raise ValueError("should sort by at least one column")
+        if len(cols) == 1 and isinstance(cols[0], list):
+            cols = cols[0]
+
+        ascending = kwargs.pop('ascending', True)
+        if isinstance(ascending, (bool, int)):
+            if not ascending:
+                cols = [jc.desc() for jc in cols]
+        elif isinstance(ascending, list):
+            cols = [jc if asc else jc.desc() for asc, jc in zip(ascending, cols)]
+        else:
+            raise TypeError("ascending can only be boolean or list, but got %s" % type(ascending))
+
+        if kwargs:
+            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
+
+        return cols
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
