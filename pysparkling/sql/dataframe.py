@@ -1,6 +1,7 @@
 class DataFrame(object):
     def __init__(self, jdf, sql_ctx):
         self._jdf = jdf
+        self.sql_ctx = sql_ctx
 
     def collect(self):
         """Returns the number of rows in this :class:`DataFrame`.
