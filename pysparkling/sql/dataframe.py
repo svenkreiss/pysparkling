@@ -36,6 +36,10 @@ class DataFrame(object):
         """
         return DataFrameNaFunctions(self)
 
+    @property
+    def stat(self):
+        return DataFrameStatFunctions(self)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
