@@ -642,6 +642,50 @@ class DataFrame(object):
 
         return cols
 
+    def describe(self, *cols):
+        """Computes basic statistics for numeric and string columns.
+
+        This include count, mean, stddev, min, and max. If no columns are
+        given, this function computes statistics for all numerical or string columns.
+
+        .. note:: This function is meant for exploratory data analysis, as we make no
+            guarantee about the backward compatibility of the schema of the resulting DataFrame.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.describe(['age']).show()
+        +-------+------------------+
+        |summary|               age|
+        +-------+------------------+
+        |  count|                 2|
+        |   mean|               3.5|
+        | stddev|2.1213203435596424|
+        |    min|                 2|
+        |    max|                 5|
+        +-------+------------------+
+        >>> df.describe().show()
+        +-------+------------------+-----+
+        |summary|               age| name|
+        +-------+------------------+-----+
+        |  count|                 2|    2|
+        |   mean|               3.5| null|
+        | stddev|2.1213203435596424| null|
+        |    min|                 2|Alice|
+        |    max|                 5|  Bob|
+        +-------+------------------+-----+
+
+        Use summary for expanded statistics and control over which statistics to compute.
+        """
+        if len(cols) == 1 and isinstance(cols[0], list):
+            cols = cols[0]
+        if not cols:
+            cols = ["*"]
+        return DataFrame(self._jdf.describe(cols), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
