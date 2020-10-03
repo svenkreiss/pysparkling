@@ -311,6 +311,26 @@ class DataFrame(object):
             return self._jdf.storageLevel
         return StorageLevel(False, False, False, False, 1)
 
+    def unpersist(self, blocking=False):
+        """Cache the DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(4, numPartitions=2)
+        >>> df.storageLevel
+        StorageLevel(False, False, False, False, 1)
+        >>> persisted_df = df.persist()
+        >>> persisted_df.is_cached
+        True
+        >>> persisted_df.storageLevel
+        StorageLevel(False, True, False, False, 1)
+        >>> unpersisted_df = persisted_df.unpersist()
+        >>> unpersisted_df.storageLevel
+        StorageLevel(False, False, False, False, 1)
+        """
+        return DataFrame(self._jdf.unpersist(blocking), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
