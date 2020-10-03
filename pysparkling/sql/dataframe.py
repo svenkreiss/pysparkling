@@ -887,6 +887,43 @@ class DataFrame(object):
         """
         return self.union(other)
 
+    def unionByName(self, other):
+        """ Returns a new :class:`DataFrame` containing union of rows in this and another frame.
+
+        This is different from both `UNION ALL` and `UNION DISTINCT` in SQL. To do a SQL-style set
+        union (that does deduplication of elements), use this function followed by :func:`distinct`.
+
+        The difference between this function and :func:`union` is that this function
+        resolves columns by name (not by position):
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
+        >>> df2 = spark.createDataFrame([Row(age=2, name='Alice')])
+        >>> df1.union(df2).show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  5|  Bob|
+        |  2|Alice|
+        +---+-----+
+        >>> df1.unionByName(df2).select(df1.age).show()
+        +---+
+        |age|
+        +---+
+        |  5|
+        |  2|
+        +---+
+        >>> df1.unionByName(df2).select(df2.age).show() # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+          ...
+        pysparkling.sql.utils.AnalysisException: Unable to find the column 'age#3' \
+        among ['age#1', 'name#2']
+        """
+        # noinspection PyProtectedMember
+        return DataFrame(self._jdf.unionByName(other._jdf), self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
