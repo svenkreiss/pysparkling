@@ -1212,6 +1212,27 @@ class DataFrame(object):
         """
         return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
 
+    def withColumn(self, colName, col):
+        """
+
+        # >>> from pysparkling import Context, Row
+        # >>> from pysparkling.sql.session import SparkSession
+        # >>> from pysparkling.sql.functions import length
+        # >>> spark = SparkSession(Context())
+        # >>> df = spark.createDataFrame(
+        # ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        # ... )
+        # >>> df.withColumn("name_length", length("name")).show()
+        # +---+-----+-----------+
+        # |age| name|name_length|
+        # +---+-----+-----------+
+        # |  5|  Bob|          3|
+        # |  2|Alice|          5|
+        # +---+-----+-----------+
+        """
+        assert isinstance(col, Column), "col should be Column"
+        return DataFrame(self._jdf.withColumn(colName, col), self.sql_ctx)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
