@@ -6,15 +6,17 @@ from functools import partial
 
 from pysparkling import StorageLevel
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, FULL_JOIN, INNER_JOIN, \
-    LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
+from pysparkling.sql.internal_utils.joins import CROSS_JOIN, LEFT_JOIN, RIGHT_JOIN, \
+    FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_SEMI_JOIN
 from pysparkling.sql.schema_utils import infer_schema_from_rdd, get_schema_from_cols, merge_schemas
-from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, StringType
+from pysparkling.sql.types import StructType, create_row, row_from_keyed_values, StructField, \
+    StringType
 from pysparkling.sql.column import parse
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import RowStatHelper, CovarianceCounter
-from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, reservoir_sample_and_size, pad_cell, \
-    str_half_width, format_cell, merge_rows, merge_rows_joined_on_values, portable_hash
+from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, \
+    reservoir_sample_and_size, pad_cell, str_half_width, format_cell, merge_rows, \
+    merge_rows_joined_on_values, portable_hash
 
 
 class FieldIdGenerator(object):
@@ -325,7 +327,6 @@ class DataFrameInternal(object):
         cols = [parse(e) for e in exprs]
 
         if any(col.is_an_aggregation for col in cols):
-            # todo: add support
             raise NotImplementedError
             # df_as_group = InternalGroupedDataFrame(self, [])
             # return df_as_group.agg(exprs)
