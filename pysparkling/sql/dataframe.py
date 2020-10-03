@@ -40,6 +40,20 @@ class DataFrame(object):
     def stat(self):
         return DataFrameStatFunctions(self)
 
+    def toJSON(self, use_unicode=True):
+        """
+        Return an RDD containing all items after JSONification
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2)
+        >>> df.toJSON().collect()
+        ['{"id": 0}', '{"id": 1}']
+        """
+        return self._jdf.toJSON(use_unicode)
+
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
