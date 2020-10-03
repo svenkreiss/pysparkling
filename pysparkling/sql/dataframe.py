@@ -2,6 +2,7 @@ import warnings
 
 from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
+from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
 from pysparkling.sql.utils import IllegalArgumentException
 
@@ -757,6 +758,17 @@ class DataFrame(object):
 
     def first(self):
         return self.head()
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return getattr(self, item)
+        if isinstance(item, Column):
+            return self.filter(item)
+        if isinstance(item, (list, tuple)):
+            return self.select(*item)
+        if isinstance(item, int):
+            return Column(FieldAsExpression(self._jdf.bound_schema[item]))
+        raise TypeError("unexpected item type: %s" % type(item))
 
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
