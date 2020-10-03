@@ -42,3 +42,23 @@ class DataFrame(object):
 
         return DataFrame(self._jdf.dropna(thresh, subset), self.sql_ctx)
 
+    def fillna(self, value, subset=None):
+        if not isinstance(value, (float, int, str, bool, dict)):
+            raise ValueError("value should be a float, int, long, string, bool or dict")
+
+        # Note that bool validates isinstance(int), but we don't want to
+        # convert bools to floats
+
+        if not isinstance(value, bool) and isinstance(value, int):
+            value = float(value)
+
+        if isinstance(value, dict):
+            return DataFrame(self._jdf.fillna(value), self.sql_ctx)
+        if subset is None:
+            return DataFrame(self._jdf.fillna(value), self.sql_ctx)
+        if isinstance(subset, str):
+            subset = [subset]
+        elif not isinstance(subset, (list, tuple)):
+            raise ValueError("subset should be a list or tuple of column names")
+
+        return DataFrame(self._jdf.fillna(value, subset), self.sql_ctx)
