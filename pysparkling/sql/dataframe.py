@@ -18,3 +18,7 @@ class DataFrame(object):
     @property
     def rdd(self):
         return self._jdf.rdd()
+
+    @property
+    def is_cached(self):
+        return self._jdf.is_cached()
