@@ -180,6 +180,18 @@ class DataFrame(object):
         jdf = self._jdf
         return DataFrame(jdf, self.sql_ctx)
 
+    def count(self):
+        """Returns the number of rows in this :class:`DataFrame`.
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.range(2)
+        >>> df.count()
+        2
+        """
+        return self._jdf.count()
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
