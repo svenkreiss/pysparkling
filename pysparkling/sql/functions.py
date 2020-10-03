@@ -1,4 +1,5 @@
 from pysparkling.sql.column import Column, parse
+from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
 from pysparkling.sql.expressions.literals import Literal
@@ -121,3 +122,20 @@ def map_from_arrays(col1, col2):
     key_col = parse(col1)
     value_col = parse(col2)
     return col(MapFromArraysColumn(key_col, value_col))
+
+
+def count(e):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(5).select(count("*")).show()
+    +--------+
+    |count(1)|
+    +--------+
+    |       5|
+    +--------+
+    """
+    return col(Count(column=parse(e)))
