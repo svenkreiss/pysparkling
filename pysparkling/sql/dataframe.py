@@ -1,7 +1,7 @@
 import warnings
 
 from pysparkling import StorageLevel
-from pysparkling.sql.column import parse
+from pysparkling.sql.column import parse, Column
 
 _NoValue = object()
 
@@ -367,6 +367,40 @@ class DataFrame(object):
         100
         """
         return DataFrame(self._jdf.coalesce(numPartitions), self.sql_ctx)
+
+    def repartition(self, numPartitions, *cols):
+        """Repartition the dataframe
+
+        :param int numPartitions: Number of partitions in the resulting dataframe.
+        :rtype: DataFrame
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> spark.range(4, numPartitions=2).repartition(1).rdd.getNumPartitions()
+        1
+        >>> spark.range(4, numPartitions=2).repartition(4).rdd.getNumPartitions()
+        4
+        >>> spark.range(4, numPartitions=2).repartition("id").rdd.getNumPartitions()
+        200
+        >>> spark.createDataFrame(
+        ...   [[0], [1], [1], [2]],
+        ...   ["v"]
+        ... ).repartition(3, "v").rdd.foreachPartition(lambda x: print((list(x))))
+        [Row(v=0)]
+        [Row(v=1), Row(v=1)]
+        [Row(v=2)]
+        """
+        if isinstance(numPartitions, int):
+            if not cols:
+                return DataFrame(self._jdf.simple_repartition(numPartitions), self.sql_ctx)
+
+            cols = [parse(col) for col in cols]
+            repartitioned_jdf = self._jdf.repartition(numPartitions, cols)
+            return DataFrame(repartitioned_jdf, self.sql_ctx)
+        if isinstance(numPartitions, (str, Column)):
+            return self.repartition(200, numPartitions, *cols)
+        raise TypeError("numPartitions should be an int, str or Column")
 
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
