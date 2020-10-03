@@ -780,6 +780,46 @@ class DataFrame(object):
             raise AttributeError
         return self[field_position]
 
+    def select(self, *cols):
+        """Projects a set of expressions and returns a new :class:`DataFrame`.
+
+        :param cols: list of column names (string) or expressions (:class:`Column`).
+            If one of the column names is '*', that column is expanded to include all columns
+            in the current DataFrame.
+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select('*').show()
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        >>> df.select('name', 'age').show()
+        +-----+---+
+        | name|age|
+        +-----+---+
+        |Alice|  2|
+        |  Bob|  5|
+        +-----+---+
+        >>> df.select('name').show()
+        +-----+
+        | name|
+        +-----+
+        |Alice|
+        |  Bob|
+        +-----+
+        >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+        [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+        """
+        jdf = self._jdf.select(*cols)
+        return DataFrame(jdf, self.sql_ctx)
+
     def dropna(self, how='any', thresh=None, subset=None):
         if how is not None and how not in ['any', 'all']:
             raise ValueError("how ('" + how + "') should be 'any' or 'all'")
