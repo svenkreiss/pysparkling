@@ -228,3 +228,19 @@ class SortArray(Expression):
             self.asc
         )
 
+
+class ArraysZip(Expression):
+    def __init__(self, cols):
+        super(ArraysZip, self).__init__(*cols)
+        self.cols = cols
+
+    def eval(self, row, schema):
+        return [
+            list(combination)
+            for combination in zip(
+                *(c.eval(row, schema) for c in self.cols)
+            )
+        ]
+
+    def __str__(self):
+        return "arrays_zip({0})".format(", ".join(self.cols))
