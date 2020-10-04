@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
-    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh
+    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
@@ -1110,3 +1110,10 @@ def tanh(e):
     :rtype: Column
     """
     return col(Tanh(parse(e)))
+
+
+def degrees(e):
+    """
+    :rtype: Column
+    """
+    return col(ToDegrees(parse(e)))
