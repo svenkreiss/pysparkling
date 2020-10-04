@@ -6,7 +6,7 @@ import string
 from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row, StringType
-from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round
+from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round, MonotonicallyIncreasingIDGenerator
 
 
 class StarOperator(Expression):
@@ -837,4 +837,19 @@ class Ascii(UnaryExpression):
 
     def __str__(self):
         return "ascii({0})".format(self.column)
+
+
+class MonotonicallyIncreasingID(Expression):
+    def __init__(self):
+        super(MonotonicallyIncreasingID, self).__init__()
+        self.generator = None
+
+    def eval(self, row, schema):
+        return self.generator.next()
+
+    def initialize(self, partition_index):
+        self.generator = MonotonicallyIncreasingIDGenerator(partition_index)
+
+    def __str__(self):
+        return "monotonically_increasing_id()"
 
