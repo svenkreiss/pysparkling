@@ -489,6 +489,22 @@ class Rand(Expression):
         return "rand({0})".format(self.seed)
 
 
+class Randn(Expression):
+    def __init__(self, seed=None):
+        super(Randn, self).__init__()
+        self.seed = seed
+        self.random_generator = None
+
+    def eval(self, row, schema):
+        return self.random_generator.nextGaussian()
+
+    def initialize(self, partition_index):
+        self.random_generator = XORShiftRandom(self.seed + partition_index)
+
+    def __str__(self):
+        return "randn({0})".format(self.seed)
+
+
 class CreateStruct(Expression):
     def __init__(self, columns):
         super(CreateStruct, self).__init__(columns)
