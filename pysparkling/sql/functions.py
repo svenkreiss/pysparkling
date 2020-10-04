@@ -583,3 +583,63 @@ def var_pop(e):
     :rtype: Column
     """
     return col(VarPop(column=parse(e)))
+
+
+# //////////////////////////////////////////////////////////////////////////////////////////////
+# // Window functions
+# //////////////////////////////////////////////////////////////////////////////////////////////
+
+def cume_dist():
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def dense_rank():
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def lag(e, offset, defaultValue=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def lead(e, offset, defaultValue=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def ntile(n):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def percent_rank():
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def rank():
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def row_number():
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("window functions are not yet supported by pysparkling")
