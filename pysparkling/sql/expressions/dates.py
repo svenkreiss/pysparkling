@@ -362,3 +362,54 @@ class TruncDate(Expression):
 
     def __str__(self):
         return "trunc({0}, {1})".format(self.column, self.level)
+
+
+class TruncTimestamp(Expression):
+    def __init__(self, level, column):
+        super(TruncTimestamp, self).__init__(column)
+        self.column = column
+        self.level = level
+
+    def eval(self, row, schema):
+        value = self.column.cast(TimestampType()).eval(row, schema)
+
+        day_truncation = self.truncate_to_day(value)
+        if day_truncation:
+            return day_truncation
+
+        time_truncated = self.truncate_to_time(value)
+        if time_truncated:
+            return time_truncated
+
+        return None
+
+    def truncate_to_day(self, value):
+        if self.level in ('year', 'yyyy', 'yy'):
+            return datetime.datetime(value.year, 1, 1)
+        if self.level in ('month', 'mon', 'mm'):
+            return datetime.datetime(value.year, value.month, 1)
+        if self.level in ('day', 'dd'):
+            return datetime.datetime(value.year, value.month, value.day)
+        if self.level in ('quarter',):
+            quarter_start_month = int((value.month - 1) / 3) * 3 + 1
+            return datetime.datetime(value.year, quarter_start_month, 1)
+        if self.level in ('week',):
+            return datetime.datetime(
+                value.year, value.month, value.day
+            ) - datetime.timedelta(days=value.isoweekday() - 1)
+        return None
+
+    def truncate_to_time(self, value):
+        if self.level in ('hour',):
+            return datetime.datetime(value.year, value.month, value.day, value.hour)
+        if self.level in ('minute',):
+            return datetime.datetime(value.year, value.month, value.day, value.hour, value.minute)
+        if self.level in ('second',):
+            return datetime.datetime(
+                value.year, value.month, value.day, value.hour, value.minute, value.second
+            )
+        return None
+
+    def __str__(self):
+        return "date_trunc({0}, {1})".format(self.level, self.column)
+
