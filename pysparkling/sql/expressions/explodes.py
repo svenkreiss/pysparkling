@@ -18,3 +18,14 @@ class Explode(UnaryExpression):
 
     def __str__(self):
         return "col"
+
+
+class ExplodeOuter(Explode):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        if not values:
+            return [[None]]
+        return [[value] for value in values]
+
+    def __str__(self):
+        return "col"
