@@ -531,3 +531,10 @@ def stddev(e):
     :rtype: Column
     """
     return col(StddevSamp(column=parse(e)))
+
+
+def stddev_samp(e):
+    """
+    :rtype: Column
+    """
+    return col(StddevSamp(column=parse(e)))
