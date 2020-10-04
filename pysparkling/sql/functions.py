@@ -15,7 +15,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
-    StringLTrim, StringRPad
+    StringLTrim, StringRPad, StringRepeat
 
 
 def col(colName):
@@ -1387,3 +1387,12 @@ def rpad(str, len, pad):
     :rtype: Column
     """
     return col(StringRPad(parse(str), len, pad))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def repeat(str, n):
+    """
+    :rtype: Column
+    """
+    return col(StringRepeat(parse(str), n))
