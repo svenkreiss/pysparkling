@@ -103,3 +103,14 @@ class DayOfMonth(UnaryExpression):
 
     def __str__(self):
         return "dayofmonth({0})".format(self.column)
+
+
+class DayOfYear(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.cast(DateType()).eval(row, schema)
+        day_from_the_first = value - datetime.date(value.year, 1, 1)
+        return 1 + day_from_the_first.days
+
+    def __str__(self):
+        return "dayofyear({0})".format(self.column)
+
