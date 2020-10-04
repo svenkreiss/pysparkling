@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
-    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh
+    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
@@ -1096,3 +1096,10 @@ def sinh(e):
     :rtype: Column
     """
     return col(Sinh(parse(e)))
+
+
+def tan(e):
+    """
+    :rtype: Column
+    """
+    return col(Tan(parse(e)))
