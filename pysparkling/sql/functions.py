@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl
+    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull
 
@@ -278,6 +278,28 @@ def rand(seed=None):
     # +------------------+
     """
     return col(Rand(seed))
+
+
+def randn(seed=None):
+    """
+
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(4, numPartitions=2)
+    >>> df.select((randn(seed=42) * 3).alias("randn")).show()
+    +------------------+
+    |             randn|
+    +------------------+
+    | 3.662337823324239|
+    |1.6855413955465237|
+    |0.7870748709777542|
+    |-5.552412872005739|
+    +------------------+
+    """
+    return col(Randn(seed))
 
 
 def struct(*exprs):
