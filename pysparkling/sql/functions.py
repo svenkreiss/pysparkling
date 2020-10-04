@@ -11,7 +11,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
-    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit
+    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit, SubstringIndex
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
@@ -1453,3 +1453,39 @@ def substring(str, pos, len):
     :rtype: Column
     """
     return col(Substring(str, pos, len))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def substring_index(str, delim, count):
+    """
+
+    Returns the substring from string str before count occurrences of the delimiter delim.
+    If count is positive, everything the left of the final delimiter (counting from left) is
+    returned. If count is negative, every to the right of the final delimiter (counting from the
+    right) is returned. substring_index performs a case-sensitive match when searching for delim.
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([["a.b.c.d"],["a.b"],["a"]], ["s"])
+    >>> df.select(substring_index(df.s, ".", 3)).show()
+    +------------------------+
+    |substring_index(s, ., 3)|
+    +------------------------+
+    |                   a.b.c|
+    |                     a.b|
+    |                       a|
+    +------------------------+
+    >>> df.select(substring_index(df.s, ".", -3)).show()
+    +-------------------------+
+    |substring_index(s, ., -3)|
+    +-------------------------+
+    |                    b.c.d|
+    |                      a.b|
+    |                        a|
+    +-------------------------+
+
+    :rtype: Column
+    """
+    return col(SubstringIndex(parse(str), delim, count))
