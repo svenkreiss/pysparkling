@@ -2,7 +2,7 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 
-from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType
 
 
@@ -46,4 +46,12 @@ class DateSub(Expression):
 
     def __str__(self):
         return "date_sub({0}, {1})".format(self.start_date, self.num_days)
+
+
+class Year(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(DateType()).eval(row, schema).year
+
+    def __str__(self):
+        return "year({0})".format(self.column)
 
