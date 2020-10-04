@@ -505,6 +505,21 @@ class Randn(Expression):
         return "randn({0})".format(self.seed)
 
 
+class SparkPartitionID(Expression):
+    def __init__(self):
+        super(SparkPartitionID, self).__init__()
+        self.partition_index = None
+
+    def eval(self, row, schema):
+        return self.partition_index
+
+    def initialize(self, partition_index):
+        self.partition_index = partition_index
+
+    def __str__(self):
+        return "SPARK_PARTITION_ID()"
+
+
 class CreateStruct(Expression):
     def __init__(self, columns):
         super(CreateStruct, self).__init__(columns)
