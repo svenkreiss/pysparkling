@@ -630,3 +630,11 @@ class Reverse(UnaryExpression):
     def __str__(self):
         return "reverse({0})".format(self.column)
 
+
+class MapKeys(UnaryExpression):
+    def eval(self, row, schema):
+        return list(self.column.eval(row, schema).keys())
+
+    def __str__(self):
+        return "map_keys({0})".format(self.column)
+
