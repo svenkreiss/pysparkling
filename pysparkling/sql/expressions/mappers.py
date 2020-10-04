@@ -593,3 +593,16 @@ class Upper(UnaryExpression):
 
     def __str__(self):
         return "Upper({0})".format(self.column)
+
+
+class Concat(Expression):
+    def __init__(self, columns):
+        super(Concat, self).__init__(columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        return "".join(str(col.eval(row, schema)) for col in self.columns)
+
+    def __str__(self):
+        return "concat({0})".format(", ".join(str(col) for col in self.columns))
+
