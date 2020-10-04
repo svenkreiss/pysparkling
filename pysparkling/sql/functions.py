@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
-    Bin, Cbrt
+    Bin, Cbrt, Ceil
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -847,3 +847,10 @@ def cbrt(e):
     :rtype: Column
     """
     return col(Cbrt(parse(e)))
+
+
+def ceil(e):
+    """
+    :rtype: Column
+    """
+    return col(Ceil(parse(e)))
