@@ -16,7 +16,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
-    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit, SubstringIndex, Upper
+    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit, SubstringIndex, Upper, Concat
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
@@ -2096,3 +2096,11 @@ def array_join(column, delimiter, nullReplacement=None):
     :rtype: Column
     """
     return col(ArrayJoin(column, delimiter, nullReplacement))
+
+
+def concat(*exprs):
+    """
+    :rtype: Column
+    """
+    cols = [parse(e) for e in exprs]
+    return col(Concat(cols))
