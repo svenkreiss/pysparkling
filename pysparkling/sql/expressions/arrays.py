@@ -339,3 +339,16 @@ class ArrayUnion(Expression):
 
     def __str__(self):
         return "array_union({0}, {1})".format(self.col1, self.col2)
+
+
+class ArrayExcept(Expression):
+    def __init__(self, col1, col2):
+        super(ArrayExcept, self).__init__(col1, col2)
+        self.col1 = col1
+        self.col2 = col2
+
+    def eval(self, row, schema):
+        return list(set(self.col1.eval(row, schema)) - set(self.col2.eval(row, schema)))
+
+    def __str__(self):
+        return "array_except({0}, {1})".format(self.col1, self.col2)
