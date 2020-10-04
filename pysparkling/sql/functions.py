@@ -24,6 +24,8 @@ from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
     StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx, StringTranslate, StringTrim
+from pysparkling.sql.expressions.userdefined import UserDefinedFunction
+from pysparkling.sql.types import DataType
 
 
 def col(colName):
@@ -2343,3 +2345,44 @@ def map_concat(*exprs):
     """
     cols = [parse(e) for e in exprs]
     return col(MapConcat(cols))
+
+
+def udf(f, returnType=DataType()):
+    """
+    :rtype: function
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(3).select(udf(lambda x: x)("id")).show()
+    +------------+
+    |<lambda>(id)|
+    +------------+
+    |           0|
+    |           1|
+    |           2|
+    +------------+
+    >>> def my_pow(a, b):
+    ...   return a ** b
+    ...
+    >>> spark.range(3).select(udf(my_pow)("id", lit(2))).show()
+    +-------------+
+    |my_pow(id, 2)|
+    +-------------+
+    |            0|
+    |            1|
+    |            4|
+    +-------------+
+
+
+    """
+
+    def wrapper(*args, **kwargs):
+        if kwargs:
+            raise TypeError("wrapper() got an unexpected keyword argument '{0}'".format(
+                list(kwargs.keys())
+            ))
+        exprs = [parse(arg) for arg in args]
+        return col(UserDefinedFunction(f, returnType, *exprs))
+
+    return wrapper
