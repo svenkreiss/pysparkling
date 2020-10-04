@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName
+    InputFileName, IsNaN
 from pysparkling.sql.expressions.literals import Literal
 
 
@@ -688,3 +688,10 @@ def coalesce(*exprs):
 
 def input_file_name():
     return col(InputFileName())
+
+
+def isnan(e):
+    """
+    :rtype: Column
+    """
+    return col(IsNaN(parse(e)))
