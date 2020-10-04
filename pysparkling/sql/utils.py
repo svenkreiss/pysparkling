@@ -20,7 +20,7 @@ def require_minimum_pandas_version():
     minimum_pandas_version = (0, 23, 2)
 
     # pandas is an optional dependency
-    # pylint: disable=C0415
+    # pylint: disable=import-outside-toplevel
     try:
         import pandas
         have_pandas = True
