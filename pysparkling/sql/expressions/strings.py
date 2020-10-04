@@ -1,5 +1,6 @@
 from pysparkling.sql.expressions.expressions import UnaryExpression, Expression
 from pysparkling.sql.types import StringType
+from pysparkling.utils import levenshtein_distance
 
 
 class StringTrim(UnaryExpression):
@@ -158,3 +159,21 @@ class InitCap(Expression):
 
     def __str__(self):
         return "initcap({0})".format(self.column)
+
+
+class Levenshtein(Expression):
+    def __init__(self, column1, column2):
+        super(Levenshtein, self).__init__(column1, column2)
+        self.column1 = column1
+        self.column2 = column2
+
+    def eval(self, row, schema):
+        value_1 = self.column1.cast(StringType()).eval(row, schema)
+        value_2 = self.column2.cast(StringType()).eval(row, schema)
+        if value_1 is None or value_2 is None:
+            return None
+        return levenshtein_distance(value_1, value_2)
+
+    def __str__(self):
+        return "levenshtein({0}, {1})".format(self.column1, self.column2)
+
