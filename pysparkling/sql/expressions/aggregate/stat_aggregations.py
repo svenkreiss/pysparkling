@@ -42,3 +42,12 @@ class Count(SimpleStatAggregation):
 
     def __str__(self):
         return "count({0})".format(self.column)
+
+
+class Max(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.max
+
+    def __str__(self):
+        return "max({0})".format(self.column)
+
