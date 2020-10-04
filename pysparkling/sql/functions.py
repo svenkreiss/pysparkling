@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
-    Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1
+    Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -889,3 +889,10 @@ def expm1(e):
     :rtype: Column
     """
     return col(ExpM1(parse(e)))
+
+
+def factorial(e):
+    """
+    :rtype: Column
+    """
+    return col(Factorial(parse(e)))
