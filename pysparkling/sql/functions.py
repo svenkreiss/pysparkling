@@ -5,7 +5,8 @@ from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, 
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
-from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce
+from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
+    InputFileName
 from pysparkling.sql.expressions.literals import Literal
 
 
@@ -683,3 +684,7 @@ def coalesce(*exprs):
     """
     columns = [parse(e) for e in exprs]
     return col(Coalesce(columns))
+
+
+def input_file_name():
+    return col(InputFileName())
