@@ -138,3 +138,17 @@ class Slice(Expression):
     def __str__(self):
         return "slice({0}, {1}, {2})".format(self.x, self.start, self.length)
 
+
+class ArrayRepeat(Expression):
+    def __init__(self, col, count):
+        super(ArrayRepeat, self).__init__(col)
+        self.col = col
+        self.count = count
+
+    def eval(self, row, schema):
+        value = self.col.eval(row, schema)
+        return [value for _ in range(self.count)]
+
+    def __str__(self):
+        return "array_repeat({0}, {1})".format(self.col, self.count)
+
