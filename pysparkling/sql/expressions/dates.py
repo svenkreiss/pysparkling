@@ -247,3 +247,17 @@ class FromUnixTime(Expression):
     def __str__(self):
         return "from_unixtime({0}, {1})".format(self.column, self.format)
 
+
+class DateFormat(Expression):
+    def __init__(self, column, f):
+        super(DateFormat, self).__init__(column)
+        self.column = column
+        self.format = f
+        self.formatter = get_time_formatter(self.format)
+
+    def eval(self, row, schema):
+        timestamp = self.column.cast(TimestampType()).eval(row, schema)
+        return self.formatter(timestamp)
+
+    def __str__(self):
+        return "date_format({0}, {1})".format(self.column, self.format)
