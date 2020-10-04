@@ -1,7 +1,7 @@
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
 # pylint: disable=W0622
-from pysparkling.sql.functions import parse, avg
+from pysparkling.sql.functions import count, parse, avg, lit
 
 
 class GroupedData(object):
@@ -51,3 +51,6 @@ class GroupedData(object):
             jdf = self._jgd.agg([parse(e) for e in exprs])
 
         return DataFrame(jdf, self.sql_ctx)
+
+    def count(self):
+        return self.agg(count(lit(1)).alias("count"))
