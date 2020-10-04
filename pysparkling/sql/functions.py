@@ -11,7 +11,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
-    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64
+    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
@@ -1435,3 +1435,12 @@ def soundex(e):
     +--------+------------+
     """
     return SoundEx(parse(e))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def split(str, regex, limit=None):
+    """
+    :rtype: Column
+    """
+    return col(StringSplit(parse(str), regex, limit))
