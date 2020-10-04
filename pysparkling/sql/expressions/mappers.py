@@ -798,3 +798,16 @@ class Conv(Expression):
 
         return returned_string
 
+
+class Hex(UnaryExpression):
+    def eval(self, row, schema):
+        return Conv.convert(
+            self.column.eval(row, schema),
+            from_base=10,
+            to_base=16,
+            positive_only=True
+        )
+
+    def __str__(self):
+        return "hex({0})".format(self.column)
+
