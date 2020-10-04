@@ -1,6 +1,6 @@
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, \
-    CountDistinct, First
+    CountDistinct, First, Last
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
@@ -388,6 +388,13 @@ def first(e, ignoreNulls=False):
     :rtype: Column
     """
     return col(First(parse(e), ignoreNulls))
+
+
+def last(e, ignoreNulls=False):
+    """
+    :rtype: Column
+    """
+    return col(Last(parse(e), ignoreNulls))
 
 
 def grouping(e):
