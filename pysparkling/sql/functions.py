@@ -14,7 +14,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     FormatNumber, Length, Lower
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
-from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad
+from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, StringLTrim
 
 
 def col(colName):
@@ -1321,3 +1321,10 @@ def lpad(str, len, pad):
     :rtype: Column
     """
     return col(StringLPad(parse(str), len, pad))
+
+
+def ltrim(e):
+    """
+    :rtype: Column
+    """
+    return col(StringLTrim(e))
