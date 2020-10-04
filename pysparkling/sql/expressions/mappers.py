@@ -337,6 +337,14 @@ class Cosh(UnaryExpression):
         return "COSH({0})".format(self.column)
 
 
+class Sin(UnaryExpression):
+    def eval(self, row, schema):
+        return math.sin(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "SIN({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
