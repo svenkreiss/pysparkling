@@ -110,6 +110,27 @@ class RegExpExtract(Expression):
         return "regexp_extract({0}, {1}, {2})".format(self.e, self.exp, self.groupIdx)
 
 
+class RegExpReplace(Expression):
+    def __init__(self, e, exp, replacement):
+        super(RegExpReplace, self).__init__(e, exp, replacement)
+
+        regexp = re.compile(exp)
+
+        def fn(x):
+            return regexp.sub(replacement, x)
+
+        self.fn = fn
+        self.exp = exp
+        self.replacement = replacement
+        self.e = e
+
+    def eval(self, row, schema):
+        return self.fn(self.e.eval(row, schema))
+
+    def __str__(self):
+        return "regexp_replace({0}, {1}, {2})".format(self.e, self.exp, self.replacement)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
