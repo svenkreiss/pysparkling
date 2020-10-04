@@ -1,6 +1,6 @@
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct
-from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
+from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
 from pysparkling.sql.expressions.literals import Literal
@@ -195,6 +195,13 @@ def approx_count_distinct(e, rsd=0.05):
     # NB: This function returns the exact number of distinct values in pysparkling
     # as it does not rely on HyperLogLogPlusPlus or another estimator
     return col(ApproxCountDistinct(column=parse(e)))
+
+
+def avg(e):
+    """
+    :rtype: Column
+    """
+    return col(Avg(column=parse(e)))
 
 
 def when(condition, value):
