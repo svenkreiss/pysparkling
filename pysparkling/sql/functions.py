@@ -11,7 +11,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
-    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace
+    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, StringLTrim
@@ -1364,3 +1364,16 @@ def regexp_replace(e, pattern, replacement):
     :rtype: Column
     """
     return col(RegExpReplace(e, pattern, replacement))
+
+
+def unbase64(e):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(unbase64(lit("SGVsbG8gd29ybGQh"))).collect()
+    [Row(unbase64(SGVsbG8gd29ybGQh)=bytearray(b'Hello world!'))]
+    """
+    return col(UnBase64(parse(e)))
