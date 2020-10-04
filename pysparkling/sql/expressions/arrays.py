@@ -123,3 +123,18 @@ class ArrayMax(UnaryExpression):
 
     def __str__(self):
         return "array_max({0})".format(self.column)
+
+
+class Slice(Expression):
+    def __init__(self, x, start, length):
+        self.x = x
+        self.start = start
+        self.length = length
+        super(Slice, self).__init__(x)
+
+    def eval(self, row, schema):
+        return self.x.eval(row, schema)[self.start, self.start + self.length]
+
+    def __str__(self):
+        return "slice({0}, {1}, {2})".format(self.x, self.start, self.length)
+
