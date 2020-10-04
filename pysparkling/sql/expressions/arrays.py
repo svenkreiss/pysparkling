@@ -189,3 +189,25 @@ class Sequence(Expression):
             ", {0}".format(self.step) if self.step is not None else ""
         )
 
+
+class ArrayJoin(Expression):
+    def __init__(self, column, delimiter, nullReplacement):
+        super(ArrayJoin, self).__init__(column)
+        self.column = column
+        self.delimiter = delimiter
+        self.nullReplacement = nullReplacement
+
+    def eval(self, row, schema):
+        column_eval = self.column.eval(row, schema)
+        return self.delimiter.join(
+            value if value is not None else self.nullReplacement for value in column_eval
+        )
+
+    def __str__(self):
+        return "array_join({0}, {1}{2})".format(
+            self.column,
+            self.delimiter,
+            # Spark use the same logic of not displaying nullReplacement
+            # if it is None, even if it was explicitly set
+            ", {0}".format(self.nullReplacement) if self.nullReplacement is not None else ""
+        )
