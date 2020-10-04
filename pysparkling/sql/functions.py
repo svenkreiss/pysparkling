@@ -15,7 +15,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
-    StringLTrim, StringRPad, StringRepeat
+    StringLTrim, StringRPad, StringRepeat, StringRTrim
 
 
 def col(colName):
@@ -1396,3 +1396,10 @@ def repeat(str, n):
     :rtype: Column
     """
     return col(StringRepeat(parse(str), n))
+
+
+def rtrim(e):
+    """
+    :rtype: Column
+    """
+    return col(StringRTrim(e))
