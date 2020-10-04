@@ -15,7 +15,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
-    StringLTrim, StringRPad, StringRepeat, StringRTrim
+    StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx
 
 
 def col(colName):
@@ -1403,3 +1403,35 @@ def rtrim(e):
     :rtype: Column
     """
     return col(StringRTrim(e))
+
+
+def soundex(e):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([
+    ...   ("Robert", ),
+    ...   ("Rupert", ),
+    ...   ("Rubin", ),
+    ...   ("Ashcraft", ),
+    ...   ("Ashcroft", ),
+    ...   ("Tymczak", ),
+    ...   ("Honeyman", ),
+    ... ], ["str"])
+    >>> df.select("str", soundex("str")).orderBy("str").show()
+    +--------+------------+
+    |     str|soundex(str)|
+    +--------+------------+
+    |Ashcraft|        A261|
+    |Ashcroft|        A261|
+    |Honeyman|        H555|
+    |  Robert|        R163|
+    |   Rubin|        R150|
+    |  Rupert|        R163|
+    | Tymczak|        T522|
+    +--------+------------+
+    """
+    return SoundEx(parse(e))
