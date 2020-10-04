@@ -1,7 +1,7 @@
 import random
 import re
 
-from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation
+from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row
 from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round
@@ -203,6 +203,14 @@ class Coalesce(Expression):
 
     def __str__(self):
         return "coalesce({0})".format(", ".join(self.columns))
+
+
+class IsNaN(UnaryExpression):
+    def eval(self, row, schema):
+        return self.eval(row, schema) == float("nan")
+
+    def __str__(self):
+        return "isnan({0})".format(", ".join(self.column))
 
 
 class Rand(Expression):
