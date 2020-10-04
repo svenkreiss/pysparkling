@@ -1,5 +1,6 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, CountDistinct
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, \
+    CountDistinct, First
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
@@ -380,3 +381,10 @@ def covar_samp(column1, column2):
         column1=parse(column1),
         column2=parse(column2)
     ))
+
+
+def first(e, ignoreNulls=False):
+    """
+    :rtype: Column
+    """
+    return col(First(parse(e), ignoreNulls))
