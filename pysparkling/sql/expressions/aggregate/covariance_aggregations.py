@@ -39,3 +39,11 @@ class CovarSamp(CovarianceStatAggregation):
     def __str__(self):
         return "covar_samp({0}, {1})".format(self.column1, self.column2)
 
+
+class CovarPop(CovarianceStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.covar_pop
+
+    def __str__(self):
+        return "covar_pop({0}, {1})".format(self.column1, self.column2)
+
