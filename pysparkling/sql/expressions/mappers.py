@@ -292,6 +292,19 @@ class Atan(UnaryExpression):
         return "ATAN({0})".format(self.column)
 
 
+class Atan2(Expression):
+    def __init__(self, y, x):
+        super(Atan2).__init__(y, x)
+        self.y = y
+        self.x = x
+
+    def eval(self, row, schema):
+        return math.atan2(self.y.eval(row, schema), self.x.eval(row, schema))
+
+    def __str__(self):
+        return "ATAN({0}, {1})".format(self.y, self.x)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
