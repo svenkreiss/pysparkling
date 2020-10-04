@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
-    Log1p, Log2, Rint
+    Log1p, Log2, Rint, Round
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
@@ -1002,3 +1002,31 @@ def rint(e):
     :rtype: Column
     """
     return col(Rint(parse(e)))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def round(e, scale=0):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(
+    ...     round(lit(9.1)),
+    ...     round(lit(9.9)),
+    ...     round(lit(9.5)),
+    ...     round(lit(8.5)),
+    ...     round(lit(15), -1),
+    ...     round(lit(25), -1)
+    ... ).show()
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+    |round(9.1, 0)|round(9.9, 0)|round(9.5, 0)|round(8.5, 0)|round(15, -1)|round(25, -1)|
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+    |          9.0|         10.0|         10.0|          9.0|           20|           30|
+    +-------------+-------------+-------------+-------------+-------------+-------------+
+
+
+    """
+    return col(Round(parse(e), scale))
