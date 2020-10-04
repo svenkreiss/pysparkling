@@ -1476,6 +1476,9 @@ class DataFrame(object):
     def drop_duplicates(self, subset=None):
         return self.dropDuplicates(subset)
 
+    def where(self, condition):
+        return self.filter(condition)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
