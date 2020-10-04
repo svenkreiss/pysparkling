@@ -211,3 +211,20 @@ class ArrayJoin(Expression):
             # if it is None, even if it was explicitly set
             ", {0}".format(self.nullReplacement) if self.nullReplacement is not None else ""
         )
+
+
+class SortArray(Expression):
+    def __init__(self, col, asc):
+        super(SortArray, self).__init__(col)
+        self.col = col
+        self.asc = asc
+
+    def eval(self, row, schema):
+        return sorted(self.col.eval(row, schema), reverse=not self.asc)
+
+    def __str__(self):
+        return "sort_array({0}, {1})".format(
+            self.col,
+            self.asc
+        )
+
