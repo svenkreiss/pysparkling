@@ -1473,6 +1473,9 @@ class DataFrame(object):
     def groupby(self, *cols):
         return self.groupBy(*cols)
 
+    def drop_duplicates(self, subset=None):
+        return self.dropDuplicates(subset)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
