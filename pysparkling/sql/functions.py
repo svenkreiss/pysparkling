@@ -385,14 +385,14 @@ def count(e):
     """
     :rtype: Column
 
-    # >>> from pysparkling import Context, Row
-    # >>> from pysparkling.sql.session import SparkSession
-    # >>> spark = SparkSession(Context())
-    # >>> spark.range(5).select(count("*")).show()
-    # +--------+
-    # |count(1)|
-    # +--------+
-    # |       5|
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(5).select(count("*")).show()
+    +--------+
+    |count(1)|
+    +--------+
+    |       5|
     +--------+
     """
     return col(Count(column=parse(e)))
