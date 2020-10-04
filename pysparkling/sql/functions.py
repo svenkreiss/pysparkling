@@ -34,6 +34,30 @@ def typedLit(literal):
     return Literal(literal)
 
 
+def asc(columnName):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(asc("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  1| null|
+    |  3| null|
+    |  0|    0|
+    |  2|    2|
+    |  4|    4|
+    +---+-----+
+    """
+    return parse(columnName).asc()
+
+
 def when(condition, value):
     """
     # >>> from pysparkling import Context, Row
