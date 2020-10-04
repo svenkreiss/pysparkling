@@ -412,6 +412,14 @@ class Log(Expression):
         )
 
 
+class Log10(UnaryExpression):
+    def eval(self, row, schema):
+        return math.log10(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "LOG10({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
