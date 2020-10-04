@@ -622,3 +622,11 @@ class ConcatWs(Expression):
             ", {0}".format(", ".join(str(col) for col in self.columns)) if self.columns else ""
         )
 
+
+class Reverse(UnaryExpression):
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema))[::-1]
+
+    def __str__(self):
+        return "reverse({0})".format(self.column)
+
