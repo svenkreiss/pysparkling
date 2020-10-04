@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
-    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute
+    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1741,3 +1741,57 @@ def minute(e):
     :rtype: Column
     """
     return col(Minute(e))
+
+
+def months_between(end, start, roundOff=True):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(months_between(lit("2019-05-02"), lit("2019-05-01"))).show()
+    +--------------------------------------------+
+    |months_between(2019-05-02, 2019-05-01, true)|
+    +--------------------------------------------+
+    |                                  0.03225806|
+    +--------------------------------------------+
+    >>> spark.range(1).select(months_between(lit("2019-04-30"), lit("2019-05-01"))).show()
+    +--------------------------------------------+
+    |months_between(2019-04-30, 2019-05-01, true)|
+    +--------------------------------------------+
+    |                                 -0.06451613|
+    +--------------------------------------------+
+    >>> spark.range(1).select(months_between(lit("2019-05-01"), lit("2019-04-30"), False)).show()
+    +---------------------------------------------+
+    |months_between(2019-05-01, 2019-04-30, false)|
+    +---------------------------------------------+
+    |                          0.06451612903225812|
+    +---------------------------------------------+
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-01 01:23:45.678910"),
+    ...   lit("2019-04-01 12:00:00"))
+    ... ).show()
+    +---------------------------------------------------------------------+
+    |months_between(2019-05-01 01:23:45.678910, 2019-04-01 12:00:00, true)|
+    +---------------------------------------------------------------------+
+    |                                                                  1.0|
+    +---------------------------------------------------------------------+
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-02 01:23:45.678910"), lit("2019-04-01 12:00:00"))
+    ... ).show()
+    +---------------------------------------------------------------------+
+    |months_between(2019-05-02 01:23:45.678910, 2019-04-01 12:00:00, true)|
+    +---------------------------------------------------------------------+
+    |                                                           1.01800515|
+    +---------------------------------------------------------------------+
+    >>> spark.range(1).select(
+    ...   months_between(lit("2019-05-31 01:23:45.678910"), lit("2019-02-28 12:00:00"))
+    ... ).show()
+    +---------------------------------------------------------------------+
+    |months_between(2019-05-31 01:23:45.678910, 2019-02-28 12:00:00, true)|
+    +---------------------------------------------------------------------+
+    |                                                                  3.0|
+    +---------------------------------------------------------------------+
+    """
+    return col(MonthsBetween(end, start, roundOff))
