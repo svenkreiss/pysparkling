@@ -4,7 +4,7 @@ from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxC
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
-from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
+from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID
 from pysparkling.sql.expressions.literals import Literal
 
@@ -643,3 +643,27 @@ def row_number():
     :rtype: Column
     """
     raise NotImplementedError("window functions are not yet supported by pysparkling")
+
+
+def create_map(*exprs):
+    """Creates a new map column.
+
+    :param exprs: list of column names (string) or list of :class:`Column` expressions that are
+        grouped as key-value pairs, e.g. (key1, value1, key2, value2, ...).
+
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    >>> df.select(create_map('name', 'age').alias("map")).collect()
+    [Row(map={'Alice': 2}), Row(map={'Bob': 5})]
+    >>> df.select(create_map([df.name, df.age]).alias("map")).collect()
+    [Row(map={'Alice': 2}), Row(map={'Bob': 5})]
+    """
+    if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
+        exprs = exprs[0]
+    cols = [parse(e) for e in exprs]
+
+    return col(MapColumn(cols))
