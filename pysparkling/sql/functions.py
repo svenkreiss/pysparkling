@@ -1,6 +1,6 @@
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, CountDistinct
-from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop
+from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
@@ -367,6 +367,16 @@ def covar_pop(column1, column2):
     :rtype: Column
     """
     return col(CovarPop(
+        column1=parse(column1),
+        column2=parse(column2)
+    ))
+
+
+def covar_samp(column1, column2):
+    """
+    :rtype: Column
+    """
+    return col(CovarSamp(
         column1=parse(column1),
         column2=parse(column2)
     ))
