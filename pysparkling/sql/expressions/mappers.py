@@ -864,3 +864,12 @@ class Base64(UnaryExpression):
     def __str__(self):
         return "base64({0})".format(self.column)
 
+
+class UnBase64(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        return bytearray(base64.b64decode(value))
+
+    def __str__(self):
+        return "unbase64({0})".format(self.column)
+
