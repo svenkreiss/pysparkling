@@ -14,7 +14,8 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
-from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, StringLTrim
+from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
+    StringLTrim, StringRPad
 
 
 def col(colName):
@@ -1377,3 +1378,12 @@ def unbase64(e):
     [Row(unbase64(SGVsbG8gd29ybGQh)=bytearray(b'Hello world!'))]
     """
     return col(UnBase64(parse(e)))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def rpad(str, len, pad):
+    """
+    :rtype: Column
+    """
+    return col(StringRPad(parse(str), len, pad))
