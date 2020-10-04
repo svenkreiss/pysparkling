@@ -6,7 +6,8 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2
+    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
+    Bin
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -831,3 +832,11 @@ def atan2(y, x):
     :rtype: Column
     """
     return col(Atan2(parse(y), parse(x)))
+
+
+# noinspection PyShadowingBuiltins
+def bin(e):
+    """
+    :rtype: Column
+    """
+    return col(Bin(parse(e)))
