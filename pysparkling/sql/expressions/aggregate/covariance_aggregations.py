@@ -31,3 +31,11 @@ class Corr(CovarianceStatAggregation):
     def __str__(self):
         return "corr({0}, {1})".format(self.column1, self.column2)
 
+
+class CovarSamp(CovarianceStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.covar_samp
+
+    def __str__(self):
+        return "covar_samp({0}, {1})".format(self.column1, self.column2)
+
