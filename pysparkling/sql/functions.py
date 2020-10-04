@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, 
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
-from pysparkling.sql.expressions.dates import AddMonths
+from pysparkling.sql.expressions.dates import AddMonths, CurrentDate
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1518,3 +1518,10 @@ def add_months(startDate, numMonths):
     :rtype: Column
     """
     return col(AddMonths(parse(startDate), numMonths))
+
+
+def current_date():
+    """
+    :rtype: Column
+    """
+    return col(CurrentDate())
