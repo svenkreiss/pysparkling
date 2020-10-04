@@ -80,3 +80,29 @@ class First(Aggregation):
 
     def __str__(self):
         return "first({0}, {1})".format(self.column, str(self.ignore_nulls).lower())
+
+
+class Last(Aggregation):
+    _sentinel = object()
+
+    def __init__(self, column, ignore_nulls):
+        super(Last, self).__init__(column)
+        self.column = column
+        self.value = None
+        self.ignore_nulls = ignore_nulls
+
+    def merge(self, row, schema):
+        new_value = self.column.eval(row, schema)
+        if not (self.ignore_nulls and new_value is None):
+            self.value = new_value
+
+    def mergeStats(self, other, schema):
+        if not (self.ignore_nulls and other.value is None):
+            self.value = other.value
+
+    def eval(self, row, schema):
+        return self.value
+
+    def __str__(self):
+        return "last({0}, {1})".format(self.column, str(self.ignore_nulls).lower())
+
