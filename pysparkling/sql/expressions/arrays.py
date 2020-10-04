@@ -116,3 +116,10 @@ class ArrayMin(UnaryExpression):
     def __str__(self):
         return "array_min({0})".format(self.column)
 
+
+class ArrayMax(UnaryExpression):
+    def eval(self, row, schema):
+        return max(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "array_max({0})".format(self.column)
