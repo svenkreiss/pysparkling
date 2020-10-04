@@ -1068,3 +1068,10 @@ def shiftRight(e, numBits):
     :rtype: Column
     """
     raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def shiftRightUnsigned(e, numBits):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
