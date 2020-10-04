@@ -4,7 +4,7 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
-from pysparkling.sql.internals import InternalGroupedDataFrame
+from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE
 from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType, IntegralType, \
     TimestampType, _check_series_convert_timestamps_local_tz
 from pysparkling.sql.utils import IllegalArgumentException, AnalysisException, \
@@ -901,6 +901,32 @@ class DataFrame(object):
         # pylint: disable=import-outside-toplevel
         from pysparkling.sql.group import GroupedData
         jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols])
+        return GroupedData(jgd, self)
+
+    def rollup(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.rollup("name", df.age).count().orderBy("name", "age").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    3|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        | Carl|null|    1|
+        | Carl|   5|    1|
+        +-----+----+-----+
+        """
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.group import GroupedData
+
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], ROLLUP_TYPE)
         return GroupedData(jgd, self)
 
     def union(self, other):
