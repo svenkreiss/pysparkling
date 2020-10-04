@@ -305,6 +305,14 @@ class Atan2(Expression):
         return "ATAN({0}, {1})".format(self.y, self.x)
 
 
+class Tan(UnaryExpression):
+    def eval(self, row, schema):
+        return math.tan(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "TAN({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
