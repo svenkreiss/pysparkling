@@ -15,7 +15,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
-    StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx
+    StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx, StringTranslate
 
 
 def col(colName):
@@ -1489,3 +1489,10 @@ def substring_index(str, delim, count):
     :rtype: Column
     """
     return col(SubstringIndex(parse(str), delim, count))
+
+
+def translate(srcCol, matchingString, replaceString):
+    """
+    :rtype: Column
+    """
+    return col(StringTranslate(parse(srcCol), matchingString, replaceString))
