@@ -19,7 +19,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
     FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit, SubstringIndex, Upper, Concat, \
-    Reverse, MapKeys, MapValues
+    Reverse, MapKeys, MapValues, MapEntries
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
@@ -2300,3 +2300,10 @@ def map_values(e):
     :rtype: Column
     """
     return col(MapValues(e))
+
+
+def map_entries(e):
+    """
+    :rtype: Column
+    """
+    return col(MapEntries(e))
