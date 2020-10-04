@@ -973,6 +973,9 @@ class DataFrame(object):
         jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], CUBE_TYPE)
         return GroupedData(jgd, self)
 
+    def agg(self, *exprs):
+        return self.groupBy().agg(*exprs)
+
     def union(self, other):
 
         """ Return a new :class:`DataFrame` containing union of rows in this and another frame.
