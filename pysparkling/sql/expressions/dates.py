@@ -278,3 +278,19 @@ class CurrentTimestamp(Expression):
     def __str__(self):
         return "current_timestamp()"
 
+
+class CurrentDate(Expression):
+    def __init__(self):
+        super(CurrentDate, self).__init__()
+        self.current_timestamp = None
+
+    def eval(self, row, schema):
+        return self.current_timestamp.date()
+
+    def initialize(self, partition_index):
+        super(CurrentDate, self).initialize(partition_index)
+        self.current_timestamp = datetime.datetime.now()
+
+    def __str__(self):
+        return "current_date()"
+
