@@ -535,3 +535,12 @@ class CreateStruct(Expression):
 
     def __str__(self):
         return "named_struct({0})".format(", ".join("{0}, {0}".format(col) for col in self.columns))
+
+
+class Bin(UnaryExpression):
+    def eval(self, row, schema):
+        return format(self.column.eval(row, schema), 'b')
+
+    def __str__(self):
+        return "bin({0})".format(self.column)
+
