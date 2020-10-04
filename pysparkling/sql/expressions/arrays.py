@@ -257,3 +257,21 @@ class Flatten(UnaryExpression):
     def __str__(self):
         return "flatten({0})".format(self.column)
 
+
+class ArrayPosition(Expression):
+    def __init__(self, col, value):
+        super(ArrayPosition, self).__init__(col)
+        self.col = col
+        self.value = value
+
+    def eval(self, row, schema):
+        if self.value is None:
+            return None
+        col_eval = self.col.eval(row, schema)
+        if col_eval is None:
+            return None
+
+        return col_eval.find(self.value) + 1
+
+    def __str__(self):
+        return "array_position({0}, {1})".format(self.col, self.value)
