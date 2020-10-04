@@ -586,3 +586,10 @@ class Lower(UnaryExpression):
     def __str__(self):
         return "lower({0})".format(self.column)
 
+
+class Upper(UnaryExpression):
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema)).upper()
+
+    def __str__(self):
+        return "Upper({0})".format(self.column)
