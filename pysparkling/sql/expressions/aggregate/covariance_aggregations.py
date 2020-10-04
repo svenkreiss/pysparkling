@@ -47,3 +47,5 @@ class CovarPop(CovarianceStatAggregation):
     def __str__(self):
         return "covar_pop({0}, {1})".format(self.column1, self.column2)
 
+
+__all__ = ["Corr", "CovarSamp", "CovarPop"]
