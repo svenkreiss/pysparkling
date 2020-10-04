@@ -11,7 +11,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
-    FormatNumber, Length, Lower, RegExpExtract
+    FormatNumber, Length, Lower, RegExpExtract, RegExpReplace
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, StringLTrim
@@ -1346,3 +1346,21 @@ def regexp_extract(e, exp, groupIdx):
     :rtype: Column
     """
     return col(RegExpExtract(e, exp, groupIdx))
+
+
+def regexp_replace(e, pattern, replacement):
+    """
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([('100-200',)], ['str'])
+    >>> df.collect()
+    [Row(str='100-200')]
+    >>> df.select(Column('str').alias('range')).collect()
+    [Row(range='100-200')]
+    >>> df.select(regexp_replace(df.str, r'-(\\d+)', '-300').alias('d')).collect()
+    [Row(d='100-300')]
+
+    :rtype: Column
+    """
+    return col(RegExpReplace(e, pattern, replacement))
