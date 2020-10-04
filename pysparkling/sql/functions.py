@@ -8,6 +8,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN
 from pysparkling.sql.expressions.literals import Literal
+from pysparkling.sql.expressions.operators import IsNull
 
 
 def col(colName):
@@ -695,3 +696,10 @@ def isnan(e):
     :rtype: Column
     """
     return col(IsNaN(parse(e)))
+
+
+def isnull(e):
+    """
+    :rtype: Column
+    """
+    return col(IsNull(parse(e)))
