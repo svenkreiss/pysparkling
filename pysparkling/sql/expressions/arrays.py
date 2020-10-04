@@ -291,3 +291,18 @@ class ElementAt(Expression):
 
     def __str__(self):
         return "element_at({0}, {1})".format(self.col, self.extraction)
+
+
+class ArrayRemove(Expression):
+    def __init__(self, col, element):
+        super(ArrayRemove, self).__init__(col, element)
+        self.col = col
+        self.element = element
+
+    def eval(self, row, schema):
+        array = self.col.eval(row, schema)
+        return [value for value in array if value != self.element]
+
+    def __str__(self):
+        return "array_remove({0}, {1})".format(self.col, self.element)
+
