@@ -1,6 +1,6 @@
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, \
-    CountDistinct, First, Last
+    CountDistinct, First, Last, SumDistinct
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum
@@ -555,3 +555,10 @@ def sum(e):
     :rtype: Column
     """
     return col(Sum(column=parse(e)))
+
+
+def sumDistinct(e):
+    """
+    :rtype: Column
+    """
+    return col(SumDistinct(column=parse(e)))
