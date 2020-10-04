@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan
+    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -824,3 +824,10 @@ def atan(e):
     :rtype: Column
     """
     return col(Atan(parse(e)))
+
+
+def atan2(y, x):
+    """
+    :rtype: Column
+    """
+    return col(Atan2(parse(y), parse(x)))
