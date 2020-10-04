@@ -1,3 +1,4 @@
+import base64
 import math
 import random
 import re
@@ -852,4 +853,14 @@ class MonotonicallyIncreasingID(Expression):
 
     def __str__(self):
         return "monotonically_increasing_id()"
+
+
+class Base64(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.eval(row, schema)
+        encoded = base64.b64encode(bytes(value, encoding="utf-8"))
+        return str(encoded)[2:-1]
+
+    def __str__(self):
+        return "base64({0})".format(self.column)
 
