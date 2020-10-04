@@ -1,3 +1,5 @@
+from pysparkling.sql.types import StructField, IntegerType, DataType
+
 from pysparkling.sql.expressions.expressions import UnaryExpression
 
 
@@ -29,3 +31,29 @@ class ExplodeOuter(Explode):
 
     def __str__(self):
         return "col"
+
+
+class PosExplode(UnaryExpression):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        if not values:
+            return []
+        return list(enumerate(values))
+
+    def __str__(self):
+        return "posexplode"
+
+    @property
+    def may_output_multiple_rows(self):
+        return True
+
+    @property
+    def may_output_multiple_cols(self):
+        return True
+
+    def output_fields(self, schema):
+        return [
+            StructField("pos", IntegerType(), False),
+            StructField("col", DataType(), False)
+        ]
+
