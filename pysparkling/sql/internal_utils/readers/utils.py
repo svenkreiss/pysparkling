@@ -1,8 +1,27 @@
 from pysparkling.fileio import TextFile
 from pysparkling.sql.casts import get_caster
-from pysparkling.sql.types import IntegerType, LongType, DecimalType, \
+from pysparkling.sql.types import StructType, StructField, IntegerType, LongType, DecimalType, \
     DoubleType, TimestampType, StringType
 from pysparkling.sql.utils import AnalysisException
+
+
+def guess_schema_from_strings(schema_fields, data, options):
+    field_values = [
+        (field, [row[field] for row in data])
+        for field in schema_fields
+    ]
+
+    field_types_and_values = [
+        (field, guess_type_from_values_as_string(values, options))
+        for field, values in field_values
+    ]
+
+    schema = StructType(fields=[
+        StructField(field, field_type)
+        for field, field_type in field_types_and_values
+    ])
+
+    return schema
 
 
 def guess_type_from_values_as_string(values, options):
