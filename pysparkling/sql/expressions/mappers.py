@@ -244,6 +244,14 @@ class Hypot(Expression):
         return "hypot({0}, {1})".format(self.a, self.b)
 
 
+class Sqrt(UnaryExpression):
+    def eval(self, row, schema):
+        return math.sqrt(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "SQRT({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
