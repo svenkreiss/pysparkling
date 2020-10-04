@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName, IsNaN
+    InputFileName, IsNaN, MonotonicallyIncreasingID
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull
 
@@ -703,3 +703,38 @@ def isnull(e):
     :rtype: Column
     """
     return col(IsNull(parse(e)))
+
+
+def monotonically_increasing_id():
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(10).repartition(1).select("id", monotonically_increasing_id()).show()
+    +---+-----------------------------+
+    | id|monotonically_increasing_id()|
+    +---+-----------------------------+
+    |  0|                            0|
+    |  1|                            1|
+    |  2|                            2|
+    |  3|                            3|
+    |  4|                            4|
+    |  5|                            5|
+    |  6|                            6|
+    |  7|                            7|
+    |  8|                            8|
+    |  9|                            9|
+    +---+-----------------------------+
+    >>> spark.range(3).repartition(5).select("id", monotonically_increasing_id()).show()
+    +---+-----------------------------+
+    | id|monotonically_increasing_id()|
+    +---+-----------------------------+
+    |  0|                   8589934592|
+    |  1|                  25769803776|
+    |  2|                  34359738368|
+    +---+-----------------------------+
+
+    """
+    return col(MonotonicallyIncreasingID())
