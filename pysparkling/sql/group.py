@@ -1,7 +1,7 @@
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
 # pylint: disable=W0622
-from pysparkling.sql.functions import count, parse, avg, lit
+from pysparkling.sql.functions import count, mean, parse, avg, lit
 
 
 class GroupedData(object):
@@ -54,3 +54,8 @@ class GroupedData(object):
 
     def count(self):
         return self.agg(count(lit(1)).alias("count"))
+
+    # pylint: disable=W0511
+    # todo: avg, max, etc should work when cols is left empty
+    def mean(self, *cols):
+        return self.agg(*(mean(parse(col)) for col in cols))
