@@ -1235,3 +1235,12 @@ def format_number(x, d):
     +------------------------------+
     """
     return col(FormatNumber(parse(x), d))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def format_string(format, *exprs):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
