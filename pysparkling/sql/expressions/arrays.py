@@ -313,3 +313,17 @@ class ArrayDistinct(UnaryExpression):
 
     def __str__(self):
         return "array_distinct({0})".format(self.column)
+
+
+class ArrayIntersect(Expression):
+    def __init__(self, col1, col2):
+        super(ArrayIntersect, self).__init__(col1, col2)
+        self.col1 = col1
+        self.col2 = col2
+
+    def eval(self, row, schema):
+        return list(set(self.col1.eval(row, schema)) & set(self.col2.eval(row, schema)))
+
+    def __str__(self):
+        return "array_intersect({0}, {1})".format(self.col1, self.col2)
+
