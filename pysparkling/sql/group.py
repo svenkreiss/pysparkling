@@ -1,7 +1,7 @@
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
 # pylint: disable=W0622
-from pysparkling.sql.functions import count, mean, parse, avg, max, lit
+from pysparkling.sql.functions import count, mean, parse, avg, max, min, lit
 
 
 class GroupedData(object):
@@ -65,3 +65,6 @@ class GroupedData(object):
 
     def max(self, *cols):
         return self.agg(*(max(parse(col)) for col in cols))
+
+    def min(self, *cols):
+        return self.agg(*(min(parse(col)) for col in cols))
