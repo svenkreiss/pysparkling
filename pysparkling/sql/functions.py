@@ -13,7 +13,7 @@ from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTim
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
     FromUTCTimestamp, ToUTCTimestamp
-from pysparkling.sql.expressions.explodes import Explode
+from pysparkling.sql.expressions.explodes import Explode, ExplodeOuter
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -2169,3 +2169,10 @@ def explode(e):
     :rtype: Column
     """
     return col(Explode(parse(e)))
+
+
+def explode_outer(e):
+    """
+    :rtype: Column
+    """
+    return col(ExplodeOuter(e))
