@@ -189,6 +189,22 @@ class SubstringIndex(Expression):
         return "substring_index({0}, {1}, {2})".format(self.column, self.delim, self.count)
 
 
+class Coalesce(Expression):
+    def __init__(self, columns):
+        super(Coalesce, self).__init__(columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        for col in self.columns:
+            col_value = col.eval(row, schema)
+            if col_value is not None:
+                return col_value
+        return None
+
+    def __str__(self):
+        return "coalesce({0})".format(", ".join(self.columns))
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
