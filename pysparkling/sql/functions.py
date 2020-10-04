@@ -12,7 +12,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
+from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow
 
 
 def col(colName):
@@ -979,3 +979,12 @@ def log2(e):
     :rtype: Column
     """
     return col(Log2(parse(e)))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def pow(l, r):
+    """
+    :rtype: Column
+    """
+    return col(Pow(parse(l), parse(r)))
