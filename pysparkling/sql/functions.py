@@ -14,7 +14,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     FormatNumber, Length, Lower
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
-from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein
+from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate
 
 
 def col(colName):
@@ -1303,3 +1303,12 @@ def levenshtein(l, r):
 
     """
     return col(Levenshtein(parse(l), parse(r)))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def locate(substr, str, pos=1):
+    """
+    :rtype: Column
+    """
+    return col(StringLocate(substr, parse(str), pos))
