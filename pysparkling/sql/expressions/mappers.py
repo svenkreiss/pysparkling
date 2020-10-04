@@ -213,7 +213,7 @@ class Coalesce(Expression):
 
 class IsNaN(UnaryExpression):
     def eval(self, row, schema):
-        return self.eval(row, schema) == float("nan")
+        return self.eval(row, schema) is float("nan")
 
     def __str__(self):
         return "isnan({0})".format(", ".join(self.column))
