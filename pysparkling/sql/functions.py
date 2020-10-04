@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
-    InputFileName, IsNaN, MonotonicallyIncreasingID
+    InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull
 
@@ -738,3 +738,10 @@ def monotonically_increasing_id():
 
     """
     return col(MonotonicallyIncreasingID())
+
+
+def nanvl(col1, col2):
+    """
+    :rtype: Column
+    """
+    return col(NaNvl(parse(col1), parse(col2)))
