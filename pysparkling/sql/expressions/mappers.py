@@ -558,3 +558,15 @@ class Greatest(Expression):
         return "greatest({0})".format(", ".join(str(col) for col in self.columns))
 
 
+class Least(Expression):
+    def __init__(self, columns):
+        super(Least, self).__init__(columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        values = (col.eval(row, schema) for col in self.columns)
+        return min((value for value in values if value is not None), default=None)
+
+    def __str__(self):
+        return "least({0})".format(", ".join(str(col) for col in self.columns))
+
