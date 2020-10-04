@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
-    Bin, Cbrt, Ceil, Conv
+    Bin, Cbrt, Ceil, Conv, Cos
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -861,3 +861,10 @@ def conv(num, fromBase, toBase):
     :rtype: Column
     """
     return col(Conv(parse(num), fromBase, toBase))
+
+
+def cos(e):
+    """
+    :rtype: Column
+    """
+    return col(Cos(parse(e)))
