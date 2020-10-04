@@ -980,6 +980,8 @@ class DataFrame(object):
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
+        >>> from pysparkling.sql.functions import (explode, split, posexplode,
+        ...   posexplode_outer, col, avg)
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
@@ -1006,6 +1008,44 @@ class DataFrame(object):
         +-----+
         >>> df.select(df.name, (df.age + 10).alias('age')).collect()
         [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
+        +---+---+---+
+        |col| _1| _2|
+        +---+---+---+
+        |  a|a,b|1,2|
+        |  b|a,b|1,2|
+        +---+---+---+
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(
+        ...     posexplode(split("_1", ",")),
+        ...     "*",
+        ...     col("_1").alias("c")
+        ... ).show()
+        +---+---+---+---+---+
+        |pos|col| _1| _2|  c|
+        +---+---+---+---+---+
+        |  0|  a|a,b|1,2|a,b|
+        |  1|  b|a,b|1,2|a,b|
+        +---+---+---+---+---+
+        >>> from pysparkling.sql.types import StructType, StructField, ArrayType, StringType
+        >>> df = spark.createDataFrame(
+        ...     [Row(a=[], b=None, c=[None])],
+        ...     schema=StructType([
+        ...         StructField("a", ArrayType(StringType(), True), True),
+        ...         StructField("b", ArrayType(StringType(), True), True),
+        ...         StructField("c", ArrayType(StringType(), True), True)
+        ...     ])
+        ... )
+        >>> df.select(posexplode_outer(df.b)).show()
+        +----+----+
+        | pos| col|
+        +----+----+
+        |null|null|
+        +----+----+
+        >>> df.select(posexplode(df.b)).show()
+        +---+---+
+        |pos|col|
+        +---+---+
+        +---+---+
         """
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
