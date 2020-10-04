@@ -1,4 +1,5 @@
-from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
+from pysparkling.sql.utils import AnalysisException
 
 
 class ArraysOverlap(Expression):
@@ -82,3 +83,19 @@ class MapFromArraysColumn(Expression):
             self.keys,
             self.values
         )
+
+
+class Size(UnaryExpression):
+    def eval(self, row, schema):
+        column_value = self.column.eval(row, schema)
+        if isinstance(column_value, (list, dict)):
+            return len(column_value)
+        raise AnalysisException(
+            "{0} value should be an array or a map, got {1}".format(
+                self.column,
+                type(column_value)
+            )
+        )
+
+    def __str__(self):
+        return "size({0})".format(self.column)
