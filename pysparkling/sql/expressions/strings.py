@@ -84,3 +84,23 @@ class StringLPad(Expression):
             self.pad
         )
 
+
+class StringRPad(Expression):
+    def __init__(self, column, length, pad):
+        super(StringRPad, self).__init__(column)
+        self.column = column
+        self.length = length
+        self.pad = pad
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        delta = self.length - len(value)
+        padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
+        return "{0}{1}".format(value, padding)
+
+    def __str__(self):
+        return "rpad({0}, {1}, {2})".format(
+            self.column,
+            self.length,
+            self.pad
+        )
