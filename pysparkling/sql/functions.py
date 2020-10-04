@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
-    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear
+    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1710,3 +1710,10 @@ def dayofyear(e):
     :rtype: Column
     """
     return col(DayOfYear(parse(e)))
+
+
+def hour(e):
+    """
+    :rtype: Column
+    """
+    return col(Hour(e))
