@@ -21,6 +21,22 @@ class ArraysOverlap(Expression):
         return "array_overlap({0}, {1})".format(self.array1, self.array2)
 
 
+class ArrayContains(Expression):
+    def __init__(self, array, value):
+        self.array = array
+        self.value = value  # not a column
+        super(ArrayContains, self).__init__(array)
+
+    def eval(self, row, schema):
+        array_eval = self.array.eval(row, schema)
+        if array_eval is None:
+            return None
+        return self.value in array_eval
+
+    def __str__(self):
+        return "array_contains({0}, {1})".format(self.array, self.value)
+
+
 class ArrayColumn(Expression):
     def __init__(self, columns):
         super(ArrayColumn, self).__init__(columns)
