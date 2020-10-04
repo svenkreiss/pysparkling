@@ -104,3 +104,21 @@ class StringRPad(Expression):
             self.length,
             self.pad
         )
+
+
+class StringRepeat(Expression):
+    def __init__(self, column, n):
+        super(StringRepeat, self).__init__(column)
+        self.column = column
+        self.n = n
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        return value * self.n
+
+    def __str__(self):
+        return "repeat({0}, {1})".format(
+            self.column,
+            self.n
+        )
+
