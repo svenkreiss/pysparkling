@@ -1,5 +1,5 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, CountDistinct
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
@@ -345,6 +345,14 @@ def count(e):
     +--------+
     """
     return col(Count(column=parse(e)))
+
+
+def countDistinct(*exprs):
+    """
+    :rtype: Column
+    """
+    columns = [parse(e) for e in exprs]
+    return col(CountDistinct(columns=columns))
 
 
 def collect_set(e):
