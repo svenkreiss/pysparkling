@@ -570,3 +570,11 @@ class Least(Expression):
     def __str__(self):
         return "least({0})".format(", ".join(str(col) for col in self.columns))
 
+
+class Length(UnaryExpression):
+    def eval(self, row, schema):
+        return len(str(self.column.eval(row, schema)))
+
+    def __str__(self):
+        return "length({0})".format(self.column)
+
