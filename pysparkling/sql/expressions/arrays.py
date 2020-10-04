@@ -108,3 +108,11 @@ class ArraySort(UnaryExpression):
     def __str__(self):
         return "array_sort({0})".format(self.column)
 
+
+class ArrayMin(UnaryExpression):
+    def eval(self, row, schema):
+        return min(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "array_min({0})".format(self.column)
+
