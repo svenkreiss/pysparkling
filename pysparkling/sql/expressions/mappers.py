@@ -444,6 +444,19 @@ class Rint(UnaryExpression):
         return "ROUND({0})".format(self.column)
 
 
+class Signum(UnaryExpression):
+    def eval(self, row, schema):
+        column_value = self.column.eval(row, schema)
+        if column_value == 0:
+            return 0
+        if column_value > 0:
+            return 1.0
+        return -1.0
+
+    def __str__(self):
+        return "SIGNUM({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
