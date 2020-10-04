@@ -9,7 +9,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
-    Second, WeekOfYear
+    Second, WeekOfYear, FromUnixTime
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1835,3 +1835,25 @@ def weekofyear(e):
     :rtype: Column
     """
     return col(WeekOfYear(e))
+
+
+def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
+    """
+    :rtype: Column
+
+    >>> import os, time
+    >>> os.environ['TZ'] = 'Europe/Paris'
+    >>> time.tzset()
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 4).select(from_unixtime(2000000000 + col("id"))).show()
+    +-----------------------------------------------------+
+    |from_unixtime((id + 2000000000), yyyy-MM-dd HH:mm:ss)|
+    +-----------------------------------------------------+
+    |                                  2033-05-18 05:33:21|
+    |                                  2033-05-18 05:33:22|
+    |                                  2033-05-18 05:33:23|
+    +-----------------------------------------------------+
+    """
+    return col(FromUnixTime(parse(ut), f))
