@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains, \
     ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, ArrayRemove, ArrayDistinct, ArrayIntersect, \
-    ArrayUnion, ArrayExcept
+    ArrayUnion, ArrayExcept, Size
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
@@ -2218,3 +2218,10 @@ def schema_of_json(json, options=None):
     :rtype: Column
     """
     raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def size(e):
+    """
+    :rtype: Column
+    """
+    return col(Size(parse(e)))
