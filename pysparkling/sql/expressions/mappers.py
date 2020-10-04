@@ -276,6 +276,14 @@ class Acos(UnaryExpression):
         return "ACOS({0})".format(self.column)
 
 
+class Asin(UnaryExpression):
+    def eval(self, row, schema):
+        return math.asin(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "ASIN({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
