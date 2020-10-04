@@ -1,10 +1,10 @@
 import random
 import re
 
-from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row
-from pysparkling.utils import XORShiftRandom
+from pysparkling.utils import XORShiftRandom, half_up_round
 
 
 class StarOperator(Expression):
@@ -129,6 +129,18 @@ class RegExpReplace(Expression):
 
     def __str__(self):
         return "regexp_replace({0}, {1}, {2})".format(self.e, self.exp, self.replacement)
+
+
+class Round(NullSafeColumnOperation):
+    def __init__(self, column, scale):
+        super(Round, self).__init__(column)
+        self.scale = scale
+
+    def unsafe_operation(self, value):
+        return half_up_round(value, self.scale)
+
+    def __str__(self):
+        return "round({0}, {1})".format(self.column, self.scale)
 
 
 class Rand(Expression):
