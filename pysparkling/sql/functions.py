@@ -2061,3 +2061,7 @@ def to_utc_timestamp(ts, tz):
     +--------------------------------------------+
     """
     return col(ToUTCTimestamp(ts, tz))
+
+
+def window(timeColumn, windowDuration, slideDuration=None, startTime="0 second"):
+    raise NotImplementedError("Pysparkling does not support yet this function")
