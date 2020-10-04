@@ -1,4 +1,5 @@
-from pysparkling.sql.expressions.expressions import UnaryExpression
+from pysparkling.sql.expressions.expressions import UnaryExpression, Expression
+from pysparkling.sql.types import StringType
 
 
 class StringTrim(UnaryExpression):
@@ -23,3 +24,20 @@ class StringRTrim(UnaryExpression):
 
     def __str__(self):
         return "rtrim({0})".format(self.column)
+
+
+class StringInStr(Expression):
+    def __init__(self, substr, column):
+        super(StringInStr, self).__init__(column)
+        self.substr = substr
+        self.column = column
+
+    def eval(self, row, schema):
+        value = self.column.cast(StringType()).eval(row, schema)
+        return int(self.substr in value)
+
+    def __str__(self):
+        return "instr({0}, {1})".format(
+            self.substr,
+            self.column
+        )
