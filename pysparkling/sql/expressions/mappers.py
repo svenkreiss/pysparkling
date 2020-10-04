@@ -377,6 +377,14 @@ class Factorial(UnaryExpression):
         return "factorial({0})".format(self.column)
 
 
+class Floor(UnaryExpression):
+    def eval(self, row, schema):
+        return math.floor(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "FLOOR({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
