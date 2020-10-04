@@ -165,3 +165,49 @@ class NextDay(Expression):
 
     def __str__(self):
         return "next_day({0}, {1})".format(self.column, self.day_of_week)
+
+
+class MonthsBetween(Expression):
+    def __init__(self, column1, column2, round_off):
+        super(MonthsBetween, self).__init__(column1, column2)
+        self.column1 = column1
+        self.column2 = column2
+        self.round_off = round_off
+
+    def eval(self, row, schema):
+        value_1 = self.column1.cast(TimestampType()).eval(row, schema)
+        value_2 = self.column2.cast(TimestampType()).eval(row, schema)
+
+        if (not isinstance(value_1, datetime.datetime)
+                or not isinstance(value_2, datetime.datetime)):
+            return None
+
+        one_day = datetime.timedelta(days=1)
+        value_1_is_the_last_of_its_month = (value_1.month != (value_1 + one_day).month)
+        value_2_is_the_last_of_its_month = (value_2.month != (value_2 + one_day).month)
+        if value_1.day == value_2.day or (
+                value_1_is_the_last_of_its_month and
+                value_2_is_the_last_of_its_month
+        ):
+            # Special cases where time of day is not consider
+            diff = ((value_1.year - value_2.year) * 12 +
+                    (value_1.month - value_2.month))
+        else:
+            day_offset = (value_1.day - value_2.day +
+                          (value_1.hour - value_2.hour) / 24 +
+                          (value_1.minute - value_2.minute) / 1440 +
+                          (value_1.second - value_2.second) / 86400)
+            diff = ((value_1.year - value_2.year) * 12 +
+                    (value_1.month - value_2.month) * 1 +
+                    day_offset / 31)
+        if self.round_off:
+            return float(round(diff, 8))
+        return float(diff)
+
+    def __str__(self):
+        return "months_between({0}, {1}, {2})".format(
+            self.column1,
+            self.column2,
+            str(self.round_off).lower()
+        )
+
