@@ -154,6 +154,30 @@ def desc_nulls_first(columnName):
     return parse(columnName).desc_nulls_first()
 
 
+def desc_nulls_last(columnName):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import when, col
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5).withColumn(
+    ...   "order", when(col('id')%2 == 0, col('id'))
+    ... ).orderBy(desc_nulls_last("order")).show()
+    +---+-----+
+    | id|order|
+    +---+-----+
+    |  4|    4|
+    |  2|    2|
+    |  0|    0|
+    |  1| null|
+    |  3| null|
+    +---+-----+
+    """
+    return parse(columnName).desc_nulls_last()
+
+
 def when(condition, value):
     """
     # >>> from pysparkling import Context, Row
