@@ -1,4 +1,6 @@
+import collections
 import csv
+import json
 import os
 import shutil
 
@@ -10,7 +12,7 @@ from pysparkling.sql.functions import col
 from pysparkling.sql.internal_utils.options import Options
 from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import portable_hash
+from pysparkling.utils import portable_hash, get_json_encoder
 
 
 class InternalWriter(object):
@@ -309,4 +311,61 @@ class CSVWriter(DataWriter):
             if self.header:
                 writer.writerow(schema.names)
             writer.writerows(items)
+        return len(items)
+
+
+class JSONWriter(DataWriter):
+    def __init__(self, df, mode, options, partitioning_col_names,
+                 num_buckets, bucket_col_names, sort_col_names):
+        super(JSONWriter, self).__init__(df, mode, options, partitioning_col_names,
+                                         num_buckets, bucket_col_names, sort_col_names)
+
+        self.encoder = get_json_encoder(self.options)
+
+    def check_options(self):
+        unsupported_options = {
+            "compression",
+            "encoding",
+            "chartoescapequoteescaping",
+            "escape",
+            "escapequotes"
+        }
+        options_requested_but_not_supported = set(self.options) & unsupported_options
+        if options_requested_but_not_supported:
+            raise NotImplementedError(
+                "Pysparkling does not support yet the following options: {0}".format(
+                    options_requested_but_not_supported
+                )
+            )
+
+    @property
+    def lineSep(self):
+        return self.options.get("linesep", "\n")
+
+    def preformat(self, row, schema):
+        return json.dumps(
+            collections.OrderedDict(zip(schema.names, row)),
+            cls=self.encoder,
+            separators=(',', ':')
+        ) + self.lineSep
+
+    def write(self, items, ref_value, schema):
+        self.check_options()
+        output_path = self.path
+
+        if not items:
+            return 0
+
+        partition_parts = [
+            "{0}={1}".format(col_name, ref_value[col_name])
+            for col_name in self.partitioning_col_names
+        ]
+        partition_folder = "/".join([output_path] + partition_parts)
+        file_path = "{0}/part-00000-{1}.json".format(partition_folder, portable_hash(ref_value))
+
+        if not os.path.exists(partition_folder):
+            os.makedirs(partition_folder)
+
+        with open(file_path, "a") as f:
+            f.writelines(items)
         return len(items)
