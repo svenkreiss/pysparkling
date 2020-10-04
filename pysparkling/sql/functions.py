@@ -3,7 +3,7 @@ from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxC
     CountDistinct, First, Last, SumDistinct
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
-    StddevSamp, StddevPop, Sum, VarSamp
+    StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID
 from pysparkling.sql.expressions.literals import Literal
@@ -576,3 +576,10 @@ def var_samp(e):
     :rtype: Column
     """
     return col(VarSamp(column=parse(e)))
+
+
+def var_pop(e):
+    """
+    :rtype: Column
+    """
+    return col(VarPop(column=parse(e)))
