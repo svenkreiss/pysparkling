@@ -4,7 +4,7 @@ import re
 from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row
-from pysparkling.utils import XORShiftRandom, half_up_round
+from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round
 
 
 class StarOperator(Expression):
@@ -141,6 +141,18 @@ class Round(NullSafeColumnOperation):
 
     def __str__(self):
         return "round({0}, {1})".format(self.column, self.scale)
+
+
+class Bround(NullSafeColumnOperation):
+    def __init__(self, column, scale):
+        super(Bround, self).__init__(column)
+        self.scale = scale
+
+    def unsafe_operation(self, value):
+        return half_even_round(value, self.scale)
+
+    def __str__(self):
+        return "bround({0}, {1})".format(self.column, self.scale)
 
 
 class Rand(Expression):
