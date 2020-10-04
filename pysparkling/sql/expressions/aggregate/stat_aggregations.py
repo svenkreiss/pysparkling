@@ -67,3 +67,10 @@ class Sum(SimpleStatAggregation):
     def __str__(self):
         return "sum({0})".format(self.column)
 
+
+class Avg(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.mean
+
+    def __str__(self):
+        return "avg({0})".format(self.column)
