@@ -32,3 +32,18 @@ class DateAdd(Expression):
 
     def __str__(self):
         return "date_add({0}, {1})".format(self.start_date, self.num_days)
+
+
+class DateSub(Expression):
+    def __init__(self, start_date, num_days):
+        super(DateSub, self).__init__(start_date)
+        self.start_date = start_date
+        self.num_days = num_days
+        self.timedelta = datetime.timedelta(days=num_days)
+
+    def eval(self, row, schema):
+        return self.start_date.cast(DateType()).eval(row, schema) - self.timedelta
+
+    def __str__(self):
+        return "date_sub({0}, {1})".format(self.start_date, self.num_days)
+
