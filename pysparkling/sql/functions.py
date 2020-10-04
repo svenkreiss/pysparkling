@@ -2246,3 +2246,10 @@ def array_max(e):
     :rtype: Column
     """
     return col(ArrayMax(e))
+
+
+def shuffle(e):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
