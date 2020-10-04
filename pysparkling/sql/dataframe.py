@@ -522,6 +522,53 @@ class DataFrame(object):
         jdf = self._jdf.sample(*args)
         return DataFrame(jdf, self.sql_ctx)
 
+    def sampleBy(self, col, fractions, seed=None):
+        """
+        Returns a stratified sample without replacement based on the
+        fraction given on each stratum.
+
+        :param col: column that defines strata
+        :param fractions:
+            sampling fraction for each stratum. If a stratum is not
+            specified, we treat its fraction as zero.
+        :param seed: random seed
+        :return: a new DataFrame that represents the stratified sample
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import count, lit
+        >>> spark = SparkSession(Context())
+        >>> dataset = spark.createDataFrame(
+        ...   [[i % 3] for i in range(100)],
+        ...   ["key"]
+        ... )
+        >>> sampled = dataset.sampleBy("key", fractions={0: 0.5, 1: 0.25}, seed=0)
+        >>> sampled.groupBy("key").agg(count(lit(1))).show()
+        +---+--------+
+        |key|count(1)|
+        +---+--------+
+        |  0|      17|
+        |  1|       8|
+        +---+--------+
+        >>> sampled.groupBy("key").count().show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|   17|
+        |  1|    8|
+        +---+-----+
+        >>> sampled.groupBy("key").count().orderBy("key").show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|   17|
+        |  1|    8|
+        +---+-----+
+        >>> dataset.sampleBy("key", fractions={2: 1.0}, seed=0).count()
+        33
+        """
+        return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
+
     def randomSplit(self, weights, seed=None):
         for w in weights:
             if w < 0.0:
@@ -1341,20 +1388,6 @@ class DataFrame(object):
         if not support:
             support = 0.01
         return DataFrame(self._jdf.freqItems(cols, support), self.sql_ctx)
-
-    def sampleBy(self, col, fractions, seed=None):
-        """
-        Returns a stratified sample without replacement based on the
-        fraction given on each stratum.
-
-        :param col: column that defines strata
-        :param fractions:
-            sampling fraction for each stratum. If a stratum is not
-            specified, we treat its fraction as zero.
-        :param seed: random seed
-        :return: a new DataFrame that represents the stratified sample
-        """
-        return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
 
     def withColumn(self, colName, col):
         """
