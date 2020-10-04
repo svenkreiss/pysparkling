@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains, \
     ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, ArrayRemove, ArrayDistinct, ArrayIntersect, \
-    ArrayUnion, ArrayExcept, Size, SortArray, ArrayMin, ArrayMax, Flatten
+    ArrayUnion, ArrayExcept, Size, SortArray, ArrayMin, ArrayMax, Flatten, Sequence
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
@@ -2268,3 +2268,14 @@ def flatten(e):
     :rtype: Column
     """
     return col(Flatten(parse(e)))
+
+
+def sequence(start, stop, step=None):
+    """
+    :rtype: Column
+    """
+    return col(Sequence(
+        parse(start),
+        parse(stop),
+        parse(step) if step is not None else None
+    ))
