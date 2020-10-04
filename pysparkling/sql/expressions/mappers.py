@@ -345,6 +345,14 @@ class Sin(UnaryExpression):
         return "SIN({0})".format(self.column)
 
 
+class Sinh(UnaryExpression):
+    def eval(self, row, schema):
+        return math.sinh(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "SINH({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
