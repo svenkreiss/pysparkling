@@ -6,7 +6,7 @@ from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxC
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
-from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains
+from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains, ArraysOverlap
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
@@ -2072,3 +2072,10 @@ def array_contains(column, value):
     :rtype: Column
     """
     return col(ArrayContains(parse(column), value))
+
+
+def arrays_overlap(a1, a2):
+    """
+    :rtype: Column
+    """
+    return col(ArraysOverlap(parse(a1), parse(a2)))
