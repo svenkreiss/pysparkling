@@ -457,6 +457,14 @@ class Signum(UnaryExpression):
         return "SIGNUM({0})".format(self.column)
 
 
+class ToDegrees(UnaryExpression):
+    def eval(self, row, schema):
+        return math.degrees(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "DEGREES({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
