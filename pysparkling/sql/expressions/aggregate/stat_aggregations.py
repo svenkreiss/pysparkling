@@ -115,3 +115,11 @@ class Skewness(SimpleStatAggregation):
     def __str__(self):
         return "skewness({0})".format(self.column)
 
+
+class Kurtosis(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.kurtosis
+
+    def __str__(self):
+        return "kurtosis({0})".format(self.column)
+
