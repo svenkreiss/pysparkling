@@ -365,16 +365,16 @@ def map_from_arrays(col1, col2):
     :param col2: name of column containing a set of values
     :rtype: Column
 
-    # >>> from pysparkling import Context, Row
-    # >>> from pysparkling.sql.session import SparkSession
-    # >>> spark = SparkSession(Context())
-    # >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
-    # >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
-    # +----------------+
-    # |             map|
-    # +----------------+
-    # |[2 -> a, 5 -> b]|
-    # +----------------+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
+    >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
+    +----------------+
+    |             map|
+    +----------------+
+    |[2 -> a, 5 -> b]|
+    +----------------+
     """
     key_col = parse(col1)
     value_col = parse(col2)
