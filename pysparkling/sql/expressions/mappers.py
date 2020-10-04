@@ -7,6 +7,7 @@ import string
 from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row, StringType
+from pysparkling.sql.utils import AnalysisException
 from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round, MonotonicallyIncreasingIDGenerator
 
 
@@ -872,4 +873,24 @@ class UnBase64(UnaryExpression):
 
     def __str__(self):
         return "unbase64({0})".format(self.column)
+
+
+class GroupingID(Expression):
+    def __init__(self, columns):
+        super(GroupingID, self).__init__(*columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        metadata = row.get_metadata()
+        if metadata is None or "grouping" not in metadata:
+            raise AnalysisException("grouping_id() can only be used with GroupingSets/Cube/Rollup")
+        id_binary_string_value = "".join(
+            "1" if grouping else "0" for grouping in metadata["grouping"]
+        )
+        return int(id_binary_string_value, 2)
+
+    def __str__(self):
+        return "grouping_id({0})".format(
+            ", ".join(str(col) for col in self.columns)
+        )
 
