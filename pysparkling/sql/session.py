@@ -10,6 +10,7 @@ from pysparkling.context import Context
 from pysparkling.sql.conf import RuntimeConfig
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.dataframe import DataFrame
+from pysparkling.sql.readwriter import DataFrameReader
 from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.sql.utils import require_minimum_pandas_version
 
@@ -307,6 +308,4 @@ class SparkSession(object):
 
     @property
     def read(self):
-        raise NotImplementedError(
-            "This method implementation requires DataFrameReader which are not yet merged"
-        )
+        return DataFrameReader(self)
