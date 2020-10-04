@@ -63,3 +63,12 @@ class Month(UnaryExpression):
     def __str__(self):
         return "month({0})".format(self.column)
 
+
+class Quarter(UnaryExpression):
+    def eval(self, row, schema):
+        month = self.column.cast(DateType()).eval(row, schema).month
+        return 1 + int((month - 1) / 3)
+
+    def __str__(self):
+        return "quarter({0})".format(self.column)
+
