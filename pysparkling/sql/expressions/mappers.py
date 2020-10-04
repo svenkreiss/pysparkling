@@ -284,6 +284,14 @@ class Asin(UnaryExpression):
         return "ASIN({0})".format(self.column)
 
 
+class Atan(UnaryExpression):
+    def eval(self, row, schema):
+        return math.atan(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "ATAN({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
