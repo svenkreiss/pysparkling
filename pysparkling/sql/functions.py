@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
-    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians
+    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
@@ -1150,3 +1150,12 @@ def hash(*exprs):
 
 def xxhash64(*exprs):
     raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def ascii(e):
+    """
+    :rtype: Column
+    """
+    return col(Ascii(parse(e)))
