@@ -4,6 +4,7 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
+from pysparkling.sql.internals import InternalGroupedDataFrame
 from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType, IntegralType, \
     TimestampType, _check_series_convert_timestamps_local_tz
 from pysparkling.sql.utils import IllegalArgumentException, AnalysisException, \
@@ -872,6 +873,35 @@ class DataFrame(object):
         else:
             raise TypeError("condition should be string or Column")
         return DataFrame(jdf, self.sql_ctx)
+
+    def groupBy(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col
+        >>> spark = SparkSession(Context())
+        >>> spark.range(5).groupBy(col("id")%2).count().show()
+        +--------+-----+
+        |(id % 2)|count|
+        +--------+-----+
+        |       0|    3|
+        |       1|    2|
+        +--------+-----+
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.groupBy("name", df.age).count().orderBy("name", "age").show()
+        +-----+---+-----+
+        | name|age|count|
+        +-----+---+-----+
+        |Alice|  2|    1|
+        |  Bob|  5|    1|
+        | Carl|  5|    1|
+        +-----+---+-----+
+        """
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.group import GroupedData
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols])
+        return GroupedData(jgd, self)
 
     def union(self, other):
 
