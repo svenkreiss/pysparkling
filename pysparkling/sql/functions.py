@@ -10,6 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
     ArrayContains, ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, \
     ArrayRemove, ArrayDistinct, ArrayIntersect, ArrayUnion, ArrayExcept, Size, SortArray, \
     ArrayMin, ArrayMax, Flatten, Sequence, ArrayRepeat, ArraysZip
+from pysparkling.sql.expressions.csvs import SchemaOfCsv
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, \
     DateFormat, DateAdd, DateSub, DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, \
     DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, Second, WeekOfYear, FromUnixTime, \
@@ -31,6 +32,7 @@ from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtei
     StringTrim
 from pysparkling.sql.expressions.userdefined import UserDefinedFunction
 from pysparkling.sql.types import DataType
+from pysparkling.sql.utils import AnalysisException
 
 
 def col(colName):
@@ -2353,6 +2355,44 @@ def map_concat(*exprs):
     """
     cols = [parse(e) for e in exprs]
     return col(MapConcat(cols))
+
+
+def from_csv(e, schema, options=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def schema_of_csv(csv, options=None):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(schema_of_csv("1,test,2020-05-05")).show(20, False)
+    +-------------------------------------+
+    |schema_of_csv(1,test,2020-05-05)     |
+    +-------------------------------------+
+    |struct<_c0:int,_c1:string,_c2:string>|
+    +-------------------------------------+
+    """
+    if isinstance(csv, str):
+        csv = lit(csv)
+    elif not isinstance(csv, Column) or not isinstance(csv.expr, Literal):
+        raise AnalysisException(
+            "type mismatch: The input csv should be a string literal and not null; "
+            "however, got {0}.".format(csv)
+        )
+    return col(SchemaOfCsv(parse(csv), options))
+
+
+def to_csv(e, options=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
 
 
 def udf(f, returnType=DataType()):
