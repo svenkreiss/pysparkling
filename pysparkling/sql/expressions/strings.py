@@ -230,3 +230,9 @@ class SoundEx(UnaryExpression):
     def __str__(self):
         return "soundex({0})".format(self.column)
 
+
+__all__ = [
+    "StringTrim", "StringTranslate", "StringRTrim", "StringRepeat", "StringRPad",
+    "StringLTrim", "StringLPad", "StringLocate", "Levenshtein", "StringInStr", "InitCap",
+    "SoundEx"
+]
