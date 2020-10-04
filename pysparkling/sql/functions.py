@@ -1,5 +1,5 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
@@ -202,6 +202,23 @@ def avg(e):
     :rtype: Column
     """
     return col(Avg(column=parse(e)))
+
+
+def collect_list(e):
+    """
+    :rtype: Column
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(5)
+    >>> df.repartition(2).select(collect_list("id").alias("all_ids")).show()
+    +---------------+
+    |        all_ids|
+    +---------------+
+    |[0, 1, 2, 3, 4]|
+    +---------------+
+    """
+    return col(CollectList(column=parse(e)))
 
 
 def when(condition, value):
