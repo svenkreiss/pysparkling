@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
-    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth
+    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1680,3 +1680,33 @@ def dayofmonth(e):
     :rtype: Column
     """
     return col(DayOfMonth(e))
+
+
+def dayofyear(e):
+    """
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 10).withColumn(
+    ...     "date", concat(lit("2019-01-0"), "id")
+    ... ).withColumn(
+    ...     "dayOfYear", dayofyear("date")
+    ... ).show()
+    +---+----------+---------+
+    | id|      date|dayOfYear|
+    +---+----------+---------+
+    |  1|2019-01-01|        1|
+    |  2|2019-01-02|        2|
+    |  3|2019-01-03|        3|
+    |  4|2019-01-04|        4|
+    |  5|2019-01-05|        5|
+    |  6|2019-01-06|        6|
+    |  7|2019-01-07|        7|
+    |  8|2019-01-08|        8|
+    |  9|2019-01-09|        9|
+    +---+----------+---------+
+
+    :rtype: Column
+    """
+    return col(DayOfYear(parse(e)))
