@@ -244,3 +244,16 @@ class ArraysZip(Expression):
 
     def __str__(self):
         return "arrays_zip({0})".format(", ".join(self.cols))
+
+
+class Flatten(UnaryExpression):
+    def eval(self, row, schema):
+        return [
+            value
+            for array in self.column.eval(row, schema)
+            for value in array
+        ]
+
+    def __str__(self):
+        return "flatten({0})".format(self.column)
+
