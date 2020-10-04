@@ -1470,6 +1470,9 @@ class DataFrame(object):
                     _check_series_convert_timestamps_local_tz(pdf[field.name], timezone)
         return pdf
 
+    def groupby(self, *cols):
+        return self.groupBy(*cols)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
