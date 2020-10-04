@@ -788,3 +788,10 @@ def bitwiseNOT(e):
     :rtype: Column
     """
     return col(BitwiseNot(parse(e)))
+
+
+def expr(expression):
+    """
+    :rtype: Column
+    """
+    return parse(expression)
