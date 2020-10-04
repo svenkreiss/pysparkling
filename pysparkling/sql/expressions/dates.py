@@ -345,3 +345,20 @@ class ParseToDate(Expression):
             ", '{0}'".format(self.format) if self.format is not None else ""
         )
 
+
+class TruncDate(Expression):
+    def __init__(self, column, level):
+        super(TruncDate, self).__init__(column)
+        self.column = column
+        self.level = level
+
+    def eval(self, row, schema):
+        value = self.column.cast(DateType()).eval(row, schema)
+        if self.level in ('year', 'yyyy', 'yy'):
+            return datetime.date(value.year, 1, 1)
+        if self.level in ('month', 'mon', 'mm'):
+            return datetime.date(value.year, value.month, 1)
+        return None
+
+    def __str__(self):
+        return "trunc({0}, {1})".format(self.column, self.level)
