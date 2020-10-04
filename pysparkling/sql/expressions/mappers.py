@@ -213,6 +213,24 @@ class IsNaN(UnaryExpression):
         return "isnan({0})".format(", ".join(self.column))
 
 
+class NaNvl(Expression):
+    def __init__(self, col1, col2):
+        super(NaNvl, self).__init__(col1, col2)
+        self.col1 = col1
+        self.col2 = col2
+
+    def eval(self, row, schema):
+        nan = float("nan")
+        col1_value = self.col1.eval(row, schema)
+        if col1_value is not nan:
+            return float(col1_value)
+        return float(self.col2.eval(row, schema))
+
+    def __str__(self):
+        return "nanvl({0}, {1})".format(self.col1, self.col2)
+
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
