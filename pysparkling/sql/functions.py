@@ -1,3 +1,5 @@
+import math
+
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, \
     CountDistinct, First, Last, SumDistinct
@@ -7,7 +9,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
-    Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least
+    Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot
 
@@ -944,3 +946,14 @@ def least(*exprs):
     """
     cols = [parse(e) for e in exprs]
     return col(Least(cols))
+
+
+def log(arg1, arg2=None):
+    """
+    :rtype: Column
+    """
+    if arg2 is None:
+        base, value = math.e, parse(arg1)
+    else:
+        base, value = arg1, parse(arg2)
+    return col(Log(base, value))
