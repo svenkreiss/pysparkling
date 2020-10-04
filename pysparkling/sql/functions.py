@@ -1203,3 +1203,17 @@ def concat_ws(sep, *exprs):
     """
     cols = [parse(e) for e in exprs]
     return col(ConcatWs(sep, cols))
+
+
+def decode(value, charset):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def encode(value, charset):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
