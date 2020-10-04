@@ -114,3 +114,13 @@ class DayOfYear(UnaryExpression):
     def __str__(self):
         return "dayofyear({0})".format(self.column)
 
+
+class LastDay(UnaryExpression):
+    def eval(self, row, schema):
+        value = self.column.cast(DateType()).eval(row, schema)
+        first_of_next_month = value + relativedelta(months=1, day=1)
+        return first_of_next_month - datetime.timedelta(days=1)
+
+    def __str__(self):
+        return "last_day({0})".format(self.column)
+
