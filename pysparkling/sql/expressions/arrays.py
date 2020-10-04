@@ -1,6 +1,26 @@
 from pysparkling.sql.expressions.expressions import Expression
 
 
+class ArraysOverlap(Expression):
+    def __init__(self, array1, array2):
+        super(ArraysOverlap, self).__init__(array1, array2)
+        self.array1 = array1
+        self.array2 = array2
+
+    def eval(self, row, schema):
+        set1 = set(self.array1.eval(row, schema))
+        set2 = set(self.array2.eval(row, schema))
+        overlap = set1 & set2
+        if len(overlap) > 1 or (len(overlap) == 1 and None not in overlap):
+            return True
+        if set1 and set2 and (None in set1 or None in set2):
+            return None
+        return False
+
+    def __str__(self):
+        return "array_overlap({0}, {1})".format(self.array1, self.array2)
+
+
 class ArrayColumn(Expression):
     def __init__(self, columns):
         super(ArrayColumn, self).__init__(columns)
