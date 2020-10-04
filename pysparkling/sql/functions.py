@@ -1,5 +1,5 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.aggregate.collectors import CollectSet
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
@@ -176,6 +176,25 @@ def desc_nulls_last(columnName):
     +---+-----+
     """
     return parse(columnName).desc_nulls_last()
+
+
+def approx_count_distinct(e, rsd=0.05):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(100).select((col("id")%10).alias("n")).select(approx_count_distinct("n")).show()
+    +------------------------+
+    |approx_count_distinct(n)|
+    +------------------------+
+    |                      10|
+    +------------------------+
+    """
+    # NB: This function returns the exact number of distinct values in pysparkling
+    # as it does not rely on HyperLogLogPlusPlus or another estimator
+    return col(ApproxCountDistinct(column=parse(e)))
 
 
 def when(condition, value):
