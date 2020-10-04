@@ -578,3 +578,11 @@ class Length(UnaryExpression):
     def __str__(self):
         return "length({0})".format(self.column)
 
+
+class Lower(UnaryExpression):
+    def eval(self, row, schema):
+        return str(self.column.eval(row, schema)).lower()
+
+    def __str__(self):
+        return "lower({0})".format(self.column)
+
