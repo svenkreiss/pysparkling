@@ -638,3 +638,11 @@ class MapKeys(UnaryExpression):
     def __str__(self):
         return "map_keys({0})".format(self.column)
 
+
+class MapValues(UnaryExpression):
+    def eval(self, row, schema):
+        return list(self.column.eval(row, schema).values())
+
+    def __str__(self):
+        return "map_values({0})".format(self.column)
+
