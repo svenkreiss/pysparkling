@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, 
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains, \
-    ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, ArrayRemove
+    ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, ArrayRemove, ArrayDistinct
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
@@ -2132,3 +2132,10 @@ def array_remove(column, element):
     :rtype: Column
     """
     return col(ArrayRemove(column, element))
+
+
+def array_distinct(e):
+    """
+    :rtype: Column
+    """
+    return col(ArrayDistinct(e))
