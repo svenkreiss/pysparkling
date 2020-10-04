@@ -1006,6 +1006,12 @@ class DataFrame(object):
         |Alice|
         |  Bob|
         +-----+
+        >>> df.select(avg('age')).show()
+        +--------+
+        |avg(age)|
+        +--------+
+        |     3.5|
+        +--------+
         >>> df.select(df.name, (df.age + 10).alias('age')).collect()
         [Row(name='Alice', age=12), Row(name='Bob', age=15)]
         >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
