@@ -12,7 +12,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
     Log1p, Log2
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow
+from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
 
 def col(colName):
@@ -988,3 +988,10 @@ def pow(l, r):
     :rtype: Column
     """
     return col(Pow(parse(l), parse(r)))
+
+
+def pmod(dividend, divisor):
+    """
+    :rtype: Column
+    """
+    return col(Pmod(dividend, divisor))
