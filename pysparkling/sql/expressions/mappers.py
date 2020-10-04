@@ -606,3 +606,19 @@ class Concat(Expression):
     def __str__(self):
         return "concat({0})".format(", ".join(str(col) for col in self.columns))
 
+
+class ConcatWs(Expression):
+    def __init__(self, sep, columns):
+        super(ConcatWs, self).__init__(columns)
+        self.sep = sep
+        self.columns = columns
+
+    def eval(self, row, schema):
+        return self.sep.join(str(col.eval(row, schema)) for col in self.columns)
+
+    def __str__(self):
+        return "concat_ws({0}{1})".format(
+            self.sep,
+            ", {0}".format(", ".join(str(col) for col in self.columns)) if self.columns else ""
+        )
+
