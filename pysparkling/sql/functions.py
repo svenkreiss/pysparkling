@@ -1,5 +1,6 @@
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList
+from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
@@ -219,6 +220,16 @@ def collect_list(e):
     +---------------+
     """
     return col(CollectList(column=parse(e)))
+
+
+def corr(column1, column2):
+    """
+    :rtype: Column
+    """
+    return col(Corr(
+        column1=parse(column1),
+        column2=parse(column2)
+    ))
 
 
 def when(condition, value):
