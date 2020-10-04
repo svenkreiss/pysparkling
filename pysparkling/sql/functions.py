@@ -488,3 +488,11 @@ def max(e):
     :rtype: Column
     """
     return col(Max(column=parse(e)))
+
+
+def mean(e):
+    """
+    :rtype: Column
+    """
+    # Discrepancy between name and object (mean vs Avg) replicate a discrepancy in PySpark
+    return col(Avg(column=parse(e)))
