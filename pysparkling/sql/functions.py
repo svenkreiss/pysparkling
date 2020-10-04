@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
-    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween
+    DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1795,3 +1795,28 @@ def months_between(end, start, roundOff=True):
     +---------------------------------------------------------------------+
     """
     return col(MonthsBetween(end, start, roundOff))
+
+
+def next_day(date, dayOfWeek):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1, 10).select(next_day(concat(lit("2019-11-0"), col("id")), "Mon")).show()
+    +------------------------------------+
+    |next_day(concat(2019-11-0, id), Mon)|
+    +------------------------------------+
+    |                          2019-11-04|
+    |                          2019-11-04|
+    |                          2019-11-04|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    |                          2019-11-11|
+    +------------------------------------+
+    """
+    return col(NextDay(parse(date), dayOfWeek))
