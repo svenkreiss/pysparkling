@@ -331,19 +331,19 @@ def struct(*exprs):
     """
     :rtype: Column
 
-    # >>> from pysparkling import Context, Row
-    # >>> from pysparkling.sql.session import SparkSession
-    # >>> spark = SparkSession(Context())
-    # >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
-    # >>> df.select(struct("age", col("name")).alias("struct")).collect()
-    # [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
-    # >>> df.select(struct("age", col("name"))).show()
-    # +----------------------------------+
-    # |named_struct(age, age, name, name)|
-    # +----------------------------------+
-    # |                        [2, Alice]|
-    # |                          [5, Bob]|
-    # +----------------------------------+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    >>> df.select(struct("age", col("name")).alias("struct")).collect()
+    [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
+    >>> df.select(struct("age", col("name"))).show()
+    +----------------------------------+
+    |named_struct(age, age, name, name)|
+    +----------------------------------+
+    |                        [2, Alice]|
+    |                          [5, Bob]|
+    +----------------------------------+
 
     """
     cols = [parse(e) for e in exprs]
