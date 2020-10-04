@@ -1,10 +1,14 @@
 import datetime
 
+import pytz
 from dateutil.relativedelta import relativedelta
 
 from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import DateType, TimestampType, FloatType
+from pysparkling.utils import parse_tz
+
+GMT_TIMEZONE = pytz.timezone("GMT")
 
 DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
@@ -413,3 +417,21 @@ class TruncTimestamp(Expression):
     def __str__(self):
         return "date_trunc({0}, {1})".format(self.level, self.column)
 
+
+class FromUTCTimestamp(Expression):
+    def __init__(self, column, tz):
+        super(FromUTCTimestamp, self).__init__(column)
+        self.column = column
+        self.tz = tz
+        self.pytz = parse_tz(tz)
+
+    def eval(self, row, schema):
+        value = self.column.cast(TimestampType()).eval(row, schema)
+        if self.pytz is None:
+            return value
+        gmt_date = GMT_TIMEZONE.localize(value)
+        local_date = gmt_date.astimezone(self.pytz)
+        return local_date.replace(tzinfo=None)
+
+    def __str__(self):
+        return "from_utc_timestamp({0}, {1})".format(self.column, self.tz)
