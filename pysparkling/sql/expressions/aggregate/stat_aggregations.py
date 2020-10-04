@@ -51,3 +51,10 @@ class Max(SimpleStatAggregation):
     def __str__(self):
         return "max({0})".format(self.column)
 
+
+class Min(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.min
+
+    def __str__(self):
+        return "min({0})".format(self.column)
