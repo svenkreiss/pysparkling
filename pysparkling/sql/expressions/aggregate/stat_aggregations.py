@@ -91,3 +91,11 @@ class VarPop(SimpleStatAggregation):
     def __str__(self):
         return "var_pop({0})".format(self.column)
 
+
+class StddevSamp(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.stddev_samp
+
+    def __str__(self):
+        return "stddev_samp({0})".format(self.column)
+
