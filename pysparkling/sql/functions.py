@@ -9,7 +9,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
-    Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate
+    Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1933,3 +1933,38 @@ def to_date(e, fmt=None):
 
     """
     return col(ParseToDate(e, fmt))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def trunc(date, format):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "year")).show()
+    +-----------------------+
+    |trunc(2019-11-05, year)|
+    +-----------------------+
+    |             2019-01-01|
+    +-----------------------+
+
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "month")).show()
+    +------------------------+
+    |trunc(2019-11-05, month)|
+    +------------------------+
+    |              2019-11-01|
+    +------------------------+
+
+    >>> spark.range(1).select(trunc(lit("2019-11-05"), "quarter")).show()
+    +--------------------------+
+    |trunc(2019-11-05, quarter)|
+    +--------------------------+
+    |                      null|
+    +--------------------------+
+
+
+    """
+    return col(TruncDate(parse(date), format))
