@@ -275,3 +275,19 @@ class ArrayPosition(Expression):
 
     def __str__(self):
         return "array_position({0}, {1})".format(self.col, self.value)
+
+
+class ElementAt(Expression):
+    def __init__(self, col, extraction):
+        super(ElementAt, self).__init__(col)
+        self.col = col
+        self.extraction = extraction
+
+    def eval(self, row, schema):
+        col_eval = self.col.eval(row, schema)
+        if isinstance(col_eval, list):
+            return col_eval[self.extraction - 1]
+        return col_eval.get(self.extraction)
+
+    def __str__(self):
+        return "element_at({0}, {1})".format(self.col, self.extraction)
