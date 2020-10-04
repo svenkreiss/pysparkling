@@ -393,6 +393,25 @@ class Ceil(UnaryExpression):
         return "CEIL({0})".format(self.column)
 
 
+class Log(Expression):
+    def __init__(self, base, value):
+        super(Log, self).__init__(base, value)
+        self.base = base
+        self.value = value
+
+    def eval(self, row, schema):
+        value_eval = self.value.eval(row, schema)
+        if value_eval == 0:
+            return None
+        return math.log(value_eval, self.base)
+
+    def __str__(self):
+        return "LOG({0}{1})".format(
+            "{}, ".format(self.base) if self.base != math.e else "",
+            self.value
+        )
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
