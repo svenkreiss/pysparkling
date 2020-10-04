@@ -1054,3 +1054,10 @@ def bround(e, scale=0):
     +--------------+--------------+--------------+--------------+--------------+--------------+
     """
     return col(Bround(parse(e), scale))
+
+
+def shiftLeft(e, numBits):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
