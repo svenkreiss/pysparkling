@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, 
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
-from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp
+from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1532,3 +1532,22 @@ def current_timestamp():
     :rtype: Column
     """
     return col(CurrentTimestamp())
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def date_format(dateExpr, format):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_format(lit("2019-10-31"), 'MM/dd/yyy')).show()
+    +----------------------------------+
+    |date_format(2019-10-31, MM/dd/yyy)|
+    +----------------------------------+
+    |                        10/31/2019|
+    +----------------------------------+
+    """
+    return col(DateFormat(parse(dateExpr), format))
