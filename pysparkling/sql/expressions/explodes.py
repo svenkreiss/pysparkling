@@ -57,3 +57,13 @@ class PosExplode(UnaryExpression):
             StructField("col", DataType(), False)
         ]
 
+
+class PosExplodeOuter(PosExplode):
+    def eval(self, row, schema):
+        values = self.column.eval(row, schema)
+        if not values:
+            return [[None, None]]
+        return list(enumerate(values))
+
+    def __str__(self):
+        return "posexplode_outer"
