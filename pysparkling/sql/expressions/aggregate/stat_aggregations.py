@@ -99,3 +99,11 @@ class StddevSamp(SimpleStatAggregation):
     def __str__(self):
         return "stddev_samp({0})".format(self.column)
 
+
+class StddevPop(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.stddev_pop
+
+    def __str__(self):
+        return "stddev_pop({0})".format(self.column)
+
