@@ -544,3 +544,17 @@ class Bin(UnaryExpression):
     def __str__(self):
         return "bin({0})".format(self.column)
 
+
+class Greatest(Expression):
+    def __init__(self, columns):
+        super(Greatest, self).__init__(columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        values = (col.eval(row, schema) for col in self.columns)
+        return max((value for value in values if value is not None), default=None)
+
+    def __str__(self):
+        return "greatest({0})".format(", ".join(str(col) for col in self.columns))
+
+
