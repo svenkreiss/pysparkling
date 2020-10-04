@@ -58,3 +58,12 @@ class Min(SimpleStatAggregation):
 
     def __str__(self):
         return "min({0})".format(self.column)
+
+
+class Sum(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.sum
+
+    def __str__(self):
+        return "sum({0})".format(self.column)
+
