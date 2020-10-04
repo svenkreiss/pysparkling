@@ -124,3 +124,11 @@ class LastDay(UnaryExpression):
     def __str__(self):
         return "last_day({0})".format(self.column)
 
+
+class WeekOfYear(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.cast(DateType()).eval(row, schema).isocalendar()[1]
+
+    def __str__(self):
+        return "weekofyear({0})".format(self.column)
+
