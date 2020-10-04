@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
-    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64
+    Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
 
@@ -1176,3 +1176,30 @@ def base64(e):
     +--------------------+
     """
     return col(Base64(parse(e)))
+
+
+def concat_ws(sep, *exprs):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(3).select(concat_ws("---", "id", lit(2), "id")).show()
+    +-------------------------+
+    |concat_ws(---, id, 2, id)|
+    +-------------------------+
+    |                0---2---0|
+    |                1---2---1|
+    |                2---2---2|
+    +-------------------------+
+    >>> spark.range(1).select(concat_ws("---")).show()
+    +--------------+
+    |concat_ws(---)|
+    +--------------+
+    |              |
+    +--------------+
+
+    """
+    cols = [parse(e) for e in exprs]
+    return col(ConcatWs(sep, cols))
