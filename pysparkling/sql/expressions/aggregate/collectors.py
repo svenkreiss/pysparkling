@@ -106,3 +106,24 @@ class Last(Aggregation):
     def __str__(self):
         return "last({0}, {1})".format(self.column, str(self.ignore_nulls).lower())
 
+
+class CountDistinct(Aggregation):
+    def __init__(self, columns):
+        super(CountDistinct, self).__init__(columns)
+        self.columns = columns
+        self.items = set()
+
+    def merge(self, row, schema):
+        self.items.add(tuple(
+            col.eval(row, schema) for col in self.columns
+        ))
+
+    def mergeStats(self, other, schema):
+        self.items += other.items
+
+    def eval(self, row, schema):
+        return len(self.items)
+
+    def __str__(self):
+        return "count(DISTINCT {0})".format(",".join(self.columns))
+
