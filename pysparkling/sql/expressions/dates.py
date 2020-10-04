@@ -261,3 +261,20 @@ class DateFormat(Expression):
 
     def __str__(self):
         return "date_format({0}, {1})".format(self.column, self.format)
+
+
+class CurrentTimestamp(Expression):
+    def __init__(self):
+        super(CurrentTimestamp, self).__init__()
+        self.current_timestamp = None
+
+    def eval(self, row, schema):
+        return self.current_timestamp
+
+    def initialize(self, partition_index):
+        super(CurrentTimestamp, self).initialize(partition_index)
+        self.current_timestamp = datetime.datetime.now()
+
+    def __str__(self):
+        return "current_timestamp()"
+
