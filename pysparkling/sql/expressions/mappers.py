@@ -662,3 +662,20 @@ class MapFromEntries(UnaryExpression):
     def __str__(self):
         return "map_from_entries({0})".format(self.column)
 
+
+class MapConcat(Expression):
+    def __init__(self, columns):
+        super(MapConcat, self).__init__(*columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        result = {}
+        for column in self.columns:
+            col_value = column.eval(row, schema)
+            if isinstance(col_value, dict):
+                result.update(col_value)
+        return result
+
+    def __str__(self):
+        return "map_concat({0})".format(", ".join(str(col) for col in self.columns))
+
