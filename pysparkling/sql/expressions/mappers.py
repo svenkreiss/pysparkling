@@ -906,3 +906,14 @@ class Grouping(UnaryExpression):
     def __str__(self):
         return "grouping({0})".format(self.column)
 
+
+class InputFileName(Expression):
+    def eval(self, row, schema):
+        metadata = row.get_metadata()
+        if metadata is None:
+            return None
+        return metadata.get("input_file_name", "")
+
+    def __str__(self):
+        return "input_file_name()"
+
