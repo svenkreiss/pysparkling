@@ -1,4 +1,5 @@
 import random
+import re
 
 from pysparkling.sql.expressions.expressions import Expression
 from pysparkling.sql.internal_utils.column import resolve_column
@@ -82,6 +83,31 @@ class Otherwise(Expression):
             ),
             self.default
         )
+
+
+class RegExpExtract(Expression):
+    def __init__(self, e, exp, groupIdx):
+        super(RegExpExtract, self).__init__(e, exp, groupIdx)
+
+        regexp = re.compile(exp)
+
+        def fn(x):
+            match = regexp.search(x)
+            if not match:
+                return ""
+            ret = match.group(groupIdx)
+            return ret
+
+        self.fn = fn
+        self.exp = exp
+        self.groupIdx = groupIdx
+        self.e = e
+
+    def eval(self, row, schema):
+        return self.fn(self.e.eval(row, schema))
+
+    def __str__(self):
+        return "regexp_extract({0}, {1}, {2})".format(self.e, self.exp, self.groupIdx)
 
 
 class Rand(Expression):
