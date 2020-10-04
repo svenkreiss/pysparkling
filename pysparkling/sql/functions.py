@@ -1124,3 +1124,29 @@ def radians(e):
     :rtype: Column
     """
     return col(ToRadians(parse(e)))
+
+
+def md5(e):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def sha1(e):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def sha2(e, numBits):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def crc32(e):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def hash(*exprs):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def xxhash64(*exprs):
+    raise NotImplementedError("Pysparkling does not support yet this function")
