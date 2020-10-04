@@ -667,3 +667,11 @@ def create_map(*exprs):
     cols = [parse(e) for e in exprs]
 
     return col(MapColumn(cols))
+
+
+def broadcast(df):
+    """
+    :rtype: Column
+    """
+    # Broadcast is not implemented as Pysparkling is not distributed
+    return df
