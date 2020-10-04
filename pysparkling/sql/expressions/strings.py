@@ -1,3 +1,5 @@
+import string
+
 from pysparkling.sql.expressions.expressions import UnaryExpression, Expression
 from pysparkling.sql.types import StringType
 from pysparkling.utils import levenshtein_distance
@@ -176,4 +178,55 @@ class Levenshtein(Expression):
 
     def __str__(self):
         return "levenshtein({0}, {1})".format(self.column1, self.column2)
+
+
+class SoundEx(UnaryExpression):
+    _soundex_mapping = {
+        letter: int(soundex_code)
+        for letter, soundex_code in zip(
+            string.ascii_uppercase,
+            "01230127022455012623017202"
+        )
+    }
+
+    def eval(self, row, schema):
+        raw_value = self.column.cast(StringType()).eval(row, schema)
+
+        if raw_value is None:
+            return None
+
+        if raw_value == "":
+            return ""
+
+        value = raw_value.upper()
+        initial = value[0]
+
+        last_code = self._encode(initial)
+        if last_code is None:
+            return raw_value
+
+        res = [initial]
+        for letter in value:
+            code = self._encode(letter)
+            if code is None:
+                continue
+            if code == 7:
+                continue
+            if code not in (0, last_code):
+                res.append(str(code))
+                if len(res) > 3:
+                    break
+            last_code = code
+
+        return ("".join(res) + "000")[:4]
+
+    def _encode(self, letter):
+        """
+        Encode a letter using the SoundEx mapping.
+        Returns None if the letter is not recognized
+        """
+        return self._soundex_mapping.get(letter)
+
+    def __str__(self):
+        return "soundex({0})".format(self.column)
 
