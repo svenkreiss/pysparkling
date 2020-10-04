@@ -7,7 +7,7 @@ from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, 
 from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max, Min, Skewness, \
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn
-from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd
+from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -1569,3 +1569,20 @@ def date_add(start, days):
 
     """
     return col(DateAdd(parse(start), days))
+
+
+def date_sub(start, days):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(date_sub(lit("2019-03-01"), 2)).show()
+    +-----------------------+
+    |date_sub(2019-03-01, 2)|
+    +-----------------------+
+    |             2019-02-27|
+    +-----------------------+
+    """
+    return col(DateSub(parse(start), days))
