@@ -1,3 +1,4 @@
+import math
 import random
 import re
 
@@ -229,6 +230,18 @@ class NaNvl(Expression):
     def __str__(self):
         return "nanvl({0}, {1})".format(self.col1, self.col2)
 
+
+class Hypot(Expression):
+    def __init__(self, a, b):
+        super(Hypot, self).__init__(a, b)
+        self.a = a
+        self.b = b
+
+    def eval(self, row, schema):
+        return math.hypot(self.a, self.b)
+
+    def __str__(self):
+        return "hypot({0}, {1})".format(self.a, self.b)
 
 
 class Rand(Expression):
