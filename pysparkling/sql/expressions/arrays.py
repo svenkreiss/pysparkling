@@ -49,6 +49,23 @@ class ArrayColumn(Expression):
         return "array({0})".format(", ".join(str(col) for col in self.columns))
 
 
+class MapColumn(Expression):
+    def __init__(self, columns):
+        super(MapColumn, self).__init__(columns)
+        self.columns = columns
+        self.keys = columns[::2]
+        self.values = columns[1::2]
+
+    def eval(self, row, schema):
+        return dict(
+            (key.eval(row, schema), value.eval(row, schema))
+            for key, value in zip(self.keys, self.values)
+        )
+
+    def __str__(self):
+        return "map({0})".format(", ".join(str(col) for col in self.columns))
+
+
 class MapFromArraysColumn(Expression):
     def __init__(self, keys, values):
         super(MapFromArraysColumn, self).__init__(keys, values)
