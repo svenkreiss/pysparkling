@@ -99,3 +99,12 @@ class Size(UnaryExpression):
 
     def __str__(self):
         return "size({0})".format(self.column)
+
+
+class ArraySort(UnaryExpression):
+    def eval(self, row, schema):
+        return sorted(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "array_sort({0})".format(self.column)
+
