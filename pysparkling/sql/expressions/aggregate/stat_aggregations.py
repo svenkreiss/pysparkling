@@ -74,3 +74,12 @@ class Avg(SimpleStatAggregation):
 
     def __str__(self):
         return "avg({0})".format(self.column)
+
+
+class VarSamp(SimpleStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.variance_samp
+
+    def __str__(self):
+        return "var_samp({0})".format(self.column)
+
