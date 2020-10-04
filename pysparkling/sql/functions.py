@@ -14,7 +14,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     FormatNumber, Length, Lower
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
-from pysparkling.sql.expressions.strings import InitCap, StringInStr
+from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein
 
 
 def col(colName):
@@ -1285,3 +1285,21 @@ def lower(e):
     :rtype: Column
     """
     return col(Lower(parse(e)))
+
+
+def levenshtein(l, r):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(levenshtein(lit("kitten"), lit("sitting"))).show()
+    +----------------------------+
+    |levenshtein(kitten, sitting)|
+    +----------------------------+
+    |                           3|
+    +----------------------------+
+
+    """
+    return col(Levenshtein(parse(l), parse(r)))
