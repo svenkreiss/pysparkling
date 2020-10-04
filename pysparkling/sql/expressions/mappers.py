@@ -385,6 +385,14 @@ class Floor(UnaryExpression):
         return "FLOOR({0})".format(self.column)
 
 
+class Ceil(UnaryExpression):
+    def eval(self, row, schema):
+        return math.ceil(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "CEIL({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
