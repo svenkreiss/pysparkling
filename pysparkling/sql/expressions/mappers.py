@@ -252,6 +252,14 @@ class Sqrt(UnaryExpression):
         return "SQRT({0})".format(self.column)
 
 
+class Cbrt(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.eval(row, schema) ** 1. / 3.
+
+    def __str__(self):
+        return "CBRT({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
