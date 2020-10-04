@@ -2,8 +2,9 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 
+from pysparkling.sql.casts import get_time_formatter
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
-from pysparkling.sql.types import DateType, TimestampType
+from pysparkling.sql.types import DateType, TimestampType, FloatType
 
 DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
@@ -230,4 +231,19 @@ class DateDiff(Expression):
 
     def __str__(self):
         return "datediff({0}, {1})".format(self.column1, self.column2)
+
+
+class FromUnixTime(Expression):
+    def __init__(self, column, f):
+        super(FromUnixTime, self).__init__(column)
+        self.column = column
+        self.format = f
+        self.formatter = get_time_formatter(self.format)
+
+    def eval(self, row, schema):
+        timestamp = self.column.cast(FloatType()).eval(row, schema)
+        return self.formatter(datetime.datetime.fromtimestamp(timestamp))
+
+    def __str__(self):
+        return "from_unixtime({0}, {1})".format(self.column, self.format)
 
