@@ -2386,3 +2386,11 @@ def udf(f, returnType=DataType()):
         return col(UserDefinedFunction(f, returnType, *exprs))
 
     return wrapper
+
+
+def pandas_udf(f=None, returnType=None, functionType=None):
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def callUDF(udfName, *cols):
+    raise NotImplementedError("Pysparkling does not support yet this function")
