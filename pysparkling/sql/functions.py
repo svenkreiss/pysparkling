@@ -13,7 +13,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     Log1p, Log2, Rint, Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
     FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod
+from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, StringLPad, \
     StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx
 
@@ -1444,3 +1444,12 @@ def split(str, regex, limit=None):
     :rtype: Column
     """
     return col(StringSplit(parse(str), regex, limit))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def substring(str, pos, len):
+    """
+    :rtype: Column
+    """
+    return col(Substring(str, pos, len))
