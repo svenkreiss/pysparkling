@@ -23,3 +23,11 @@ class CovarianceStatAggregation(Aggregation):
     def __str__(self):
         raise NotImplementedError
 
+
+class Corr(CovarianceStatAggregation):
+    def eval(self, row, schema):
+        return self.stat_helper.pearson_correlation
+
+    def __str__(self):
+        return "corr({0}, {1})".format(self.column1, self.column2)
+
