@@ -306,3 +306,10 @@ class ArrayRemove(Expression):
     def __str__(self):
         return "array_remove({0}, {1})".format(self.col, self.element)
 
+
+class ArrayDistinct(UnaryExpression):
+    def eval(self, row, schema):
+        return list(set(self.column.eval(row, schema)))
+
+    def __str__(self):
+        return "array_distinct({0})".format(self.column)
