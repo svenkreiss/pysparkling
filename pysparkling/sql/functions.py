@@ -569,3 +569,10 @@ def variance(e):
     :rtype: Column
     """
     return col(VarSamp(column=parse(e)))
+
+
+def var_samp(e):
+    """
+    :rtype: Column
+    """
+    return col(VarSamp(column=parse(e)))
