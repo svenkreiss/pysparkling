@@ -8,7 +8,7 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, 
     StddevSamp, StddevPop, Sum, VarSamp, VarPop
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn, MapColumn, ArrayContains, \
     ArraysOverlap, Slice, ArrayJoin, ArrayPosition, ElementAt, ArraySort, ArrayRemove, ArrayDistinct, ArrayIntersect, \
-    ArrayUnion, ArrayExcept, Size, SortArray, ArrayMin, ArrayMax, Flatten, Sequence, ArrayRepeat
+    ArrayUnion, ArrayExcept, Size, SortArray, ArrayMin, ArrayMax, Flatten, Sequence, ArrayRepeat, ArraysZip
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
@@ -2314,3 +2314,10 @@ def map_from_entries(e):
     :rtype: Column
     """
     return col(MapFromEntries(e))
+
+
+def arrays_zip(*exprs):
+    """
+    :rtype: Column
+    """
+    return col(ArraysZip([parse(e) for e in exprs]))
