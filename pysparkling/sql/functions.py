@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn,
 from pysparkling.sql.expressions.dates import AddMonths, CurrentDate, CurrentTimestamp, DateFormat, DateAdd, DateSub, \
     DateDiff, Year, Quarter, Month, DayOfWeek, DayOfMonth, DayOfYear, Hour, LastDay, Minute, MonthsBetween, NextDay, \
     Second, WeekOfYear, FromUnixTime, UnixTimestamp, ParseToTimestamp, ParseToDate, TruncDate, TruncTimestamp, \
-    FromUTCTimestamp
+    FromUTCTimestamp, ToUTCTimestamp
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID, Coalesce, \
     InputFileName, IsNaN, MonotonicallyIncreasingID, NaNvl, Randn, SparkPartitionID, Sqrt, Abs, Acos, Asin, Atan, Atan2, \
     Bin, Cbrt, Ceil, Conv, Cos, Cosh, Exp, ExpM1, Factorial, Floor, Greatest, Hex, Unhex, Hypot, Least, Log, Log10, \
@@ -2032,3 +2032,32 @@ def from_utc_timestamp(ts, tz):
     +----------------------------------------------+
     """
     return col(FromUTCTimestamp(ts, tz))
+
+
+def to_utc_timestamp(ts, tz):
+    """
+    :rtype: Column
+
+    >>> from pysparkling import Context, Row
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> spark.range(1).select(to_utc_timestamp(lit("2019-11-05 04:55"), "Europe/Paris")).show()
+    +------------------------------------------------+
+    |to_utc_timestamp(2019-11-05 04:55, Europe/Paris)|
+    +------------------------------------------------+
+    |                             2019-11-05 03:55:00|
+    +------------------------------------------------+
+    >>> spark.range(1).select(to_utc_timestamp(lit("2019-11-05 04:55"), "GMT+1")).show()
+    +-----------------------------------------+
+    |to_utc_timestamp(2019-11-05 04:55, GMT+1)|
+    +-----------------------------------------+
+    |                      2019-11-05 03:55:00|
+    +-----------------------------------------+
+    >>> spark.range(1).select(to_utc_timestamp(lit("2019-11-05 04:55"), "GMT-1:49")).show()
+    +--------------------------------------------+
+    |to_utc_timestamp(2019-11-05 04:55, GMT-1:49)|
+    +--------------------------------------------+
+    |                         2019-11-05 06:44:00|
+    +--------------------------------------------+
+    """
+    return col(ToUTCTimestamp(ts, tz))
