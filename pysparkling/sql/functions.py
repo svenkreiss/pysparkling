@@ -2,7 +2,7 @@ from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, CollectList, \
     CountDistinct, First, Last
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
-from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis
+from pysparkling.sql.expressions.aggregate.stat_aggregations import Count, Avg, Kurtosis, Max
 from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
 from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Grouping, GroupingID
 from pysparkling.sql.expressions.literals import Literal
@@ -479,3 +479,12 @@ def kurtosis(e):
     :rtype: Column
     """
     return col(Kurtosis(column=parse(e)))
+
+
+# noinspection PyShadowingBuiltins
+# pylint: disable=W0622
+def max(e):
+    """
+    :rtype: Column
+    """
+    return col(Max(column=parse(e)))
