@@ -361,6 +361,14 @@ class Exp(UnaryExpression):
         return "EXP({0})".format(self.column)
 
 
+class ExpM1(UnaryExpression):
+    def eval(self, row, schema):
+        return math.expm1(self.column.eval(row, schema))
+
+    def __str__(self):
+        return "EXPM1({0})".format(self.column)
+
+
 class Rand(Expression):
     def __init__(self, seed=None):
         super(Rand, self).__init__()
