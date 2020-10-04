@@ -2190,3 +2190,31 @@ def posexplode_outer(e):
     :rtype: Column
     """
     return col(PosExplodeOuter(e))
+
+
+def get_json_object(e, path):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def json_tuple(json, *fields):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def from_json(e, schema, options=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+def schema_of_json(json, options=None):
+    """
+    :rtype: Column
+    """
+    raise NotImplementedError("Pysparkling does not support yet this function")
