@@ -11,16 +11,12 @@ from operator import itemgetter
 import pytz
 from pytz import UnknownTimeZoneError
 
+from pysparkling.sql.casts import get_time_formatter
+from pysparkling.sql.schema_utils import get_on_fields
 from pysparkling.sql.internal_utils.joins import FULL_JOIN, RIGHT_JOIN, LEFT_JOIN, \
     CROSS_JOIN, INNER_JOIN, LEFT_SEMI_JOIN, LEFT_ANTI_JOIN
 from pysparkling.sql.types import Row, create_row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
-
-
-# pylint: disable=fixme
-# todo: implement get_on_fields
-def get_on_fields(*args):
-    raise NotImplementedError
 
 
 class Tokenizer(object):
@@ -261,7 +257,7 @@ class XORShiftRandom(object):
         self.haveNextNextGaussian = False
         self.nextNextGaussian = 0
 
-    def next(self, bits):
+    def nextValue(self, bits):
         seed = self.seed
         nextSeed = seed ^ (seed << 21)
         nextSeed ^= (nextSeed >> 35)
@@ -270,9 +266,9 @@ class XORShiftRandom(object):
         return int(nextSeed & ((1 << bits) - 1))
 
     def nextDouble(self):
-        # Pylint incorrectly identify self.next as not callable
-        # pylint: disable=not-callable
-        return ((self.next(26) << 27) + self.next(27)) * 1.1102230246251565E-16
+        a = self.nextValue(26)
+        b = self.nextValue(27)
+        return ((a << 27) + b) * 1.1102230246251565E-16
 
     def nextGaussian(self):
         if self.haveNextNextGaussian:
@@ -568,7 +564,7 @@ def levenshtein_distance(str1, str2):
     )
 
 
-def get_json_encoder(date_formatter, timestamp_formatter):
+def get_json_encoder(options):
     """
     Returns a JsonEncoder which convert Rows to json with the same behavior
     and conversion logic as PySpark.
@@ -577,6 +573,11 @@ def get_json_encoder(date_formatter, timestamp_formatter):
     :param timestamp_formatter: a function that convert a timestamp into a string
     :return: type
     """
+    date_format = options.get("dateformat", "yyyy-MM-dd")
+    timestamp_format = options.get("timestampformat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    date_formatter = get_time_formatter(date_format)
+    timestamp_formatter = get_time_formatter(timestamp_format)
+
     class CustomJSONEncoder(json.JSONEncoder):
         def encode(self, o):
             def encode_rows(item):
@@ -600,9 +601,9 @@ def get_json_encoder(date_formatter, timestamp_formatter):
         # pylint doesn't like the behavior but it is the expected one
         # pylint: disable=E0202
         def default(self, o):
-            if isinstance(o, datetime.date):
-                return timestamp_formatter(o)
             if isinstance(o, datetime.datetime):
+                return timestamp_formatter(o)
+            if isinstance(o, datetime.date):
                 return date_formatter(o)
             return super(CustomJSONEncoder, self).default(o)
 
