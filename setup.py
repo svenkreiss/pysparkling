@@ -21,8 +21,7 @@ setup(
     license='MIT',
     description='Pure Python implementation of the Spark RDD interface.',
     long_description=open('README.rst').read(),
-    author='Sven Kreiss',
-    author_email='me@svenkreiss.com',
+    author='pysparkling contributors',
     url='https://github.com/svenkreiss/pysparkling',
 
     install_requires=[
