@@ -1,5 +1,9 @@
 from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.mappers import CaseWhen
+from pysparkling.sql.expressions.aggregate.collectors import CollectSet
+from pysparkling.sql.expressions.aggregate.stat_aggregations import Count
+from pysparkling.sql.expressions.arrays import ArrayColumn, MapFromArraysColumn
+from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct
+from pysparkling.sql.expressions.literals import Literal
 
 
 def col(colName):
@@ -7,6 +11,20 @@ def col(colName):
     :rtype: Column
     """
     return Column(colName)
+
+
+def lit(literal):
+    """
+    :rtype: Column
+    """
+    return col(typedLit(literal))
+
+
+def typedLit(literal):
+    """
+    :rtype: Column
+    """
+    return Literal(literal)
 
 
 def when(condition, value):
@@ -29,3 +47,103 @@ def when(condition, value):
     :rtype: Column
     """
     return col(CaseWhen([parse(condition)], [parse(value)]))
+
+
+def rand(seed=None):
+    """
+
+    :rtype: Column
+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.range(4, numPartitions=2)
+    # >>> df.select((rand(seed=42) * 3).alias("rand")).show()
+    # +------------------+
+    # |              rand|
+    # +------------------+
+    # |2.3675439190260485|
+    # |1.8992753422855404|
+    # |1.5878851952491426|
+    # |0.8800146499990725|
+    # +------------------+
+    """
+    return col(Rand(seed))
+
+
+def struct(*exprs):
+    """
+    :rtype: Column
+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
+    # >>> df.select(struct("age", col("name")).alias("struct")).collect()
+    # [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
+    # >>> df.select(struct("age", col("name"))).show()
+    # +----------------------------------+
+    # |named_struct(age, age, name, name)|
+    # +----------------------------------+
+    # |                        [2, Alice]|
+    # |                          [5, Bob]|
+    # +----------------------------------+
+
+    """
+    cols = [parse(e) for e in exprs]
+    return col(CreateStruct(cols))
+
+
+def array(*exprs):
+    """
+    :rtype: Column
+    """
+    columns = [parse(e) for e in exprs]
+    return col(ArrayColumn(columns))
+
+
+def map_from_arrays(col1, col2):
+    """Creates a new map from two arrays.
+
+    :param col1: name of column containing a set of keys. All elements should not be null
+    :param col2: name of column containing a set of values
+    :rtype: Column
+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
+    # >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
+    # +----------------+
+    # |             map|
+    # +----------------+
+    # |[2 -> a, 5 -> b]|
+    # +----------------+
+    """
+    key_col = parse(col1)
+    value_col = parse(col2)
+    return col(MapFromArraysColumn(key_col, value_col))
+
+
+def count(e):
+    """
+    :rtype: Column
+
+    # >>> from pysparkling import Context, Row
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> spark.range(5).select(count("*")).show()
+    # +--------+
+    # |count(1)|
+    # +--------+
+    # |       5|
+    +--------+
+    """
+    return col(Count(column=parse(e)))
+
+
+def collect_set(e):
+    """
+    :rtype: Column
+    """
+    return col(CollectSet(column=parse(e)))

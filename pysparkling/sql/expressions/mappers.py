@@ -1,4 +1,9 @@
+import random
+
 from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.internal_utils.column import resolve_column
+from pysparkling.sql.types import create_row
+from pysparkling.utils import XORShiftRandom
 
 
 class StarOperator(Expression):
@@ -77,3 +82,36 @@ class Otherwise(Expression):
             ),
             self.default
         )
+
+
+class Rand(Expression):
+    def __init__(self, seed=None):
+        super(Rand, self).__init__()
+        self.seed = seed if seed is not None else random.random()
+        self.random_generator = None
+
+    def eval(self, row, schema):
+        return self.random_generator.nextDouble()
+
+    def initialize(self, partition_index):
+        self.random_generator = XORShiftRandom(self.seed + partition_index)
+
+    def __str__(self):
+        return "rand({0})".format(self.seed)
+
+
+class CreateStruct(Expression):
+    def __init__(self, columns):
+        super(CreateStruct, self).__init__(columns)
+        self.columns = columns
+
+    def eval(self, row, schema):
+        struct_cols, struct_values = [], []
+        for col in self.columns:
+            output_cols, output_values = resolve_column(col, row, schema, allow_generator=False)
+            struct_cols += output_cols
+            struct_values += output_values[0]
+        return create_row(struct_cols, struct_values)
+
+    def __str__(self):
+        return "named_struct({0})".format(", ".join("{0}, {0}".format(col) for col in self.columns))
