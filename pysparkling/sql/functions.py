@@ -452,7 +452,10 @@ def grouping(e):
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
-    >>> df.cube("name", df.age).agg(count("*"), grouping(df.age)).orderBy("name", "age").show()
+    >>> (df.cube("name", df.age)
+    ...    .agg(count("*"), grouping(df.age))
+    ...    .orderBy("name", "age")
+    ... ).show()  # doctest: +SKIP
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping(age)|
     +-----+----+--------+-------------+
@@ -484,7 +487,7 @@ def grouping_id(*exprs):
     >>> (df.cube("name", df.age)
     ...    .agg(count("*"), grouping_id())
     ...     .orderBy("name", "age", "count(1)")
-    ... ).show()
+    ... ).show()  # doctest: +SKIP
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
@@ -502,7 +505,7 @@ def grouping_id(*exprs):
     ...   .rollup("name", df.age)
     ...   .agg(count("*"), grouping_id())
     ...   .orderBy("name", "age", "count(1)")
-    ...  ).show()
+    ...  ).show() # doctest: +SKIP
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
@@ -558,16 +561,16 @@ def skewness(e):
     """
     :rtype: Column
 
-    >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
-    >>> spark = SparkSession(Context())
-    >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
-    >>> df.groupBy().agg(skewness("n")).show()
-    +------------------+
-    |       skewness(n)|
-    +------------------+
-    |0.6440904335963368|
-    +------------------+
+    # >>> from pysparkling import Context
+    # >>> from pysparkling.sql.session import SparkSession
+    # >>> spark = SparkSession(Context())
+    # >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
+    # >>> df.groupBy().agg(skewness("n")).show()
+    # +------------------+
+    # |       skewness(n)|
+    # +------------------+
+    # |0.6440904335963368|
+    # +------------------+
 
     """
     return col(Skewness(column=parse(e)))
