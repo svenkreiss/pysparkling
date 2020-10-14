@@ -12,4 +12,4 @@ install:
  - "pip install -r 'requirements.txt' -r 'requirements-build.txt'"
 script:
  - pylint src/pysparkling
- - pyb -X
+ - pyb -X --no-venvs
