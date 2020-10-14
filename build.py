@@ -43,7 +43,7 @@ maintainers = [
 requires_python = '>= 3.4'
 url = 'https://github.com/tools4origins/pysparkling'
 
-_logging_root_level: int = logging.root.getEffectiveLevel()
+_logging_root_level = logging.root.getEffectiveLevel()
 
 
 @before('run_unit_tests')
