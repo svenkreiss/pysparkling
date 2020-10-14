@@ -458,7 +458,7 @@ def grouping(e):
     >>> (df.cube("name", df.age)
     ...    .agg(count("*"), grouping(df.age))
     ...    .orderBy("name", "age")
-    ... ).show()  # doctest: +SKIP
+    ... ).show()
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping(age)|
     +-----+----+--------+-------------+
@@ -490,7 +490,7 @@ def grouping_id(*exprs):
     >>> (df.cube("name", df.age)
     ...    .agg(count("*"), grouping_id())
     ...     .orderBy("name", "age", "count(1)")
-    ... ).show()  # doctest: +SKIP
+    ... ).show()
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
@@ -508,7 +508,7 @@ def grouping_id(*exprs):
     ...   .rollup("name", df.age)
     ...   .agg(count("*"), grouping_id())
     ...   .orderBy("name", "age", "count(1)")
-    ...  ).show() # doctest: +SKIP
+    ...  ).show()
     +-----+----+--------+-------------+
     | name| age|count(1)|grouping_id()|
     +-----+----+--------+-------------+
