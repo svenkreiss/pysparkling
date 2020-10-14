@@ -564,16 +564,16 @@ def skewness(e):
     """
     :rtype: Column
 
-    # >>> from pysparkling import Context
-    # >>> from pysparkling.sql.session import SparkSession
-    # >>> spark = SparkSession(Context())
-    # >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
-    # >>> df.groupBy().agg(skewness("n")).show()
-    # +------------------+
-    # |       skewness(n)|
-    # +------------------+
-    # |0.6440904335963368|
-    # +------------------+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
+    >>> df.groupBy().agg(skewness("n")).show()
+    +------------------+
+    |       skewness(n)|
+    +------------------+
+    |0.6440904335963368|
+    +------------------+
 
     """
     return col(Skewness(column=parse(e)))

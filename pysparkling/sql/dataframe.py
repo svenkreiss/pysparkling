@@ -770,12 +770,9 @@ class DataFrame(object):
             Sort ascending vs. descending. Specify list for multiple sort orders.
             If a list is specified, length of the list must equal length of the `cols`.
 
-        # >>> df.orderBy(desc("age"), "name").collect()
-        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
-        # >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
-        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import desc
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -801,6 +798,10 @@ class DataFrame(object):
         |  2|Alice|
         |  5|  Bob|
         +---+-----+
+        >>> df.orderBy(desc("age"), "name").collect()
+        [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
+        [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         """
         exprs = [parse(col) for col in cols]
         sorting_cols = self._sort_cols(exprs, kwargs)

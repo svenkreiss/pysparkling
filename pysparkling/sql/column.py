@@ -102,19 +102,19 @@ class Column(object):
         A boolean expression that is evaluated to true if the value of this
         expression is between the given columns.
 
-        # >>> from pysparkling import Context, Row
-        # >>> from pysparkling.sql.session import SparkSession
-        # >>> spark = SparkSession(Context())
-        # >>> df = spark.createDataFrame(
-        # ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
-        # ... )
-        # >>> df.select(df.name, df.age.between(2, 4)).show()
-        # +-----+---------------------------+
-        # | name|((age >= 2) AND (age <= 4))|
-        # +-----+---------------------------+
-        # |Alice|                       true|
-        # |  Bob|                      false|
-        # +-----+---------------------------+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+        ... )
+        >>> df.select(df.name, df.age.between(2, 4)).show()
+        +-----+---------------------------+
+        | name|((age >= 2) AND (age <= 4))|
+        +-----+---------------------------+
+        |Alice|                       true|
+        |  Bob|                      false|
+        +-----+---------------------------+
         """
         return (self >= lowerBound) & (self <= upperBound)
 
