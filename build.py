@@ -43,7 +43,7 @@ maintainers = [
 requires_python = '>= 3.4'
 url = 'https://github.com/tools4origins/pysparkling'
 
-_logging_root_level = logging.root.getEffectiveLevel()
+_logging_root_level: int = logging.root.getEffectiveLevel()
 
 
 @before('run_unit_tests')
@@ -130,7 +130,6 @@ def set_properties(project):
             'License :: OSI Approved :: MIT License',
             'Operating System :: OS Independent',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
