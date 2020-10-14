@@ -803,6 +803,9 @@ class DataFrame(object):
         >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
         [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         """
+        if len(cols) == 1 and isinstance(cols[0], list):
+            cols = cols[0]
+
         exprs = [parse(col) for col in cols]
         sorting_cols = self._sort_cols(exprs, kwargs)
         sorted_jdf = self._jdf.sort(sorting_cols)
@@ -817,8 +820,6 @@ class DataFrame(object):
         """
         if not cols:
             raise ValueError("should sort by at least one column")
-        if len(cols) == 1 and isinstance(cols[0], list):
-            cols = cols[0]
 
         ascending = kwargs.pop('ascending', True)
         if isinstance(ascending, (bool, int)):
