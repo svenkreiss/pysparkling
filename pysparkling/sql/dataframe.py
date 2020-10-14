@@ -1470,6 +1470,15 @@ class DataFrame(object):
                     _check_series_convert_timestamps_local_tz(pdf[field.name], timezone)
         return pdf
 
+    def groupby(self, *cols):
+        return self.groupBy(*cols)
+
+    def drop_duplicates(self, subset=None):
+        return self.dropDuplicates(subset)
+
+    def where(self, condition):
+        return self.filter(condition)
+
 
 class DataFrameNaFunctions(object):
     def __init__(self, df):
