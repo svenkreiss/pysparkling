@@ -391,6 +391,8 @@ class ColumnStatHelper(object):
 
     @property
     def variance(self):
+        if self.count == 0:
+            return None
         return self.variance_samp
 
     @property
@@ -408,18 +410,26 @@ class ColumnStatHelper(object):
 
     @property
     def stddev(self):
+        if self.count == 0:
+            return None
         return self.stddev_samp
 
     @property
     def min(self):
+        if self.count == 0:
+            return None
         return self.min_value
 
     @property
     def max(self):
+        if self.count == 0:
+            return None
         return self.max_value
 
     @property
     def sum(self):
+        if self.count == 0:
+            return None
         return self.sum_of_values
 
     @property

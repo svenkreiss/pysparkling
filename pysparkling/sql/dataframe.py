@@ -4,6 +4,7 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
+from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE, CUBE_TYPE
 from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType, IntegralType, \
     TimestampType, _check_series_convert_timestamps_local_tz
 from pysparkling.sql.utils import IllegalArgumentException, AnalysisException, \
@@ -872,6 +873,108 @@ class DataFrame(object):
         else:
             raise TypeError("condition should be string or Column")
         return DataFrame(jdf, self.sql_ctx)
+
+    def groupBy(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col
+        >>> spark = SparkSession(Context())
+        >>> spark.range(5).groupBy(col("id")%2).count().show()
+        +--------+-----+
+        |(id % 2)|count|
+        +--------+-----+
+        |       0|    3|
+        |       1|    2|
+        +--------+-----+
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.groupBy("name", df.age).count().orderBy("name", "age").show()
+        +-----+---+-----+
+        | name|age|count|
+        +-----+---+-----+
+        |Alice|  2|    1|
+        |  Bob|  5|    1|
+        | Carl|  5|    1|
+        +-----+---+-----+
+        """
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.group import GroupedData
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols])
+        return GroupedData(jgd, self)
+
+    def rollup(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.rollup("name", df.age).count().orderBy("name", "age").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    3|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        | Carl|null|    1|
+        | Carl|   5|    1|
+        +-----+----+-----+
+        """
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.group import GroupedData
+
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], ROLLUP_TYPE)
+        return GroupedData(jgd, self)
+
+    def cube(self, *cols):
+        """
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
+        >>> df.cube("name", df.age).count().orderBy("name", "age", "count").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    3|
+        | null|   2|    1|
+        | null|   5|    2|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        | Carl|null|    1|
+        | Carl|   5|    1|
+        +-----+----+-----+
+        >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, None)], ["age", "name"])
+        >>> df.cube("name", df.age).count().orderBy("name", "age", "count").show()
+        +-----+----+-----+
+        | name| age|count|
+        +-----+----+-----+
+        | null|null|    1|
+        | null|null|    3|
+        | null|   2|    1|
+        | null|   5|    1|
+        | null|   5|    2|
+        |Alice|null|    1|
+        |Alice|   2|    1|
+        |  Bob|null|    1|
+        |  Bob|   5|    1|
+        +-----+----+-----+
+
+        """
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.group import GroupedData
+
+        jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], CUBE_TYPE)
+        return GroupedData(jgd, self)
+
+    def agg(self, *exprs):
+        return self.groupBy().agg(*exprs)
 
     def union(self, other):
 
