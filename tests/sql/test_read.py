@@ -17,7 +17,7 @@ class DataFrameReaderTests(TestCase):
         df = spark.read.csv(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
-                "data/fundings/"
+                "fundings/"
             ),
             header=True
         )
@@ -60,7 +60,7 @@ class DataFrameReaderTests(TestCase):
         df = spark.read.option("inferSchema", True).csv(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
-                "data/fundings/"
+                "fundings/"
             ),
             header=True
         )
@@ -116,7 +116,7 @@ class DataFrameReaderTests(TestCase):
         df = spark.read.schema(schema).csv(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
-                "data/fundings/"
+                "fundings/"
             ),
             header=True
         )
