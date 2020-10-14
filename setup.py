@@ -9,7 +9,7 @@ except ImportError:
 
 
 # extract version from __init__.py
-with open('pysparkling/__init__.py', 'r') as f:
+with open('src/pysparkling/__init__.py', 'r') as f:
     version_line = [l for l in f if l.startswith('__version__')][0]
     VERSION = version_line.split('=')[1].strip()[1:-1]
 

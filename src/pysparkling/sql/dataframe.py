@@ -41,7 +41,7 @@ class DataFrame(object):
         Return an RDD containing all items after JSONification
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2)
         >>> df.toJSON().collect()
@@ -90,7 +90,7 @@ class DataFrame(object):
         This is equivalent to `EXCEPT ALL` in SQL.
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([
         ...   ("a", 1),
@@ -127,8 +127,8 @@ class DataFrame(object):
     def show(self, n=20, truncate=True, vertical=False):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import col
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import col
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -140,7 +140,7 @@ class DataFrame(object):
         |  5|  Bob|
         |  2|Alice|
         +---+-----+
-        >>> from pysparkling.sql.functions import map_from_arrays, array, col
+        >>> from pysparkling import map_from_arrays, array, col
         >>> df = spark.range(3)
         >>> df.select(array(df.id, df.id * 2)).show()
         +-------------------+
@@ -218,7 +218,7 @@ class DataFrame(object):
         """Returns the number of rows in this :class:`DataFrame`.
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2)
         >>> df.count()
@@ -230,7 +230,7 @@ class DataFrame(object):
         """Returns the number of rows in this :class:`DataFrame`.
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2)
         >>> df.collect()
@@ -242,7 +242,7 @@ class DataFrame(object):
         """Returns an iterator on the content of this DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2)
         >>> list(df.toLocalIterator())
@@ -254,7 +254,7 @@ class DataFrame(object):
         """Restrict the DataFrame to the first n items
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(2).limit(1)
         >>> df.show()
@@ -270,7 +270,7 @@ class DataFrame(object):
         """Return a list with the first n items of the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(2).take(1)
         [Row(id=0)]
@@ -281,7 +281,7 @@ class DataFrame(object):
         """Execute a function for each item of the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> result = spark.range(2).foreach(print)
         Row(id=0)
@@ -295,7 +295,7 @@ class DataFrame(object):
         """Execute a function for each partition of the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> result = (spark.range(4, numPartitions=2)
         ...                .foreachPartition(lambda partition: print(list(partition))))
@@ -310,7 +310,7 @@ class DataFrame(object):
         """Cache the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(4, numPartitions=2).cache()
         >>> df.is_cached
@@ -322,7 +322,7 @@ class DataFrame(object):
         """Cache the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(4, numPartitions=2).persist()
         >>> df.is_cached
@@ -341,7 +341,7 @@ class DataFrame(object):
         """Cache the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(4, numPartitions=2)
         >>> df.storageLevel
@@ -360,7 +360,7 @@ class DataFrame(object):
         """Cache the DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(4, numPartitions=2)
         >>> df.storageLevel
@@ -383,7 +383,7 @@ class DataFrame(object):
         :rtype: DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(4, numPartitions=2).coalesce(1).rdd.getNumPartitions()
         1
@@ -420,7 +420,7 @@ class DataFrame(object):
         :rtype: DataFrame
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(4, numPartitions=2).repartition(1).rdd.getNumPartitions()
         1
@@ -465,7 +465,7 @@ class DataFrame(object):
         Sort orders are not supported in this pysparkling implementation
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(4, numPartitions=2).repartitionByRange(1, "id").rdd.getNumPartitions()
         1
@@ -535,8 +535,8 @@ class DataFrame(object):
         :return: a new DataFrame that represents the stratified sample
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import count, lit
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import count, lit
         >>> spark = SparkSession(Context())
         >>> dataset = spark.createDataFrame(
         ...   [[i % 3] for i in range(100)],
@@ -594,7 +594,7 @@ class DataFrame(object):
         Returns the cartesian product of self and other
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([
         ...   Row(age=2, name='Alice'),
@@ -626,8 +626,8 @@ class DataFrame(object):
     def join(self, other, on=None, how="inner"):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import length, col, lit
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import length, col, lit
         >>> spark = SparkSession(Context())
         >>> left_df = spark.range(1, 3).select(
         ...   lit("test_value"),
@@ -748,7 +748,7 @@ class DataFrame(object):
     def sortWithinPartitions(self, *cols, **kwargs):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.range(4, numPartitions=2)
         >>> (df.sortWithinPartitions("id", ascending=False)
@@ -771,8 +771,8 @@ class DataFrame(object):
             If a list is specified, length of the list must equal length of the `cols`.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import desc
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import desc
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -845,7 +845,7 @@ class DataFrame(object):
             guarantee about the backward compatibility of the schema of the resulting DataFrame.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -895,7 +895,7 @@ class DataFrame(object):
             guarantee about the backward compatibility of the schema of the resulting DataFrame.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -980,9 +980,9 @@ class DataFrame(object):
             in the current DataFrame.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
-        >>> from pysparkling.sql.functions import (explode, split, posexplode,
+        >>> from pysparkling import (explode, split, posexplode,
         ...   posexplode_outer, col, avg)
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -1034,7 +1034,7 @@ class DataFrame(object):
         |  0|  a|a,b|1,2|a,b|
         |  1|  b|a,b|1,2|a,b|
         +---+---+---+---+---+
-        >>> from pysparkling.sql.types import StructType, StructField, ArrayType, StringType
+        >>> from pysparkling import StructType, StructField, ArrayType, StringType
         >>> df = spark.createDataFrame(
         ...     [Row(a=[], b=None, c=[None])],
         ...     schema=StructType([
@@ -1067,7 +1067,7 @@ class DataFrame(object):
         # [Row((age * 2)=4, abs(age)=2), Row((age * 2)=10, abs(age)=5)]
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -1099,8 +1099,8 @@ class DataFrame(object):
     def groupBy(self, *cols):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import col
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import col
         >>> spark = SparkSession(Context())
         >>> spark.range(5).groupBy(col("id")%2).count().show()
         +--------+-----+
@@ -1128,7 +1128,7 @@ class DataFrame(object):
     def rollup(self, *cols):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
         >>> df.rollup("name", df.age).count().orderBy("name", "age").show()
@@ -1154,7 +1154,7 @@ class DataFrame(object):
     def cube(self, *cols):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
         >>> df.cube("name", df.age).count().orderBy("name", "age", "count").show()
@@ -1206,7 +1206,7 @@ class DataFrame(object):
         (that does deduplication of elements), use this function followed by :func:`distinct`.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
         >>> df2 = spark.createDataFrame([Row(age=2, name='Alice')])
@@ -1237,7 +1237,7 @@ class DataFrame(object):
         resolves columns by name (not by position):
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([Row(age=5, name='Bob')])
         >>> df2 = spark.createDataFrame([Row(age=2, name='Alice')])
@@ -1268,7 +1268,7 @@ class DataFrame(object):
         """
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3), ("c", 4)], ["C1", "C2"])
         >>> df2 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3)], ["C1", "C2"])
@@ -1288,7 +1288,7 @@ class DataFrame(object):
         """
 
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df1 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3), ("c", 4)], ["C1", "C2"])
         >>> df2 = spark.createDataFrame([("a", 1), ("a", 1), ("b", 3)], ["C1", "C2"])
@@ -1449,7 +1449,7 @@ class DataFrame(object):
         More information in pysparkling.stat_counter.ColumnStatHelper
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -1492,7 +1492,7 @@ class DataFrame(object):
     def corr(self, col1, col2, method=None):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(50).corr('id', 'id')
         1.0
@@ -1511,7 +1511,7 @@ class DataFrame(object):
     def cov(self, col1, col2):
         """
         >>> from pysparkling import Context
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> spark.range(50).cov('id', 'id')
         212.5
@@ -1542,8 +1542,8 @@ class DataFrame(object):
         """
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import length
+        >>> from pysparkling import SparkSession
+        >>> from pysparkling import length
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -1568,7 +1568,7 @@ class DataFrame(object):
         If some column to drop are not in the DataFrame they are ignored
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([
         ...   Row(age=2, name='Alice'),
@@ -1609,7 +1609,7 @@ class DataFrame(object):
         :param cols: list of new column names (string)
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]

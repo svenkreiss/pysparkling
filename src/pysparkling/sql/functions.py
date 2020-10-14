@@ -69,8 +69,8 @@ def asc(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -93,8 +93,8 @@ def asc_nulls_first(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -117,8 +117,8 @@ def asc_nulls_last(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -141,8 +141,8 @@ def desc(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -165,8 +165,8 @@ def desc_nulls_first(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -189,8 +189,8 @@ def desc_nulls_last(columnName):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
-    >>> from pysparkling.sql.functions import when, col
+    >>> from pysparkling import SparkSession
+    >>> from pysparkling import when, col
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5).withColumn(
     ...   "order", when(col('id')%2 == 0, col('id'))
@@ -213,7 +213,7 @@ def approx_count_distinct(e, rsd=0.05):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(100).select((col("id")%10).alias("n")).select(approx_count_distinct("n")).show()
     +------------------------+
@@ -238,7 +238,7 @@ def collect_list(e):
     """
     :rtype: Column
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.range(5)
     >>> df.repartition(2).select(collect_list("id").alias("all_ids")).show()
@@ -264,7 +264,7 @@ def corr(column1, column2):
 def when(condition, value):
     """
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame(
     ...    [Row(age=2, name='Alice'), Row(age=5, name='Bob'), Row(age=4, name='Lisa')]
@@ -289,7 +289,7 @@ def rand(seed=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.range(4, numPartitions=2)
     >>> df.select((rand(seed=42) * 3).alias("rand")).show()
@@ -311,7 +311,7 @@ def randn(seed=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.range(4, numPartitions=2)
     >>> df.select((randn(seed=42) * 3).alias("randn")).show()
@@ -332,7 +332,7 @@ def struct(*exprs):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
     >>> df.select(struct("age", col("name")).alias("struct")).collect()
@@ -366,7 +366,7 @@ def map_from_arrays(col1, col2):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([([2, 5], ['a', 'b'])], ['k', 'v'])
     >>> df.select(map_from_arrays(df.k, df.v).alias("map")).show()
@@ -386,7 +386,7 @@ def count(e):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(5).select(count("*")).show()
     +--------+
@@ -452,7 +452,7 @@ def grouping(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([(2, 'Alice'), (5, 'Bob'), (5, 'Carl')], ["age", "name"])
     >>> (df.cube("name", df.age)
@@ -481,7 +481,7 @@ def grouping_id(*exprs):
     """
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame(
     ...     [(2, 'Alice', 3), (5, 'Bob', 4), (5, None, 6)],
@@ -565,7 +565,7 @@ def skewness(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.range(100, numPartitions=20).select((col("id")**2).alias("n"))
     >>> df.groupBy().agg(skewness("n")).show()
@@ -706,7 +706,7 @@ def create_map(*exprs):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
     >>> df.select(create_map('name', 'age').alias("map")).collect()
@@ -760,7 +760,7 @@ def monotonically_increasing_id():
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(10).repartition(1).select("id", monotonically_increasing_id()).show()
     +---+-----------------------------+
@@ -1035,7 +1035,7 @@ def round(e, scale=0):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(
     ...     round(lit(9.1)),
@@ -1061,7 +1061,7 @@ def bround(e, scale=0):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(
     ...     bround(lit(9.1)),
@@ -1190,7 +1190,7 @@ def base64(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(base64(lit("Hello world!"))).show()
     +--------------------+
@@ -1207,7 +1207,7 @@ def concat_ws(sep, *exprs):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(3).select(concat_ws("---", "id", lit(2), "id")).show()
     +-------------------------+
@@ -1248,7 +1248,7 @@ def format_number(x, d):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(format_number(lit(1000000.8725), 3)).show()
     +------------------------------+
@@ -1274,7 +1274,7 @@ def initcap(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(initcap(lit("hello world:o_O"))).show()
     +------------------------+
@@ -1314,7 +1314,7 @@ def levenshtein(l, r):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(levenshtein(lit("kitten"), lit("sitting"))).show()
     +----------------------------+
@@ -1355,7 +1355,7 @@ def ltrim(e):
 def regexp_extract(e, exp, groupIdx):
     """
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([('100-200',)], ['str'])
     >>> df.collect()
@@ -1373,7 +1373,7 @@ def regexp_extract(e, exp, groupIdx):
 def regexp_replace(e, pattern, replacement):
     """
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([('100-200',)], ['str'])
     >>> df.collect()
@@ -1393,7 +1393,7 @@ def unbase64(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(unbase64(lit("SGVsbG8gd29ybGQh"))).collect()
     [Row(unbase64(SGVsbG8gd29ybGQh)=bytearray(b'Hello world!'))]
@@ -1431,7 +1431,7 @@ def soundex(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([
     ...   ("Robert", ),
@@ -1487,7 +1487,7 @@ def substring_index(str, delim, count):
     right) is returned. substring_index performs a case-sensitive match when searching for delim.
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([["a.b.c.d"],["a.b"],["a"]], ["s"])
     >>> df.select(substring_index(df.s, ".", 3)).show()
@@ -1561,7 +1561,7 @@ def date_format(dateExpr, format):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(date_format(lit("2019-10-31"), 'MM/dd/yyy')).show()
     +----------------------------------+
@@ -1578,7 +1578,7 @@ def date_add(start, days):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(date_add(lit("2019-02-27"), 2)).show()
     +-----------------------+
@@ -1596,7 +1596,7 @@ def date_sub(start, days):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(date_sub(lit("2019-03-01"), 2)).show()
     +-----------------------+
@@ -1613,7 +1613,7 @@ def datediff(end, start):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(datediff(lit("2019-05-01"), lit("2019-04-01"))).show()
     +--------------------------------+
@@ -1645,7 +1645,7 @@ def quarter(e):
     :rtype: Column
 
     >>> from pysparkling import Context
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(quarter(lit("2019-04-01"))).show()
     +-------------------+
@@ -1669,7 +1669,7 @@ def dayofweek(e):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1, 10).withColumn(
     ...     "date", concat(lit("2019-01-0"), "id")
@@ -1705,7 +1705,7 @@ def dayofyear(e):
     """
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1, 10).withColumn(
     ...     "date", concat(lit("2019-01-0"), "id")
@@ -1743,7 +1743,7 @@ def last_day(e):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(last_day(lit("2019-10-15"))).show()
     +--------------------+
@@ -1767,7 +1767,7 @@ def months_between(end, start, roundOff=True):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(months_between(lit("2019-05-02"), lit("2019-05-01"))).show()
     +--------------------------------------------+
@@ -1821,7 +1821,7 @@ def next_day(date, dayOfWeek):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1, 10).select(next_day(concat(lit("2019-11-0"), col("id")), "Mon")).show()
     +------------------------------------+
@@ -1863,7 +1863,7 @@ def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
     >>> os.environ['TZ'] = 'Europe/Paris'
     >>> time.tzset()
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1, 4).select(from_unixtime(2000000000 + col("id"))).show()
     +-----------------------------------------------------+
@@ -1885,7 +1885,7 @@ def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
     >>> os.environ['TZ'] = 'Europe/Paris'
     >>> time.tzset()
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(unix_timestamp(lit("2033-05-18 05:33:21"))).show()
     +--------------------------------------------------------+
@@ -1910,7 +1910,7 @@ def to_timestamp(s, fmt=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(to_timestamp(lit("2033-05-18 05:33:21"))).show()
     +-----------------------------------+
@@ -1933,7 +1933,7 @@ def to_date(e, fmt=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(to_date(lit("2033-05-18 05:33:21"))).show()
     +------------------------------+
@@ -1960,7 +1960,7 @@ def trunc(date, format):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(trunc(lit("2019-11-05"), "year")).show()
     +-----------------------+
@@ -1995,7 +1995,7 @@ def date_trunc(format, timestamp):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(date_trunc("hour", concat(lit("2019-11-05 04:55")))).show()
     +------------------------------------------+
@@ -2027,7 +2027,7 @@ def from_utc_timestamp(ts, tz):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(from_utc_timestamp(lit("2019-11-05 04:55"), "Europe/Paris")).show()
     +--------------------------------------------------+
@@ -2056,7 +2056,7 @@ def to_utc_timestamp(ts, tz):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(to_utc_timestamp(lit("2019-11-05 04:55"), "Europe/Paris")).show()
     +------------------------------------------------+
@@ -2239,7 +2239,7 @@ def to_json(e, options=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> from pysparkling import Row
     >>> df = spark.createDataFrame([(
@@ -2381,7 +2381,7 @@ def map_concat(*exprs):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame(
     ...   [([1, 2], ['a', 'b'], [2, 3], ['c', 'd'])],
@@ -2410,7 +2410,7 @@ def schema_of_csv(csv, options=None):
     :rtype: Column
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(1).select(schema_of_csv("1,test,2020-05-05")).show(20, False)
     +-------------------------------------+
@@ -2441,7 +2441,7 @@ def udf(f, returnType=DataType()):
     :rtype: function
 
     >>> from pysparkling import Context, Row
-    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling import SparkSession
     >>> spark = SparkSession(Context())
     >>> spark.range(3).select(udf(lambda x: x)("id")).show()
     +------------+
