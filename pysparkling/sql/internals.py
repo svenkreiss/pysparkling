@@ -1018,8 +1018,11 @@ class InternalGroupedDataFrame(object):
                          key_as_row,
                          grouping_schema
                      ))
-                    for pivot_value, stats in all_stats.groups[group_key].items()
-                    for stat in get_pivoted_stats(stats, pivot_value)
+                    for pivot_value in all_stats.pivot_values
+                    for stat in get_pivoted_stats(
+                        all_stats.groups[group_key][pivot_value],
+                        pivot_value
+                    )
                 ]
             ))
 
