@@ -10,7 +10,7 @@ python:
 install:
  - pip install --upgrade pip
  - "if [[ $TRAVIS_PYTHON_VERSION != 'pypy'* ]]; then pip install pylzma; fi"
- - "pip install -r 'requirements-build.txt'"
+ - "pip install -r 'requirements.txt' -r 'requirements-build.txt'"
 script:
  - pylint src/pysparkling
  - pyb -X
