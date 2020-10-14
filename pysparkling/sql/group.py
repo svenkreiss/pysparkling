@@ -97,6 +97,13 @@ class GroupedData(object):
         |2012|20000| 15000|
         |2013|30000| 48000|
         +----+-----+------+
+        >>> df4.groupBy("year").pivot("course", ["dotNET", "PHP"]).agg(sum("earnings")).show()
+        +----+------+----+
+        |year|dotNET| PHP|
+        +----+------+----+
+        |2012| 15000|null|
+        |2013| 48000|null|
+        +----+------+----+
         >>> df4.groupBy("year").pivot("course").agg(sum("earnings"), avg("earnings")).show()
         +----+------------------+------------------+--------------------+--------------------+
         |year|Java_sum(earnings)|Java_avg(earnings)|dotNET_sum(earnings)|dotNET_avg(earnings)|
