@@ -108,6 +108,9 @@ def set_properties(project):
         ]
     setattr(project, 'list_scripts', _my_list_scripts)
 
+    project.set_property('dir_source_main_python', 'src/')
+    project.set_property('dir_source_main_scripts', 'scripts/')
+
     project.depends_on_requirements(file='requirements.txt')
 
     project.set_property('distutils_readme_description', True)
