@@ -103,7 +103,7 @@ class Column(object):
         expression is between the given columns.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -157,7 +157,7 @@ class Column(object):
         or gets an item by key out of a dict.
 
         >>> from pysparkling import Context
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([([1, 2], {"key": "value"})], ["l", "d"])
         >>> df.select(df.l.getItem(0), df.d.getItem("key")).show()
@@ -180,7 +180,7 @@ class Column(object):
         An expression that gets a field by name in a StructField.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame([Row(r=Row(a=1, b="b"))])
         >>> df.select(df.r.getField("b")).show()
@@ -240,7 +240,7 @@ class Column(object):
         :param length:  length of the substring (int or Column)
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -261,7 +261,7 @@ class Column(object):
         expression is contained by the evaluated values of the arguments.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -278,8 +278,8 @@ class Column(object):
     def asc(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> # asc is the default order
         >>> df = spark.range(5).withColumn(
@@ -313,8 +313,8 @@ class Column(object):
     def asc_nulls_first(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> df = spark.range(5).withColumn("order",
         ...   when(col('id')%2 == 0, col('id'))
@@ -336,8 +336,8 @@ class Column(object):
     def asc_nulls_last(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> df = spark.range(5).withColumn("order",
         ...   when(col('id')%2 == 0, col('id'))
@@ -358,8 +358,8 @@ class Column(object):
     def desc(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> df = spark.range(5).withColumn("order",
         ...   when(col('id')%2 == 0, col('id'))
@@ -380,8 +380,8 @@ class Column(object):
     def desc_nulls_first(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> df = spark.range(5).withColumn("order",
         ...   when(col('id')%2 == 0, col('id'))
@@ -402,8 +402,8 @@ class Column(object):
     def desc_nulls_last(self):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import when, col
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import when, col
         >>> spark = SparkSession(Context())
         >>> df = spark.range(5).withColumn("order",
         ...   when(col('id')%2 == 0, col('id'))
@@ -440,14 +440,14 @@ class Column(object):
            Added optional ``metadata`` argument.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
         >>> df.select(df.age.alias("age2")).collect()
         [Row(age2=2), Row(age2=5)]
-        >>> from pysparkling import map_from_arrays, array
+        >>> from pysparkling.sql.functions import map_from_arrays, array
         >>> spark.range(3).select(map_from_arrays(array("id"), array("id"))).show()
         +-------------------------------------+
         |map_from_arrays(array(id), array(id))|
@@ -480,8 +480,8 @@ class Column(object):
         """ Convert the column into type ``dataType``.
 
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import StringType
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.types import StringType
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -531,7 +531,7 @@ class Column(object):
 
         >>> from pysparkling.sql import functions as F
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -563,9 +563,9 @@ class Column(object):
 
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pysparkling import functions as F
+        >>> from pysparkling.sql import functions as F
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
+        >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]

@@ -16,8 +16,8 @@ class GroupedData(object):
         # [Row(name=u'Alice', count(1)=1), Row(name=u'Bob', count(1)=1)]
 
         >>> from pysparkling.sql import functions as F        >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import col, avg
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col, avg
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -74,8 +74,8 @@ class GroupedData(object):
     def pivot(self, pivot_col, values=None):
         """
         >>> from pysparkling import Context, Row
-        >>> from pysparkling import SparkSession
-        >>> from pysparkling import col, avg, sum
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import col, avg, sum
         >>> sc = Context()
         >>> spark = SparkSession(sc)
         >>> df4 = sc.parallelize([Row(course="dotNET", year=2012, earnings=10000),
