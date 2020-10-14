@@ -140,6 +140,32 @@ class DataFrame(object):
         |  5|  Bob|
         |  2|Alice|
         +---+-----+
+        >>> from pysparkling.sql.functions import map_from_arrays, array, col
+        >>> df = spark.range(3)
+        >>> df.select(array(df.id, df.id * 2)).show()
+        +-------------------+
+        |array(id, (id * 2))|
+        +-------------------+
+        |             [0, 0]|
+        |             [1, 2]|
+        |             [2, 4]|
+        +-------------------+
+        >>> df.select(map_from_arrays(array(df.id), array(df.id))).show()
+        +-------------------------------------+
+        |map_from_arrays(array(id), array(id))|
+        +-------------------------------------+
+        |                             [0 -> 0]|
+        |                             [1 -> 1]|
+        |                             [2 -> 2]|
+        +-------------------------------------+
+        >>> df.select(map_from_arrays(array(df.id, df.id * 2), array(df.id, df.id * 2))).show()
+        +---------------------------------------------------------+
+        |map_from_arrays(array(id, (id * 2)), array(id, (id * 2)))|
+        +---------------------------------------------------------+
+        |                                                 [0 -> 0]|
+        |                                         [1 -> 1, 2 -> 2]|
+        |                                         [2 -> 2, 4 -> 4]|
+        +---------------------------------------------------------+
         >>> c = col("id")
         >>> (spark.range(9, 11)
         ...       .select(c, c*2, c**2)
@@ -496,6 +522,53 @@ class DataFrame(object):
         jdf = self._jdf.sample(*args)
         return DataFrame(jdf, self.sql_ctx)
 
+    def sampleBy(self, col, fractions, seed=None):
+        """
+        Returns a stratified sample without replacement based on the
+        fraction given on each stratum.
+
+        :param col: column that defines strata
+        :param fractions:
+            sampling fraction for each stratum. If a stratum is not
+            specified, we treat its fraction as zero.
+        :param seed: random seed
+        :return: a new DataFrame that represents the stratified sample
+
+        >>> from pysparkling import Context
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import count, lit
+        >>> spark = SparkSession(Context())
+        >>> dataset = spark.createDataFrame(
+        ...   [[i % 3] for i in range(100)],
+        ...   ["key"]
+        ... )
+        >>> sampled = dataset.sampleBy("key", fractions={0: 0.5, 1: 0.25}, seed=0)
+        >>> sampled.groupBy("key").agg(count(lit(1))).show()
+        +---+--------+
+        |key|count(1)|
+        +---+--------+
+        |  0|      17|
+        |  1|       8|
+        +---+--------+
+        >>> sampled.groupBy("key").count().show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|   17|
+        |  1|    8|
+        +---+-----+
+        >>> sampled.groupBy("key").count().orderBy("key").show()
+        +---+-----+
+        |key|count|
+        +---+-----+
+        |  0|   17|
+        |  1|    8|
+        +---+-----+
+        >>> dataset.sampleBy("key", fractions={2: 1.0}, seed=0).count()
+        33
+        """
+        return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
+
     def randomSplit(self, weights, seed=None):
         for w in weights:
             if w < 0.0:
@@ -551,6 +624,107 @@ class DataFrame(object):
         return DataFrame(jdf, self.sql_ctx)
 
     def join(self, other, on=None, how="inner"):
+        """
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import length, col, lit
+        >>> spark = SparkSession(Context())
+        >>> left_df = spark.range(1, 3).select(
+        ...   lit("test_value"),
+        ...   (col("id")*2).alias("id"),
+        ...   lit("left").alias("side")
+        ... )
+        >>> right_df = spark.range(1, 3).select(
+        ...   lit("test_value"),
+        ...   col("id"),
+        ...   lit("right").alias("side")
+        ... )
+        >>>
+        >>> left_df.join(right_df, on="id", how="inner").orderBy("id").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  2|test_value|left|test_value|right|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="left_outer").orderBy("id").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  2|test_value|left|test_value|right|
+        |  4|test_value|left|      null| null|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="right_outer").orderBy("id").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  1|      null|null|test_value|right|
+        |  2|test_value|left|test_value|right|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="full_outer").orderBy("id").show()
+        +---+----------+----+----------+-----+
+        | id|test_value|side|test_value| side|
+        +---+----------+----+----------+-----+
+        |  1|      null|null|test_value|right|
+        |  2|test_value|left|test_value|right|
+        |  4|test_value|left|      null| null|
+        +---+----------+----+----------+-----+
+
+        >>> left_df.join(right_df, on="id", how="leftsemi").orderBy("id").show()
+        +---+----------+----+
+        | id|test_value|side|
+        +---+----------+----+
+        |  2|test_value|left|
+        +---+----------+----+
+
+        >>> left_df.join(right_df, on="id", how="leftanti").orderBy("id").show()
+        +---+----------+----+
+        | id|test_value|side|
+        +---+----------+----+
+        |  4|test_value|left|
+        +---+----------+----+
+        >>> # Degenerated case:
+        >>> degen_left = left_df.withColumn("left_id", left_df.id).select(
+        ...   left_df.id, (left_df.id*2).alias("id"), "left_id"
+        ... )
+        >>> degen_right = right_df.withColumn("right_id", right_df.id).select(
+        ...   right_df.id, (right_df.id*2).alias("id"), "right_id"
+        ... )
+        >>> degen_left.join(degen_right, on="id", how="outer").orderBy("left_id").show()
+        +---+----+-------+----+--------+
+        | id|  id|left_id|  id|right_id|
+        +---+----+-------+----+--------+
+        |  1|null|   null|   2|       1|
+        |  2|   4|      2|   4|       2|
+        |  4|   8|      4|null|    null|
+        +---+----+-------+----+--------+
+        >>> a = spark.createDataFrame([Row(name='o', time=1479441846)])
+        >>> b = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("n"))
+        >>> a.join(b, on=length(a.name) * 2 == length(b.n) + length(a.name)).orderBy("n").show()
+        +----+----------+---+
+        |name|      time|  n|
+        +----+----------+---+
+        |   o|1479441846|  a|
+        |   o|1479441846|  b|
+        |   o|1479441846|  o|
+        +----+----------+---+
+        >>> c = spark.createDataFrame([["a"],["b"],["o"]]).select(col("_1").alias("name"))
+        >>> a.join(c, on=(a.name == c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   o|
+        +----+----------+----+
+        >>> a.join(c, on=(a.name != c.name)).show()
+        +----+----------+----+
+        |name|      time|name|
+        +----+----------+----+
+        |   o|1479441846|   a|
+        |   o|1479441846|   b|
+        +----+----------+----+
+        """
         # noinspection PyProtectedMember
         if isinstance(on, str):
             return self.join(other=other, on=[on], how=how)
@@ -596,12 +770,9 @@ class DataFrame(object):
             Sort ascending vs. descending. Specify list for multiple sort orders.
             If a list is specified, length of the list must equal length of the `cols`.
 
-        # >>> df.orderBy(desc("age"), "name").collect()
-        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
-        # >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
-        # [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import desc
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
@@ -627,7 +798,14 @@ class DataFrame(object):
         |  2|Alice|
         |  5|  Bob|
         +---+-----+
+        >>> df.orderBy(desc("age"), "name").collect()
+        [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        >>> df.orderBy(["age", "name"], ascending=[0, 1]).collect()
+        [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
         """
+        if len(cols) == 1 and isinstance(cols[0], list):
+            cols = cols[0]
+
         exprs = [parse(col) for col in cols]
         sorting_cols = self._sort_cols(exprs, kwargs)
         sorted_jdf = self._jdf.sort(sorting_cols)
@@ -642,8 +820,6 @@ class DataFrame(object):
         """
         if not cols:
             raise ValueError("should sort by at least one column")
-        if len(cols) == 1 and isinstance(cols[0], list):
-            cols = cols[0]
 
         ascending = kwargs.pop('ascending', True)
         if isinstance(ascending, (bool, int)):
@@ -806,6 +982,8 @@ class DataFrame(object):
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
+        >>> from pysparkling.sql.functions import (explode, split, posexplode,
+        ...   posexplode_outer, col, avg)
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
@@ -830,8 +1008,52 @@ class DataFrame(object):
         |Alice|
         |  Bob|
         +-----+
+        >>> df.select(avg('age')).show()
+        +--------+
+        |avg(age)|
+        +--------+
+        |     3.5|
+        +--------+
         >>> df.select(df.name, (df.age + 10).alias('age')).collect()
         [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(explode(split("_1", ",")), "*").show()
+        +---+---+---+
+        |col| _1| _2|
+        +---+---+---+
+        |  a|a,b|1,2|
+        |  b|a,b|1,2|
+        +---+---+---+
+        >>> spark.createDataFrame([["a,b", "1,2"]]).select(
+        ...     posexplode(split("_1", ",")),
+        ...     "*",
+        ...     col("_1").alias("c")
+        ... ).show()
+        +---+---+---+---+---+
+        |pos|col| _1| _2|  c|
+        +---+---+---+---+---+
+        |  0|  a|a,b|1,2|a,b|
+        |  1|  b|a,b|1,2|a,b|
+        +---+---+---+---+---+
+        >>> from pysparkling.sql.types import StructType, StructField, ArrayType, StringType
+        >>> df = spark.createDataFrame(
+        ...     [Row(a=[], b=None, c=[None])],
+        ...     schema=StructType([
+        ...         StructField("a", ArrayType(StringType(), True), True),
+        ...         StructField("b", ArrayType(StringType(), True), True),
+        ...         StructField("c", ArrayType(StringType(), True), True)
+        ...     ])
+        ... )
+        >>> df.select(posexplode_outer(df.b)).show()
+        +----+----+
+        | pos| col|
+        +----+----+
+        |null|null|
+        +----+----+
+        >>> df.select(posexplode(df.b)).show()
+        +---+---+
+        |pos|col|
+        +---+---+
+        +---+---+
         """
         jdf = self._jdf.select(*cols)
         return DataFrame(jdf, self.sql_ctx)
@@ -1316,37 +1538,23 @@ class DataFrame(object):
             support = 0.01
         return DataFrame(self._jdf.freqItems(cols, support), self.sql_ctx)
 
-    def sampleBy(self, col, fractions, seed=None):
-        """
-        Returns a stratified sample without replacement based on the
-        fraction given on each stratum.
-
-        :param col: column that defines strata
-        :param fractions:
-            sampling fraction for each stratum. If a stratum is not
-            specified, we treat its fraction as zero.
-        :param seed: random seed
-        :return: a new DataFrame that represents the stratified sample
-        """
-        return DataFrame(self._jdf.sampleBy(parse(col), fractions, seed), self.sql_ctx)
-
     def withColumn(self, colName, col):
         """
 
-        # >>> from pysparkling import Context, Row
-        # >>> from pysparkling.sql.session import SparkSession
-        # >>> from pysparkling.sql.functions import length
-        # >>> spark = SparkSession(Context())
-        # >>> df = spark.createDataFrame(
-        # ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
-        # ... )
-        # >>> df.withColumn("name_length", length("name")).show()
-        # +---+-----+-----------+
-        # |age| name|name_length|
-        # +---+-----+-----------+
-        # |  5|  Bob|          3|
-        # |  2|Alice|          5|
-        # +---+-----+-----------+
+        >>> from pysparkling import Context, Row
+        >>> from pysparkling.sql.session import SparkSession
+        >>> from pysparkling.sql.functions import length
+        >>> spark = SparkSession(Context())
+        >>> df = spark.createDataFrame(
+        ...   [Row(age=5, name='Bob'), Row(age=2, name='Alice')]
+        ... )
+        >>> df.withColumn("name_length", length("name")).show()
+        +---+-----+-----------+
+        |age| name|name_length|
+        +---+-----+-----------+
+        |  5|  Bob|          3|
+        |  2|Alice|          5|
+        +---+-----+-----------+
         """
         assert isinstance(col, Column), "col should be Column"
         return DataFrame(self._jdf.withColumn(colName, col), self.sql_ctx)
