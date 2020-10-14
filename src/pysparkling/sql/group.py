@@ -15,7 +15,7 @@ class GroupedData(object):
         # >>> sorted(gdf.agg({"*": "count"}).collect())
         # [Row(name=u'Alice', count(1)=1), Row(name=u'Bob', count(1)=1)]
 
-        >>> from pysparkling.sql import functions as F        >>> from pysparkling import Context, Row
+        >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> from pysparkling.sql.functions import col, avg
         >>> spark = SparkSession(Context())
@@ -23,6 +23,7 @@ class GroupedData(object):
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
         >>> gdf = df.groupBy(df.name)
+        >>> from pysparkling.sql import functions as F
         >>> sorted(gdf.agg(F.min(df.age)).collect())
         [Row(name='Alice', min(age)=2), Row(name='Bob', min(age)=5)]
         >>> df.groupBy("age").agg(avg("age"), col("age")).show()
