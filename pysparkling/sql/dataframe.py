@@ -61,6 +61,18 @@ class DataFrame(object):
         self._jdf.createOrReplaceGlobalTempView(name)
 
     @property
+    def write(self):
+        # Top level import would cause cyclic dependencies
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql.readwriter import DataFrameWriter
+
+        return DataFrameWriter(self)
+
+    @property
+    def writeStream(self):
+        raise NotImplementedError("Pysparkling does not support yet writing to stream")
+
+    @property
     def schema(self):
         return self._jdf.unbound_schema
 
