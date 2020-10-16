@@ -41,7 +41,7 @@ maintainers = [
     Author(name="Erwan Guyomarc'h", email='tools4origins@gmail.com'),
 ]
 requires_python = '>= 3.4'
-url = 'https://github.com/tools4origins/pysparkling'
+url = 'https://github.com/pysparkling/pysparkling/'
 
 _logging_root_level: int = logging.root.getEffectiveLevel()
 
