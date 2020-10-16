@@ -117,7 +117,6 @@ def set_properties(project):
     project.set_property('distutils_readme_file', 'README.rst')
 
     project.set_property_if_unset("pytest_extra_args", [])
-    project.get_property("pytest_extra_args").append("-x")  # Fail on first failing unittest
     project.set_property('pytest_coverage_break_build_threshold', 0)  # Don't let coverage break the build (for now)
 
     project.set_property('distutils_console_scripts', [])
