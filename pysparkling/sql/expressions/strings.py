@@ -37,7 +37,10 @@ class StringInStr(Expression):
 
     def eval(self, row, schema):
         value = self.column.cast(StringType()).eval(row, schema)
-        return int(self.substr in value)
+        try:
+            return value.index(self.substr)
+        except IndexError:
+            return 0
 
     def __str__(self):
         return "instr({0}, {1})".format(
