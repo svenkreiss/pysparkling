@@ -2494,7 +2494,7 @@ __all__ = [
     'locate', 'log', 'log10', 'log1p', 'log2', 'lower', 'lpad', 'ltrim', 'map_concat',
     'map_entries', 'map_from_arrays', 'map_from_entries', 'map_keys', 'map_values', 'math', 'max',
     'md5', 'mean', 'min', 'minute', 'monotonically_increasing_id', 'month', 'months_between',
-    'nanvl', 'next_day', 'ntile', 'pandas_udf', 'parse', 'percent_rank', 'posexplode',
+    'nanvl', 'next_day', 'ntile', 'pandas_udf', 'parse', 'percent_rank', 'pmod', 'posexplode',
     'posexplode_outer', 'pow', 'quarter', 'radians', 'rand', 'randn', 'rank', 'regexp_extract',
     'regexp_replace', 'repeat', 'reverse', 'rint', 'round', 'row_number', 'rpad', 'rtrim',
     'schema_of_csv', 'schema_of_json', 'second', 'sequence', 'sha1', 'sha2', 'shiftLeft',
