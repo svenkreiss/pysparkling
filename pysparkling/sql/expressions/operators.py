@@ -342,6 +342,14 @@ class Alias(Expression):
         return self.alias
 
 
+class UnaryPositive(UnaryExpression):
+    def eval(self, row, schema):
+        return self.column.eval(row, schema)
+
+    def __str__(self):
+        return "(+ {0})".format(self.column)
+
+
 __all__ = [
     "Negate",
     "Add",
@@ -372,5 +380,6 @@ __all__ = [
     "Cast",
     "Substring",
     "IsNull",
-    "Alias"
+    "Alias",
+    "UnaryPositive",
 ]
