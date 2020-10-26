@@ -61,14 +61,6 @@ class Pow(NullSafeBinaryOperation):
         return "POWER({0}, {1})".format(self.arg1, self.arg2)
 
 
-class Pmod(NullSafeBinaryOperation):
-    def unsafe_operation(self, value1, value2):
-        return value1 % value2
-
-    def __str__(self):
-        return "pmod({0} % {1})".format(self.arg1, self.arg2)
-
-
 class Equal(TypeSafeBinaryOperation):
     def unsafe_operation(self, value_1, value_2):
         return value_1 == value_2
@@ -267,7 +259,7 @@ class IsIn(Expression):
     def __init__(self, arg1, cols):
         super(IsIn, self).__init__(arg1)
         self.arg1 = arg1
-        self.cols = cols
+        self.cols = [c.get_literal_value() for c in cols]
 
     def eval(self, row, schema):
         return self.arg1.eval(row, schema) in self.cols
@@ -315,8 +307,8 @@ class Substring(Expression):
     def __init__(self, expr, start, length):
         super(Substring, self).__init__(expr)
         self.expr = expr
-        self.start = start
-        self.length = length
+        self.start = start.get_literal_value()
+        self.length = length.get_literal_value()
 
     def eval(self, row, schema):
         return str(self.expr.eval(row, schema))[self.start - 1:self.start - 1 + self.length]
@@ -329,7 +321,7 @@ class Alias(Expression):
     def __init__(self, expr, alias):
         super(Alias, self).__init__(expr, alias)
         self.expr = expr
-        self.alias = alias
+        self.alias = alias.get_literal_value()
 
     @property
     def may_output_multiple_cols(self):
@@ -358,7 +350,6 @@ __all__ = [
     "Divide",
     "Mod",
     "Pow",
-    "Pmod",
     "Equal",
     "LessThan",
     "LessThanOrEqual",

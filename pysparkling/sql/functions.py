@@ -1,6 +1,6 @@
 import math
 
-from pysparkling.sql.column import Column, parse
+from pysparkling.sql.column import Column, parse, ensure_column
 from pysparkling.sql.expressions.aggregate.collectors import CollectSet, ApproxCountDistinct, \
     CollectList, CountDistinct, First, Last, SumDistinct
 from pysparkling.sql.expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
@@ -27,7 +27,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     SubstringIndex, Upper, Concat, Reverse, MapKeys, MapValues, MapEntries, MapFromEntries, \
     MapConcat
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Pmod, Substring
+from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, \
     StringLPad, StringLTrim, StringRPad, StringRepeat, StringRTrim, SoundEx, StringTranslate, \
     StringTrim
@@ -302,7 +302,7 @@ def rand(seed=None):
     |0.8800146499990725|
     +------------------+
     """
-    return col(Rand(seed))
+    return col(Rand(parse(seed)))
 
 
 def randn(seed=None):
@@ -324,7 +324,7 @@ def randn(seed=None):
     |-5.552412872005739|
     +------------------+
     """
-    return col(Randn(seed))
+    return col(Randn(lit(seed)))
 
 
 def struct(*exprs):
@@ -437,14 +437,14 @@ def first(e, ignoreNulls=False):
     """
     :rtype: Column
     """
-    return col(First(parse(e), ignoreNulls))
+    return col(First(parse(e), lit(ignoreNulls)))
 
 
 def last(e, ignoreNulls=False):
     """
     :rtype: Column
     """
-    return col(Last(parse(e), ignoreNulls))
+    return col(Last(parse(e), lit(ignoreNulls)))
 
 
 def grouping(e):
@@ -887,7 +887,7 @@ def conv(num, fromBase, toBase):
     """
     :rtype: Column
     """
-    return col(Conv(parse(num), fromBase, toBase))
+    return col(Conv(parse(num), lit(fromBase), lit(toBase)))
 
 
 def cos(e):
@@ -981,7 +981,7 @@ def log(arg1, arg2=None):
         base, value = math.e, parse(arg1)
     else:
         base, value = arg1, parse(arg2)
-    return col(Log(base, value))
+    return col(Log(lit(base), value))
 
 
 def log10(e):
@@ -1012,14 +1012,6 @@ def pow(l, r):
     :rtype: Column
     """
     return col(Pow(parse(l), parse(r)))
-
-
-def pmod(dividend, divisor):
-    """
-    :rtype: Column
-    """
-    return col(Pmod(dividend, divisor))
-
 
 def rint(e):
     """
@@ -1053,7 +1045,7 @@ def round(e, scale=0):
 
 
     """
-    return col(Round(parse(e), scale))
+    return col(Round(parse(e), lit(scale)))
 
 
 def bround(e, scale=0):
@@ -1077,7 +1069,7 @@ def bround(e, scale=0):
     |           9.0|          10.0|          10.0|           8.0|            20|            20|
     +--------------+--------------+--------------+--------------+--------------+--------------+
     """
-    return col(Bround(parse(e), scale))
+    return col(Bround(parse(e), lit(scale)))
 
 
 def shiftLeft(e, numBits):
@@ -1226,7 +1218,7 @@ def concat_ws(sep, *exprs):
 
     """
     cols = [parse(e) for e in exprs]
-    return col(ConcatWs(sep, cols))
+    return col(ConcatWs(lit(sep), cols))
 
 
 def decode(value, charset):
@@ -1257,7 +1249,7 @@ def format_number(x, d):
     |                 1,000,000.873|
     +------------------------------+
     """
-    return col(FormatNumber(parse(x), d))
+    return col(FormatNumber(parse(x), lit(d)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1292,7 +1284,7 @@ def instr(str, substring):
     """
     :rtype: Column
     """
-    return col(StringInStr(parse(str), substring))
+    return col(StringInStr(parse(str), lit(substring)))
 
 
 def length(e):
@@ -1333,7 +1325,7 @@ def locate(substr, str, pos=1):
     """
     :rtype: Column
     """
-    return col(StringLocate(substr, parse(str), pos))
+    return col(StringLocate(lit(substr), parse(str), lit(pos)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1342,14 +1334,14 @@ def lpad(str, len, pad):
     """
     :rtype: Column
     """
-    return col(StringLPad(parse(str), len, pad))
+    return col(StringLPad(parse(str), lit(len), lit(pad)))
 
 
 def ltrim(e):
     """
     :rtype: Column
     """
-    return col(StringLTrim(e))
+    return col(StringLTrim(parse(e)))
 
 
 def regexp_extract(e, exp, groupIdx):
@@ -1360,14 +1352,12 @@ def regexp_extract(e, exp, groupIdx):
     >>> df = spark.createDataFrame([('100-200',)], ['str'])
     >>> df.collect()
     [Row(str='100-200')]
-    >>> df.select(Column('str').alias('range')).collect()
-    [Row(range='100-200')]
     >>> df.select(regexp_extract(df.str, r'(\\d+)-(\\d+)', 1).alias('d')).collect()
     [Row(d='100')]
 
     :rtype: Column
     """
-    return col(RegExpExtract(e, exp, groupIdx))
+    return col(RegExpExtract(parse(e), lit(exp), lit(groupIdx)))
 
 
 def regexp_replace(e, pattern, replacement):
@@ -1378,14 +1368,12 @@ def regexp_replace(e, pattern, replacement):
     >>> df = spark.createDataFrame([('100-200',)], ['str'])
     >>> df.collect()
     [Row(str='100-200')]
-    >>> df.select(Column('str').alias('range')).collect()
-    [Row(range='100-200')]
     >>> df.select(regexp_replace(df.str, r'-(\\d+)', '-300').alias('d')).collect()
     [Row(d='100-300')]
 
     :rtype: Column
     """
-    return col(RegExpReplace(e, pattern, replacement))
+    return col(RegExpReplace(parse(e), lit(pattern), lit(replacement)))
 
 
 def unbase64(e):
@@ -1407,7 +1395,7 @@ def rpad(str, len, pad):
     """
     :rtype: Column
     """
-    return col(StringRPad(parse(str), len, pad))
+    return col(StringRPad(parse(str), lit(len), lit(pad)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1416,14 +1404,14 @@ def repeat(str, n):
     """
     :rtype: Column
     """
-    return col(StringRepeat(parse(str), n))
+    return col(StringRepeat(parse(str), lit(n)))
 
 
 def rtrim(e):
     """
     :rtype: Column
     """
-    return col(StringRTrim(e))
+    return col(StringRTrim(parse(e)))
 
 
 def soundex(e):
@@ -1464,7 +1452,7 @@ def split(str, regex, limit=None):
     """
     :rtype: Column
     """
-    return col(StringSplit(parse(str), regex, limit))
+    return col(StringSplit(parse(str), lit(regex), lit(limit)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1473,7 +1461,7 @@ def substring(str, pos, len):
     """
     :rtype: Column
     """
-    return col(Substring(str, pos, len))
+    return col(Substring(str, lit(pos), lit(len)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1509,14 +1497,14 @@ def substring_index(str, delim, count):
 
     :rtype: Column
     """
-    return col(SubstringIndex(parse(str), delim, count))
+    return col(SubstringIndex(parse(str), lit(delim), lit(count)))
 
 
 def translate(srcCol, matchingString, replaceString):
     """
     :rtype: Column
     """
-    return col(StringTranslate(parse(srcCol), matchingString, replaceString))
+    return col(StringTranslate(parse(srcCol), lit(matchingString), lit(replaceString)))
 
 
 def trim(e):
@@ -1530,14 +1518,14 @@ def upper(e):
     """
     :rtype: Column
     """
-    return col(Upper(e))
+    return col(Upper(parse(e)))
 
 
 def add_months(startDate, numMonths):
     """
     :rtype: Column
     """
-    return col(AddMonths(parse(startDate), numMonths))
+    return col(AddMonths(ensure_column(startDate), lit(numMonths)))
 
 
 def current_date():
@@ -1570,7 +1558,7 @@ def date_format(dateExpr, format):
     |                        10/31/2019|
     +----------------------------------+
     """
-    return col(DateFormat(parse(dateExpr), format))
+    return col(DateFormat(ensure_column(dateExpr), lit(format)))
 
 
 def date_add(start, days):
@@ -1588,7 +1576,7 @@ def date_add(start, days):
     +-----------------------+
 
     """
-    return col(DateAdd(parse(start), days))
+    return col(DateAdd(ensure_column(start), lit(days)))
 
 
 def date_sub(start, days):
@@ -1605,7 +1593,7 @@ def date_sub(start, days):
     |             2019-02-27|
     +-----------------------+
     """
-    return col(DateSub(parse(start), days))
+    return col(DateSub(ensure_column(start), lit(days)))
 
 
 def datediff(end, start):
@@ -1630,14 +1618,14 @@ def datediff(end, start):
     +--------------------------------+
 
     """
-    return col(DateDiff(end, start))
+    return col(DateDiff(ensure_column(end), ensure_column(start)))
 
 
 def year(e):
     """
     :rtype: Column
     """
-    return col(Year(e))
+    return col(Year(ensure_column(e)))
 
 
 def quarter(e):
@@ -1654,14 +1642,14 @@ def quarter(e):
     |                  2|
     +-------------------+
     """
-    return col(Quarter(e))
+    return col(Quarter(ensure_column(e)))
 
 
 def month(e):
     """
     :rtype: Column
     """
-    return col(Month(e))
+    return col(Month(ensure_column(e)))
 
 
 def dayofweek(e):
@@ -1691,14 +1679,14 @@ def dayofweek(e):
     +---+----------+---------+
 
     """
-    return col(DayOfWeek(parse(e)))
+    return col(DayOfWeek(ensure_column(e)))
 
 
 def dayofmonth(e):
     """
     :rtype: Column
     """
-    return col(DayOfMonth(e))
+    return col(DayOfMonth(ensure_column(e)))
 
 
 def dayofyear(e):
@@ -1728,14 +1716,14 @@ def dayofyear(e):
 
     :rtype: Column
     """
-    return col(DayOfYear(parse(e)))
+    return col(DayOfYear(ensure_column(e)))
 
 
 def hour(e):
     """
     :rtype: Column
     """
-    return col(Hour(e))
+    return col(Hour(ensure_column(e)))
 
 
 def last_day(e):
@@ -1752,14 +1740,14 @@ def last_day(e):
     |          2019-10-31|
     +--------------------+
     """
-    return col(LastDay(e))
+    return col(LastDay(ensure_column(e)))
 
 
 def minute(e):
     """
     :rtype: Column
     """
-    return col(Minute(e))
+    return col(Minute(ensure_column(e)))
 
 
 def months_between(end, start, roundOff=True):
@@ -1813,7 +1801,7 @@ def months_between(end, start, roundOff=True):
     |                                                                  3.0|
     +---------------------------------------------------------------------+
     """
-    return col(MonthsBetween(end, start, roundOff))
+    return col(MonthsBetween(ensure_column(end), ensure_column(start), lit(roundOff)))
 
 
 def next_day(date, dayOfWeek):
@@ -1838,21 +1826,21 @@ def next_day(date, dayOfWeek):
     |                          2019-11-11|
     +------------------------------------+
     """
-    return col(NextDay(parse(date), dayOfWeek))
+    return col(NextDay(ensure_column(date), lit(dayOfWeek)))
 
 
 def second(e):
     """
     :rtype: Column
     """
-    return col(Second(e))
+    return col(Second(ensure_column(e)))
 
 
 def weekofyear(e):
     """
     :rtype: Column
     """
-    return col(WeekOfYear(e))
+    return col(WeekOfYear(ensure_column(e)))
 
 
 def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
@@ -1874,7 +1862,7 @@ def from_unixtime(ut, f="yyyy-MM-dd HH:mm:ss"):
     |                                  2033-05-18 05:33:23|
     +-----------------------------------------------------+
     """
-    return col(FromUnixTime(parse(ut), f))
+    return col(FromUnixTime(parse(ut), lit(f)))
 
 
 def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
@@ -1901,8 +1889,8 @@ def unix_timestamp(s=None, p="yyyy-MM-dd HH:mm:ss"):
     +--------------------------------------+
     """
     if s is None:
-        s = CurrentTimestamp()
-    return col(UnixTimestamp(s, p))
+        s = col(CurrentTimestamp())
+    return col(UnixTimestamp(ensure_column(s), lit(p)))
 
 
 def to_timestamp(s, fmt=None):
@@ -1925,7 +1913,7 @@ def to_timestamp(s, fmt=None):
     |                     2019-01-01 00:00:00|
     +----------------------------------------+
     """
-    return col(ParseToTimestamp(s, fmt))
+    return col(ParseToTimestamp(ensure_column(s), lit(fmt)))
 
 
 def to_date(e, fmt=None):
@@ -1950,7 +1938,7 @@ def to_date(e, fmt=None):
     +-----------------------------------+
 
     """
-    return col(ParseToDate(e, fmt))
+    return col(ParseToDate(ensure_column(e), lit(fmt)))
 
 
 # noinspection PyShadowingBuiltins
@@ -1985,7 +1973,7 @@ def trunc(date, format):
 
 
     """
-    return col(TruncDate(parse(date), format))
+    return col(TruncDate(parse(date), lit(format)))
 
 
 # noinspection PyShadowingBuiltins
@@ -2019,7 +2007,7 @@ def date_trunc(format, timestamp):
     +---------------------------------------+
 
     """
-    return col(TruncTimestamp(format, parse(timestamp)))
+    return col(TruncTimestamp(lit(format), parse(timestamp)))
 
 
 def from_utc_timestamp(ts, tz):
@@ -2048,7 +2036,7 @@ def from_utc_timestamp(ts, tz):
     |                           2019-11-05 03:06:00|
     +----------------------------------------------+
     """
-    return col(FromUTCTimestamp(ts, tz))
+    return col(FromUTCTimestamp(ensure_column(ts), lit(tz)))
 
 
 def to_utc_timestamp(ts, tz):
@@ -2077,7 +2065,7 @@ def to_utc_timestamp(ts, tz):
     |                         2019-11-05 06:44:00|
     +--------------------------------------------+
     """
-    return col(ToUTCTimestamp(ts, tz))
+    return col(ToUTCTimestamp(ensure_column(ts), lit(tz)))
 
 
 def window(timeColumn, windowDuration, slideDuration=None, startTime="0 second"):
@@ -2088,7 +2076,7 @@ def array_contains(column, value):
     """
     :rtype: Column
     """
-    return col(ArrayContains(parse(column), value))
+    return col(ArrayContains(parse(column), lit(value)))
 
 
 def arrays_overlap(a1, a2):
@@ -2104,14 +2092,14 @@ def slice(x, start, length):
     """
     :rtype: Column
     """
-    return col(Slice(x, start, length))
+    return col(Slice(ensure_column(x), lit(start), lit(length)))
 
 
 def array_join(column, delimiter, nullReplacement=None):
     """
     :rtype: Column
     """
-    return col(ArrayJoin(column, delimiter, nullReplacement))
+    return col(ArrayJoin(ensure_column(column), lit(delimiter), lit(nullReplacement)))
 
 
 def concat(*exprs):
@@ -2126,35 +2114,35 @@ def array_position(column, value):
     """
     :rtype: Column
     """
-    return col(ArrayPosition(column, value))
+    return col(ArrayPosition(ensure_column(column), lit(value)))
 
 
 def element_at(column, value):
     """
     :rtype: Column
     """
-    return col(ElementAt(column, value))
+    return col(ElementAt(ensure_column(column), lit(value)))
 
 
 def array_sort(e):
     """
     :rtype: Column
     """
-    return col(ArraySort(e))
+    return col(ArraySort(ensure_column(e)))
 
 
 def array_remove(column, element):
     """
     :rtype: Column
     """
-    return col(ArrayRemove(column, element))
+    return col(ArrayRemove(ensure_column(column), lit(element)))
 
 
 def array_distinct(e):
     """
     :rtype: Column
     """
-    return col(ArrayDistinct(e))
+    return col(ArrayDistinct(ensure_column(e)))
 
 
 def array_intersect(col1, col2):
@@ -2189,21 +2177,21 @@ def explode_outer(e):
     """
     :rtype: Column
     """
-    return col(ExplodeOuter(e))
+    return col(ExplodeOuter(ensure_column(e)))
 
 
 def posexplode(e):
     """
     :rtype: Column
     """
-    return col(PosExplode(e))
+    return col(PosExplode(ensure_column(e)))
 
 
 def posexplode_outer(e):
     """
     :rtype: Column
     """
-    return col(PosExplodeOuter(e))
+    return col(PosExplodeOuter(ensure_column(e)))
 
 
 def get_json_object(e, path):
@@ -2285,21 +2273,21 @@ def sort_array(e, asc=True):
     """
     :rtype: Column
     """
-    return col(SortArray(parse(e), asc))
+    return col(SortArray(parse(e), lit(asc)))
 
 
 def array_min(e):
     """
     :rtype: Column
     """
-    return col(ArrayMin(e))
+    return col(ArrayMin(ensure_column(e)))
 
 
 def array_max(e):
     """
     :rtype: Column
     """
-    return col(ArrayMax(e))
+    return col(ArrayMax(ensure_column(e)))
 
 
 def shuffle(e):
@@ -2313,14 +2301,14 @@ def reverse(e):
     """
     :rtype: Column
     """
-    return col(Reverse(e))
+    return col(Reverse(ensure_column(e)))
 
 
 def flatten(e):
     """
     :rtype: Column
     """
-    return col(Flatten(parse(e)))
+    return col(Flatten(ensure_column(e)))
 
 
 def sequence(start, stop, step=None):
@@ -2338,35 +2326,35 @@ def array_repeat(e, count):
     """
     :rtype: Column
     """
-    return col(ArrayRepeat(parse(e), count))
+    return col(ArrayRepeat(parse(e), lit(count)))
 
 
 def map_keys(e):
     """
     :rtype: Column
     """
-    return col(MapKeys(e))
+    return col(MapKeys(ensure_column(e)))
 
 
 def map_values(e):
     """
     :rtype: Column
     """
-    return col(MapValues(e))
+    return col(MapValues(ensure_column(e)))
 
 
 def map_entries(e):
     """
     :rtype: Column
     """
-    return col(MapEntries(e))
+    return col(MapEntries(ensure_column(e)))
 
 
 def map_from_entries(e):
     """
     :rtype: Column
     """
-    return col(MapFromEntries(e))
+    return col(MapFromEntries(ensure_column(e)))
 
 
 def arrays_zip(*exprs):
@@ -2483,3 +2471,35 @@ def pandas_udf(f=None, returnType=None, functionType=None):
 
 def callUDF(udfName, *cols):
     raise NotImplementedError("Pysparkling does not support yet this function")
+
+
+__all__ = [
+    'abs', 'acos', 'add_months', 'approx_count_distinct', 'array', 'array_contains',
+    'array_distinct', 'array_except', 'array_intersect', 'array_join', 'array_max', 'array_min',
+    'array_position', 'array_remove', 'array_repeat', 'array_sort', 'array_union', 'arrays_overlap',
+    'arrays_zip', 'asc', 'asc_nulls_first', 'asc_nulls_last', 'ascii', 'asin', 'atan', 'atan2',
+    'avg', 'base64', 'bin', 'bitwiseNOT', 'broadcast', 'bround', 'callUDF', 'cbrt', 'ceil',
+    'coalesce', 'col', 'collect_list', 'collect_set', 'column', 'concat', 'concat_ws', 'conv',
+    'corr', 'cos', 'cosh', 'count', 'countDistinct', 'covar_pop', 'covar_samp', 'crc32',
+    'create_map', 'cume_dist', 'current_date', 'current_timestamp', 'date_add', 'date_format',
+    'date_sub', 'date_trunc', 'datediff', 'dayofmonth', 'dayofweek', 'dayofyear', 'decode',
+    'degrees', 'dense_rank', 'desc', 'desc_nulls_first', 'desc_nulls_last', 'element_at', 'encode',
+    'exp', 'explode', 'explode_outer', 'expm1', 'expr', 'factorial', 'first', 'flatten', 'floor',
+    'format_number', 'format_string', 'from_csv', 'from_json', 'from_unixtime',
+    'from_utc_timestamp', 'get_json_object', 'greatest', 'grouping', 'grouping_id', 'hash', 'hex',
+    'hour', 'hypot', 'initcap', 'input_file_name', 'instr', 'isnan', 'isnull', 'json_tuple',
+    'kurtosis', 'lag', 'last', 'last_day', 'lead', 'least', 'length', 'levenshtein', 'lit',
+    'locate', 'log', 'log10', 'log1p', 'log2', 'lower', 'lpad', 'ltrim', 'map_concat',
+    'map_entries', 'map_from_arrays', 'map_from_entries', 'map_keys', 'map_values', 'math', 'max',
+    'md5', 'mean', 'min', 'minute', 'monotonically_increasing_id', 'month', 'months_between',
+    'nanvl', 'next_day', 'ntile', 'pandas_udf', 'parse', 'percent_rank', 'posexplode',
+    'posexplode_outer', 'pow', 'quarter', 'radians', 'rand', 'randn', 'rank', 'regexp_extract',
+    'regexp_replace', 'repeat', 'reverse', 'rint', 'round', 'row_number', 'rpad', 'rtrim',
+    'schema_of_csv', 'schema_of_json', 'second', 'sequence', 'sha1', 'sha2', 'shiftLeft',
+    'shiftRight', 'shiftRightUnsigned', 'shuffle', 'signum', 'sin', 'sinh', 'size', 'skewness',
+    'slice', 'sort_array', 'soundex', 'spark_partition_id', 'split', 'sqrt', 'stddev', 'stddev_pop',
+    'stddev_samp', 'struct', 'substring', 'substring_index', 'sum', 'sumDistinct', 'tan', 'tanh',
+    'to_csv', 'to_date', 'to_json', 'to_timestamp', 'to_utc_timestamp', 'translate', 'trim',
+    'trunc', 'typedLit', 'udf', 'unbase64', 'unhex', 'unix_timestamp', 'upper', 'var_pop',
+    'var_samp', 'variance', 'weekofyear', 'when', 'window', 'xxhash64', 'year'
+]
