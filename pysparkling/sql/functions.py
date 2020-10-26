@@ -346,6 +346,8 @@ def struct(*exprs):
     +----------------------------------+
 
     """
+    if len(exprs) == 1 and isinstance(exprs[0], list):
+        exprs = exprs[0]
     cols = [parse(e) for e in exprs]
     return col(CreateStruct(cols))
 
