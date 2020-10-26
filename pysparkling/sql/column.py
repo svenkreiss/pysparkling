@@ -83,7 +83,7 @@ class Column(object):
         return Column(Equal(self, parse_operator(other)))
 
     def __ne__(self, other):
-        return Column(Negate(Equal(self, parse_operator(other))))
+        return Column(Invert(Equal(self, parse_operator(other))))
 
     def __lt__(self, other):
         return Column(LessThan(self, parse_operator(other)))

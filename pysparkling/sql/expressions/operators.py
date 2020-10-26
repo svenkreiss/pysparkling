@@ -7,7 +7,7 @@ from pysparkling.sql.types import StructType
 
 class Negate(UnaryExpression):
     def eval(self, row, schema):
-        return not self.column.eval(row, schema)
+        return - self.column.eval(row, schema)
 
     def __str__(self):
         return "(- {0})".format(self.column)
