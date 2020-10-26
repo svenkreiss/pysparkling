@@ -64,8 +64,8 @@ def call_function(*children):
         (name for name in functions.__all__ if name.lower() == raw_function_name.lower()),
         None
     )
-    function = getattr(functions, function_name)
-
+    # function = getattr(functions, function_name)
+    this should get an Expression init, not a function
     params = [convert_tree(c) for c in children[2:-1]]
 
     complex_function = ')' in params
@@ -428,12 +428,7 @@ unary_operations = {
 
 
 def parse_sql(string, rule, debug=False):
-    parser = ast_parser(string)
-    tree = getattr(parser, rule)()
-    if debug:
-        sys.stderr.flush()
-        print_tree(tree)
-        sys.stdout.flush()
+    tree = string_to_ast(string, rule, debug)
     return convert_tree(tree)
 
 
