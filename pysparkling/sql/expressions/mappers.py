@@ -548,6 +548,45 @@ class Bin(UnaryExpression):
         return "bin({0})".format(self.column)
 
 
+class ShiftLeft(Expression):
+    def __init__(self, arg, num_bits):
+        super(ShiftLeft, self).__init__(arg)
+        self.arg = arg
+        self.num_bits = num_bits.get_literal_value()
+
+    def eval(self, row, schema):
+        return self.arg.eval(row, schema) << self.num_bits
+
+    def __str__(self):
+        return "shiftleft({0}, {1})".format(self.arg, self.num_bits)
+
+
+class ShiftRight(Expression):
+    def __init__(self, arg, num_bits):
+        super(ShiftRight, self).__init__(arg)
+        self.arg = arg
+        self.num_bits = num_bits.get_literal_value()
+
+    def eval(self, row, schema):
+        return self.arg.eval(row, schema) >> self.num_bits
+
+    def __str__(self):
+        return "shiftright({0}, {1})".format(self.arg, self.num_bits)
+
+
+class ShiftRightUnsigned(object):
+    def __init__(self, arg, num_bits):
+        super(ShiftRightUnsigned, self).__init__(arg)
+        self.arg = arg
+        self.num_bits = num_bits.get_literal_value()
+
+    def eval(self, row, schema):
+        return self.arg.eval(row, schema) >> self.num_bits
+
+    def __str__(self):
+        return "shiftright({0}, {1})".format(self.arg, self.num_bits)
+
+
 class Greatest(Expression):
     def __init__(self, columns):
         super(Greatest, self).__init__(columns)
@@ -927,5 +966,5 @@ __all__ = [
     "ToRadians", "Ascii", "Base64", "ConcatWs", "FormatNumber", "Length", "Lower",
     "RegExpExtract", "RegExpReplace", "UnBase64", "StringSplit", "SubstringIndex", "Upper",
     "Concat", "Reverse", "MapKeys", "MapValues", "MapEntries", "MapFromEntries",
-    "MapConcat", "StarOperator"
+    "MapConcat", "StarOperator", "ShiftLeft", "ShiftRight", "ShiftRightUnsigned"
 ]

@@ -25,7 +25,7 @@ from pysparkling.sql.expressions.mappers import CaseWhen, Rand, CreateStruct, Gr
     Round, Bround, Signum, Sin, Sinh, Tan, Tanh, ToDegrees, ToRadians, Ascii, Base64, ConcatWs, \
     FormatNumber, Length, Lower, RegExpExtract, RegExpReplace, UnBase64, StringSplit, \
     SubstringIndex, Upper, Concat, Reverse, MapKeys, MapValues, MapEntries, MapFromEntries, \
-    MapConcat
+    MapConcat, ShiftLeft, ShiftRight, ShiftRightUnsigned
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.operators import IsNull, BitwiseNot, Pow, Substring
 from pysparkling.sql.expressions.strings import InitCap, StringInStr, Levenshtein, StringLocate, \
@@ -1076,21 +1076,21 @@ def shiftLeft(e, numBits):
     """
     :rtype: Column
     """
-    raise NotImplementedError("Pysparkling does not support yet this function")
+    return col(ShiftLeft(parse(e), lit(numBits)))
 
 
 def shiftRight(e, numBits):
     """
     :rtype: Column
     """
-    raise NotImplementedError("Pysparkling does not support yet this function")
+    return col(ShiftRight(parse(e), lit(numBits)))
 
 
 def shiftRightUnsigned(e, numBits):
     """
     :rtype: Column
     """
-    raise NotImplementedError("Pysparkling does not support yet this function")
+    return col(ShiftRightUnsigned(parse(e), lit(numBits)))
 
 
 def signum(e):
