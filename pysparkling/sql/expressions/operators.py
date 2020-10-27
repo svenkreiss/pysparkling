@@ -302,6 +302,12 @@ class Cast(Expression):
     def __str__(self):
         return "{0}".format(self.column)
 
+    def __repr__(self):
+        return "CAST({0} AS {1})".format(
+            self.column,
+            self.destination_type.simpleString().upper()
+        )
+
 
 class Substring(Expression):
     def __init__(self, expr, start, length):
