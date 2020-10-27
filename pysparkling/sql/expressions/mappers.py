@@ -537,7 +537,7 @@ class CreateStruct(Expression):
         return create_row(struct_cols, struct_values)
 
     def __str__(self):
-        return "named_struct({0})".format(", ".join("{0}, {0}".format(col) for col in self.columns))
+        return "struct({0})".format(", ".join(str(col) for col in self.columns))
 
 
 class Bin(UnaryExpression):

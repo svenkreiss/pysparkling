@@ -335,16 +335,19 @@ def struct(*exprs):
     >>> from pysparkling.sql.session import SparkSession
     >>> spark = SparkSession(Context())
     >>> df = spark.createDataFrame([Row(age=2, name='Alice'), Row(age=5, name='Bob')])
-    >>> df.select(struct("age", col("name")).alias("struct")).collect()
+    >>> df.select(struct([df.age, df.name]).alias("struct")).collect()
+    [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
+    >>> df.select(struct('age', 'name').alias("struct")).collect()
     [Row(struct=Row(age=2, name='Alice')), Row(struct=Row(age=5, name='Bob'))]
     >>> df.select(struct("age", col("name"))).show()
-    +----------------------------------+
-    |named_struct(age, age, name, name)|
-    +----------------------------------+
-    |                        [2, Alice]|
-    |                          [5, Bob]|
-    +----------------------------------+
-
+    +-----------------+
+    |struct(age, name)|
+    +-----------------+
+    |       [2, Alice]|
+    |         [5, Bob]|
+    +-----------------+
+    >>> df.select(struct("age", col("name"))).collect()
+    [Row(struct(age, name)=Row(age=2, name='Alice')), Row(struct(age, name)=Row(age=5, name='Bob'))]
     """
     if len(exprs) == 1 and isinstance(exprs[0], list):
         exprs = exprs[0]
