@@ -136,6 +136,9 @@ class Expression(object):
             elif isinstance(child, (list, set, tuple)):
                 Expression.children_pre_evaluation_schema(child, schema)
 
+    def get_literal_value(self):
+        raise AnalysisException("Expecting a Literal, but got {0}: {1}".format(type(self), self))
+
 
 class UnaryExpression(Expression):
     def __init__(self, column):

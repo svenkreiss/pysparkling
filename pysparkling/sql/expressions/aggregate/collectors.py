@@ -65,7 +65,7 @@ class First(Aggregation):
         super(First, self).__init__(column)
         self.column = column
         self.value = self._sentinel
-        self.ignore_nulls = ignore_nulls
+        self.ignore_nulls = ignore_nulls.get_literal_value()
 
     def merge(self, row, schema):
         if self.value is First._sentinel or (self.ignore_nulls and self.value is None):
@@ -89,7 +89,7 @@ class Last(Aggregation):
         super(Last, self).__init__(column)
         self.column = column
         self.value = None
-        self.ignore_nulls = ignore_nulls
+        self.ignore_nulls = ignore_nulls.get_literal_value()
 
     def merge(self, row, schema):
         new_value = self.column.eval(row, schema)

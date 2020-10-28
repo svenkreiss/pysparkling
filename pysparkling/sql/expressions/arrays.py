@@ -25,7 +25,7 @@ class ArraysOverlap(Expression):
 class ArrayContains(Expression):
     def __init__(self, array, value):
         self.array = array
-        self.value = value  # not a column
+        self.value = value.get_literal_value()
         super(ArrayContains, self).__init__(array)
 
     def eval(self, row, schema):
@@ -126,24 +126,24 @@ class ArrayMax(UnaryExpression):
 
 
 class Slice(Expression):
-    def __init__(self, x, start, length):
-        self.x = x
-        self.start = start
-        self.length = length
-        super(Slice, self).__init__(x)
+    def __init__(self, column, start, length):
+        self.column = column
+        self.start = start.get_literal_value()
+        self.length = length.get_literal_value()
+        super(Slice, self).__init__(column)
 
     def eval(self, row, schema):
-        return self.x.eval(row, schema)[self.start, self.start + self.length]
+        return self.column.eval(row, schema)[self.start, self.start + self.length]
 
     def __str__(self):
-        return "slice({0}, {1}, {2})".format(self.x, self.start, self.length)
+        return "slice({0}, {1}, {2})".format(self.column, self.start, self.length)
 
 
 class ArrayRepeat(Expression):
     def __init__(self, col, count):
         super(ArrayRepeat, self).__init__(col)
         self.col = col
-        self.count = count
+        self.count = count.get_literal_value()
 
     def eval(self, row, schema):
         value = self.col.eval(row, schema)
@@ -194,8 +194,8 @@ class ArrayJoin(Expression):
     def __init__(self, column, delimiter, nullReplacement):
         super(ArrayJoin, self).__init__(column)
         self.column = column
-        self.delimiter = delimiter
-        self.nullReplacement = nullReplacement
+        self.delimiter = delimiter.get_literal_value()
+        self.nullReplacement = nullReplacement.get_literal_value()
 
     def eval(self, row, schema):
         column_eval = self.column.eval(row, schema)
@@ -217,7 +217,7 @@ class SortArray(Expression):
     def __init__(self, col, asc):
         super(SortArray, self).__init__(col)
         self.col = col
-        self.asc = asc
+        self.asc = asc.get_literal_value()
 
     def eval(self, row, schema):
         return sorted(self.col.eval(row, schema), reverse=not self.asc)
@@ -262,7 +262,7 @@ class ArrayPosition(Expression):
     def __init__(self, col, value):
         super(ArrayPosition, self).__init__(col)
         self.col = col
-        self.value = value
+        self.value = value.get_literal_value()
 
     def eval(self, row, schema):
         if self.value is None:
@@ -281,7 +281,7 @@ class ElementAt(Expression):
     def __init__(self, col, extraction):
         super(ElementAt, self).__init__(col)
         self.col = col
-        self.extraction = extraction
+        self.extraction = extraction.get_literal_value()
 
     def eval(self, row, schema):
         col_eval = self.col.eval(row, schema)
@@ -297,7 +297,7 @@ class ArrayRemove(Expression):
     def __init__(self, col, element):
         super(ArrayRemove, self).__init__(col, element)
         self.col = col
-        self.element = element
+        self.element = element.get_literal_value()
 
     def eval(self, row, schema):
         array = self.col.eval(row, schema)

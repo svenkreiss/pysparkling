@@ -9,7 +9,7 @@ from pysparkling.sql.expressions.operators import Negate, Add, Minus, Time, Divi
 from pysparkling.sql.expressions.orders import DescNullsLast, DescNullsFirst, Desc, \
     AscNullsLast, AscNullsFirst, Asc, SortOrder
 from pysparkling.sql.types import string_to_type, DataType, StructField
-from pysparkling.sql.utils import IllegalArgumentException
+from pysparkling.sql.utils import IllegalArgumentException, AnalysisException
 
 
 class Column(object):
@@ -83,7 +83,7 @@ class Column(object):
         return Column(Equal(self, parse_operator(other)))
 
     def __ne__(self, other):
-        return Column(Negate(Equal(self, parse_operator(other))))
+        return Column(Invert(Equal(self, parse_operator(other))))
 
     def __lt__(self, other):
         return Column(LessThan(self, parse_operator(other)))
@@ -253,7 +253,7 @@ class Column(object):
                 "startPos and length must be the same type. "
                 "Got {0} and {1}, respectively.".format(type(startPos), type(length))
             )
-        return Column(Substring(self, startPos, length))
+        return Column(Substring(self, parse_operator(startPos), parse_operator(length)))
 
     def isin(self, *exprs):
         """
@@ -273,7 +273,8 @@ class Column(object):
         """
         if len(exprs) == 1 and isinstance(exprs[0], (list, set)):
             exprs = exprs[0]
-        return Column(IsIn(self, exprs))
+        values = [Literal(value) for value in exprs]
+        return Column(IsIn(self, values))
 
     def asc(self):
         """
@@ -468,7 +469,7 @@ class Column(object):
             raise ValueError('Pysparkling does not support alias with metadata')
 
         if len(alias) == 1:
-            return Column(Alias(self, alias[0]))
+            return Column(Alias(self, Literal(alias[0])))
         # pylint: disable=W0511
         # todo: support it
         raise ValueError('Pysparkling does not support multiple aliases')
@@ -699,6 +700,11 @@ class Column(object):
     def __repr__(self):
         return "Column<{0!r}>".format(self.expr)
 
+    def get_literal_value(self):
+        if isinstance(self.expr, Expression):
+            return self.expr.get_literal_value()
+        raise AnalysisException("Expecting a Literal, but got {0}: {1}".format(type(self), self))
+
 
 def parse(arg):
     """
@@ -711,6 +717,20 @@ def parse(arg):
     if isinstance(arg, (str, Expression)):
         return Column(arg)
     return Literal(value=arg)
+
+
+def ensure_column(arg):
+    """
+    Ensure that a value is a Column or a string and returns a Column corresponding to it
+    :rtype: Column
+    """
+    if isinstance(arg, Column):
+        return arg
+    if isinstance(arg, str):
+        return Column(arg)
+    raise TypeError("Invalid argument, not a string or column: {0} of type {1}. "
+                    "For column literals, use 'lit', 'array', 'struct' or 'create_map' function."
+                    .format(arg, type(arg)))
 
 
 def parse_operator(arg):
