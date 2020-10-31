@@ -3,8 +3,21 @@ from pysparkling.sql.types import StructField, DataType, \
     INTERNAL_TYPE_ORDER, python_to_spark_type
 from pysparkling.sql.utils import AnalysisException
 
+expression_registry = {}
 
-class Expression(object):
+
+class RegisterExpressions(type):
+    pretty_name = None
+
+    def __init__(cls, what, bases, dct):
+        super(RegisterExpressions, cls).__init__(what, bases, dct)
+        if cls.pretty_name is not None:
+            expression_registry[cls.pretty_name] = cls
+
+
+class Expression(object, metaclass=RegisterExpressions):
+    pretty_name = None
+
     def __init__(self, *children):
         self.children = children
         self.pre_evaluation_schema = None
