@@ -12,6 +12,8 @@ from pysparkling.sql.utils import AnalysisException
 from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round, \
     MonotonicallyIncreasingIDGenerator
 
+JVM_MAX_INTEGER_SIZE = 2 ** 63
+
 
 class StarOperator(Expression):
     @property
@@ -636,7 +638,7 @@ class ShiftRight(Expression):
 
 
 class ShiftRightUnsigned(Expression):
-    pretty_name = "shiftright"
+    pretty_name = "shiftrightunsigned"
 
     def __init__(self, arg, num_bits):
         super(ShiftRightUnsigned, self).__init__(arg)
@@ -644,7 +646,8 @@ class ShiftRightUnsigned(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        return self.arg.eval(row, schema) >> self.num_bits
+        rightShifted = self.arg.eval(row, schema) >> self.num_bits
+        return rightShifted % JVM_MAX_INTEGER_SIZE
 
     def args(self):
         return (
