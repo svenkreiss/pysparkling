@@ -10,6 +10,8 @@ sql_csv_function_options = dict(
 
 
 class SchemaOfCsv(Expression):
+    pretty_name = "schema_of_csv"
+
     def __init__(self, column, options):
         super(SchemaOfCsv, self).__init__(column)
         self.column = column
@@ -33,5 +35,5 @@ class SchemaOfCsv(Expression):
         schema = guess_schema_from_strings(record_as_row.__fields__, [record_as_row], self.options)
         return schema.simpleString()
 
-    def __str__(self):
-        return "schema_of_csv({0})".format(self.column)
+    def args(self):
+        return (self.column,)

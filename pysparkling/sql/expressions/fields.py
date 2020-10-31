@@ -18,6 +18,9 @@ class FieldAsExpression(Expression):
     def output_fields(self, schema):
         return [self.field]
 
+    def args(self):
+        return (self.field,)
+
 
 def find_position_in_schema(schema, expr):
     if isinstance(expr, str):

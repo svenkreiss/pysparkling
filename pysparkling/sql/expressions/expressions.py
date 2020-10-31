@@ -13,6 +13,9 @@ class Expression(object):
         raise NotImplementedError
 
     def __str__(self):
+        return "{0}({1})".format(self.pretty_name, ", ".join(str(arg) for arg in self.args()))
+
+    def args(self):
         raise NotImplementedError
 
     def __repr__(self):
@@ -148,13 +151,13 @@ class UnaryExpression(Expression):
     def eval(self, row, schema):
         raise NotImplementedError
 
-    def __str__(self):
-        raise NotImplementedError
+    def args(self):
+        return (self.column,)
 
 
 class BinaryOperation(Expression):
     """
-    Perform a binary operation but return None if any value is None
+    Represent a binary operation between 2 columns
     """
 
     def __init__(self, arg1, arg2):
@@ -165,13 +168,16 @@ class BinaryOperation(Expression):
     def eval(self, row, schema):
         raise NotImplementedError
 
-    def __str__(self):
-        raise NotImplementedError
+    def args(self):
+        return (
+            self.arg1,
+            self.arg2
+        )
 
 
 class TypeSafeBinaryOperation(BinaryOperation):
     """
-    Perform a type and null-safe binary operation using *comparison* type cast rules:
+    Represent a type and null-safe binary operation using *comparison* type cast rules:
 
     It converts values if they are of different types following PySpark rules:
 
@@ -216,7 +222,7 @@ class TypeSafeBinaryOperation(BinaryOperation):
 
 class NullSafeBinaryOperation(BinaryOperation):
     """
-    Perform a null-safe binary operation
+    Represent a null-safe binary operation
 
     It does not converts values if they are of different types:
     lit(datetime.date(2019, 1, 1)) - lit("2019-01-01") raises an error
@@ -257,7 +263,7 @@ class NullSafeColumnOperation(Expression):
         value = self.column.eval(row, schema)
         return self.unsafe_operation(value)
 
-    def __str__(self):
+    def args(self):
         raise NotImplementedError
 
     def unsafe_operation(self, value):

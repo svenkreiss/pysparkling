@@ -2,6 +2,8 @@ from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
 
 
 class CollectList(Aggregation):
+    pretty_name = "collect_list"
+
     def __init__(self, column):
         super(CollectList, self).__init__(column)
         self.column = column
@@ -16,11 +18,13 @@ class CollectList(Aggregation):
     def eval(self, row, schema):
         return self.items
 
-    def __str__(self):
-        return "collect_list({0})".format(self.column)
+    def args(self):
+        return (self.column,)
 
 
 class CollectSet(Aggregation):
+    pretty_name = "collect_set"
+
     def __init__(self, column):
         super(CollectSet, self).__init__(column)
         self.column = column
@@ -35,11 +39,13 @@ class CollectSet(Aggregation):
     def eval(self, row, schema):
         return list(self.items)
 
-    def __str__(self):
-        return "collect_set({0})".format(self.column)
+    def args(self):
+        return (self.column,)
 
 
 class SumDistinct(Aggregation):
+    pretty_name = "sum_distinct"
+
     def __init__(self, column):
         super(SumDistinct, self).__init__(column)
         self.column = column
@@ -54,11 +60,12 @@ class SumDistinct(Aggregation):
     def eval(self, row, schema):
         return sum(self.items)
 
-    def __str__(self):
-        return "sum_distinct({0})".format(self.column)
+    def args(self):
+        return (self.column,)
 
 
 class First(Aggregation):
+    pretty_name = "first"
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
@@ -78,11 +85,15 @@ class First(Aggregation):
     def eval(self, row, schema):
         return self.value if self.value is not First._sentinel else None
 
-    def __str__(self):
-        return "first({0}, {1})".format(self.column, str(self.ignore_nulls).lower())
+    def args(self):
+        return (
+            self.column,
+            str(self.ignore_nulls).lower()
+        )
 
 
 class Last(Aggregation):
+    pretty_name = "last"
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
@@ -103,11 +114,16 @@ class Last(Aggregation):
     def eval(self, row, schema):
         return self.value
 
-    def __str__(self):
-        return "last({0}, {1})".format(self.column, str(self.ignore_nulls).lower())
+    def args(self):
+        return (
+            self.column,
+            str(self.ignore_nulls).lower()
+        )
 
 
 class CountDistinct(Aggregation):
+    pretty_name = "count"
+
     def __init__(self, columns):
         super(CountDistinct, self).__init__(columns)
         self.columns = columns
@@ -124,11 +140,13 @@ class CountDistinct(Aggregation):
     def eval(self, row, schema):
         return len(self.items)
 
-    def __str__(self):
-        return "count(DISTINCT {0})".format(",".join(self.columns))
+    def args(self):
+        return "DISTINCT {0}".format(",".join(self.columns))
 
 
 class ApproxCountDistinct(Aggregation):
+    pretty_name = "approx_count_distinct"
+
     def __init__(self, column):
         super(ApproxCountDistinct, self).__init__(column)
         self.column = column
@@ -143,8 +161,8 @@ class ApproxCountDistinct(Aggregation):
     def eval(self, row, schema):
         return len(self.items)
 
-    def __str__(self):
-        return "approx_count_distinct({0})".format(self.column)
+    def args(self):
+        return (self.column,)
 
 
 __all__ = [

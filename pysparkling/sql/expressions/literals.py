@@ -25,5 +25,8 @@ class Literal(Expression):
                                     "but got {0}: {1}".format(type(self), self))
         return self.value
 
+    def args(self):
+        return (self.value, )
+
 
 __all__ = ["Literal"]

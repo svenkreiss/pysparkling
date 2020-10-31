@@ -14,6 +14,9 @@ class SortOrder(Expression):
     def __str__(self):
         return "{0} {1}".format(self.column, self.sort_order)
 
+    def args(self):
+        return (self.column,)
+
 
 class AscNullsFirst(SortOrder):
     sort_order = "ASC NULLS FIRST"

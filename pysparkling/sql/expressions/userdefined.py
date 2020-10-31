@@ -14,8 +14,11 @@ class UserDefinedFunction(Expression):
     def __str__(self):
         return "{0}({1})".format(
             self.f.__name__,
-            ", ".join(str(expr) for expr in self.exprs)
+            ", ".join(str(arg) for arg in self.args())
         )
+
+    def args(self):
+        return self.exprs
 
 
 __all__ = ["UserDefinedFunction"]
