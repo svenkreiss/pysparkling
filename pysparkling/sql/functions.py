@@ -1080,6 +1080,26 @@ def bround(e, scale=0):
 def shiftLeft(e, numBits):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import shiftLeft, shiftRight, shiftRightUnsigned
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(-5, 4)
+    >>> df.select("id", shiftLeft("id", 1)).show()
+    +---+----------------+
+    | id|shiftleft(id, 1)|
+    +---+----------------+
+    | -5|             -10|
+    | -4|              -8|
+    | -3|              -6|
+    | -2|              -4|
+    | -1|              -2|
+    |  0|               0|
+    |  1|               2|
+    |  2|               4|
+    |  3|               6|
+    +---+----------------+
     """
     return col(ShiftLeft(parse(e), lit(numBits)))
 
@@ -1087,6 +1107,27 @@ def shiftLeft(e, numBits):
 def shiftRight(e, numBits):
     """
     :rtype: Column
+
+    >>> from pysparkling import Context
+    >>> from pysparkling.sql.session import SparkSession
+    >>> from pysparkling.sql.functions import shiftLeft, shiftRight, shiftRightUnsigned
+    >>> spark = SparkSession(Context())
+    >>> df = spark.range(-5, 4)
+    >>> df.select("id", shiftRight("id", 1)).show()
+    +---+-----------------+
+    | id|shiftright(id, 1)|
+    +---+-----------------+
+    | -5|               -3|
+    | -4|               -2|
+    | -3|               -2|
+    | -2|               -1|
+    | -1|               -1|
+    |  0|                0|
+    |  1|                0|
+    |  2|                1|
+    |  3|                1|
+    +---+-----------------+
+
     """
     return col(ShiftRight(parse(e), lit(numBits)))
 
