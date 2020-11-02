@@ -110,6 +110,9 @@ class WriteInFolder(Aggregation):
     def __str__(self):
         return "write_in_folder({0})".format(self.column)
 
+    def args(self):
+        return (self.column,)
+
 
 class DataWriter(object):
     default_options = dict(

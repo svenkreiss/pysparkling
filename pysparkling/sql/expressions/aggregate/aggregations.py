@@ -15,5 +15,5 @@ class Aggregation(Expression):
     def eval(self, row, schema):
         raise NotImplementedError
 
-    def __str__(self):
+    def args(self):
         raise NotImplementedError

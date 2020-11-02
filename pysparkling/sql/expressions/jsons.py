@@ -6,6 +6,8 @@ from pysparkling.utils import get_json_encoder
 
 
 class StructsToJson(Expression):
+    pretty_name = "structstojson"
+
     default_options = dict(
         dateFormat="yyyy-MM-dd",
         timestampFormat="yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
@@ -28,10 +30,12 @@ class StructsToJson(Expression):
             separators=(',', ':')
         )
 
-    def __str__(self):
-        return "structstojson({0}{1})".format(
+    def args(self):
+        if self.input_options is None:
+            return (self.column, )
+        return (
             self.column,
-            ", {0}".format(self.input_options) if self.input_options is not None else ""
+            self.input_options
         )
 
 

@@ -20,32 +20,32 @@ class CovarianceStatAggregation(Aggregation):
     def eval(self, row, schema):
         raise NotImplementedError
 
-    def __str__(self):
-        raise NotImplementedError
+    def args(self):
+        return (
+            self.column1,
+            self.column2
+        )
 
 
 class Corr(CovarianceStatAggregation):
+    pretty_name = "corr"
+
     def eval(self, row, schema):
         return self.stat_helper.pearson_correlation
 
-    def __str__(self):
-        return "corr({0}, {1})".format(self.column1, self.column2)
-
 
 class CovarSamp(CovarianceStatAggregation):
+    pretty_name = "covar_samp"
+
     def eval(self, row, schema):
         return self.stat_helper.covar_samp
 
-    def __str__(self):
-        return "covar_samp({0}, {1})".format(self.column1, self.column2)
-
 
 class CovarPop(CovarianceStatAggregation):
+    pretty_name = "covar_pop"
+
     def eval(self, row, schema):
         return self.stat_helper.covar_pop
-
-    def __str__(self):
-        return "covar_pop({0}, {1})".format(self.column1, self.column2)
 
 
 __all__ = ["Corr", "CovarSamp", "CovarPop"]

@@ -14,6 +14,8 @@ DAYS_OF_WEEK = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
 
 class AddMonths(Expression):
+    pretty_name = "add_months"
+
     def __init__(self, start_date, num_months):
         super(AddMonths, self).__init__(start_date)
         self.start_date = start_date
@@ -23,11 +25,16 @@ class AddMonths(Expression):
     def eval(self, row, schema):
         return self.start_date.cast(DateType()).eval(row, schema) + self.timedelta
 
-    def __str__(self):
-        return "add_months({0}, {1})".format(self.start_date, self.num_months)
+    def args(self):
+        return (
+            self.start_date,
+            self.num_months
+        )
 
 
 class DateAdd(Expression):
+    pretty_name = "date_add"
+
     def __init__(self, start_date, num_days):
         super(DateAdd, self).__init__(start_date)
         self.start_date = start_date
@@ -37,11 +44,16 @@ class DateAdd(Expression):
     def eval(self, row, schema):
         return self.start_date.cast(DateType()).eval(row, schema) + self.timedelta
 
-    def __str__(self):
-        return "date_add({0}, {1})".format(self.start_date, self.num_days)
+    def args(self):
+        return (
+            self.start_date,
+            self.num_days
+        )
 
 
 class DateSub(Expression):
+    pretty_name = "date_sub"
+
     def __init__(self, start_date, num_days):
         super(DateSub, self).__init__(start_date)
         self.start_date = start_date
@@ -51,105 +63,99 @@ class DateSub(Expression):
     def eval(self, row, schema):
         return self.start_date.cast(DateType()).eval(row, schema) - self.timedelta
 
-    def __str__(self):
-        return "date_sub({0}, {1})".format(self.start_date, self.num_days)
+    def args(self):
+        return (
+            self.start_date,
+            self.num_days
+        )
 
 
 class Year(UnaryExpression):
+    pretty_name = "year"
+
     def eval(self, row, schema):
         return self.column.cast(DateType()).eval(row, schema).year
 
-    def __str__(self):
-        return "year({0})".format(self.column)
-
 
 class Month(UnaryExpression):
+    pretty_name = "month"
+
     def eval(self, row, schema):
         return self.column.cast(DateType()).eval(row, schema).month
 
-    def __str__(self):
-        return "month({0})".format(self.column)
-
 
 class Quarter(UnaryExpression):
+    pretty_name = "quarter"
+
     def eval(self, row, schema):
         month = self.column.cast(DateType()).eval(row, schema).month
         return 1 + int((month - 1) / 3)
 
-    def __str__(self):
-        return "quarter({0})".format(self.column)
-
 
 class Hour(UnaryExpression):
+    pretty_name = "hour"
+
     def eval(self, row, schema):
         return self.column.cast(TimestampType()).eval(row, schema).hour
 
-    def __str__(self):
-        return "hour({0})".format(self.column)
-
 
 class Minute(UnaryExpression):
+    pretty_name = "minute"
+
     def eval(self, row, schema):
         return self.column.cast(TimestampType()).eval(row, schema).minute
 
-    def __str__(self):
-        return "minute({0})".format(self.column)
-
 
 class Second(UnaryExpression):
+    pretty_name = "second"
+
     def eval(self, row, schema):
         return self.column.cast(TimestampType()).eval(row, schema).second
 
-    def __str__(self):
-        return "second({0})".format(self.column)
-
 
 class DayOfMonth(UnaryExpression):
+    pretty_name = "dayofmonth"
+
     def eval(self, row, schema):
         return self.column.cast(DateType()).eval(row, schema).day
 
-    def __str__(self):
-        return "dayofmonth({0})".format(self.column)
-
 
 class DayOfYear(UnaryExpression):
+    pretty_name = "dayofyear"
+
     def eval(self, row, schema):
         value = self.column.cast(DateType()).eval(row, schema)
         day_from_the_first = value - datetime.date(value.year, 1, 1)
         return 1 + day_from_the_first.days
 
-    def __str__(self):
-        return "dayofyear({0})".format(self.column)
-
 
 class LastDay(UnaryExpression):
+    pretty_name = "last_day"
+
     def eval(self, row, schema):
         value = self.column.cast(DateType()).eval(row, schema)
         first_of_next_month = value + relativedelta(months=1, day=1)
         return first_of_next_month - datetime.timedelta(days=1)
 
-    def __str__(self):
-        return "last_day({0})".format(self.column)
-
 
 class WeekOfYear(UnaryExpression):
+    pretty_name = "weekofyear"
+
     def eval(self, row, schema):
         return self.column.cast(DateType()).eval(row, schema).isocalendar()[1]
 
-    def __str__(self):
-        return "weekofyear({0})".format(self.column)
-
 
 class DayOfWeek(UnaryExpression):
+    pretty_name = "dayofweek"
+
     def eval(self, row, schema):
         date = self.column.cast(DateType()).eval(row, schema)
         return date.isoweekday() + 1 if date.isoweekday() != 7 else 1
 
-    def __str__(self):
-        return "dayofweek({0})".format(self.column)
-
 
 class NextDay(Expression):
+    pretty_name = "next_day"
+
     def __init__(self, column, day_of_week):
         super(NextDay, self).__init__(column)
         self.column = column
@@ -168,11 +174,16 @@ class NextDay(Expression):
             delta += 7
         return value + datetime.timedelta(days=delta)
 
-    def __str__(self):
-        return "next_day({0}, {1})".format(self.column, self.day_of_week)
+    def args(self):
+        return (
+            self.column,
+            self.day_of_week
+        )
 
 
 class MonthsBetween(Expression):
+    pretty_name = "months_between"
+
     def __init__(self, column1, column2, round_off):
         super(MonthsBetween, self).__init__(column1, column2)
         self.column1 = column1
@@ -209,8 +220,8 @@ class MonthsBetween(Expression):
             return float(round(diff, 8))
         return float(diff)
 
-    def __str__(self):
-        return "months_between({0}, {1}, {2})".format(
+    def args(self):
+        return (
             self.column1,
             self.column2,
             str(self.round_off).lower()
@@ -218,6 +229,8 @@ class MonthsBetween(Expression):
 
 
 class DateDiff(Expression):
+    pretty_name = "datediff"
+
     def __init__(self, column1, column2):
         super(DateDiff, self).__init__(column1, column2)
         self.column1 = column1
@@ -233,11 +246,16 @@ class DateDiff(Expression):
 
         return (value_1 - value_2).days
 
-    def __str__(self):
-        return "datediff({0}, {1})".format(self.column1, self.column2)
+    def args(self):
+        return (
+            self.column1,
+            self.column2
+        )
 
 
 class FromUnixTime(Expression):
+    pretty_name = "from_unixtime"
+
     def __init__(self, column, f):
         super(FromUnixTime, self).__init__(column)
         self.column = column
@@ -248,11 +266,16 @@ class FromUnixTime(Expression):
         timestamp = self.column.cast(FloatType()).eval(row, schema)
         return self.formatter(datetime.datetime.fromtimestamp(timestamp))
 
-    def __str__(self):
-        return "from_unixtime({0}, {1})".format(self.column, self.format)
+    def args(self):
+        return (
+            self.column,
+            self.format
+        )
 
 
 class DateFormat(Expression):
+    pretty_name = "date_format"
+
     def __init__(self, column, f):
         super(DateFormat, self).__init__(column)
         self.column = column
@@ -263,11 +286,16 @@ class DateFormat(Expression):
         timestamp = self.column.cast(TimestampType()).eval(row, schema)
         return self.formatter(timestamp)
 
-    def __str__(self):
-        return "date_format({0}, {1})".format(self.column, self.format)
+    def args(self):
+        return (
+            self.column,
+            self.format
+        )
 
 
 class CurrentTimestamp(Expression):
+    pretty_name = "current_timestamp"
+
     def __init__(self):
         super(CurrentTimestamp, self).__init__()
         self.current_timestamp = None
@@ -279,11 +307,13 @@ class CurrentTimestamp(Expression):
         super(CurrentTimestamp, self).initialize(partition_index)
         self.current_timestamp = datetime.datetime.now()
 
-    def __str__(self):
-        return "current_timestamp()"
+    def args(self):
+        return ()
 
 
 class CurrentDate(Expression):
+    pretty_name = "current_date"
+
     def __init__(self):
         super(CurrentDate, self).__init__()
         self.current_timestamp = None
@@ -295,11 +325,13 @@ class CurrentDate(Expression):
         super(CurrentDate, self).initialize(partition_index)
         self.current_timestamp = datetime.datetime.now()
 
-    def __str__(self):
-        return "current_date()"
+    def args(self):
+        return ()
 
 
 class UnixTimestamp(Expression):
+    pretty_name = "unix_timestamp"
+
     def __init__(self, column, f):
         super(UnixTimestamp, self).__init__(column)
         self.column = column
@@ -310,11 +342,16 @@ class UnixTimestamp(Expression):
         datetime_as_string = self.column.eval(row, schema)
         return self.parser(datetime_as_string)
 
-    def __str__(self):
-        return "unix_timestamp({0}, {1})".format(self.column, self.format)
+    def args(self):
+        return (
+            self.column,
+            self.format
+        )
 
 
 class ParseToTimestamp(Expression):
+    pretty_name = "to_timestamp"
+
     def __init__(self, column, f):
         super(ParseToTimestamp, self).__init__(column)
         self.column = column
@@ -325,14 +362,20 @@ class ParseToTimestamp(Expression):
         datetime_as_string = self.column.eval(row, schema)
         return datetime.datetime.fromtimestamp(self.parser(datetime_as_string))
 
-    def __str__(self):
-        return "to_timestamp('{0}'{1})".format(
-            self.column,
-            ", '{0}'".format(self.format) if self.format is not None else ""
+    def args(self):
+        if self.format is None:
+            return (
+                "'{0}'".format(self.column),
+            )
+        return (
+            "'{0}'".format(self.column),
+            "'{0}'".format(self.format)
         )
 
 
 class ParseToDate(Expression):
+    pretty_name = "to_date"
+
     def __init__(self, column, f):
         super(ParseToDate, self).__init__(column)
         self.column = column
@@ -343,14 +386,20 @@ class ParseToDate(Expression):
         datetime_as_string = self.column.eval(row, schema)
         return datetime.date.fromtimestamp(self.parser(datetime_as_string))
 
-    def __str__(self):
-        return "to_date('{0}'{1})".format(
-            self.column,
-            ", '{0}'".format(self.format) if self.format is not None else ""
+    def args(self):
+        if self.format is None:
+            return (
+                "'{0}'".format(self.column),
+            )
+        return (
+            "'{0}'".format(self.column),
+            "'{0}'".format(self.format)
         )
 
 
 class TruncDate(Expression):
+    pretty_name = "trunc"
+
     def __init__(self, column, level):
         super(TruncDate, self).__init__(column)
         self.column = column
@@ -364,11 +413,16 @@ class TruncDate(Expression):
             return datetime.date(value.year, value.month, 1)
         return None
 
-    def __str__(self):
-        return "trunc({0}, {1})".format(self.column, self.level)
+    def args(self):
+        return (
+            self.column,
+            self.level
+        )
 
 
 class TruncTimestamp(Expression):
+    pretty_name = "date_trunc"
+
     def __init__(self, level, column):
         super(TruncTimestamp, self).__init__(column)
         self.level = level.get_literal_value()
@@ -414,11 +468,16 @@ class TruncTimestamp(Expression):
             )
         return None
 
-    def __str__(self):
-        return "date_trunc({0}, {1})".format(self.level, self.column)
+    def args(self):
+        return (
+            self.level,
+            self.column
+        )
 
 
 class FromUTCTimestamp(Expression):
+    pretty_name = "from_utc_timestamp"
+
     def __init__(self, column, tz):
         super(FromUTCTimestamp, self).__init__(column)
         self.column = column
@@ -433,11 +492,16 @@ class FromUTCTimestamp(Expression):
         local_date = gmt_date.astimezone(self.pytz)
         return local_date.replace(tzinfo=None)
 
-    def __str__(self):
-        return "from_utc_timestamp({0}, {1})".format(self.column, self.tz)
+    def args(self):
+        return (
+            self.column,
+            self.tz
+        )
 
 
 class ToUTCTimestamp(Expression):
+    pretty_name = "to_utc_timestamp"
+
     def __init__(self, column, tz):
         super(ToUTCTimestamp, self).__init__(column)
         self.column = column
@@ -452,8 +516,11 @@ class ToUTCTimestamp(Expression):
         gmt_date = local_date.astimezone(GMT_TIMEZONE)
         return gmt_date.replace(tzinfo=None)
 
-    def __str__(self):
-        return "to_utc_timestamp({0}, {1})".format(self.column, self.tz)
+    def args(self):
+        return (
+            self.column,
+            self.tz
+        )
 
 
 __all__ = [

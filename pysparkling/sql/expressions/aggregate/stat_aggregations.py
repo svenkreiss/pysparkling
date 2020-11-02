@@ -22,11 +22,13 @@ class SimpleStatAggregation(Aggregation):
     def eval(self, row, schema):
         raise NotImplementedError
 
-    def __str__(self):
-        raise NotImplementedError
+    def args(self):
+        return (self.column,)
 
 
 class Count(SimpleStatAggregation):
+    pretty_name = "count"
+
     def __init__(self, column):
         # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
@@ -40,88 +42,75 @@ class Count(SimpleStatAggregation):
     def eval(self, row, schema):
         return self.stat_helper.count
 
-    def __str__(self):
-        return "count({0})".format(self.column)
-
 
 class Max(SimpleStatAggregation):
+    pretty_name = "max"
+
     def eval(self, row, schema):
         return self.stat_helper.max
 
-    def __str__(self):
-        return "max({0})".format(self.column)
-
 
 class Min(SimpleStatAggregation):
+    pretty_name = "min"
+
     def eval(self, row, schema):
         return self.stat_helper.min
 
-    def __str__(self):
-        return "min({0})".format(self.column)
-
 
 class Sum(SimpleStatAggregation):
+    pretty_name = "sum"
+
     def eval(self, row, schema):
         return self.stat_helper.sum
 
-    def __str__(self):
-        return "sum({0})".format(self.column)
-
 
 class Avg(SimpleStatAggregation):
+    pretty_name = "avg"
+
     def eval(self, row, schema):
         return self.stat_helper.mean
 
-    def __str__(self):
-        return "avg({0})".format(self.column)
-
 
 class VarSamp(SimpleStatAggregation):
+    pretty_name = "var_samp"
+
     def eval(self, row, schema):
         return self.stat_helper.variance_samp
 
-    def __str__(self):
-        return "var_samp({0})".format(self.column)
-
 
 class VarPop(SimpleStatAggregation):
+    pretty_name = "var_pop"
+
     def eval(self, row, schema):
         return self.stat_helper.variance_pop
 
-    def __str__(self):
-        return "var_pop({0})".format(self.column)
-
 
 class StddevSamp(SimpleStatAggregation):
+    pretty_name = "stddev_samp"
+
     def eval(self, row, schema):
         return self.stat_helper.stddev_samp
 
-    def __str__(self):
-        return "stddev_samp({0})".format(self.column)
-
 
 class StddevPop(SimpleStatAggregation):
+    pretty_name = "stddev_pop"
+
     def eval(self, row, schema):
         return self.stat_helper.stddev_pop
 
-    def __str__(self):
-        return "stddev_pop({0})".format(self.column)
-
 
 class Skewness(SimpleStatAggregation):
+    pretty_name = "skewness"
+
     def eval(self, row, schema):
         return self.stat_helper.skewness
 
-    def __str__(self):
-        return "skewness({0})".format(self.column)
-
 
 class Kurtosis(SimpleStatAggregation):
+    pretty_name = "kurtosis"
+
     def eval(self, row, schema):
         return self.stat_helper.kurtosis
-
-    def __str__(self):
-        return "kurtosis({0})".format(self.column)
 
 
 __all__ = [

@@ -6,30 +6,29 @@ from pysparkling.utils import levenshtein_distance
 
 
 class StringTrim(UnaryExpression):
+    pretty_name = "trim"
+
     def eval(self, row, schema):
         return self.column.eval(row, schema).strip()
 
-    def __str__(self):
-        return "trim({0})".format(self.column)
-
 
 class StringLTrim(UnaryExpression):
+    pretty_name = "ltrim"
+
     def eval(self, row, schema):
         return self.column.eval(row, schema).lstrip()
 
-    def __str__(self):
-        return "ltrim({0})".format(self.column)
-
 
 class StringRTrim(UnaryExpression):
+    pretty_name = "rtrim"
+
     def eval(self, row, schema):
         return self.column.eval(row, schema).rstrip()
 
-    def __str__(self):
-        return "rtrim({0})".format(self.column)
-
 
 class StringInStr(Expression):
+    pretty_name = "instr"
+
     def __init__(self, column, substr):
         super(StringInStr, self).__init__(column)
         self.column = column
@@ -42,14 +41,16 @@ class StringInStr(Expression):
         except IndexError:
             return 0
 
-    def __str__(self):
-        return "instr({0}, {1})".format(
+    def args(self):
+        return (
             self.column,
             self.substr
         )
 
 
 class StringLocate(Expression):
+    pretty_name = "locate"
+
     def __init__(self, substr, column, pos):
         super(StringLocate, self).__init__(column)
         self.substr = substr.get_literal_value()
@@ -62,15 +63,22 @@ class StringLocate(Expression):
             return 0
         return value.index(self.substr, self.start) + 1
 
-    def __str__(self):
-        return "locate({0}, {1}{2})".format(
+    def args(self):
+        if self.start is None:
+            return (
+                self.substr,
+                self.column,
+            )
+        return (
             self.substr,
             self.column,
-            ", {0}".format(self.start) if self.start is not None else ""
+            self.start
         )
 
 
 class StringLPad(Expression):
+    pretty_name = "lpad"
+
     def __init__(self, column, length, pad):
         super(StringLPad, self).__init__(column)
         self.column = column
@@ -83,8 +91,8 @@ class StringLPad(Expression):
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
         return "{0}{1}".format(padding, value)
 
-    def __str__(self):
-        return "lpad({0}, {1}, {2})".format(
+    def args(self):
+        return (
             self.column,
             self.length,
             self.pad
@@ -92,6 +100,8 @@ class StringLPad(Expression):
 
 
 class StringRPad(Expression):
+    pretty_name = "rpad"
+
     def __init__(self, column, length, pad):
         super(StringRPad, self).__init__(column)
         self.column = column
@@ -104,8 +114,8 @@ class StringRPad(Expression):
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
         return "{0}{1}".format(value, padding)
 
-    def __str__(self):
-        return "rpad({0}, {1}, {2})".format(
+    def args(self):
+        return (
             self.column,
             self.length,
             self.pad
@@ -113,6 +123,8 @@ class StringRPad(Expression):
 
 
 class StringRepeat(Expression):
+    pretty_name = "repeat"
+
     def __init__(self, column, n):
         super(StringRepeat, self).__init__(column)
         self.column = column
@@ -122,14 +134,16 @@ class StringRepeat(Expression):
         value = self.column.cast(StringType()).eval(row, schema)
         return value * self.n
 
-    def __str__(self):
-        return "repeat({0}, {1})".format(
+    def args(self):
+        return (
             self.column,
             self.n
         )
 
 
 class StringTranslate(Expression):
+    pretty_name = "translate"
+
     def __init__(self, column, matching_string, replace_string):
         super(StringTranslate, self).__init__(column)
         self.column = column
@@ -145,28 +159,25 @@ class StringTranslate(Expression):
     def eval(self, row, schema):
         return self.column.cast(StringType()).eval(row, schema).translate(self.translation_table)
 
-    def __str__(self):
-        return "translate({0}, {1}, {2})".format(
+    def args(self):
+        return (
             self.column,
             self.matching_string,
             self.replace_string
         )
 
 
-class InitCap(Expression):
-    def __init__(self, column):
-        super(InitCap, self).__init__(column)
-        self.column = column
+class InitCap(UnaryExpression):
+    pretty_name = "initcap"
 
     def eval(self, row, schema):
         value = self.column.cast(StringType()).eval(row, schema)
         return " ".join(word.capitalize() for word in value.split())
 
-    def __str__(self):
-        return "initcap({0})".format(self.column)
-
 
 class Levenshtein(Expression):
+    pretty_name = "levenshtein"
+
     def __init__(self, column1, column2):
         super(Levenshtein, self).__init__(column1, column2)
         self.column1 = column1
@@ -179,11 +190,16 @@ class Levenshtein(Expression):
             return None
         return levenshtein_distance(value_1, value_2)
 
-    def __str__(self):
-        return "levenshtein({0}, {1})".format(self.column1, self.column2)
+    def args(self):
+        return (
+            self.column1,
+            self.column2
+        )
 
 
 class SoundEx(UnaryExpression):
+    pretty_name = "soundex"
+
     _soundex_mapping = {
         letter: int(soundex_code)
         for letter, soundex_code in zip(
@@ -229,9 +245,6 @@ class SoundEx(UnaryExpression):
         Returns None if the letter is not recognized
         """
         return self._soundex_mapping.get(letter)
-
-    def __str__(self):
-        return "soundex({0})".format(self.column)
 
 
 __all__ = [
