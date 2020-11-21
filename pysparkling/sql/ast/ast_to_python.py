@@ -2,6 +2,7 @@ import ast
 import logging
 
 from pysparkling.sql.column import parse, Column
+from pysparkling.sql.expressions.expressions import expression_registry
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct, Concat
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
@@ -62,11 +63,14 @@ def call_function(*children):
         (name for name in functions.__all__ if name.lower() == raw_function_name.lower()),
         None
     )
-    # function = getattr(functions, function_name)
-    this should get an Expression init, not a function
+    function_expression = expression_registry.get(function_name.lower())
     params = [convert_tree(c) for c in children[2:-1]]
 
-    complex_function = ')' in params
+    # todo: there must be a cleaner way to do that
+    complex_function = any(
+        not isinstance(param, Column) and param == ')'
+        for param in params
+    )
     if not complex_function:
         last_argument_position = None
         filter_clause = None
@@ -80,7 +84,7 @@ def call_function(*children):
 
     # parameters are comma separated
     function_arguments = params[0:last_argument_position:2]
-    return function(*function_arguments)
+    return function_expression(*function_arguments)
 
 
 def binary_operation(*children):
