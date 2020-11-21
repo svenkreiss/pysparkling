@@ -25,8 +25,8 @@ class TestFunctions(TestCase):
     SCENARIOS = {
         'Least(-1,0,1)': ('least', 'least(-1, 0, 1)', -1),
         'GREATEST(-1,0,1)': ('greatest', 'greatest(-1, 0, 1)', 1),
-        'shiftRight ( 42, 1 )': ('shiftRight', 'shiftright(42, 1)', 21),
-        'ShiftLeft ( 42, 1 )': ('shiftLeft', 'shiftleft(42, 1)', 84),
+        'shiftRight ( 42, 1 )': ('shiftright', 'shiftright(42, 1)', 21),
+        'ShiftLeft ( 42, 1 )': ('shiftleft', 'shiftleft(42, 1)', 84),
         "concat_ws('/', a, b )": ('concat_ws', 'concat_ws(/, a, b)', "1/2"),
         'instr(a, a)': ('instr', 'instr(a, a)', 1),  # rely on columns
         'instr(a, b)': ('instr', 'instr(a, b)', 0),  # rely on columns
@@ -38,5 +38,6 @@ class TestFunctions(TestCase):
         operator, expected_parsed, expected_result = expected
         actual_parsed = parse_expression(string, True)
         self.assertEqual(expected_parsed, str(actual_parsed))
+        self.assertEqual(operator, actual_parsed.pretty_name)
         actual_result = actual_parsed.eval(ROW, SCHEMA)
         self.assertEqual(expected_result, actual_result)
