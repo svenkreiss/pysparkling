@@ -1,6 +1,8 @@
 import ast
 import logging
 
+from sqlparser import string_to_ast
+
 from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.expressions import expression_registry
 from pysparkling.sql.expressions.literals import Literal
@@ -10,7 +12,6 @@ from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessT
     BitwiseNot, UnaryPositive, Alias
 from pysparkling.sql import functions
 from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
-from sqlparser import string_to_ast
 
 
 class SqlParsingError(Exception):
