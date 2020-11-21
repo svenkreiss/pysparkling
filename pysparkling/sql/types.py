@@ -1878,7 +1878,9 @@ def parsed_string_to_type(data_type, arguments):
             StructField(name, data_type)
             for name, data_type in arguments[0]
         ])
-    raise ParseException("Unable to parse data type {0}{1}".format(data_type, arguments if arguments else ""))
+    raise ParseException(
+        "Unable to parse data type {0}{1}".format(data_type, arguments if arguments else "")
+    )
 
 
 # Internal type hierarchy:
