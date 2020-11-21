@@ -1,3 +1,4 @@
+import logging
 from unittest import TestCase
 
 from parameterized import parameterized
@@ -58,6 +59,7 @@ class TestOperations(TestCase):
     @parameterized.expand(SCENARIOS.items(), name_func=format_test_name)
     def test_operations(self, string, expected):
         operator, expected_parsed, expected_result = expected
+        logging.debug("Testing %s", operator)
         actual_parsed = parse_expression(string, True)
         self.assertEqual(expected_parsed, str(actual_parsed))
         actual_result = actual_parsed.eval(Row(), SCHEMA)
