@@ -32,13 +32,14 @@ class StringInStr(Expression):
     def __init__(self, column, substr):
         super().__init__(column)
         self.column = column
-        self.substr = substr.get_literal_value()
+        self.substr = substr
 
     def eval(self, row, schema):
         value = self.column.cast(StringType()).eval(row, schema)
+        substr_value = self.substr.cast(StringType()).eval(row, schema)
         try:
-            return value.index(self.substr)
-        except IndexError:
+            return value.index(substr_value) + 1
+        except ValueError:
             return 0
 
     def args(self):
