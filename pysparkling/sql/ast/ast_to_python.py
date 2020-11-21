@@ -216,10 +216,10 @@ def check_identifier(*children):
     identifier = convert_tree(children[0])
     if children[1].children:
         extra = convert_tree(children[1])
-        raise SqlParsingError((
-                                  "Possibly unquoted identifier {0}{1} detected. "
-                                  "Please consider quoting it with back-quotes as `{0}{1}`"
-                              ).format(identifier, extra))
+        raise SqlParsingError(
+            "Possibly unquoted identifier {0}{1} detected. "
+            "Please consider quoting it with back-quotes as `{0}{1}`".format(identifier, extra)
+        )
     return identifier
 
 
