@@ -27,8 +27,10 @@ class TestFunctions(TestCase):
         'GREATEST(-1,0,1)': ('greatest', 'greatest(-1, 0, 1)', 1),
         'shiftRight ( 42, 1 )': ('shiftRight', 'shiftright(42, 1)', 21),
         'ShiftLeft ( 42, 1 )': ('shiftLeft', 'shiftleft(42, 1)', 84),
-        'concat_ws(/, a, b )': ('shiftLeft', 'shiftleft(42, 1)', 84),
-        'instr(a, a)': ('shiftLeft', 'shiftleft(42, 1)', 84),
+        "concat_ws('/', a, b )": ('concat_ws', 'concat_ws(/, a, b)', "1/2"),
+        'instr(a, a)': ('instr', 'instr(a, a)', 1),  # rely on columns
+        'instr(a, b)': ('instr', 'instr(a, b)', 0),  # rely on columns
+        "instr('abc', 'c')": ('instr', 'instr(abc, c)', 3),  # rely on lit
     }
 
     @parameterized.expand(SCENARIOS.items(), name_func=format_test_name)
