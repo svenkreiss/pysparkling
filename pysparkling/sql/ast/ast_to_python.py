@@ -1,7 +1,7 @@
 import ast
 import logging
 
-from pysparkling.sql.column import parse
+from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct, Concat
 from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
@@ -141,6 +141,12 @@ def convert_to_literal(*children):
     return Literal(value)
 
 
+def parse_column(*children):
+    check_children(1, children)
+    value = convert_tree(children[0])
+    return Column(value)
+
+
 def convert_to_null(*children):
     return None
 
@@ -256,7 +262,7 @@ CONVERTERS = {
     'IdentityTransformContext': unwrap,
     'ValueExpressionDefaultContext': unwrap,
     'ConstantDefaultContext': convert_to_literal,
-    'ColumnReferenceContext': unwrap,
+    'ColumnReferenceContext': parse_column,
     'NullLiteralContext': convert_to_null,
     'IntervalLiteralContext': unwrap,
     'NumericLiteralContext': unwrap,
