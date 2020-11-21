@@ -1,9 +1,6 @@
 import ast
 import logging
-import sys
 
-from pysparkling.sql.ast.parser import ast_parser
-from pysparkling.sql.ast.utils import print_tree
 from pysparkling.sql.column import parse
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct, Concat
@@ -12,6 +9,7 @@ from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessT
     BitwiseNot, UnaryPositive, Alias
 from pysparkling.sql import functions
 from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
+from sqlparser import string_to_ast
 
 
 class SqlParsingError(Exception):
@@ -428,7 +426,7 @@ unary_operations = {
 
 
 def parse_sql(string, rule, debug=False):
-    tree = string_to_ast(string, rule, debug)
+    tree = string_to_ast(string, rule, debug=debug)
     return convert_tree(tree)
 
 
