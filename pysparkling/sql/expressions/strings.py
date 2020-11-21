@@ -3,6 +3,7 @@ import string
 from ...utils import levenshtein_distance
 from ..types import StringType
 from .expressions import Expression, UnaryExpression
+from .operators import Cast
 
 
 class StringTrim(UnaryExpression):
@@ -35,8 +36,8 @@ class StringInStr(Expression):
         self.substr = substr
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
-        substr_value = self.substr.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
+        substr_value = Cast(self.substr, StringType()).eval(row, schema)
         try:
             return value.index(substr_value) + 1
         except ValueError:
@@ -59,7 +60,7 @@ class StringLocate(Expression):
         self.start = pos.get_literal_value() - 1
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         if self.substr not in value[self.start:]:
             return 0
         return value.index(self.substr, self.start) + 1
@@ -87,7 +88,7 @@ class StringLPad(Expression):
         self.pad = pad.get_literal_value()
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         delta = self.length - len(value)
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
         return f"{padding}{value}"
@@ -110,7 +111,7 @@ class StringRPad(Expression):
         self.pad = pad.get_literal_value()
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         delta = self.length - len(value)
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
         return f"{value}{padding}"
@@ -132,7 +133,7 @@ class StringRepeat(Expression):
         self.n = n.get_literal_value()
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         return value * self.n
 
     def args(self):
@@ -158,7 +159,7 @@ class StringTranslate(Expression):
         )
 
     def eval(self, row, schema):
-        return self.column.cast(StringType()).eval(row, schema).translate(self.translation_table)
+        return Cast(self.column, StringType()).eval(row, schema).translate(self.translation_table)
 
     def args(self):
         return (
@@ -172,7 +173,7 @@ class InitCap(UnaryExpression):
     pretty_name = "initcap"
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         return " ".join(word.capitalize() for word in value.split())
 
 
@@ -185,8 +186,8 @@ class Levenshtein(Expression):
         self.column2 = column2
 
     def eval(self, row, schema):
-        value_1 = self.column1.cast(StringType()).eval(row, schema)
-        value_2 = self.column2.cast(StringType()).eval(row, schema)
+        value_1 = Cast(self.column1, StringType()).eval(row, schema)
+        value_2 = Cast(self.column2, StringType()).eval(row, schema)
         if value_1 is None or value_2 is None:
             return None
         return levenshtein_distance(value_1, value_2)
@@ -210,7 +211,7 @@ class SoundEx(UnaryExpression):
     }
 
     def eval(self, row, schema):
-        raw_value = self.column.cast(StringType()).eval(row, schema)
+        raw_value = Cast(self.column, StringType()).eval(row, schema)
 
         if raw_value is None:
             return None

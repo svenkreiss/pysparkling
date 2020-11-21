@@ -9,6 +9,7 @@ from ..internal_utils.column import resolve_column
 from ..types import create_row, StringType
 from ..utils import AnalysisException
 from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
+from .operators import Cast
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 
@@ -826,7 +827,7 @@ class Conv(Expression):
         self.to_base = to_base.get_literal_value()
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         return self.convert(
             value,
             self.from_base,
