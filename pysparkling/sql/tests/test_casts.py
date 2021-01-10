@@ -23,7 +23,7 @@ class CastTests(TestCase):
 
     def setUp(self):
         os.environ['TZ'] = 'Europe/Paris'
-        time.tzset()
+        time.tzset()  # pylint: disable=no-member
 
     def test_identity(self):
         x = object()
