@@ -1,8 +1,10 @@
 """pysparkling module"""
-# flake8: noqa
-from .sql.types import Row
 
-__version__ = '0.6.0'
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
+
+from .sql.types import Row
 
 from .rdd import RDD
 from .context import Context
