@@ -81,14 +81,14 @@ class StatCounter(object):
             elif self.n * 10 < other.n:
                 self.mu = other.mu - (delta * self.n) / (self.n + other.n)
             else:
-                self.mu = ((self.mu * self.n + other.mu * other.n) /
-                           (self.n + other.n))
+                self.mu = ((self.mu * self.n + other.mu * other.n)
+                           / (self.n + other.n))
 
             self.maxValue = maximum(self.maxValue, other.maxValue)
             self.minValue = minimum(self.minValue, other.minValue)
 
-            self.m2 += other.m2 + ((delta * delta * self.n * other.n) /
-                                   (self.n + other.n))
+            self.m2 += other.m2 + ((delta * delta * self.n * other.n)
+                                   / (self.n + other.n))
             self.n += other.n
 
         return self
@@ -228,10 +228,10 @@ class ColumnStatHelper(object):
         delta2 = delta * delta
         deltaN2 = deltaN * deltaN
         self.m3 = self.m3 - 3 * deltaN * self.m2 + delta * (delta2 - deltaN2)
-        self.m4 = (self.m4 -
-                   4 * deltaN * self.m3 -
-                   6 * deltaN2 * self.m2 +
-                   delta * (delta * delta2 - deltaN * deltaN2))
+        self.m4 = (self.m4
+                   - 4 * deltaN * self.m3
+                   - 6 * deltaN2 * self.m2
+                   + delta * (delta * delta2 - deltaN * deltaN2))
 
     def update_sample(self, value):
         self.head_sampled.append(value)
@@ -340,13 +340,13 @@ class ColumnStatHelper(object):
         deltaN = delta / new_count if new_count != 0 else 0
 
         new_m2 = self.m2 + other.m2 + delta * deltaN * n1 * n2
-        new_m3 = (self.m3 + other.m3 +
-                  deltaN * deltaN * delta * n1 * n2 * (n1 - n2) +
-                  3 * deltaN * (n1 * other.m2 - n2 * self.m2))
-        self.m4 = (self.m4 + other.m4 +
-                   deltaN * deltaN * deltaN * delta * n1 * n2 * (n1 * n1 - n1 * n2 + n2 * n2) +
-                   6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2) +
-                   4 * deltaN * (n1 * other.m3 - n2 * self.m3))
+        new_m3 = (self.m3 + other.m3
+                  + deltaN * deltaN * delta * n1 * n2 * (n1 - n2)
+                  + 3 * deltaN * (n1 * other.m2 - n2 * self.m2))
+        self.m4 = (self.m4 + other.m4
+                   + deltaN * deltaN * deltaN * delta * n1 * n2 * (n1 * n1 - n1 * n2 + n2 * n2)
+                   + 6 * deltaN * deltaN * (n1 * n1 * other.m2 + n2 * n2 * self.m2)
+                   + 4 * deltaN * (n1 * other.m3 - n2 * self.m3))
         self.m2 = new_m2
         self.m3 = new_m3
 

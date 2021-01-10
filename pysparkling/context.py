@@ -337,8 +337,7 @@ class Context(object):
             t_start = time.perf_counter()
             cm_clone = self._cache_manager.clone_contains(
                 lambda i: i[1] == partition.index)
-            self._stats['driver_cache_clone'] += (time.perf_counter() -
-                                                  t_start)
+            self._stats['driver_cache_clone'] += time.perf_counter() - t_start
 
             t_start = time.perf_counter()
             task_context = TaskContext(
@@ -350,13 +349,11 @@ class Context(object):
                 retry_wait=self.retry_wait,
             )
             serialized_task_context = self._serializer(task_context)
-            self._stats['driver_serialize_task_context'] += (time.perf_counter() -
-                                                             t_start)
+            self._stats['driver_serialize_task_context'] += time.perf_counter() - t_start
 
             t_start = time.perf_counter()
             serialized_partition = self._data_deserializer(partition)
-            self._stats['driver_serialize_data'] += (time.perf_counter() -
-                                                     t_start)
+            self._stats['driver_serialize_data'] += time.perf_counter() - t_start
 
             return (
                 self._deserializer,
@@ -371,8 +368,7 @@ class Context(object):
         for d in self._pool.map(runJob_map, prepared_partitions):
             t_start = time.perf_counter()
             map_result, cache_result, s = self._data_deserializer(d)
-            self._stats['driver_deserialize_data'] += (time.perf_counter() -
-                                                       t_start)
+            self._stats['driver_deserialize_data'] += time.perf_counter() - t_start
 
             # join cache
             t_start = time.perf_counter()

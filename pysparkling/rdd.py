@@ -317,11 +317,12 @@ class RDD(object):
         number_of_big_groups = current_num_partitions % new_num_partitions
         number_of_small_groups = new_num_partitions - number_of_big_groups
 
-        partition_mapping = ([p for p in range(number_of_big_groups)
-                              for _ in range(big_group_size)] +
-                             [p for p in range(number_of_big_groups,
-                                               number_of_big_groups + number_of_small_groups)
-                              for _ in range(small_group_size)])
+        partition_mapping = (
+            [p for p in range(number_of_big_groups) for _ in range(big_group_size)]
+            + [p for p in range(number_of_big_groups,
+                                number_of_big_groups + number_of_small_groups)
+               for _ in range(small_group_size)]
+        )
         new_partitions = {i: [] for i in range(new_num_partitions)}
 
         def partitioned():

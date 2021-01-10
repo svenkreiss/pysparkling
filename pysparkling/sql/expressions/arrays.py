@@ -179,8 +179,8 @@ class Sequence(Expression):
         stop_value = self.stop.eval(row, schema)
         if self.step is not None:
             step_value = self.step.eval(row, schema)
-            if ((step_value < stop_value and step_value <= 0) or
-                    (step_value > stop_value and step_value >= 0)):
+            if (step_value < stop_value and step_value <= 0) \
+               or (step_value > stop_value and step_value >= 0):
                 raise Exception(
                     "requirement failed: Illegal sequence boundaries: "
                     "{0} to {1} by {2}".format(

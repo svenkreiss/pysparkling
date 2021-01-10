@@ -1018,6 +1018,7 @@ def pow(l, r):
     """
     return col(Pow(parse(l), parse(r)))
 
+
 def rint(e):
     """
     :rtype: Column

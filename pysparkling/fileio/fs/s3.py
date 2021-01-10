@@ -109,8 +109,8 @@ class S3(FileSystem):
         key_name = t.next()
         conn = self._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
-        return (bucket.get_key(key_name) or
-                bucket.list(prefix='{}/'.format(key_name)))
+        return (bucket.get_key(key_name)
+                or bucket.list(prefix='{}/'.format(key_name)))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'
