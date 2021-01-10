@@ -42,7 +42,7 @@ jobs:
         python --version
         python -c "import pysparkling; print(pysparkling.__version__)"
     - name: Test Core
-      if: os != 'windows-latest'  # because of path separator
+      if: matrix.os != 'windows-latest'  # because of path separator
       run: python -m pytest pysparkling/rdd.py -vv
     - name: Install SQL Dependencies
       run: |
