@@ -41,6 +41,7 @@ setup(
             'cloudpickle>=0.1.0',
             'futures>=3.0.1',
             'pylint>=2.3,<2.6',
+            'pylzma',
             'memory-profiler>=0.47',
             'pytest',
             'tornado>=4.3',
