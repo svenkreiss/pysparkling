@@ -33,10 +33,13 @@ setup(
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
-        'pandas': ['pandas>=0.23.2'],
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
-        'test': [
+        'sql': [
+            'numpy',
+            'pandas>=0.23.2',
+        ],
+        'tests': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
             'futures>=3.0.1',
