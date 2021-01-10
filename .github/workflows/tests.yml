@@ -41,9 +41,10 @@ jobs:
         python -m pip freeze
         python --version
         python -c "import pysparkling; print(pysparkling.__version__)"
-    - name: Test Core
-      if: matrix.os != 'windows-latest'  # because of path separator
-      run: python -m pytest pysparkling/rdd.py -vv
+    - name: Test pysparkling.rdd
+      run: python -m pytest --pyargs pysparkling.rdd -vv
+    - name: Test pysparkling.tests
+      run: python -m pytest --pyargs pysparkling.tests -vv
     - name: Install SQL Dependencies
       run: |
         python -m pip install -e ".[sql]" --use-deprecated=legacy-resolver
@@ -52,5 +53,5 @@ jobs:
     - name: pycodestyle
       run: python -m pycodestyle pysparkling
     - name: Test All
-      if: matrix.os != 'macos-latest'  # because of timing sensitive in stream tests
+      if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
       run: python -m pytest -vv
