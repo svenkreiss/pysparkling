@@ -4,6 +4,8 @@ import os
 import time
 from unittest import TestCase
 
+import pytest
+
 from pysparkling.sql.casts import identity, cast_from_none, cast_to_string, cast_to_boolean, \
     cast_to_float, cast_to_byte, FloatType, cast_to_short, cast_to_int, cast_to_long, \
     cast_to_binary, cast_to_date, cast_to_timestamp, cast_to_decimal, cast_to_array, cast_to_map, \
@@ -15,6 +17,7 @@ from pysparkling.sql.types import DataType, NullType, DateType, TimestampType, A
 BASE_OPTIONS = {}
 
 
+@pytest.mark.skipif(not hasattr(time, 'tzset'), reason='tzset not supported on Windows')
 class CastTests(TestCase):
     maxDiff = None
 
