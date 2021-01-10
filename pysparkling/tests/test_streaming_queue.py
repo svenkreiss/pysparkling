@@ -1,11 +1,11 @@
 from __future__ import print_function
 
-import tornado.testing
+import unittest
 
 import pysparkling
 
 
-class TestCount(tornado.testing.AsyncTestCase):
+class TestCount(unittest.TestCase):
 
     def test_count(self):
         sc = pysparkling.Context()
@@ -19,7 +19,7 @@ class TestCount(tornado.testing.AsyncTestCase):
         )
 
         ssc.start()
-        ssc.awaitTermination(timeout=0.3)
+        ssc.awaitTermination(timeout=0.35)
         self.assertEqual(sum(result), 23)
 
     def test_groupByKey(self):
