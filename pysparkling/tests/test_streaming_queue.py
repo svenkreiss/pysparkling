@@ -1,11 +1,11 @@
 from __future__ import print_function
 
-import unittest
+import tornado.testing
 
 import pysparkling
 
 
-class TestCount(unittest.TestCase):
+class TestCount(tornado.testing.AsyncTestCase):
 
     def test_count(self):
         sc = pysparkling.Context()
