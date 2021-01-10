@@ -52,4 +52,5 @@ jobs:
     - name: pycodestyle
       run: python -m pycodestyle pysparkling
     - name: Test All
-      run: python -m pytest -vv --ignore=pysparkling.streaming.context.StreamingContext.queueStream,pysparkling.streaming.dstream.DStream.cogroup,pysparkling.streaming.dstream.DStream.map,pysparkling.streaming.dstream.DStream.saveAsTextFiles,pysparkling/tests/test_streaming_queue.py
+      if: matrix.os != 'macos-latest'  # because of timing sensitive in stream tests
+      run: python -m pytest -vv
