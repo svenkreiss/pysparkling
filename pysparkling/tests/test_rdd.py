@@ -156,8 +156,8 @@ class RDDTest(unittest.TestCase):
         sample = dict(
             rdd.sampleByKey(False, fractions, 2).groupByKey().collect()
         )
-        self.assertTrue(100 < len(sample["a"]) < 300 and
-                        50 < len(sample["b"]) < 150)
+        self.assertTrue(100 < len(sample["a"]) < 300
+                        and 50 < len(sample["b"]) < 150)
         self.assertTrue(max(sample["a"]) <= 999 and min(sample["a"]) >= 0)
         self.assertTrue(max(sample["b"]) <= 999 and min(sample["b"]) >= 0)
 

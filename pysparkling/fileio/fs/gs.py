@@ -125,8 +125,8 @@ class GS(FileSystem):
             project_name = GS.project_name
         blob_name = t.next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
-        return (bucket.get_blob(blob_name) or
-                list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
+        return (bucket.get_blob(blob_name)
+                or list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
 
     def load(self):
         log.debug('Loading {0} with size {1}.'

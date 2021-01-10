@@ -250,8 +250,8 @@ class NullSafeBinaryOperation(BinaryOperation):
         type_1 = value_1.__class__
         type_2 = value_2.__class__
         if type_1 == type_2 or (
-                isinstance(value_1, (int, float)) and
-                isinstance(value_2, (int, float))
+                isinstance(value_1, (int, float))
+                and isinstance(value_2, (int, float))
         ):
             return self.unsafe_operation(value_1, value_2)
 

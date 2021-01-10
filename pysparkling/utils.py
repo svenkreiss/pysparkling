@@ -175,16 +175,16 @@ def get_keyfunc(cols, schema, nulls_are_smaller=False):
 
 
 FULL_WIDTH_REGEX = re.compile(
-    "[" +
-    r"\u1100-\u115F" +
-    r"\u2E80-\uA4CF" +
-    r"\uAC00-\uD7A3" +
-    r"\uF900-\uFAFF" +
-    r"\uFE10-\uFE19" +
-    r"\uFE30-\uFE6F" +
-    r"\uFF00-\uFF60" +
-    r"\uFFE0-\uFFE6" +
-    "]"
+    "["
+    + r"\u1100-\u115F"
+    + r"\u2E80-\uA4CF"
+    + r"\uAC00-\uD7A3"
+    + r"\uF900-\uFAFF"
+    + r"\uFE10-\uFE19"
+    + r"\uFE30-\uFE6F"
+    + r"\uFF00-\uFF60"
+    + r"\uFFE0-\uFFE6"
+    + "]"
 )
 
 

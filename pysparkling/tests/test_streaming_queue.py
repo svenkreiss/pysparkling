@@ -19,7 +19,7 @@ class TestCount(tornado.testing.AsyncTestCase):
         )
 
         ssc.start()
-        ssc.awaitTermination(timeout=0.3)
+        ssc.awaitTermination(timeout=0.35)
         self.assertEqual(sum(result), 23)
 
     def test_groupByKey(self):

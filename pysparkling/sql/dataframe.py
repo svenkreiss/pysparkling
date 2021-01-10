@@ -1504,8 +1504,8 @@ class DataFrame(object):
         if not method:
             method = "pearson"
         if method != "pearson":
-            raise ValueError("Currently only the calculation of the Pearson Correlation " +
-                             "coefficient is supported.")
+            raise ValueError("Currently only the calculation of the Pearson Correlation "
+                             + "coefficient is supported.")
         return self._jdf.corr(col1, col2, method)
 
     def cov(self, col1, col2):
@@ -1660,8 +1660,9 @@ class DataFrame(object):
             # to integer type e.g., np.int16, we will hit exception. So we use the inferred
             # float type, not the corrected type from the schema in this case.
             if pandas_type is not None and \
-                    not (isinstance(field.dataType, IntegralType) and field.nullable and
-                         pdf[field.name].isnull().any()):
+                    not (isinstance(field.dataType, IntegralType)
+                         and field.nullable
+                         and pdf[field.name].isnull().any()):
                 dtype[field.name] = pandas_type
 
         for f, t in dtype.items():

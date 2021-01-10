@@ -64,12 +64,14 @@ class DataFrameWriterTests(TestCase):
         df.write.csv(".tmp/wonderland/", sep="^", emptyValue="", nullValue="null", header=True)
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
-            {'_SUCCESS': [],
-             'part-00000-4061950540148431296.csv': [
-                 'age^name^occupation\n',
-                 '2^Alice^null\n',
-                 '5^Bob^\n'
-             ]}
+            {
+                '_SUCCESS': [],
+                'part-00000-4061950540148431296.csv': [
+                    'age^name^occupation\n',
+                    '2^Alice^null\n',
+                    '5^Bob^\n',
+                ],
+            }
         )
 
     def test_write_to_csv_fail_when_overwrite(self):
@@ -83,11 +85,13 @@ class DataFrameWriterTests(TestCase):
         self.assertEqual(ctx.exception.args[0], 'path .tmp/wonderland already exists.;')
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
-            {'_SUCCESS': [],
-             'part-00000-3434325560268771971.csv': [
-                 '2,Alice\n',
-                 '5,Bob\n'
-             ]}
+            {
+                '_SUCCESS': [],
+                'part-00000-3434325560268771971.csv': [
+                    '2,Alice\n',
+                    '5,Bob\n',
+                ],
+            }
         )
 
     def test_write_to_json(self):
@@ -98,31 +102,33 @@ class DataFrameWriterTests(TestCase):
         df.write.json(".tmp/wonderland/")
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
-
-            {'_SUCCESS': [],
-             'part-00000-8447389540241120843.json': [
-                 '{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000+01:00"}\n',
-                 '{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000+01:00"}\n'
-             ]}
+            {
+                '_SUCCESS': [],
+                'part-00000-8447389540241120843.json': [
+                    '{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000+01:00"}\n',
+                    '{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000+01:00"}\n',
+                ],
+            }
         )
 
     def test_write_nested_rows_to_json(self):
-        df = spark.createDataFrame(
-            [Row(age=2, name='Alice', animals=[
+        df = spark.createDataFrame([
+            Row(age=2, name='Alice', animals=[
                 Row(name="Chessur", type="cat"),
-                Row(name="The White Rabbit", type="Rabbit")
-            ]),
-             Row(age=5, name='Bob', animals=[])]
-        )
+                Row(name="The White Rabbit", type="Rabbit")]),
+            Row(age=5, name='Bob', animals=[])
+        ])
         df.write.json(".tmp/wonderland/")
         self.assertDictEqual(
             get_folder_content(".tmp/wonderland"),
-            {'_SUCCESS': [],
-             'part-00000-2819354714706678872.json': [
-                 '{"age":2,"animals":['
-                 '{"name":"Chessur","type":"cat"},'
-                 '{"name":"The White Rabbit","type":"Rabbit"}'
-                 '],"name":"Alice"}\n',
-                 '{"age":5,"animals":[],"name":"Bob"}\n'
-             ]}
+            {
+                '_SUCCESS': [],
+                'part-00000-2819354714706678872.json': [
+                    '{"age":2,"animals":['
+                    '{"name":"Chessur","type":"cat"},'
+                    '{"name":"The White Rabbit","type":"Rabbit"}'
+                    '],"name":"Alice"}\n',
+                    '{"age":5,"animals":[],"name":"Bob"}\n',
+                ],
+            }
         )

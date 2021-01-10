@@ -90,8 +90,8 @@ def test_s3_textFile_loop():
     rdd_check = Context().textFile(fn)
 
     assert (
-        rdd.count() == rdd_check.count() and
-        all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
+        rdd.count() == rdd_check.count()
+        and all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
     )
 
 
@@ -109,8 +109,8 @@ def test_hdfs_textFile_loop():
     print(rdd.collect())
     print(read_rdd.collect())
     assert (
-        rdd.count() == read_rdd.count() and
-        all(r1 == r2 for r1, r2 in zip(rdd.collect(), read_rdd.collect()))
+        rdd.count() == read_rdd.count()
+        and all(r1 == r2 for r1, r2 in zip(rdd.collect(), read_rdd.collect()))
     )
 
 
@@ -142,8 +142,8 @@ def test_gs_textFile_loop():
     rdd_check = Context().textFile(fn)
 
     assert (
-        rdd.count() == rdd_check.count() and
-        all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
+        rdd.count() == rdd_check.count()
+        and all(e1 == e2 for e1, e2 in zip(rdd.collect(), rdd_check.collect()))
     )
 
 

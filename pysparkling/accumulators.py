@@ -79,7 +79,6 @@ TypeError: No default accumulator param for type <type 'list'>
 __all__ = ['Accumulator', 'AccumulatorParam']
 
 
-
 class Accumulator(object):
     """
     A shared variable that can be accumulated, i.e., has a commutative and associative "add"

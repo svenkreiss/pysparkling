@@ -1037,8 +1037,8 @@ def _get_null_fields(field, prefix=""):
 
     if isinstance(field, MapType):
         return [
-            _get_null_fields(field.keyType, prefix=prefixed_field_name + ".keys") +
-            _get_null_fields(field.valueType, prefix=prefixed_field_name + ".values")
+            _get_null_fields(field.keyType, prefix=prefixed_field_name + ".keys")
+            + _get_null_fields(field.valueType, prefix=prefixed_field_name + ".values")
         ]
 
     return [prefixed_field_name] if isinstance(field.dataType, NullType) else []

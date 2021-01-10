@@ -64,8 +64,8 @@ class CacheManager(object):
     def has(self, ident):
         return (
             ident in self.cache_obj and (
-                self.cache_obj[ident]['mem_obj'] is not None or
-                self.cache_obj[ident]['disk_location'] is not None
+                self.cache_obj[ident]['mem_obj'] is not None
+                or self.cache_obj[ident]['disk_location'] is not None
             )
         )
 
@@ -90,8 +90,8 @@ class CacheManager(object):
     def stored_idents(self):
         return [k
                 for k, v in self.cache_obj.items()
-                if (v['mem_obj'] is not None or
-                    v['disk_location'] is not None)]
+                if (v['mem_obj'] is not None
+                    or v['disk_location'] is not None)]
 
     def clone_contains(self, filter_id):
         """Clone the cache manager and add a subset of the cache to it.

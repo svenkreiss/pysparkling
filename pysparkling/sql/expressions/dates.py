@@ -202,20 +202,20 @@ class MonthsBetween(Expression):
         value_1_is_the_last_of_its_month = (value_1.month != (value_1 + one_day).month)
         value_2_is_the_last_of_its_month = (value_2.month != (value_2 + one_day).month)
         if value_1.day == value_2.day or (
-                value_1_is_the_last_of_its_month and
-                value_2_is_the_last_of_its_month
+                value_1_is_the_last_of_its_month
+                and value_2_is_the_last_of_its_month
         ):
             # Special cases where time of day is not consider
-            diff = ((value_1.year - value_2.year) * 12 +
-                    (value_1.month - value_2.month))
+            diff = ((value_1.year - value_2.year) * 12
+                    + (value_1.month - value_2.month))
         else:
-            day_offset = (value_1.day - value_2.day +
-                          (value_1.hour - value_2.hour) / 24 +
-                          (value_1.minute - value_2.minute) / 1440 +
-                          (value_1.second - value_2.second) / 86400)
-            diff = ((value_1.year - value_2.year) * 12 +
-                    (value_1.month - value_2.month) * 1 +
-                    day_offset / 31)
+            day_offset = (value_1.day - value_2.day
+                          + (value_1.hour - value_2.hour) / 24
+                          + (value_1.minute - value_2.minute) / 1440
+                          + (value_1.second - value_2.second) / 86400)
+            diff = ((value_1.year - value_2.year) * 12
+                    + (value_1.month - value_2.month) * 1
+                    + day_offset / 31)
         if self.round_off:
             return float(round(diff, 8))
         return float(diff)
