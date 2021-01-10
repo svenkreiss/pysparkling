@@ -51,12 +51,12 @@ Install
 
 Other links:
 `Github <https://github.com/svenkreiss/pysparkling>`_,
-`Issue Tracker <https://github.com/svenkreiss/pysparkling/issues>`_,
-|pypi-badge|
+|pypi-badge|, |test-badge|
 
 .. |pypi-badge| image:: https://badge.fury.io/py/pysparkling.svg
    :target: https://pypi.python.org/pypi/pysparkling/
-
+.. |test-badge| image:: https://github.com/svenkreiss/pysparkling/workflows/Tests/badge.svg
+   :target: https://github.com/svenkreiss/pysparkling/actions?query=workflow%3ATests
 
 Features
 ========
