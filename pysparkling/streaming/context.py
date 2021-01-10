@@ -112,7 +112,7 @@ class StreamingContext(object):
         ...     .foreachRDD(lambda rdd: print(rdd.collect()))
         ... )
         >>> ssc.start()
-        >>> ssc.awaitTermination(0.35)
+        >>> ssc.awaitTermination(1.0)
         [4]
         [2]
         [7]
