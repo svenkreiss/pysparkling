@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          depth: 0
+          fetch-depth: 0
 
       - uses: actions/setup-python@v2
         name: Install Python
