@@ -318,10 +318,10 @@ class CSVWriter(DataWriter):
 
 
 class JSONWriter(DataWriter):
-    def __init__(self, df, mode, options, partitioning_col_names,
-                 num_buckets, bucket_col_names, sort_col_names):
-        super().__init__(df, mode, options, partitioning_col_names,
-                                         num_buckets, bucket_col_names, sort_col_names)
+    def __init__(self, df, mode, options, partitioning_col_names, num_buckets,
+                 bucket_col_names, sort_col_names):
+        super().__init__(df, mode, options, partitioning_col_names, num_buckets,
+                         bucket_col_names, sort_col_names)
 
         self.encoder = get_json_encoder(self.options)
 
