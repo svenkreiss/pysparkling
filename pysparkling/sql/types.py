@@ -656,7 +656,7 @@ class StructType(DataType):
         for description in string.split(','):
             name, type_ = [x.strip() for x in description.split(':')]
 
-            fields.add(StructField(name.strip().upper(), get_class(type_), True))
+            fields.add(StructField(name.strip(), get_class(type_), True))
 
         return fields
 
