@@ -643,8 +643,8 @@ class StructType(DataType):
             type_to_load = f'{type_.strip().title()}Type'
 
             if type_to_load not in globals():
-                array = re.match('^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
-                if array:
+                match = re.match(r'^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
+                if match:
                     return ArrayType(get_class(array.group(1)))
 
                 raise ValueError(f"Couldn't find '{type_to_load}'?")
