@@ -968,8 +968,8 @@ class DataFrame(object):
 
         try:
             field_position = Column(name).find_position_in_schema(self.schema)
-        except AnalysisException:
-            raise AttributeError
+        except AnalysisException as e:
+            raise AttributeError from e
         return self[field_position]
 
     def select(self, *cols):
@@ -1637,8 +1637,8 @@ class DataFrame(object):
             # pandas is an optional dependency
             # pylint: disable=import-outside-toplevel
             import pandas as pd
-        except ImportError:
-            raise Exception("require_minimum_pandas_version() was not called")
+        except ImportError as e:
+            raise ImportError("require_minimum_pandas_version() was not called") from e
 
         # noinspection PyProtectedMember
         sql_ctx_conf = self.sql_ctx._conf

@@ -212,7 +212,7 @@ class TypeSafeBinaryOperation(BinaryOperation):
             order_1 = INTERNAL_TYPE_ORDER.index(type_1)
             order_2 = INTERNAL_TYPE_ORDER.index(type_2)
         except ValueError as e:
-            raise AnalysisException("Unable to process type: {0}".format(e))
+            raise AnalysisException("Unable to process type: {0}".format(e)) from e
 
         spark_type_1 = python_to_spark_type(type_1)
         spark_type_2 = python_to_spark_type(type_2)
