@@ -639,7 +639,26 @@ class StructType(DataType):
 
     @classmethod
     def fromDDL(cls, string):
-        raise NotImplementedError("pysparkling does not support yet StructType.fromDDL")
+        def get_class(type_: str) -> DataType:
+            type_to_load = f'{type_.strip().title()}Type'
+
+            if type_to_load not in globals():
+                array = re.match('^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
+                if array:
+                    return ArrayType(get_class(array.group(1)))
+
+                raise ValueError(f"Couldn't find '{type_to_load}'?")
+
+            return globals()[type_to_load]()
+
+        fields = StructType()
+
+        for description in string.split(','):
+            name, type_ = [x.strip() for x in description.split(':')]
+
+            fields.add(StructField(name.strip().upper(), get_class(type_), True))
+
+        return fields
 
 
 class UserDefinedType(DataType):

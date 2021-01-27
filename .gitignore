@@ -80,3 +80,5 @@ target/
 .ipynb_checkpoints
 .ipython-daemon.json
 .cache
+
+/.idea/
