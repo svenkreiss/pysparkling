@@ -21,12 +21,8 @@ from .partition import Partition
 from .rdd import RDD, EmptyRDD
 from .task_context import TaskContext
 
-# Python 2 compatibility
 if not hasattr(time, 'perf_counter'):
-    try:  # Python 2
-        time.perf_counter = time.clock
-    except AttributeError:  # Unexpected
-        raise Exception("`time`should contain either clock (py2) or perf_counter (py3)")
+    raise Exception("`time`should contain perf_counter")
 
 
 log = logging.getLogger(__name__)
