@@ -4,7 +4,7 @@ from pysparkling.sql.utils import AnalysisException
 
 class Literal(Expression):
     def __init__(self, value):
-        super(Literal, self).__init__()
+        super().__init__()
         self.value = value
 
     def eval(self, row, schema):

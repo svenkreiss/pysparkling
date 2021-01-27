@@ -100,7 +100,7 @@ class DataTypeSingleton(type):
 
     def __call__(cls):
         if cls not in cls._instances:
-            cls._instances[cls] = super(DataTypeSingleton, cls).__call__()
+            cls._instances[cls] = super().__call__()
         return cls._instances[cls]
 
 
@@ -1500,7 +1500,7 @@ class Row(tuple):
     def __contains__(self, item):
         if hasattr(self, "__fields__"):
             return item in self.__fields__
-        return super(Row, self).__contains__(item)
+        return super().__contains__(item)
 
     # let object acts like class
     def __call__(self, *args):
@@ -1512,12 +1512,12 @@ class Row(tuple):
 
     def __getitem__(self, item):
         if isinstance(item, (int, slice)):
-            return super(Row, self).__getitem__(item)
+            return super().__getitem__(item)
         try:
             # it will be slow when it has many fields,
             # but this will not be used in normal cases
             idx = self.__fields__.index(item)
-            return super(Row, self).__getitem__(idx)
+            return super().__getitem__(idx)
         except IndexError:
             raise KeyError(item)
         except ValueError:

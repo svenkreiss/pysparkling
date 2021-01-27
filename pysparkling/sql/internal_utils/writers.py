@@ -79,7 +79,7 @@ class WriteInFolder(Aggregation):
     """
 
     def __init__(self, writer):
-        super(WriteInFolder, self).__init__()
+        super().__init__()
         self.column = col(StarOperator())
         self.writer = writer
         self.ref_value = None
@@ -320,7 +320,7 @@ class CSVWriter(DataWriter):
 class JSONWriter(DataWriter):
     def __init__(self, df, mode, options, partitioning_col_names,
                  num_buckets, bucket_col_names, sort_col_names):
-        super(JSONWriter, self).__init__(df, mode, options, partitioning_col_names,
+        super().__init__(df, mode, options, partitioning_col_names,
                                          num_buckets, bucket_col_names, sort_col_names)
 
         self.encoder = get_json_encoder(self.options)
