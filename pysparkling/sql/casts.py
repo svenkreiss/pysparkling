@@ -1,6 +1,7 @@
 import datetime
 import re
 import time
+import sys
 from functools import partial, lru_cache
 
 import pytz
@@ -273,12 +274,12 @@ def cast_to_short(value, from_type, options):
 
 
 def cast_to_int(value, from_type, options):
-    min_value, max_value = -2147483648, 2147483647
+    min_value, max_value = -sys.maxsize, sys.maxsize
     return _cast_to_bounded_type("int", min_value, max_value, value, from_type, options=options)
 
 
 def cast_to_long(value, from_type, options):
-    min_value, max_value = -9223372036854775808, 9223372036854775807
+    min_value, max_value = -sys.maxsize, sys.maxsize
     return _cast_to_bounded_type("long", min_value, max_value, value, from_type, options=options)
 
 

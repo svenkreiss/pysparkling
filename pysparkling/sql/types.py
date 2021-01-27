@@ -28,10 +28,6 @@ import platform
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
 
-if sys.version >= "3":
-    long = int
-    basestring = unicode = str
-
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
     "TimestampType", "DecimalType", "DoubleType", "FloatType", "ByteType", "IntegerType",
@@ -401,9 +397,7 @@ class StructField(DataType):
         """
         assert isinstance(dataType, DataType), \
             "dataType %s should be an instance of %s" % (dataType, DataType)
-        assert isinstance(name, basestring), "field name %s should be string" % name
-        if not isinstance(name, str):
-            name = name.encode('utf-8')
+        assert isinstance(name, str), "field name %s should be string" % name
         self.name = name
         self.dataType = dataType
         self.nullable = nullable
@@ -840,12 +834,6 @@ _type_mappings = {
     datetime.time: TimestampType,
 }
 
-if sys.version < "3":
-    _type_mappings.update({
-        unicode: StringType,
-        long: LongType,
-    })
-
 # Mapping Python array types to Spark SQL DataType
 # We should be careful here. The size of these types in python depends on C
 # implementation. We need to make sure that this conversion does not lose any
@@ -921,20 +909,6 @@ for _typecode in _array_unsigned_int_typecode_ctype_mappings:
 # removed in version 4.0. See: https://docs.python.org/3/library/array.html
 if sys.version_info[0] < 4:
     _array_type_mappings['u'] = StringType
-
-# Type code 'c' are only available at python 2
-if sys.version_info[0] < 3:
-    _array_type_mappings['c'] = StringType
-
-# SPARK-21465:
-# In python2, array of 'L' happened to be mistakenly partially supported. To
-# avoid breaking user's code, we should keep this partial support. Below is a
-# dirty hacking to keep this partial support and make the unit test passes
-if sys.version_info[0] < 3 and platform.python_implementation() != 'PyPy':
-    if 'L' not in _array_type_mappings.keys():
-        _array_type_mappings['L'] = LongType
-        _array_unsigned_int_typecode_ctype_mappings['L'] = ctypes.c_uint
-
 
 def _infer_type(obj):
     """Infer the DataType from obj
@@ -1159,14 +1133,14 @@ def _create_converter(dataType):
 
 _acceptable_types = {
     BooleanType: (bool,),
-    ByteType: (int, long),
-    ShortType: (int, long),
-    IntegerType: (int, long),
-    LongType: (int, long),
+    ByteType: (int),
+    ShortType: (int),
+    IntegerType: (int),
+    LongType: (int),
     FloatType: (float,),
     DoubleType: (float,),
     DecimalType: (decimal.Decimal,),
-    StringType: (str, unicode),
+    StringType: (str),
     BinaryType: (bytearray,),
     DateType: (datetime.date, datetime.datetime),
     TimestampType: (datetime.datetime,),
@@ -1785,8 +1759,8 @@ STRING_TO_TYPE = dict(
     byte=ByteType(),
     smallint=ShortType(),
     short=ShortType(),
-    int=IntegerType(),
-    integer=IntegerType(),
+    int=LongType(),
+    integer=LongType(),
     bigint=LongType(),
     long=LongType(),
     float=FloatType(),

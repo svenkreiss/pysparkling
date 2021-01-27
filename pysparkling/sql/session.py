@@ -14,15 +14,6 @@ from pysparkling.sql.readwriter import DataFrameReader
 from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.sql.utils import require_minimum_pandas_version
 
-if sys.version >= '3':
-    basestring = unicode = str
-    xrange = range
-else:
-    import itertools as _itertools
-
-    # pylint: disable=W0622
-    map = getattr(_itertools, "imap")
-
 
 class SparkSession(object):
     class Builder(object):
@@ -231,7 +222,7 @@ class SparkSession(object):
         if isinstance(data, DataFrame):
             raise TypeError("data is already a DataFrame")
 
-        if isinstance(schema, basestring):
+        if isinstance(schema, str):
             schema = StructType.fromDDL(schema)
         elif isinstance(schema, (list, tuple)):
             # Must re-encode any unicode strings to be consistent with StructField names
@@ -293,9 +284,7 @@ class SparkSession(object):
         timezone = None
         # If no schema supplied by user then get the names of columns only
         if schema is None:
-            schema = [str(x) if not isinstance(x, basestring) else
-                      (x.encode('utf-8') if not isinstance(x, str) else x)
-                      for x in data.columns]
+            schema = [str(x) for x in data.columns]
         data = self._convert_from_pandas(data, schema, timezone)
         return data, schema
 

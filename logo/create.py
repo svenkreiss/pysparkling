@@ -60,7 +60,7 @@ def smaller(svg_document, x, y, v, x_offset=0, y_offset=0):
     if v == 1:
         size = 16.0*(1.0 - distance2/max_distance2)
         number_of_cubes = int(16**2 / (size**2))
-        for i in xrange(number_of_cubes):
+        for i in range(number_of_cubes):
             xi = x*16 + 1 + random.random()*(14.0-size) + x_offset
             yi = y*16 + 1 + random.random()*(14.0-size) + y_offset
             sizepx = str(size)+"px"

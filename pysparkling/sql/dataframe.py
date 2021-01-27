@@ -1425,12 +1425,12 @@ class DataFrame(object):
         valid_types = (bool, float, int, str, list, tuple)
         if not isinstance(to_replace, valid_types) and not isinstance(to_replace, dict):
             raise ValueError(
-                "to_replace should be a bool, float, int, long, string, list, tuple, or dict. "
+                "to_replace should be a bool, float, int, string, list, tuple, or dict. "
                 "Got {0}".format(type(to_replace)))
         if not isinstance(value, valid_types) and value is not None \
                 and not isinstance(to_replace, dict):
             raise ValueError("If to_replace is not a dict, value should be "
-                             "a bool, float, int, long, string, list, tuple or None. "
+                             "a bool, float, int, string, list, tuple or None. "
                              "Got {0}".format(type(value)))
         if isinstance(to_replace, (list, tuple)) and isinstance(value, (list, tuple)):
             if len(to_replace) != len(value):
