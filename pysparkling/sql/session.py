@@ -88,6 +88,7 @@ class SparkSession(object):
         #     # noinspection PyAttributeOutsideInit
         #     self._catalog = Catalog(self)
         # return self._catalog
+        raise NotImplementedError()
 
     @property
     def udf(self):
@@ -230,13 +231,12 @@ class SparkSession(object):
         try:
             # pandas is an optional dependency
             # pylint: disable=import-outside-toplevel
-            has_pandas = True
             import pandas
         except ImportError:
-            has_pandas = False
-
-        if has_pandas and isinstance(data, pandas.DataFrame):
-            data, schema = self.parse_pandas_dataframe(data, schema)
+            pass
+        else:
+            if isinstance(data, pandas.DataFrame):
+                data, schema = self.parse_pandas_dataframe(data, schema)
 
         no_check = lambda _: True
         if isinstance(schema, StructType):
