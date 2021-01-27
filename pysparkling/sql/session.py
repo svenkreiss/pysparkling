@@ -1,4 +1,3 @@
-import sys
 from threading import RLock
 
 from pysparkling.sql.types import _make_type_verifier, DataType, StructType, \

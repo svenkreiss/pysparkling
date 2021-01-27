@@ -23,7 +23,6 @@ import json as _json
 import re
 from array import array
 import ctypes
-import platform
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
