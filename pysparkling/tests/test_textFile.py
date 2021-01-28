@@ -7,7 +7,6 @@ import random
 import sys
 import tempfile
 import unittest
-from typing import Any, Union
 
 import pytest
 
