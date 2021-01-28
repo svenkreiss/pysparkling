@@ -17,13 +17,14 @@ from pysparkling.sql.types import DataType, NullType, DateType, TimestampType, A
 BASE_OPTIONS = {}
 
 
-@pytest.mark.skipif(not hasattr(time, 'tzset'), reason='tzset not supported on Windows')
 class CastTests(TestCase):
     maxDiff = None
 
     def setUp(self):
         os.environ['TZ'] = 'Europe/Paris'
-        time.tzset()  # pylint: disable=no-member
+
+        if hasattr(time, 'tzset'):
+            time.tzset()  # pylint: disable=no-member
 
     def test_identity(self):
         x = object()
