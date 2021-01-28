@@ -909,6 +909,7 @@ for _typecode in _array_unsigned_int_typecode_ctype_mappings:
 if sys.version_info[0] < 4:
     _array_type_mappings['u'] = StringType
 
+
 def _infer_type(obj):
     """Infer the DataType from obj
     """
