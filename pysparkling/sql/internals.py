@@ -10,11 +10,11 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import parse
 from pysparkling.sql.functions import array, collect_set, count, lit, map_from_arrays, rand, struct
 from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.internal_utils.joins import CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, \
-    LEFT_SEMI_JOIN, RIGHT_JOIN
+from pysparkling.sql.internal_utils.joins import CROSS_JOIN, FULL_JOIN, INNER_JOIN, \
+    LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 from pysparkling.sql.schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
-from pysparkling.sql.types import create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, \
-    StructType
+from pysparkling.sql.types import create_row, DataType, LongType, Row, row_from_keyed_values, \
+    StringType, StructField, StructType
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import CovarianceCounter, RowStatHelper
 from pysparkling.utils import compute_weighted_percentiles, format_cell, get_keyfunc, merge_rows, \
