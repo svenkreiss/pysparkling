@@ -1133,20 +1133,20 @@ def _create_converter(dataType):
 
 _acceptable_types = {
     BooleanType: (bool,),
-    ByteType: (int),
-    ShortType: (int),
-    IntegerType: (int),
-    LongType: (int),
+    ByteType: (int,),
+    ShortType: (int,),
+    IntegerType: (int,),
+    LongType: (int,),
     FloatType: (float,),
     DoubleType: (float,),
     DecimalType: (decimal.Decimal,),
-    StringType: (str),
+    StringType: (str,),
     BinaryType: (bytearray,),
-    DateType: (datetime.date, datetime.datetime),
+    DateType: (datetime.date, datetime.datetime,),
     TimestampType: (datetime.datetime,),
-    ArrayType: (list, tuple, array),
+    ArrayType: (list, tuple, array,),
     MapType: (dict,),
-    StructType: (tuple, list, dict),
+    StructType: (tuple, list, dict,),
 }
 
 
