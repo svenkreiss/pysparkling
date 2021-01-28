@@ -127,6 +127,7 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
              .collect())
         self.assertIn((4, 2), r)
 
+    @unittest.skipIf(platform.system() == 'Windows', 'Windows is very slow in starting up the pool.')
     def test_cache(self):
         r = self.sc.parallelize(range(3), 3)
 
@@ -158,8 +159,11 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
             rdd.map(lambda _: time.sleep(0.1)).collect()
         return time.time() - start
 
-    @unittest.skipIf(platform.python_implementation() == 'PyPy',
-                     'test fails in PyPy')
+    @unittest.skipIf(
+        platform.python_implementation() == 'PyPy'
+        or platform.system() == 'Windows',
+        'test fails in PyPy and is very slow on Windows.'
+    )
     def test_basic(self):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
