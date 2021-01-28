@@ -25,16 +25,16 @@ def color(x, y):
 
     return '#42359C'  # "#CDB95B"
 
-    if (x-4) > (y-4) and -(y-4) <= (x-4):
+    if (x - 4) > (y - 4) and -(y - 4) <= (x - 4):
         # right
         return '#42359C'  # "#CDB95B"
-    elif (x-4) > (y-4) and -(y-4) > (x-4):
+    elif (x - 4) > (y - 4) and -(y - 4) > (x - 4):
         # top
         return "#CD845B"
-    elif (x-4) <= (y-4) and -(y-4) <= (x-4):
+    elif (x - 4) <= (y - 4) and -(y - 4) <= (x - 4):
         # bottom
         return "#57488E"
-    elif (x-4) <= (y-4) and -(y-4) > (x-4):
+    elif (x - 4) <= (y - 4) and -(y - 4) > (x - 4):
         # left
         return "#3B8772"
 
@@ -44,7 +44,7 @@ def color(x, y):
 
 def simple(svg_document, x, y, v):
     if v == 1:
-        svg_document.add(svg_document.rect(insert=(x*16, y*16),
+        svg_document.add(svg_document.rect(insert=(x * 16, y * 16),
                                            size=("16px", "16px"),
                                            # rx="2px",
                                            # stroke_width="1",
@@ -54,16 +54,16 @@ def simple(svg_document, x, y, v):
 
 def smaller(svg_document, x, y, v, x_offset=0, y_offset=0):
     # from center
-    distance2 = (x-3.5)**2 + (y-3.5)**2
-    max_distance2 = 2 * 4**2
+    distance2 = (x - 3.5) ** 2 + (y - 3.5) ** 2
+    max_distance2 = 2 * 4 ** 2
 
     if v == 1:
-        size = 16.0*(1.0 - distance2/max_distance2)
-        number_of_cubes = int(16**2 / (size**2))
+        size = 16.0 * (1.0 - distance2 / max_distance2)
+        number_of_cubes = int(16 ** 2 / (size ** 2))
         for i in range(number_of_cubes):
-            xi = x*16 + 1 + random.random()*(14.0-size) + x_offset
-            yi = y*16 + 1 + random.random()*(14.0-size) + y_offset
-            sizepx = str(size)+"px"
+            xi = x * 16 + 1 + random.random() * (14.0 - size) + x_offset
+            yi = y * 16 + 1 + random.random() * (14.0 - size) + y_offset
+            sizepx = str(size) + "px"
             svg_document.add(svg_document.rect(insert=(xi, yi),
                                                size=(sizepx, sizepx),
                                                rx="2px",
@@ -105,8 +105,8 @@ def main():
     os.system('svg2png --width=1500 --height=400 banner.svg banner-w1500.png')
     favicon_sizes = [16, 32, 48, 128, 256]
     for s in favicon_sizes:
-        os.system('svg2png --width='+str(s)+' --height='+str(s)+' favicon.svg favicon-w'+str(s)+'.png')
-    png_favicon_names = ['favicon-w'+str(s)+'.png' for s in favicon_sizes]
+        os.system(f'svg2png --width={s} --height={s} favicon.svg favicon-w{s}.png')
+    png_favicon_names = [f'favicon-w{s}.png' for s in favicon_sizes]
     os.system('convert ' + (' '.join(png_favicon_names)) +
               ' -colors 256 favicon.ico')
 
