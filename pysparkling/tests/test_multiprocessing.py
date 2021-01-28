@@ -127,20 +127,22 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
              .collect())
         self.assertIn((4, 2), r)
 
-    @unittest.skipIf(platform.system() == 'Windows', 'Windows is very slow in starting up the pool.')
     def test_cache(self):
-        r = self.sc.parallelize(range(3), 3)
+        to_check = list(range(5))
+        r = self.sc.parallelize(to_check, 3)
 
         def sleep05(v):
             time.sleep(0.5)
             return v
 
         r = r.map(sleep05).cache()
-        self.assertEqual(r.collect(), [0, 1, 2])
+        self.assertCountEqual(r.collect(), to_check)
 
         start = time.time()
         r.collect()
-        self.assertLess(time.time() - start, 0.5)
+
+        # Yep... On Windows it's a lot slower!
+        self.assertLess(time.time() - start, 0.5 if platform.system() != 'Windows' else 1.0)
 
 
 class ProcessPoolIdlePerformance(unittest.TestCase):
@@ -156,18 +158,30 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
                                      serializer=cloudpickle.dumps,
                                      deserializer=pickle.loads)
             rdd = sc.parallelize(range(n), 10)
-            rdd.map(lambda _: time.sleep(0.1)).collect()
+            rdd.map(lambda _: time.sleep(0.01)).collect()
         return time.time() - start
 
-    @unittest.skipIf(
-        platform.python_implementation() == 'PyPy'
-        or platform.system() == 'Windows',
-        'test fails in PyPy and is very slow on Windows.'
-    )
+    @unittest.skipIf(platform.python_implementation() == 'PyPy', 'test fails in PyPy')
     def test_basic(self):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
-        self.assertLess(t10, t1 / 2.0)
+
+        # Timings on my Windows computer:
+
+        # sleep   t1        t10       t10-t1
+        # 0.01     1.402    3.411     2.009
+        # 0.10     2.259    3.478     1.219
+        # 0.20     3.251    3.446     0.195
+        # 0.30     4.321    3.602    -0.719
+        # 0.40     5.235    3.814    -1.421
+        # 0.50     6.215    3.788    -2.427
+        # 0.60     7.218    3.983    -3.235
+        # 0.70     8.191    4.251    -3.940
+        # 0.80     9.266    4.131    -5.135
+        # 0.09    10.239    4.393    -5.846
+        # 1.00    11.21     4.773    -6.437
+        pool_startup_time = 3.0 if platform.system() == 'Windows' else 0
+        self.assertLess(t10, pool_startup_time + t1 / 2.0)
 
 
 # pickle-able map function
