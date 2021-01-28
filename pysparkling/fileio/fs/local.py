@@ -33,7 +33,7 @@ class Local(FileSystem):
         t = Tokenizer(expr)
         prefix = t.next(['*', '?'])
 
-        if not any(prefix.endswith(sep) for sep in os_sep) and not any(sep in prefix for sep in os_sep):
+        if not any(prefix.endswith(sep) for sep in os_sep) and any(sep in prefix for sep in os_sep):
             prefix = os.path.dirname(prefix)
 
         files = []
