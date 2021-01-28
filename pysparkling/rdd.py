@@ -1,22 +1,21 @@
 """Provides a Python implementation of RDDs."""
 
-from __future__ import (division, absolute_import, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import math
-from builtins import range, zip
-from collections import defaultdict
 import copy
 import functools
 import io
 import itertools
 import logging
-from operator import itemgetter
+import math
 import os
 import pickle
 import random
 import subprocess
 import sys
+from builtins import range, zip
+from collections import defaultdict
+from operator import itemgetter
 
 try:
     import numpy

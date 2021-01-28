@@ -1,13 +1,13 @@
 from __future__ import absolute_import, unicode_literals
 
 import glob
-from fnmatch import fnmatch
 import io
 import logging
 import os
+from fnmatch import fnmatch
 
-from ...utils import Tokenizer
 from .file_system import FileSystem
+from ...utils import Tokenizer
 
 log = logging.getLogger(__name__)
 

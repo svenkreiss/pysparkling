@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
 import bz2
-from io import BytesIO
 import logging
+from io import BytesIO
 
 from .codec import Codec
 

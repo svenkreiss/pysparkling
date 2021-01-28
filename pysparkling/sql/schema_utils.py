@@ -1,9 +1,8 @@
 from functools import reduce
 
-from pysparkling.sql.internal_utils.joins import INNER_JOIN, CROSS_JOIN, LEFT_JOIN,\
-    LEFT_ANTI_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN, FULL_JOIN
-from pysparkling.sql.types import _infer_schema, _has_nulltype, _merge_type, \
-    StructType, StructField, _get_null_fields
+from pysparkling.sql.internal_utils.joins import CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, \
+    LEFT_SEMI_JOIN, RIGHT_JOIN
+from pysparkling.sql.types import _get_null_fields, _has_nulltype, _infer_schema, _merge_type, StructField, StructType
 from pysparkling.sql.utils import IllegalArgumentException
 
 

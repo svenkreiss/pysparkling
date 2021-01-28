@@ -4,10 +4,10 @@ from functools import partial
 
 from pysparkling.sql.casts import get_struct_caster
 from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readers.utils import resolve_partitions, get_records
+from pysparkling.sql.internal_utils.readers.utils import get_records, resolve_partitions
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import StructType, create_row, row_from_keyed_values
+from pysparkling.sql.types import create_row, row_from_keyed_values, StructType
 
 
 class JSONReader(object):

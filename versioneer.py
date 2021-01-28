@@ -274,12 +274,13 @@ https://img.shields.io/travis/com/python-versioneer/python-versioneer.svg
 """
 
 import configparser
-import errno
 import json
 import os
 import re
 import subprocess
 import sys
+
+import errno
 
 
 class VersioneerConfig:

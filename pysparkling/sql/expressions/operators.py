@@ -1,7 +1,7 @@
 from pysparkling import Row
 from pysparkling.sql.casts import get_caster
-from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, \
-    NullSafeBinaryOperation, TypeSafeBinaryOperation, BinaryOperation
+from pysparkling.sql.expressions.expressions import BinaryOperation, Expression, NullSafeBinaryOperation, \
+    TypeSafeBinaryOperation, UnaryExpression
 from pysparkling.sql.types import StructType
 
 

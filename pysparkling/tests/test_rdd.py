@@ -1,6 +1,6 @@
 import unittest
-
 from operator import add
+
 from pysparkling import Context
 
 

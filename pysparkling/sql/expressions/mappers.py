@@ -9,8 +9,7 @@ from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOp
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row, StringType
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round, \
-    MonotonicallyIncreasingIDGenerator
+from pysparkling.utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 

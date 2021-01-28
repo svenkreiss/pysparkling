@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from pysparkling.sql.casts import get_time_formatter, get_unix_timestamp_parser
 from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
-from pysparkling.sql.types import DateType, TimestampType, FloatType
+from pysparkling.sql.types import DateType, FloatType, TimestampType
 from pysparkling.utils import parse_tz
 
 GMT_TIMEZONE = pytz.timezone("GMT")
