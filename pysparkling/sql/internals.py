@@ -22,6 +22,17 @@ from pysparkling.utils import get_keyfunc, compute_weighted_percentiles, \
     merge_rows_joined_on_values, portable_hash
 
 
+def _generate_show_layout(char: str, fields):
+    if not fields:
+        return ''
+
+    txt = char
+    txt += char.join(fields)
+    txt += char + '\n'
+
+    return txt
+
+
 class FieldIdGenerator(object):
     """
     This metaclass adds an unique ID to all instances of its classes.
@@ -449,17 +460,15 @@ class DataFrameInternal(object):
         self_field_names = [field.name for field in self.bound_schema.fields]
         other_field_names = [field.name for field in other.bound_schema.fields]
         if len(self_field_names) != len(set(self_field_names)):
+            duplicate_names = [name for name, cnt in Counter(self_field_names).items() if cnt > 1]
             raise Exception(
-                "Found duplicate column(s) in the left attributes: {0}".format(
-                    name for name, cnt in Counter(self_field_names).items() if cnt > 1
-                )
+                f"Found duplicate column(s) in the left attributes: {duplicate_names}"
             )
 
         if len(other_field_names) != len(set(other_field_names)):
+            duplicate_names = [name for name, cnt in Counter(other_field_names).items() if cnt > 1]
             raise Exception(
-                "Found duplicate column(s) in the right attributes: {0}".format(
-                    name for name, cnt in Counter(other_field_names).items() if cnt > 1
-                )
+                f"Found duplicate column(s) in the right attributes: {duplicate_names}"
             )
 
         if len(self_field_names) != len(other_field_names):
@@ -631,13 +640,11 @@ class DataFrameInternal(object):
             [pad_cell(cell, truncate, col_width) for cell, col_width in zip(row, col_widths)]
             for row in rows
         )
-        sep = "+" + "+".join("-" * col_width for col_width in col_widths) + "+\n"
+        sep = _generate_show_layout('+', ('-' * col_width for col_width in col_widths))
         output += sep
         output += "|{0}|\n".format("|".join(padded_header))
         output += sep
-        body = "\n".join("|{0}|".format("|".join(padded_row)) for padded_row in padded_rows)
-        if body:
-            output += body + "\n"
+        output += '\n'.join(_generate_show_layout('|', row) for row in padded_rows)
         output += sep
         return output
 
@@ -687,7 +694,7 @@ class DataFrameInternal(object):
                          .zipWithIndex()
                          .toMap())
         column_size = len(distinct_col2)
-        if column_size < 1e4:
+        if column_size < 10_000:
             raise ValueError(
                 "The number of distinct values for {0} can't exceed 1e4. "
                 "Currently {1}".format(col2, column_size)

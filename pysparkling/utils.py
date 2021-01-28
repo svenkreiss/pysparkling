@@ -230,9 +230,8 @@ def format_cell(value):
     if isinstance(value, dict):
         return "[{0}]".format(
             ", ".join(
-                "{0} -> {1}".format(
-                    format_cell(key), format_cell(sub_value)
-                ) for key, sub_value in value.items()
+                f"{format_cell(key)} -> {format_cell(sub_value)}"
+                for key, sub_value in value.items()
             )
         )
     return str(value)

@@ -285,13 +285,13 @@ class CSVWriter(DataWriter):
             return 0
 
         partition_parts = [
-            "{0}={1}".format(col_name, ref_value[col_name])
+            f"{col_name}={ref_value[col_name]}"
             for col_name in self.partitioning_col_names
         ]
         file_path = "/".join(
             [output_path]
             + partition_parts
-            + ["part-00000-{0}.csv".format(portable_hash(ref_value))]
+            + [f"part-00000-{portable_hash(ref_value)}.csv"]
         )
 
         # pylint: disable=W0511

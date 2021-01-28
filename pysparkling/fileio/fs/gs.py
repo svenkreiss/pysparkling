@@ -129,13 +129,11 @@ class GS(FileSystem):
                 or list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
 
     def load(self):
-        log.debug('Loading {0} with size {1}.'
-                  ''.format(self.blob.name, self.blob.size))
+        log.debug(f'Loading {self.blob.name} with size {self.blob.size}.')
         return BytesIO(self.blob.download_as_string())
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
-        log.debug('Loading {0} with size {1}.'
-                  ''.format(self.blob.name, self.blob.size))
+        log.debug(f'Loading {self.blob.name} with size {self.blob.size}.')
         return StringIO(
             self.blob.download_as_string().decode(
                 encoding, encoding_errors
@@ -143,7 +141,7 @@ class GS(FileSystem):
         )
 
     def dump(self, stream):
-        log.debug('Dumping to {0}.'.format(self.blob.name))
+        log.debug(f'Dumping to {self.blob.name}.')
         self.blob.upload_from_string(stream.read(),
                                      content_type=self.mime_type)
         return self

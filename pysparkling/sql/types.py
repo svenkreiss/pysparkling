@@ -546,7 +546,7 @@ class StructType(DataType):
             for field in self:
                 if field.name == key:
                     return field
-            raise KeyError('No StructField named {0}'.format(key))
+            raise KeyError(f'No StructField named {key}')
         if isinstance(key, int):
             try:
                 return self.fields[key]
@@ -1028,7 +1028,7 @@ def _get_null_fields(field, prefix=""):
         )))
 
     if prefix:
-        prefixed_field_name = "{0}.{1}".format(prefix, field.name)
+        prefixed_field_name = f"{prefix}.{field.name}"
     else:
         prefixed_field_name = field.name
 
@@ -1809,7 +1809,7 @@ def string_to_type(string):
         else:
             precision, scale = arguments, 0
         return DecimalType(precision=int(precision), scale=int(scale))
-    raise ParseException("Unable to parse data type {0}".format(string))
+    raise ParseException(f"Unable to parse data type {string}")
 
 
 # Internal type hierarchy:
@@ -1844,6 +1844,5 @@ def python_to_spark_type(python_type):
     if python_type in PYTHON_TO_SPARK_TYPE:
         return PYTHON_TO_SPARK_TYPE[python_type]
     raise NotImplementedError(
-        "Pysparkling does not currently support "
-        "type {0} for the requested operation".format(python_type)
+        f"Pysparkling does not currently support type {python_type} for the requested operation"
     )

@@ -55,10 +55,10 @@ class CacheManager(object):
 
     def get(self, ident):
         if ident not in self.cache_obj:
-            log.debug('{0} not found in cache.'.format(ident))
+            log.debug(f'{ident} not found in cache.')
             return None
 
-        log.debug('Returning {0} from cache.'.format(ident))
+        log.debug(f'Returning {ident} from cache.')
         return self.cache_obj[ident]['mem_obj']
 
     def has(self, ident):

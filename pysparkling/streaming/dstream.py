@@ -304,7 +304,7 @@ class DStream(object):
             self
             .mapPartitions(lambda p: (f(e) for e in p), preservesPartitioning)
             .transform(lambda rdd:
-                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
+                       rdd.setName(f'{rdd.prev.name()}:{f}'))
         )
 
     def mapPartitions(self, f, preservesPartitioning=False):
@@ -317,7 +317,7 @@ class DStream(object):
             self
             .mapPartitionsWithIndex(lambda i, p: f(p), preservesPartitioning)
             .transform(lambda rdd:
-                       rdd.setName('{}:{}'.format(rdd.prev.name(), f)))
+                       rdd.setName(f'{rdd.prev.name()}:{f}'))
         )
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
@@ -365,7 +365,7 @@ class DStream(object):
         """
 
         def pprint_map(time_, rdd):
-            print('>>> Time: {}'.format(time_))
+            print(f'>>> Time: {time_}')
             data = rdd.take(num + 1)
             for d in data[:num]:
                 py_pprint.pprint(d)
@@ -479,8 +479,7 @@ class DStream(object):
         """
         self.foreachRDD(
             lambda time_, rdd:
-            rdd.saveAsTextFile('{}-{:.0f}{}'.format(
-                prefix, time_ * 1000, suffix if suffix is not None else ''))
+            rdd.saveAsTextFile(f'{prefix}-{time_ * 1000:.0f}{suffix if suffix is not None else ""}')
         )
 
     def slice(self, begin, end):

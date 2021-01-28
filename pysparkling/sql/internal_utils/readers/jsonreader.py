@@ -96,10 +96,8 @@ def parse_record(record, schema, partition, partition_schema, options):
     raw_record_value = json.loads(record, encoding=options.encoding)
     if not isinstance(raw_record_value, dict):
         raise NotImplementedError(
-            "Top level items should be JSON objects (dicts), got {0} with {1}".format(
-                type(raw_record_value),
-                raw_record_value
-            )
+            "Top level items should be JSON objects (dicts),"
+            f" got {type(raw_record_value)} with {raw_record_value}"
         )
     record_value = decode_record(raw_record_value)
     if schema is not None:
