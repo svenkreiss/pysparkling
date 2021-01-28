@@ -34,7 +34,7 @@ def plot(has_hyperthreading=True):
     ax.plot((n_cpu + 0.5, n_cpu + 0.5), (0, n_threads + 1),
             linewidth=2, linestyle='solid', color='black')
     ax.text(n_cpu + 0.4, n_threads + 1,
-            '{} CPU cores'.format(n_cpu),
+            f'{n_cpu} CPU cores',
             ha='right', va='top')
 
     # divide with cpu threads
@@ -42,7 +42,7 @@ def plot(has_hyperthreading=True):
         ax.plot((n_cpu * 2 + 0.5, n_cpu * 2 + 0.5), (0, n_threads + 1),
                 linewidth=2, linestyle='solid', color='black')
         ax.text(n_cpu * 2 + 0.4, n_threads + 1,
-                '{} CPU threads'.format(n_cpu * 2),
+                f'{n_cpu * 2} CPU threads',
                 ha='right', va='top')
 
     # add some text for labels, title and axes ticks
@@ -59,7 +59,7 @@ def plot(has_hyperthreading=True):
     for rect in bars:
         height = rect.get_height()
         ax.text(rect.get_x() + rect.get_width() / 2., height - 0.05,
-                '{:.2f}'.format(height),
+                f'{height:.2f}',
                 ha='center', va='top')
 
     fig.tight_layout()
