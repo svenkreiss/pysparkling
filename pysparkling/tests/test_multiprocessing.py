@@ -181,7 +181,7 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
         # 0.09    10.239    4.393    -5.846
         # 1.00    11.21     4.773    -6.437
         pool_startup_time = 3.0 if platform.system() == 'Windows' else 0
-        self.assertLess(t10, pool_startup_time + t1 / 2.0)
+        self.assertLess(t10, pool_startup_time + t1 / 1.5)
 
 
 # pickle-able map function
