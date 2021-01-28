@@ -46,7 +46,7 @@ class MockedS3Key(object):
 
 def test_local_1():
     filenames = File.resolve_filenames(
-        '{}/*'.format(os.path.dirname(CURRENT_FILE_LOCATION))
+        f'{os.path.dirname(CURRENT_FILE_LOCATION)}{os.path.sep}*'
     )
     assert CURRENT_FILE_LOCATION in filenames
 
