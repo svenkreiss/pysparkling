@@ -17,7 +17,7 @@ class TCPTextTest(tornado.testing.AsyncTestCase):
         for v in range(20):
             stream = yield client.connect('127.0.0.1', 8123)
             with closing(stream):
-                stream.write('a = {}\n'.format(v).encode('utf8'))
+                stream.write(f'a = {v}\n'.encode('utf8'))
         client.close()
 
     def test_connect(self):

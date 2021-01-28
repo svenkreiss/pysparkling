@@ -51,7 +51,7 @@ class CacheManager(object):
             'disk_location': None,
             'checksum': None,
         }
-        log.debug('Added {0} to cache.'.format(ident))
+        log.debug(f'Added {ident} to cache.')
 
     def get(self, ident):
         if ident not in self.cache_obj:

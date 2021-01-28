@@ -98,10 +98,7 @@ class Size(UnaryExpression):
         if isinstance(column_value, (list, dict)):
             return len(column_value)
         raise AnalysisException(
-            "{0} value should be an array or a map, got {1}".format(
-                self.column,
-                type(column_value)
-            )
+            f"{self.column} value should be an array or a map, got {type(column_value)}"
         )
 
 
@@ -182,12 +179,8 @@ class Sequence(Expression):
             if (step_value < stop_value and step_value <= 0) \
                or (step_value > stop_value and step_value >= 0):
                 raise Exception(
-                    "requirement failed: Illegal sequence boundaries: "
-                    "{0} to {1} by {2}".format(
-                        start_value,
-                        stop_value,
-                        step_value
-                    )
+                    "requirement failed: Illegal sequence boundaries:"
+                    f" {start_value} to {stop_value} by {step_value}"
                 )
         else:
             step_value = 1 if start_value < stop_value else -1

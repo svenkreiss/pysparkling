@@ -12,7 +12,7 @@ class SortOrder(Expression):
         return self.column.eval(row, schema)
 
     def __str__(self):
-        return "{0} {1}".format(self.column, self.sort_order)
+        return f"{self.column} {self.sort_order}"
 
     def args(self):
         return (self.column,)

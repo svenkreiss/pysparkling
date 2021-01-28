@@ -7,6 +7,7 @@ import random
 import sys
 import tempfile
 import unittest
+from typing import Any, Union
 
 import pytest
 
@@ -23,7 +24,7 @@ S3_TEST_PATH = os.getenv('S3_TEST_PATH')
 OAUTH2_CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
 GS_TEST_PATH = os.getenv('GS_TEST_PATH')
 HDFS_TEST_PATH = os.getenv('HDFS_TEST_PATH')
-LOCAL_TEST_PATH = os.path.dirname(__file__)
+LOCAL_TEST_PATH: Union[Union[str, bytes], Any] = os.path.dirname(__file__)
 
 
 def test_cache():

@@ -31,10 +31,7 @@ def cast_from_none(value, from_type, options):
     if value is None:
         return None
     raise AnalysisException(
-        "Expected a null value from a field with type {0}, got {1}".format(
-            from_type,
-            value
-        )
+        f"Expected a null value from a field with type {from_type}, got {value}"
     )
 
 
@@ -65,7 +62,7 @@ def cast_nested_to_str(value, from_type, options):
         return cast_sequence(value, from_type, options)
     if isinstance(from_type, MapType):
         return cast_map(value, from_type, options)
-    raise TypeError("Unable to cast {0}".format(type(from_type)))
+    raise TypeError(f"Unable to cast {type(from_type)}")
 
 
 def cast_map(value, from_type, options):
@@ -78,7 +75,7 @@ def cast_map(value, from_type, options):
     return "[{0}]".format(
         ", ".join("{0} ->{1}".format(
             casted_key,
-            " {0}".format(casted_value) if casted_value is not None else ""
+            f" {casted_value}" if casted_value is not None else ""
         ) for casted_key, casted_value in casted_values)
     )
 
@@ -94,11 +91,8 @@ def cast_sequence(value, from_type, options):
         ) if sub_value is not None else None
         for sub_value, sub_value_type in zip(value, types)
     ]
-    casted_value = "[{0}]".format(",".join(
-        ("" if casted_value is None else "{0}" if i == 0 else " {0}").format(casted_value)
-        for i, casted_value in enumerate(casted_values)
-    ))
-    return casted_value
+
+    return '[' + ', '.join('' if x is None else f' {x}' for x in casted_values).strip() + ']'
 
 
 def cast_to_binary(value, from_type, options):
@@ -107,7 +101,7 @@ def cast_to_binary(value, from_type, options):
         return bytearray(value, 'utf-8')
     if isinstance(from_type, BinaryType):
         return value
-    raise AnalysisException("Cannot cast type {0} to binary".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to binary")
 
 
 def cast_to_date(value, from_type, options):
@@ -133,7 +127,7 @@ def cast_to_date(value, from_type, options):
     if isinstance(from_type, (TimestampType, DateType, StringType)):
         return None  # other values would have been handle in the lines above
 
-    raise AnalysisException("Cannot cast type {0} to date".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to date")
 
 
 def parse_time_as_string(time_as_string):
@@ -209,7 +203,7 @@ def cast_to_timestamp(value, from_type, options):
         return datetime.datetime.fromtimestamp(value)
     if isinstance(from_type, (StringType, TimestampType, NumericType, BooleanType)):
         return None
-    raise AnalysisException("Cannot cast type {0} to timestamp".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to timestamp")
 
 
 def split_datetime_as_string(value):
@@ -235,7 +229,7 @@ def cast_to_boolean(value, from_type, options):
         return True if value.lower() == "true" else False if value.lower() == "false" else None
     if isinstance(from_type, (NumericType, BooleanType)):
         return bool(value)
-    raise AnalysisException("Cannot cast type {0} to boolean".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to boolean")
 
 
 def _cast_to_bounded_type(name, min_value, max_value, value, from_type, options):
@@ -259,7 +253,7 @@ def _cast_to_bounded_type(name, min_value, max_value, value, from_type, options)
     if isinstance(from_type, (NumericType, BooleanType)):
         value = int(value)
         return value % size if value % size <= max_value else value % -size
-    raise AnalysisException("Cannot cast type {0} to {1}".format(from_type, name))
+    raise AnalysisException(f"Cannot cast type {from_type} to {name}")
 
 
 def cast_to_byte(value, from_type, options):
@@ -301,7 +295,7 @@ def cast_to_float(value, from_type, options):
     except ValueError:
         if isinstance(from_type, (DateType, TimestampType, NumericType, StringType)):
             return None
-        raise AnalysisException("Cannot cast type {0} to float".format(from_type))
+        raise AnalysisException(f"Cannot cast type {from_type} to float")
 
 
 def cast_value(value, options):
@@ -334,7 +328,7 @@ def cast_to_array(value, from_type, to_type, options):
             caster(sub_value) if sub_value is not None else None
             for sub_value in value
         ]
-    raise AnalysisException("Cannot cast type {0} to array".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to array")
 
 
 def cast_to_map(value, from_type, to_type, options):
@@ -349,7 +343,7 @@ def cast_to_map(value, from_type, to_type, options):
             key_caster(key): (value_caster(sub_value) if sub_value is not None else None)
             for key, sub_value in value.items()
         }
-    raise AnalysisException("Cannot cast type {0} to map".format(from_type))
+    raise AnalysisException(f"Cannot cast type {from_type} to map")
 
 
 def cast_to_struct(value, from_type, to_type, options):
@@ -418,7 +412,7 @@ def get_caster(from_type, to_type, options):
         return partial(caster, from_type=from_type, to_type=to_type, options=options)
     if to_type_class in CASTERS:
         return partial(CASTERS[to_type_class], from_type=from_type, options=options)
-    raise AnalysisException("Cannot cast from {0} to {1}".format(from_type, to_type))
+    raise AnalysisException(f"Cannot cast from {from_type} to {to_type}")
 
 
 FORMAT_MAPPING = {
@@ -473,7 +467,7 @@ def get_sub_formatter(group):
     if token == "XXX":
         def timezone_formatter(value):
             tz = value.strftime("%z")
-            return "{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
+            return f"{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
 
         return timezone_formatter
 

@@ -9,8 +9,8 @@ def resolve_column(col, row, schema, allow_generator=True):
     output_values = col.eval(row, schema)
 
     if not allow_generator and col.may_output_multiple_rows:
-        raise Exception("Generators are not supported when it's nested in expressions, "
-                        "but got: {0}".format(col))
+        raise Exception("Generators are not supported when it's nested in expressions,"
+                        f" but got: {col}")
 
     if not col.may_output_multiple_rows:
         output_values = [output_values]

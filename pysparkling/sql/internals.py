@@ -79,7 +79,7 @@ class DataFrameInternal(object):
         """
         if convert_to_row:
             if cols is None:
-                cols = ["_c{0}".format(i) for i in range(200)]
+                cols = [f"_c{i}" for i in range(200)]
             rdd = rdd.map(partial(create_row, cols))
 
         self._sc = sc
@@ -363,10 +363,8 @@ class DataFrameInternal(object):
             number_of_generators = len(generators)
             if number_of_generators > 1:
                 raise Exception(
-                    "Only one generator allowed per select clause but found {0}: {1}".format(
-                        number_of_generators,
-                        ", ".join(generators)
-                    )
+                    "Only one generator allowed per select clause"
+                    f" but found {number_of_generators}: {', '.join(generators)}"
                 )
 
             return self.get_select_output_field_lists(
@@ -438,11 +436,8 @@ class DataFrameInternal(object):
         if len(self_field_names) != len(other_field_names):
             raise Exception(
                 "Union can only be performed on tables with the same number "
-                "of columns, but the first table has {0} columns and the "
-                "second table has {1} columns".format(
-                    len(self_field_names),
-                    len(other_field_names)
-                )
+                f"of columns, but the first table has {len(self_field_names)} columns and the "
+                f"second table has {len(other_field_names)} columns"
             )
 
         def change_col_names(row):
@@ -474,11 +469,8 @@ class DataFrameInternal(object):
         if len(self_field_names) != len(other_field_names):
             raise Exception(
                 "Union can only be performed on tables with the same number "
-                "of columns, but the first table has {0} columns and the "
-                "second table has {1} columns".format(
-                    len(self_field_names),
-                    len(other_field_names)
-                )
+                f"of columns, but the first table has {len(self_field_names)} columns and the "
+                f"second table has {len(other_field_names)} columns"
             )
 
         def change_col_order(row):
@@ -595,7 +587,7 @@ class DataFrameInternal(object):
         if not rows[1:] and vertical:
             output += "(0 rows)\n"
         elif contains_more:
-            output += "only showing top {0} row{1}\n".format(n, "s" if len(rows) > 1 else "")
+            output += f"only showing top {n} row{'s' if len(rows) > 1 else ''}\n"
 
         # Last \n will be added by print()
         return output[:-1]
@@ -612,7 +604,7 @@ class DataFrameInternal(object):
             *(str_half_width(cell) for data_row in rows for cell in data_row)
         )
         for i, row in enumerate(rows):
-            row_header = "-RECORD {0}".format(i).ljust(
+            row_header = f"-RECORD {i}".ljust(
                 field_names_col_width + data_col_width + 5,
                 "-"
             )
@@ -622,7 +614,7 @@ class DataFrameInternal(object):
                     field_names_col_width - str_half_width(field_name) + len(field_name)
                 )
                 data = format_cell(cell).ljust(data_col_width - str_half_width(cell))
-                output += " {0} | {1} \n".format(formatted_field_name, data)
+                output += f" {formatted_field_name} | {data} \n"
         return output
 
     @staticmethod
@@ -642,7 +634,7 @@ class DataFrameInternal(object):
         )
         sep = _generate_show_layout('+', ('-' * col_width for col_width in col_widths))
         output += sep
-        output += "|{0}|\n".format("|".join(padded_header))
+        output += _generate_show_layout('|', padded_header)
         output += sep
         output += '\n'.join(_generate_show_layout('|', row) for row in padded_rows)
         output += sep
@@ -696,8 +688,8 @@ class DataFrameInternal(object):
         column_size = len(distinct_col2)
         if column_size < 10_000:
             raise ValueError(
-                "The number of distinct values for {0} can't exceed 1e4. "
-                "Currently {1}".format(col2, column_size)
+                f"The number of distinct values for {col2} can't exceed 10_000."
+                f" Currently {column_size}"
             )
 
         def create_counts_row(col1Item, rows):
@@ -812,7 +804,7 @@ class DataFrameInternal(object):
         elif how == LEFT_SEMI_JOIN:
             joined_rdd = keyed_self._leftSemiJoin(keyed_other)
         else:
-            raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
+            raise IllegalArgumentException(f"Invalid how argument in join: {how}")
 
         def format_output(entry):
             _, (left, right) = entry
@@ -1048,7 +1040,7 @@ class InternalGroupedDataFrame(object):
                 new_schema = StructType(
                     grouping_schema.fields + [
                         StructField(
-                            "{0}_{1}".format(pivot_value, stat),
+                            f"{pivot_value}_{stat}",
                             DataType(),
                             True
                         )
@@ -1128,7 +1120,7 @@ class InternalGroupedDataFrame(object):
                 for groupings in list(itertools.product([True, False], repeat=nb_cols))
             ]
             return result
-        raise NotImplementedError("Unknown grouping type: {0}".format(self.group_type))
+        raise NotImplementedError(f"Unknown grouping type: {self.group_type}")
 
     def pivot(self, pivot_col, pivot_values):
         if pivot_values is None:
@@ -1203,4 +1195,4 @@ def get_pivoted_stats(stats, pivot_value):
         return stats
     if len(stats) == 1:
         return [stats[0].alias(pivot_value)]
-    return [stat.alias("{0}_{1}".format(pivot_value, stat)) for stat in stats]
+    return [stat.alias(f"{pivot_value}_{stat}") for stat in stats]

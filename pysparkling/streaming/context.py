@@ -194,7 +194,7 @@ class StreamingContext(object):
 
         def cb():
             time_ = time.time()
-            log.debug('Step {}'.format(time_))
+            log.debug(f'Step {time_}')
 
             # run a step on all streams
             for d in self._dstreams:
@@ -213,7 +213,7 @@ class StreamingContext(object):
         """
         while self._on_stop_cb:
             cb = self._on_stop_cb.pop()
-            log.debug('calling on_stop_cb {}'.format(cb))
+            log.debug(f'calling on_stop_cb {cb}')
             cb()
 
         IOLoop.current().stop()

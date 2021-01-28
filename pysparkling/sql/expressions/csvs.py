@@ -25,7 +25,7 @@ class SchemaOfCsv(Expression):
         if not isinstance(value, str) or value == "":
             raise AnalysisException(
                 "type mismatch: The input csv should be a string literal and not null; "
-                "however, got {0}.".format(value)
+                f"however, got {value}."
             )
         # pylint: disable=import-outside-toplevel; circular import
         from pysparkling.sql.internal_utils.readers.csvreader import csv_record_to_row

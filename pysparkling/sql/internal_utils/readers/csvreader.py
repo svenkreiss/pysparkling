@@ -103,7 +103,7 @@ def csv_record_to_row(record, options, schema=None, header=None,
     elif header is not None:
         field_names = header
     else:
-        field_names = ["_c{0}".format(i) for i, field in enumerate(record_values)]
+        field_names = [f"_c{i}" for i, field in enumerate(record_values)]
     partition_field_names = [
         f.name for f in partition_schema.fields
     ] if partition_schema else []

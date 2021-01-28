@@ -26,7 +26,7 @@ class Expression(object, metaclass=RegisterExpressions):
         raise NotImplementedError
 
     def __str__(self):
-        return "{0}({1})".format(self.pretty_name, ", ".join(str(arg) for arg in self.args()))
+        return f"{self.pretty_name}({', '.join(str(arg) for arg in self.args())})"
 
     def args(self):
         raise NotImplementedError
@@ -153,7 +153,7 @@ class Expression(object, metaclass=RegisterExpressions):
                 Expression.children_pre_evaluation_schema(child, schema)
 
     def get_literal_value(self):
-        raise AnalysisException("Expecting a Literal, but got {0}: {1}".format(type(self), self))
+        raise AnalysisException(f"Expecting a Literal, but got {type(self)}: {self}")
 
 
 class UnaryExpression(Expression):
@@ -212,7 +212,7 @@ class TypeSafeBinaryOperation(BinaryOperation):
             order_1 = INTERNAL_TYPE_ORDER.index(type_1)
             order_2 = INTERNAL_TYPE_ORDER.index(type_2)
         except ValueError as e:
-            raise AnalysisException("Unable to process type: {0}".format(e))
+            raise AnalysisException(f"Unable to process type: {e}")
 
         spark_type_1 = python_to_spark_type(type_1)
         spark_type_2 = python_to_spark_type(type_2)
@@ -256,8 +256,8 @@ class NullSafeBinaryOperation(BinaryOperation):
             return self.unsafe_operation(value_1, value_2)
 
         raise AnalysisException(
-            "Cannot resolve {0} due to data type mismatch, first value is {1}, second value is {2}."
-            "".format(self, type_1, type_2)
+            f"Cannot resolve {self} due to data type mismatch,"
+            f" first value is {type_1}, second value is {type_2}."
         )
 
     def __str__(self):

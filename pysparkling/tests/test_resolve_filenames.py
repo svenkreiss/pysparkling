@@ -22,7 +22,7 @@ class MockedHdfsClient(object):
                 ("part-00002.gz", {"type": "FILE"}),
                 ("_SUCCESS", {"type": "FILE"})
             ]
-        raise NotImplementedError("Return value not mocked for '{0}'".format(path))
+        raise NotImplementedError(f"Return value not mocked for '{path}'")
 
 
 class MockedS3Bucket(object):
@@ -46,7 +46,7 @@ class MockedS3Key(object):
 
 def test_local_1():
     filenames = File.resolve_filenames(
-        '{}/*'.format(os.path.dirname(CURRENT_FILE_LOCATION))
+        f'{os.path.dirname(CURRENT_FILE_LOCATION)}/*'
     )
     assert CURRENT_FILE_LOCATION in filenames
 

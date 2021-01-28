@@ -47,21 +47,24 @@ def _run_task(task_context, rdd, func, partition):
     """
     task_context.attempt_number += 1
 
-    log.debug('Running stage {} for partition {} of {} (id: {}).'
-              ''.format(task_context.stage_id,
-                        task_context.partition_id,
-                        rdd.name(), rdd.id()))
+    log.debug(
+        f'Running stage {task_context.stage_id} '
+        f'for partition {task_context.partition_id} '
+        f'of {rdd.name()} (id: {rdd.id()}).'
+    )
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
     except Exception as e:  # pylint: disable=broad-except
-        log.warning('Attempt {} failed for partition {} of {} (id: {}): {}'
-                    ''.format(task_context.attempt_number, partition.index,
-                              rdd.name(), rdd.id(), traceback.format_exc()))
+        log.warning(
+            f'Attempt {task_context.attempt_number} failed '
+            f'for partition {partition.index} '
+            f'of {rdd.name()} (id: {rdd.id()}): '
+            f'{traceback.format_exc()}'
+        )
 
         if task_context.attempt_number == task_context.max_retries:
-            log.error('Partition {} of {} failed.'
-                      ''.format(partition.index, rdd.name()))
+            log.error(f'Partition {partition.index} of {rdd.name()} failed.')
             if not task_context.catch_exceptions:
                 raise e
 
@@ -182,7 +185,7 @@ class Context(object):
             elif isinstance(value, complex):
                 accum_param = accumulators.COMPLEX_ACCUMULATOR_PARAM
             else:
-                raise TypeError("No default accumulator param for type {0}".format(type(value)))
+                raise TypeError(f"No default accumulator param for type {type(value)}")
         return accumulators.Accumulator(value, accum_param)
 
     def newRddId(self):
@@ -264,8 +267,7 @@ class Context(object):
 
         """
         resolved_names = File.resolve_filenames(name)
-        log.debug('pickleFile() resolved "{0}" to {1} files.'
-                  ''.format(name, len(resolved_names)))
+        log.debug(f'pickleFile() resolved "{name}" to {len(resolved_names)} files.')
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -416,8 +418,7 @@ class Context(object):
         ['bellobello']
         """
         resolved_names = File.resolve_filenames(path)
-        log.debug('binaryFile() resolved "{0}" to {1} files.'
-                  ''.format(path, len(resolved_names)))
+        log.debug(f'binaryFile() resolved "{path}" to {len(resolved_names)} files.')
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -515,8 +516,7 @@ class Context(object):
         :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(filename)
-        log.debug('textFile() resolved "{0}" to {1} files.'
-                  ''.format(filename, len(resolved_names)))
+        log.debug(f'textFile() resolved "{filename}" to {len(resolved_names)} files.')
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -563,8 +563,7 @@ class Context(object):
         :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(path)
-        log.debug('wholeTextFiles() resolved "{0}" to {1} files.'
-                  ''.format(path, len(resolved_names)))
+        log.debug(f'wholeTextFiles() resolved "{path}" to {len(resolved_names)} files.')
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:

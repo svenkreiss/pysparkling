@@ -250,8 +250,8 @@ class Column(object):
         """
         if not isinstance(startPos, type(length)):
             raise TypeError(
-                "startPos and length must be the same type. "
-                "Got {0} and {1}, respectively.".format(type(startPos), type(length))
+                "startPos and length must be the same type."
+                f" Got {type(startPos)} and {type(length)}, respectively."
             )
         return Column(Substring(self, parse_operator(startPos), parse_operator(length)))
 
@@ -513,7 +513,7 @@ class Column(object):
         if isinstance(dataType, str):
             dataType = string_to_type(dataType)
         elif not isinstance(dataType, DataType):
-            raise NotImplementedError("Unknown cast type: {}".format(dataType))
+            raise NotImplementedError(f"Unknown cast type: {dataType}")
 
         return Column(Cast(self, dataType))
 
@@ -620,7 +620,7 @@ class Column(object):
         if isinstance(self.expr, str):
             return False
         raise NotImplementedError(
-            "Not implemented column expression type: {0}".format(type(self.expr))
+            f"Not implemented column expression type: {type(self.expr)}"
         )
 
     def output_fields(self, schema):
@@ -698,12 +698,12 @@ class Column(object):
         return str(self)
 
     def __repr__(self):
-        return "Column<{0!r}>".format(self.expr)
+        return f"Column<{self.expr!r}>"
 
     def get_literal_value(self):
         if isinstance(self.expr, Expression):
             return self.expr.get_literal_value()
-        raise AnalysisException("Expecting a Literal, but got {0}: {1}".format(type(self), self))
+        raise AnalysisException(f"Expecting a Literal, but got {type(self)}: {self}")
 
 
 def parse(arg):
@@ -728,9 +728,8 @@ def ensure_column(arg):
         return arg
     if isinstance(arg, str):
         return Column(arg)
-    raise TypeError("Invalid argument, not a string or column: {0} of type {1}. "
-                    "For column literals, use 'lit', 'array', 'struct' or 'create_map' function."
-                    .format(arg, type(arg)))
+    raise TypeError(f"Invalid argument, not a string or column: {arg} of type {type(arg)}. "
+                    "For column literals, use 'lit', 'array', 'struct' or 'create_map' function.")
 
 
 def parse_operator(arg):

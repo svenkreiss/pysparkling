@@ -518,15 +518,15 @@ class RowStatHelper(object):
             try:
                 percentile = float(stat[:-1]) / 100
             except ValueError:
-                raise ValueError("Unable to parse {0} as a percentile".format(stat))
+                raise ValueError(f"Unable to parse {stat} as a percentile")
             value = stats_counter.get_quantile(percentile)
         else:
-            raise ValueError("{0} is not a recognised statistic".format(stat))
+            raise ValueError(f"{stat} is not a recognised statistic")
         return RowStatHelper.format_stat(value)
 
     def get_col_quantile(self, col, quantile):
         if str(col) not in self.column_stat_helpers:
-            raise Exception("Unable to get quantile for {0}".format(quantile))
+            raise Exception(f"Unable to get quantile for {quantile}")
         quantile = self.column_stat_helpers[str(col)].get_quantile(quantile)
         return float(quantile) if quantile is not None else None
 

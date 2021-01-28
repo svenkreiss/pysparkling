@@ -26,5 +26,5 @@ class OptionUtils(object):
     def schema(self, schema):
         # By default OptionUtils subclass do not support schema
         raise IllegalArgumentException(
-            "schema is not a valid argument for {0}".format(self.__class__)
+            f"schema is not a valid argument for {self.__class__}"
         )

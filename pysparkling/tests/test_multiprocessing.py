@@ -25,7 +25,7 @@ class Processor(object):
 
     def indent_line(self, line):
         self.executed = True
-        return '--- {}'.format(line)
+        return f'--- {line}'
 
 
 class LazyTestInjection(object):
@@ -218,7 +218,7 @@ def test_performance():
     })
     print('time spent where:')
     pprint.pprint({
-        n: {k: '{:.1%}'.format(t / v[1]['map_exec']) for k, t in v[1].items()}
+        n: {k: f'{t / v[1]["map_exec"]:.1%}' for k, t in v[1].items()}
         for n, v in test_results.items()
     })
 

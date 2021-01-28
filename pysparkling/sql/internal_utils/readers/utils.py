@@ -22,7 +22,7 @@ def resolve_partitions(patterns):
     """
     file_paths = File.get_content(patterns)
     if not file_paths:
-        raise AnalysisException('Path does not exist: {0}'.format(patterns))
+        raise AnalysisException(f'Path does not exist: {patterns}')
     partitions = {}
     for file_path in file_paths:
         if "=" in file_path:
@@ -38,22 +38,16 @@ def resolve_partitions(patterns):
     partitioning_field_sets = set(p.__fields__ for p in partitions.values() if p is not None)
     if len(partitioning_field_sets) > 1:
         raise Exception(
-            "Conflicting directory structures detected while reading {0}. "
-            "All partitions must have the same partitioning fields, found fields {1}".format(
-                ",".join(patterns),
-                " and also ".join(
-                    str(fields) for fields in partitioning_field_sets
-                )
-            )
+            f"Conflicting directory structures detected while reading {','.join(patterns)}. "
+            f"All partitions must have the same partitioning fields,"
+            f" found fields {' and also '.join(str(fields) for fields in partitioning_field_sets)}"
         )
 
     if partitioning_field_sets:
         if any(value is None for value in partitions.values()):
+            paths = [path for path, value in partitions.items() if value is None]
             raise AnalysisException(
-                "Unable to parse those malformed folders: {1} of {0}".format(
-                    file_paths,
-                    [path for path, value in partitions.items() if value is None]
-                )
+                f"Unable to parse those malformed folders: {paths} of {file_paths}"
             )
         partitioning_fields = partitioning_field_sets.pop()
         partition_schema = guess_schema_from_strings(

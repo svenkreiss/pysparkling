@@ -12,7 +12,7 @@ class Manip(object):
 
     def trivial_manip_with_debug(self, e):
         self.count += 1
-        print('manipulating {0}'.format(e))
+        print(f'manipulating {e}')
         return e
 
 
@@ -26,7 +26,7 @@ def test_cache_empty_partition():
     print(rdd.collect())
     print(rdd.collect())
 
-    print('count of map executions: {}'.format(m.count))
+    print(f'count of map executions: {m.count}')
     assert m.count == 10
 
 

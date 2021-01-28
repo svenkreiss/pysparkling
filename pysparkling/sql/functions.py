@@ -2478,8 +2478,8 @@ def schema_of_csv(csv, options=None):
         csv = lit(csv)
     elif not isinstance(csv, Column) or not isinstance(csv.expr, Literal):
         raise AnalysisException(
-            "type mismatch: The input csv should be a string literal and not null; "
-            "however, got {0}.".format(csv)
+            "type mismatch: The input csv should be a string literal and not null;"
+            f" however, got {csv}."
         )
     return col(SchemaOfCsv(parse(csv), options))
 
@@ -2523,9 +2523,7 @@ def udf(f, returnType=DataType()):
 
     def wrapper(*args, **kwargs):
         if kwargs:
-            raise TypeError("wrapper() got an unexpected keyword argument '{0}'".format(
-                list(kwargs.keys())
-            ))
+            raise TypeError(f"wrapper() got an unexpected keyword argument '{list(kwargs)}'")
         exprs = [parse(arg) for arg in args]
         return col(UserDefinedFunction(f, returnType, *exprs))
 

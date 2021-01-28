@@ -21,8 +21,8 @@ class Literal(Expression):
 
     def get_literal_value(self):
         if hasattr(self.value, "expr") or isinstance(self.value, Expression):
-            raise AnalysisException("Value should not be a Column or an Expression, "
-                                    "but got {0}: {1}".format(type(self), self))
+            raise AnalysisException("Value should not be a Column or an Expression,"
+                                    f" but got {type(self)}: {self}")
         return self.value
 
     def args(self):

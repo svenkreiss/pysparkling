@@ -35,7 +35,7 @@ def get_codec(path):
 
     for endings, codec_class in FILE_ENDINGS:
         if any(path.endswith(e) for e in endings):
-            log.debug('Using {0} codec: {1}'.format(endings, path))
+            log.debug(f'Using {endings} codec: {path}')
             return codec_class
 
     return NoCodec

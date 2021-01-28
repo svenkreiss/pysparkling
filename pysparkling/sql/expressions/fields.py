@@ -35,14 +35,14 @@ def find_position_in_schema(schema, expr):
         matches = set(i for i, field in enumerate(schema.fields) if expr.id == field.id)
     else:
         if isinstance(expr, StructField):
-            expression = "Unbound field {0}".format(expr.name)
+            expression = f"Unbound field {expr.name}"
         else:
-            expression = "Expression type '{0}'".format(type(expr))
+            expression = f"Expression type '{type(expr)}'"
 
         raise NotImplementedError(
-            "{0} is not supported. "
+            f"{expression} is not supported. "
             "As a user you should not see this error, feel free to report a bug at "
-            "https://github.com/svenkreiss/pysparkling/issues".format(expression)
+            "https://github.com/svenkreiss/pysparkling/issues"
         )
 
     return get_checked_matches(matches, field_name, schema, show_id)
@@ -50,17 +50,12 @@ def find_position_in_schema(schema, expr):
 
 def get_checked_matches(matches, field_name, schema, show_id):
     if not matches:
-        raise AnalysisException("Unable to find the column '{0}' among {1}".format(
-            field_name,
-            format_schema(schema, show_id)
-        ))
+        raise AnalysisException(f"Unable to find the column '{field_name}'"
+                                f" among {format_schema(schema, show_id)}")
 
     if len(matches) > 1:
         raise AnalysisException(
-            "Reference '{0}' is ambiguous, found {1} columns matching it.".format(
-                field_name,
-                len(matches)
-            )
+            f"Reference '{field_name}' is ambiguous, found {len(matches)} columns matching it."
         )
 
     return matches.pop()
@@ -72,5 +67,5 @@ def format_schema(schema, show_id):
 
 def format_field(field, show_id):
     if show_id:
-        return "{0}#{1}".format(field.name, field.id)
+        return f"{field.name}#{field.id}"
     return field.name
