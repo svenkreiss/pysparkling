@@ -1,18 +1,16 @@
 """Sends tcp messages."""
-
-from __future__ import absolute_import, division
-
 import argparse
-from contextlib import closing
 import json
 import random
 import struct
 import sys
 import time
+from contextlib import closing
+
 from tornado import gen
-from tornado.tcpclient import TCPClient
 from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado.iostream import StreamClosedError
+from tornado.tcpclient import TCPClient
 
 
 class Emitter(object):

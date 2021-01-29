@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-
-from ..rdd import RDD, EmptyRDD
+from ..rdd import EmptyRDD, RDD
 
 
 class QueueStreamDeserializer(object):

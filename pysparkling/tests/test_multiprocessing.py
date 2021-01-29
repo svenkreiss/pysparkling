@@ -1,6 +1,3 @@
-from __future__ import division, print_function
-
-from concurrent import futures
 import logging
 import math
 import multiprocessing
@@ -12,6 +9,7 @@ import random
 import time
 import timeit
 import unittest
+from concurrent import futures
 
 import cloudpickle
 

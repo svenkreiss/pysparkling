@@ -1,12 +1,10 @@
-from __future__ import absolute_import
-
 try:
     import py7zlib
 except ImportError:
     py7zlib = None
 
-from io import BytesIO
 import logging
+from io import BytesIO
 
 from .codec import Codec
 

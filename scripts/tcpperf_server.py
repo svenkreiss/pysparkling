@@ -1,14 +1,12 @@
-from __future__ import print_function, division
-
-from collections import defaultdict
 import json
 import logging
 import math
 import os
-import pysparkling
 import struct
 import time
+from collections import defaultdict
 
+import pysparkling
 
 N_CONNECTIONS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
                  6000, 7000, 8000)

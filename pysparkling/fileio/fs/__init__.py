@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from .file_system import FileSystem
 from .gs import GS
 from .hdfs import Hdfs

@@ -1,8 +1,4 @@
 """Manages caches of calculated partitions."""
-
-from __future__ import (division, absolute_import, print_function,
-                        unicode_literals)
-
 import logging
 import pickle
 import time

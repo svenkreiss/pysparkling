@@ -1,11 +1,8 @@
-from __future__ import absolute_import, print_function
-
 import logging
 import time
 
 from .dstream import DStream
-from .filestream import (FileStream, FileTextStreamDeserializer,
-                         FileBinaryStreamDeserializer)
+from .filestream import (FileBinaryStreamDeserializer, FileStream, FileTextStreamDeserializer)
 from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:

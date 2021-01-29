@@ -2,12 +2,9 @@
 
 Run with `spark-submit scripts/pyspark_streaming.py`.
 """
-
-from __future__ import print_function
-
-import pyspark
-import pyspark.streaming
 import time
+
+import pyspark.streaming
 
 
 def simple_queue(ssc):

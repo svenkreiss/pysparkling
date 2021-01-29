@@ -1,7 +1,5 @@
-from __future__ import absolute_import
-
-from io import BytesIO
 import logging
+from io import BytesIO
 
 from . import codec
 from . import fs
