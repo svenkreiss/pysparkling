@@ -552,6 +552,15 @@ class StructType(DataType):
         return 'struct<%s>' % (','.join(f.simpleString() for f in self))
 
     def treeString(self):
+        """
+        >>> schema = StructType.fromDDL('some_str: string, some_int: integer, some_date: date')
+        >>> print(schema.treeString())
+         |-- some_str: string (nullable = true)
+         |-- some_int: integer (nullable = true)
+         |-- some_date: date (nullable = true)
+
+        :return: str with the schema inside.
+        """
         return '\n'.join(
             f' |-- {field.name}: {field.dataType.typeName()} (nullable = {"true" if field.nullable else "false"})'
             for field in self.fields
