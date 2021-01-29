@@ -2,11 +2,11 @@ from unittest import TestCase
 
 import pytest
 
-from pysparkling import StorageLevel
-from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, \
-    ArrayType, MapType, IntegerType, row_from_keyed_values
-from pysparkling.sql.session import SparkSession
 from pysparkling import Context
+from pysparkling import StorageLevel
+from pysparkling.sql.session import SparkSession
+from pysparkling.sql.types import ArrayType, DoubleType, IntegerType, LongType, MapType, Row, row_from_keyed_values, \
+    StringType, StructField, StructType
 from pysparkling.sql.utils import require_minimum_pandas_version
 
 try:
@@ -112,7 +112,7 @@ class SessionTests(TestCase):
 
     def test_session_create_data_frame_from_list_with_schema(self):
         schema = StructType([StructField("map", MapType(StringType(), IntegerType()), True)])
-        df = self.spark.createDataFrame([({u'a': 1},)], schema=schema)
+        df = self.spark.createDataFrame([({'a': 1},)], schema=schema)
         self.assertEqual(df.count(), 1)
         self.assertListEqual(
             df.collect(),

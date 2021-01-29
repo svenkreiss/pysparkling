@@ -1,7 +1,7 @@
 from pysparkling.sql.column import Column
 from pysparkling.sql.dataframe import DataFrame
 # pylint: disable=W0622
-from pysparkling.sql.functions import count, mean, parse, avg, max, min, sum, lit
+from pysparkling.sql.functions import avg, count, lit, max, mean, min, parse, sum
 
 
 class GroupedData(object):
@@ -13,7 +13,7 @@ class GroupedData(object):
     def agg(self, *exprs):
         """
         # >>> sorted(gdf.agg({"*": "count"}).collect())
-        # [Row(name=u'Alice', count(1)=1), Row(name=u'Bob', count(1)=1)]
+        # [Row(name='Alice', count(1)=1), Row(name='Bob', count(1)=1)]
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
