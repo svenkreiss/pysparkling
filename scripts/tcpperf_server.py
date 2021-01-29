@@ -1,14 +1,14 @@
-from __future__ import print_function, division
+from __future__ import division, print_function
 
-from collections import defaultdict
 import json
 import logging
 import math
 import os
-import pysparkling
 import struct
 import time
+from collections import defaultdict
 
+import pysparkling
 
 N_CONNECTIONS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
                  6000, 7000, 8000)
@@ -22,14 +22,14 @@ class Server(object):
         self.port = start_port
         self.processes = processes
 
-    def client(self, n=2000, format_='hello'):
+    def client(self, n_=2000, format_='hello'):
         for _ in range(self.processes):
             os.system('python tests/tcpperf_client.py '
                       '-n {} --port {} --format {} --values {} &'
-                      ''.format(int(n / self.processes), self.port, format_,
+                      ''.format(int(n_ / self.processes), self.port, format_,
                                 self.values))
 
-    def run(self, n=2000, to_kv=None, format_='hello'):
+    def _run_process(self, n_, to_kv, format_):
         c = pysparkling.Context()
         stream_c = pysparkling.streaming.StreamingContext(c, 1.0)
 
@@ -52,10 +52,20 @@ class Server(object):
 
             t.map(to_kv).groupByKey().foreachRDD(lambda _, rdd: update(rdd))
 
-        self.client(n, format_=format_)
+        self.client(n_, format_=format_)
 
         stream_c.start()
         stream_c.awaitTermination(timeout=5.0)
+
+        return (
+            counts,
+            sensor_sums,
+            sensor_squares,
+            sensor_counts
+        )
+
+    def run(self, n_=2000, to_kv=None, format_='hello'):
+        counts, sensor_sums, sensor_squares, sensor_counts = self._run_process(n_, to_kv, format_)
 
         result = max(counts) if counts else 0
         sensor_expections = {
@@ -68,7 +78,7 @@ class Server(object):
             for k, ex_ex2 in sensor_expections.items()
         }
         print('run: n = {}, counts = {}, result = {}'
-              ''.format(n, counts, result))
+              ''.format(n_, counts, result))
         print('sensors = {}'.format(sensors))
         time.sleep(self.pause)
         self.port += 1

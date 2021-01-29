@@ -1,4 +1,4 @@
-from IPython.parallel import Client
+from ipyparallel import Client
 
 rc = Client('/Users/sven/.starcluster/ipcluster/'
             'SecurityGroup:@sc-smallcluster-us-east-1.json',
