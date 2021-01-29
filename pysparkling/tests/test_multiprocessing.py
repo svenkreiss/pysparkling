@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 
-from concurrent import futures
 import logging
 import math
 import multiprocessing
@@ -12,6 +11,7 @@ import random
 import time
 import timeit
 import unittest
+from concurrent import futures
 
 import cloudpickle
 
@@ -166,7 +166,7 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
 
-        # Timings on my Windows computer:
+        # Timings on my Windows computer (Win 10 -- i7-7740X 4.30Ghz (4 cores, 8 processors), 64G ram):
 
         # sleep   t1        t10       t10-t1
         # 0.01     1.402    3.411     2.009
