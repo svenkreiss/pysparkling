@@ -10,7 +10,7 @@ class RegisterExpressions(type):
     pretty_name = None
 
     def __init__(cls, what, bases, dct):
-        super(RegisterExpressions, cls).__init__(what, bases, dct)
+        super().__init__(what, bases, dct)
         if cls.pretty_name is not None:
             expression_registry[cls.pretty_name] = cls
 
@@ -158,7 +158,7 @@ class Expression(object, metaclass=RegisterExpressions):
 
 class UnaryExpression(Expression):
     def __init__(self, column):
-        super(UnaryExpression, self).__init__(column)
+        super().__init__(column)
         self.column = column
 
     def eval(self, row, schema):
@@ -174,7 +174,7 @@ class BinaryOperation(Expression):
     """
 
     def __init__(self, arg1, arg2):
-        super(BinaryOperation, self).__init__(arg1, arg2)
+        super().__init__(arg1, arg2)
         self.arg1 = arg1
         self.arg2 = arg2
 
@@ -212,7 +212,7 @@ class TypeSafeBinaryOperation(BinaryOperation):
             order_1 = INTERNAL_TYPE_ORDER.index(type_1)
             order_2 = INTERNAL_TYPE_ORDER.index(type_2)
         except ValueError as e:
-            raise AnalysisException("Unable to process type: {0}".format(e))
+            raise AnalysisException("Unable to process type: {0}".format(e)) from e
 
         spark_type_1 = python_to_spark_type(type_1)
         spark_type_2 = python_to_spark_type(type_2)
@@ -269,7 +269,7 @@ class NullSafeBinaryOperation(BinaryOperation):
 
 class NullSafeColumnOperation(Expression):
     def __init__(self, column, *args):
-        super(NullSafeColumnOperation, self).__init__(column, *args)
+        super().__init__(column, *args)
         self.column = column
 
     def eval(self, row, schema):
