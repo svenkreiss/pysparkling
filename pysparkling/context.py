@@ -21,10 +21,6 @@ from .partition import Partition
 from .rdd import RDD, EmptyRDD
 from .task_context import TaskContext
 
-if not hasattr(time, 'perf_counter'):
-    raise Exception("`time`should contain perf_counter")
-
-
 log = logging.getLogger(__name__)
 
 
