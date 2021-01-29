@@ -1,14 +1,13 @@
 import warnings
 
 from pysparkling import StorageLevel
-from pysparkling.sql.column import parse, Column
+from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
-from pysparkling.sql.internal_utils.joins import JOIN_TYPES, CROSS_JOIN
-from pysparkling.sql.internals import InternalGroupedDataFrame, ROLLUP_TYPE, CUBE_TYPE
-from pysparkling.sql.types import ByteType, ShortType, IntegerType, FloatType, IntegralType, \
-    TimestampType, _check_series_convert_timestamps_local_tz
-from pysparkling.sql.utils import IllegalArgumentException, AnalysisException, \
-    require_minimum_pandas_version
+from pysparkling.sql.internal_utils.joins import CROSS_JOIN, JOIN_TYPES
+from pysparkling.sql.internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
+from pysparkling.sql.types import ByteType, FloatType, IntegerType, IntegralType, ShortType, TimestampType, \
+    _check_series_convert_timestamps_local_tz
+from pysparkling.sql.utils import AnalysisException, IllegalArgumentException, require_minimum_pandas_version
 
 _NoValue = object()
 
@@ -78,6 +77,7 @@ class DataFrame(object):
         return self._jdf.unbound_schema
 
     def printSchema(self):
+        print('root')
         print(self.schema.treeString())
 
     def explain(self, extended=False):

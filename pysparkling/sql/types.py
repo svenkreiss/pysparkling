@@ -14,18 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import itertools
-import os
-import sys
-import decimal
-import datetime
-import json as _json
-import re
-from array import array
 import ctypes
+import datetime
+import decimal
+import itertools
+import json as _json
+import os
+import re
+import sys
+from array import array
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
-
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -551,6 +550,12 @@ class StructType(DataType):
 
     def simpleString(self):
         return 'struct<%s>' % (','.join(f.simpleString() for f in self))
+
+    def treeString(self):
+        return '\n'.join(
+            f' |-- {field.name}: {field.dataType.typeName()} (nullable = {"true" if field.nullable else "false"})'
+            for field in self.fields
+        )
 
     def __repr__(self):
         return ("StructType(List(%s))" %
