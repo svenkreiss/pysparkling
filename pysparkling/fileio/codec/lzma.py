@@ -1,10 +1,5 @@
-# lzma only available in Python >= 3.3
-try:
-    import lzma
-except ImportError:
-    lzma = None
-
 import logging
+import lzma
 from io import BytesIO
 
 from .codec import Codec
