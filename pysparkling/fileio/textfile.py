@@ -9,12 +9,6 @@ from .fs.file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
-# there is no basestring in Python 3, so define string_types:
-try:
-    string_types = basestring
-except NameError:
-    string_types = str
-
 
 class TextFile(File):
     """Derived from :class:`File`.
@@ -43,7 +37,7 @@ class TextFile(File):
         """Writes a stream to a file.
 
         :param stream:
-            An ``io.StringIO`` instance. A ``basestring`` is also possible and
+            An ``io.StringIO`` instance. A ``str`` is also possible and
             get converted to ``io.StringIO``.
 
         :param encoding: (optional)
@@ -54,7 +48,7 @@ class TextFile(File):
         if stream is None:
             stream = StringIO()
 
-        if isinstance(stream, string_types):
+        if isinstance(stream, str):
             stream = StringIO(stream)
 
         stream = self.codec.compress(

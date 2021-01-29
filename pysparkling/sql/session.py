@@ -1,4 +1,3 @@
-import sys
 from threading import RLock
 
 from pysparkling.sql.types import _make_type_verifier, DataType, StructType, \
@@ -13,15 +12,6 @@ from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.readwriter import DataFrameReader
 from pysparkling.sql.schema_utils import infer_schema_from_list
 from pysparkling.sql.utils import require_minimum_pandas_version
-
-if sys.version >= '3':
-    basestring = unicode = str
-    xrange = range
-else:
-    import itertools as _itertools
-
-    # pylint: disable=W0622
-    map = getattr(_itertools, "imap")
 
 
 class SparkSession(object):
@@ -98,6 +88,7 @@ class SparkSession(object):
         #     # noinspection PyAttributeOutsideInit
         #     self._catalog = Catalog(self)
         # return self._catalog
+        raise NotImplementedError()
 
     @property
     def udf(self):
@@ -231,7 +222,7 @@ class SparkSession(object):
         if isinstance(data, DataFrame):
             raise TypeError("data is already a DataFrame")
 
-        if isinstance(schema, basestring):
+        if isinstance(schema, str):
             schema = StructType.fromDDL(schema)
         elif isinstance(schema, (list, tuple)):
             # Must re-encode any unicode strings to be consistent with StructField names
@@ -240,13 +231,12 @@ class SparkSession(object):
         try:
             # pandas is an optional dependency
             # pylint: disable=import-outside-toplevel
-            has_pandas = True
             import pandas
         except ImportError:
-            has_pandas = False
-
-        if has_pandas and isinstance(data, pandas.DataFrame):
-            data, schema = self.parse_pandas_dataframe(data, schema)
+            pass
+        else:
+            if isinstance(data, pandas.DataFrame):
+                data, schema = self.parse_pandas_dataframe(data, schema)
 
         no_check = lambda _: True
         if isinstance(schema, StructType):
@@ -293,9 +283,7 @@ class SparkSession(object):
         timezone = None
         # If no schema supplied by user then get the names of columns only
         if schema is None:
-            schema = [str(x) if not isinstance(x, basestring) else
-                      (x.encode('utf-8') if not isinstance(x, str) else x)
-                      for x in data.columns]
+            schema = [str(x) for x in data.columns]
         data = self._convert_from_pandas(data, schema, timezone)
         return data, schema
 

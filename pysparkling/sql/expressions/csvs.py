@@ -13,7 +13,7 @@ class SchemaOfCsv(Expression):
     pretty_name = "schema_of_csv"
 
     def __init__(self, column, options):
-        super(SchemaOfCsv, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.input_options = options
         # pylint: disable=import-outside-toplevel; circular import
