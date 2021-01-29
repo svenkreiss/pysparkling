@@ -17,7 +17,7 @@ class AddMonths(Expression):
     pretty_name = "add_months"
 
     def __init__(self, start_date, num_months):
-        super(AddMonths, self).__init__(start_date)
+        super().__init__(start_date)
         self.start_date = start_date
         self.num_months = num_months.get_literal_value()
         self.timedelta = datetime.timedelta(days=self.num_months)
@@ -36,7 +36,7 @@ class DateAdd(Expression):
     pretty_name = "date_add"
 
     def __init__(self, start_date, num_days):
-        super(DateAdd, self).__init__(start_date)
+        super().__init__(start_date)
         self.start_date = start_date
         self.num_days = num_days.get_literal_value()
         self.timedelta = datetime.timedelta(days=self.num_days)
@@ -55,7 +55,7 @@ class DateSub(Expression):
     pretty_name = "date_sub"
 
     def __init__(self, start_date, num_days):
-        super(DateSub, self).__init__(start_date)
+        super().__init__(start_date)
         self.start_date = start_date
         self.num_days = num_days.get_literal_value()
         self.timedelta = datetime.timedelta(days=self.num_days)
@@ -157,7 +157,7 @@ class NextDay(Expression):
     pretty_name = "next_day"
 
     def __init__(self, column, day_of_week):
-        super(NextDay, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.day_of_week = day_of_week.get_literal_value()
 
@@ -185,7 +185,7 @@ class MonthsBetween(Expression):
     pretty_name = "months_between"
 
     def __init__(self, column1, column2, round_off):
-        super(MonthsBetween, self).__init__(column1, column2)
+        super().__init__(column1, column2)
         self.column1 = column1
         self.column2 = column2
         self.round_off = round_off.get_literal_value()
@@ -232,7 +232,7 @@ class DateDiff(Expression):
     pretty_name = "datediff"
 
     def __init__(self, column1, column2):
-        super(DateDiff, self).__init__(column1, column2)
+        super().__init__(column1, column2)
         self.column1 = column1
         self.column2 = column2
 
@@ -257,7 +257,7 @@ class FromUnixTime(Expression):
     pretty_name = "from_unixtime"
 
     def __init__(self, column, f):
-        super(FromUnixTime, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.format = f.get_literal_value()
         self.formatter = get_time_formatter(self.format)
@@ -277,7 +277,7 @@ class DateFormat(Expression):
     pretty_name = "date_format"
 
     def __init__(self, column, f):
-        super(DateFormat, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.format = f.get_literal_value()
         self.formatter = get_time_formatter(self.format)
@@ -297,14 +297,14 @@ class CurrentTimestamp(Expression):
     pretty_name = "current_timestamp"
 
     def __init__(self):
-        super(CurrentTimestamp, self).__init__()
+        super().__init__()
         self.current_timestamp = None
 
     def eval(self, row, schema):
         return self.current_timestamp
 
     def initialize(self, partition_index):
-        super(CurrentTimestamp, self).initialize(partition_index)
+        super().initialize(partition_index)
         self.current_timestamp = datetime.datetime.now()
 
     def args(self):
@@ -315,14 +315,14 @@ class CurrentDate(Expression):
     pretty_name = "current_date"
 
     def __init__(self):
-        super(CurrentDate, self).__init__()
+        super().__init__()
         self.current_timestamp = None
 
     def eval(self, row, schema):
         return self.current_timestamp.date()
 
     def initialize(self, partition_index):
-        super(CurrentDate, self).initialize(partition_index)
+        super().initialize(partition_index)
         self.current_timestamp = datetime.datetime.now()
 
     def args(self):
@@ -333,7 +333,7 @@ class UnixTimestamp(Expression):
     pretty_name = "unix_timestamp"
 
     def __init__(self, column, f):
-        super(UnixTimestamp, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.format = f.get_literal_value()
         self.parser = get_unix_timestamp_parser(self.format)
@@ -353,7 +353,7 @@ class ParseToTimestamp(Expression):
     pretty_name = "to_timestamp"
 
     def __init__(self, column, f):
-        super(ParseToTimestamp, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.format = f.get_literal_value()
         self.parser = get_unix_timestamp_parser(self.format)
@@ -377,7 +377,7 @@ class ParseToDate(Expression):
     pretty_name = "to_date"
 
     def __init__(self, column, f):
-        super(ParseToDate, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.format = f.get_literal_value()
         self.parser = get_unix_timestamp_parser(self.format)
@@ -401,7 +401,7 @@ class TruncDate(Expression):
     pretty_name = "trunc"
 
     def __init__(self, column, level):
-        super(TruncDate, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.level = level.get_literal_value()
 
@@ -424,7 +424,7 @@ class TruncTimestamp(Expression):
     pretty_name = "date_trunc"
 
     def __init__(self, level, column):
-        super(TruncTimestamp, self).__init__(column)
+        super().__init__(column)
         self.level = level.get_literal_value()
         self.column = column
 
@@ -479,7 +479,7 @@ class FromUTCTimestamp(Expression):
     pretty_name = "from_utc_timestamp"
 
     def __init__(self, column, tz):
-        super(FromUTCTimestamp, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.tz = tz.get_literal_value()
         self.pytz = parse_tz(self.tz)
@@ -503,7 +503,7 @@ class ToUTCTimestamp(Expression):
     pretty_name = "to_utc_timestamp"
 
     def __init__(self, column, tz):
-        super(ToUTCTimestamp, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.tz = tz.get_literal_value()
         self.pytz = parse_tz(self.tz)

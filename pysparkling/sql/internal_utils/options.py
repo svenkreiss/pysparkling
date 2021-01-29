@@ -29,35 +29,35 @@ class Options(dict):
             key.lower(): value
             for key, value in kwargs.items()
         })
-        super(Options, self).__init__(d)
+        super().__init__(d)
 
     def setdefault(self, k, default=None):
-        return super(Options, self).setdefault(k.lower(), default)
+        return super().setdefault(k.lower(), default)
 
     @staticmethod
     def fromkeys(seq, value=None):
         return Options({k.lower(): value for k in seq})
 
     def __getitem__(self, k):
-        return super(Options, self).__getitem__(k.lower())
+        return super().__getitem__(k.lower())
 
     def __setitem__(self, k, v):
         if isinstance(v, str) and v.lower() in ("true", "false"):
             v = (v.lower() == "true")
-        super(Options, self).__setitem__(k.lower(), v)
+        super().__setitem__(k.lower(), v)
 
     def __delitem__(self, k):
-        super(Options, self).__delitem__(k.lower())
+        super().__delitem__(k.lower())
 
     def get(self, k, *args, **kwargs):
-        return super(Options, self).get(k.lower(), *args, **kwargs)
+        return super().get(k.lower(), *args, **kwargs)
 
     def __contains__(self, o):
         if not isinstance(o, str):
             return False
-        return super(Options, self).__contains__(o.lower())
+        return super().__contains__(o.lower())
 
     def __getattr__(self, item):
         if not item.startswith("_"):
             return self[item.lower()]
-        return getattr(super(Options, self), item)
+        return getattr(super(), item)

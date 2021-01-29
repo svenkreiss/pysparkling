@@ -25,7 +25,7 @@ class TCPDeserializer(object):
 
 class TCPTextStream(TCPServer):
     def __init__(self, delimiter=b'\n'):
-        super(TCPTextStream, self).__init__()
+        super().__init__()
         self.delimiter = delimiter
         self.buffer = []
 
@@ -56,7 +56,7 @@ class TCPBinaryStream(TCPServer):
     """
 
     def __init__(self, length=None):
-        super(TCPBinaryStream, self).__init__()
+        super().__init__()
         self.length = length
         self.buffer = []
 

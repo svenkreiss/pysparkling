@@ -22,7 +22,7 @@ class ArrayContains(Expression):
     def __init__(self, array, value):
         self.array = array
         self.value = value.get_literal_value()
-        super(ArrayContains, self).__init__(array)
+        super().__init__(array)
 
     def eval(self, row, schema):
         array_eval = self.array.eval(row, schema)
@@ -41,7 +41,7 @@ class ArrayColumn(Expression):
     pretty_name = "array"
 
     def __init__(self, columns):
-        super(ArrayColumn, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -55,7 +55,7 @@ class MapColumn(Expression):
     pretty_name = "map"
 
     def __init__(self, columns):
-        super(MapColumn, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
         self.keys = columns[::2]
         self.values = columns[1::2]
@@ -74,7 +74,7 @@ class MapFromArraysColumn(Expression):
     pretty_name = "map_from_arrays"
 
     def __init__(self, keys, values):
-        super(MapFromArraysColumn, self).__init__(keys, values)
+        super().__init__(keys, values)
         self.keys = keys
         self.values = values
 
@@ -133,7 +133,7 @@ class Slice(Expression):
         self.column = column
         self.start = start.get_literal_value()
         self.length = length.get_literal_value()
-        super(Slice, self).__init__(column)
+        super().__init__(column)
 
     def eval(self, row, schema):
         return self.column.eval(row, schema)[self.start, self.start + self.length]
@@ -150,7 +150,7 @@ class ArrayRepeat(Expression):
     pretty_name = "array_repeat"
 
     def __init__(self, col, count):
-        super(ArrayRepeat, self).__init__(col)
+        super().__init__(col)
         self.col = col
         self.count = count.get_literal_value()
 
@@ -169,7 +169,7 @@ class Sequence(Expression):
     pretty_name = "array_join"
 
     def __init__(self, start, stop, step):
-        super(Sequence, self).__init__(start, stop, step)
+        super().__init__(start, stop, step)
         self.start = start
         self.stop = stop
         self.step = step
@@ -213,7 +213,7 @@ class ArrayJoin(Expression):
     pretty_name = "array_join"
 
     def __init__(self, column, delimiter, nullReplacement):
-        super(ArrayJoin, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.delimiter = delimiter.get_literal_value()
         self.nullReplacement = nullReplacement.get_literal_value()
@@ -243,7 +243,7 @@ class SortArray(Expression):
     pretty_name = "sort_array"
 
     def __init__(self, col, asc):
-        super(SortArray, self).__init__(col)
+        super().__init__(col)
         self.col = col
         self.asc = asc.get_literal_value()
 
@@ -261,7 +261,7 @@ class ArraysZip(Expression):
     pretty_name = "arrays_zip"
 
     def __init__(self, cols):
-        super(ArraysZip, self).__init__(*cols)
+        super().__init__(*cols)
         self.cols = cols
 
     def eval(self, row, schema):
@@ -291,7 +291,7 @@ class ArrayPosition(Expression):
     pretty_name = "array_position"
 
     def __init__(self, col, value):
-        super(ArrayPosition, self).__init__(col)
+        super().__init__(col)
         self.col = col
         self.value = value.get_literal_value()
 
@@ -315,7 +315,7 @@ class ElementAt(Expression):
     pretty_name = "element_at"
 
     def __init__(self, col, extraction):
-        super(ElementAt, self).__init__(col)
+        super().__init__(col)
         self.col = col
         self.extraction = extraction.get_literal_value()
 
@@ -336,7 +336,7 @@ class ArrayRemove(Expression):
     pretty_name = "array_remove"
 
     def __init__(self, col, element):
-        super(ArrayRemove, self).__init__(col, element)
+        super().__init__(col, element)
         self.col = col
         self.element = element.get_literal_value()
 

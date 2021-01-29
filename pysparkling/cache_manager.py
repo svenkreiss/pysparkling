@@ -140,14 +140,14 @@ class TimedCacheManager(CacheManager):
                  max_mem=1.0,
                  serializer=None, deserializer=None,
                  checksum=None, timeout=600.0):
-        super(TimedCacheManager, self).__init__(
+        super().__init__(
             max_mem, serializer, deserializer, checksum)
 
         self.timeout = timeout
         self._time_added = []  # pairs of (id, timestamp); oldest first
 
     def add(self, ident, obj, storageLevel=None):
-        super(TimedCacheManager, self).add(ident, obj, storageLevel)
+        super().add(ident, obj, storageLevel)
         self._time_added.append((ident, time.time()))
         self.gc()
 

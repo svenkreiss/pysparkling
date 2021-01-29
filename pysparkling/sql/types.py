@@ -14,22 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ctypes
-import datetime
-import decimal
 import itertools
-import json as _json
 import os
-import platform
-import re
 import sys
+import decimal
+import datetime
+import json as _json
+import re
 from array import array
+import ctypes
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
-if sys.version >= "3":
-    long = int
-    basestring = unicode = str
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -103,7 +99,7 @@ class DataTypeSingleton(type):
 
     def __call__(cls):
         if cls not in cls._instances:
-            cls._instances[cls] = super(DataTypeSingleton, cls).__call__()
+            cls._instances[cls] = super().__call__()
         return cls._instances[cls]
 
 
@@ -400,9 +396,7 @@ class StructField(DataType):
         """
         assert isinstance(dataType, DataType), \
             "dataType %s should be an instance of %s" % (dataType, DataType)
-        assert isinstance(name, basestring), "field name %s should be string" % name
-        if not isinstance(name, str):
-            name = name.encode('utf-8')
+        assert isinstance(name, str), "field name %s should be string" % name
         self.name = name
         self.dataType = dataType
         self.nullable = nullable
@@ -549,8 +543,8 @@ class StructType(DataType):
         if isinstance(key, int):
             try:
                 return self.fields[key]
-            except IndexError:
-                raise IndexError('StructType index out of range')
+            except IndexError as e:
+                raise IndexError('StructType index out of range') from e
         if isinstance(key, slice):
             return StructType(self.fields[key])
         raise TypeError('StructType keys should be strings, integers or slices')
@@ -638,7 +632,26 @@ class StructType(DataType):
 
     @classmethod
     def fromDDL(cls, string):
-        raise NotImplementedError("pysparkling does not support yet StructType.fromDDL")
+        def get_class(type_: str) -> DataType:
+            type_to_load = f'{type_.strip().title()}Type'
+
+            if type_to_load not in globals():
+                match = re.match(r'^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
+                if match:
+                    return ArrayType(get_class(match.group(1)))
+
+                raise ValueError(f"Couldn't find '{type_to_load}'?")
+
+            return globals()[type_to_load]()
+
+        fields = StructType()
+
+        for description in string.split(','):
+            name, type_ = [x.strip() for x in description.split(':')]
+
+            fields.add(StructField(name.strip(), get_class(type_), True))
+
+        return fields
 
 
 class UserDefinedType(DataType):
@@ -839,12 +852,6 @@ _type_mappings = {
     datetime.time: TimestampType,
 }
 
-if sys.version < "3":
-    _type_mappings.update({
-        unicode: StringType,
-        long: LongType,
-    })
-
 # Mapping Python array types to Spark SQL DataType
 # We should be careful here. The size of these types in python depends on C
 # implementation. We need to make sure that this conversion does not lose any
@@ -921,19 +928,6 @@ for _typecode in _array_unsigned_int_typecode_ctype_mappings:
 if sys.version_info[0] < 4:
     _array_type_mappings['u'] = StringType
 
-# Type code 'c' are only available at python 2
-if sys.version_info[0] < 3:
-    _array_type_mappings['c'] = StringType
-
-# SPARK-21465:
-# In python2, array of 'L' happened to be mistakenly partially supported. To
-# avoid breaking user's code, we should keep this partial support. Below is a
-# dirty hacking to keep this partial support and make the unit test passes
-if sys.version_info[0] < 3 and platform.python_implementation() != 'PyPy':
-    if 'L' not in _array_type_mappings.keys():
-        _array_type_mappings['L'] = LongType
-        _array_unsigned_int_typecode_ctype_mappings['L'] = ctypes.c_uint
-
 
 def _infer_type(obj):
     """Infer the DataType from obj
@@ -957,8 +951,8 @@ def _infer_type(obj):
 
     try:
         return _infer_schema(obj)
-    except TypeError:
-        raise TypeError("not supported type: %s" % type(obj))
+    except TypeError as e:
+        raise TypeError("not supported type: %s" % type(obj)) from e
 
 
 def _infer_struct_type(obj):
@@ -1158,20 +1152,20 @@ def _create_converter(dataType):
 
 _acceptable_types = {
     BooleanType: (bool,),
-    ByteType: (int, long),
-    ShortType: (int, long),
-    IntegerType: (int, long),
-    LongType: (int, long),
+    ByteType: (int,),
+    ShortType: (int,),
+    IntegerType: (int,),
+    LongType: (int,),
     FloatType: (float,),
     DoubleType: (float,),
     DecimalType: (decimal.Decimal,),
-    StringType: (str, unicode),
+    StringType: (str,),
     BinaryType: (bytearray,),
-    DateType: (datetime.date, datetime.datetime),
+    DateType: (datetime.date, datetime.datetime,),
     TimestampType: (datetime.datetime,),
-    ArrayType: (list, tuple, array),
+    ArrayType: (list, tuple, array,),
     MapType: (dict,),
-    StructType: (tuple, list, dict),
+    StructType: (tuple, list, dict,),
 }
 
 
@@ -1525,7 +1519,7 @@ class Row(tuple):
     def __contains__(self, item):
         if hasattr(self, "__fields__"):
             return item in self.__fields__
-        return super(Row, self).__contains__(item)
+        return super().__contains__(item)
 
     # let object acts like class
     def __call__(self, *args):
@@ -1537,16 +1531,16 @@ class Row(tuple):
 
     def __getitem__(self, item):
         if isinstance(item, (int, slice)):
-            return super(Row, self).__getitem__(item)
+            return super().__getitem__(item)
         try:
             # it will be slow when it has many fields,
             # but this will not be used in normal cases
             idx = self.__fields__.index(item)
-            return super(Row, self).__getitem__(idx)
-        except IndexError:
-            raise KeyError(item)
-        except ValueError:
-            raise ValueError(item)
+            return super().__getitem__(idx)
+        except IndexError as e:
+            raise KeyError(item) from e
+        except ValueError as e:
+            raise ValueError(item) from e
 
     def __getattr__(self, item):
         if item.startswith("__"):
@@ -1556,10 +1550,10 @@ class Row(tuple):
             # but this will not be used in normal cases
             idx = self.__fields__.index(item)
             return self[idx]
-        except IndexError:
-            raise AttributeError(item)
-        except ValueError:
-            raise AttributeError(item)
+        except IndexError as e:
+            raise AttributeError(item) from e
+        except ValueError as e:
+            raise AttributeError(item) from e
 
     def __setattr__(self, key, value):
         if key not in ('__fields__', "__from_dict__", "_metadata"):
@@ -1638,8 +1632,8 @@ def _check_series_localize_timestamps(s, timezone):
         # pandas is an optional dependency
         # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64tz_dtype
-    except ImportError:
-        raise Exception("require_minimum_pandas_version() was not called")
+    except ImportError as e:
+        raise Exception("require_minimum_pandas_version() was not called") from e
     tz = timezone or _get_local_timezone()
     # pylint: disable=W0511
     # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
@@ -1678,8 +1672,8 @@ def _check_series_convert_timestamps_internal(s, timezone):
         # pandas is an optional dependency
         # pylint: disable=import-outside-toplevel
         from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
-    except ImportError:
-        raise Exception("require_minimum_pandas_version() was not called")
+    except ImportError as e:
+        raise Exception("require_minimum_pandas_version() was not called") from e
 
     # pylint: disable=W0511
     # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
@@ -1737,8 +1731,8 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
         # pylint: disable=import-outside-toplevel
         import pandas as pd
         from pandas.api.types import is_datetime64tz_dtype, is_datetime64_dtype
-    except ImportError:
-        raise Exception("require_minimum_pandas_version() was not called")
+    except ImportError as e:
+        raise Exception("require_minimum_pandas_version() was not called") from e
 
     from_tz = from_timezone or _get_local_timezone()
     to_tz = to_timezone or _get_local_timezone()
@@ -1784,8 +1778,8 @@ STRING_TO_TYPE = dict(
     byte=ByteType(),
     smallint=ShortType(),
     short=ShortType(),
-    int=IntegerType(),
-    integer=IntegerType(),
+    int=LongType(),
+    integer=LongType(),
     bigint=LongType(),
     long=LongType(),
     float=FloatType(),
