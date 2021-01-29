@@ -5,7 +5,7 @@ class SortOrder(Expression):
     sort_order = None
 
     def __init__(self, column):
-        super(SortOrder, self).__init__(column)
+        super().__init__(column)
         self.column = column
 
     def eval(self, row, schema):

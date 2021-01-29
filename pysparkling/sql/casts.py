@@ -298,10 +298,10 @@ def cast_to_float(value, from_type, options):
     # bounding between float min&max values
     try:
         return cast_value(value, options=options)
-    except ValueError:
+    except ValueError as e:
         if isinstance(from_type, (DateType, TimestampType, NumericType, StringType)):
             return None
-        raise AnalysisException("Cannot cast type {0} to float".format(from_type))
+        raise AnalysisException("Cannot cast type {0} to float".format(from_type)) from e
 
 
 def cast_value(value, options):
