@@ -11,7 +11,8 @@ import time
 import traceback
 from collections import defaultdict
 
-from . import __version__ as PYSPARKLING_VERSION, accumulators
+from . import __version__ as PYSPARKLING_VERSION
+from . import accumulators
 from .broadcast import Broadcast
 from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
