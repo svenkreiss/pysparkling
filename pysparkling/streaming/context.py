@@ -2,7 +2,7 @@ import logging
 import time
 
 from .dstream import DStream
-from .filestream import (FileBinaryStreamDeserializer, FileStream, FileTextStreamDeserializer)
+from .filestream import FileBinaryStreamDeserializer, FileStream, FileTextStreamDeserializer
 from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:
