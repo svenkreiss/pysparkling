@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
 import bz2
+import io
 import logging
-from io import BytesIO
 
 from .codec import Codec
 
@@ -13,7 +13,7 @@ class Bz2(Codec):
     """Implementation of :class:`.Codec` for bz2 compression."""
 
     def compress(self, stream):
-        return BytesIO(bz2.compress(b''.join(stream)))
+        return io.BytesIO(bz2.compress(b''.join(stream)))
 
     def decompress(self, stream):
-        return BytesIO(bz2.decompress(stream.read()))
+        return io.BytesIO(bz2.decompress(stream.read()))
