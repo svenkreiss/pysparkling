@@ -963,11 +963,11 @@ def unhex(column):
     return col(Unhex(parse(column)))
 
 
-def hypot(l, r):
+def hypot(lst, r):
     """
     :rtype: Column
     """
-    return col(Hypot(parse(l), parse(r)))
+    return col(Hypot(parse(lst), parse(r)))
 
 
 def least(*exprs):
@@ -1012,11 +1012,11 @@ def log2(e):
 
 # noinspection PyShadowingBuiltins
 # pylint: disable=W0622
-def pow(l, r):
+def pow(lst, r):
     """
     :rtype: Column
     """
-    return col(Pow(parse(l), parse(r)))
+    return col(Pow(parse(lst), parse(r)))
 
 
 def rint(e):
@@ -1368,7 +1368,7 @@ def lower(e):
     return col(Lower(parse(e)))
 
 
-def levenshtein(l, r):
+def levenshtein(lst, r):
     """
     :rtype: Column
 
@@ -1383,7 +1383,7 @@ def levenshtein(l, r):
     +----------------------------+
 
     """
-    return col(Levenshtein(parse(l), parse(r)))
+    return col(Levenshtein(parse(lst), parse(r)))
 
 
 # noinspection PyShadowingBuiltins

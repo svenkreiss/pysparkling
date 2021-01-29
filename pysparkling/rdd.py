@@ -172,9 +172,9 @@ class RDD(object):
                 r[k] = seqFunc(r[k], v)
             return r
 
-        def combFuncByKey(l):
+        def combFuncByKey(iterable):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
-            for p in l:
+            for p in iterable:
                 for k, v in p.items():
                     r[k] = combFunc(r[k], v)
             return r
@@ -1191,7 +1191,7 @@ class RDD(object):
                 if lb <= r < ub:
                     lists[i].append(e)
 
-        return [self.context.parallelize(l) for l in lists]
+        return [self.context.parallelize(lst) for lst in lists]
 
     def reduce(self, f):
         """reduce
@@ -2204,13 +2204,13 @@ def unit_map(task_context, elements):
     return list(elements)
 
 
-def unit_collect(l):
-    return [x for p in l for x in p]
+def unit_collect(lst):
+    return [x for p in lst for x in p]
 
 
 def sum_counts_by_keys(list_of_pairlists):
     r = defaultdict(int)  # calling int results in a zero
-    for l in list_of_pairlists:
-        for key, count in l.items():
+    for lst in list_of_pairlists:
+        for key, count in lst.items():
             r[key] += count
     return r
