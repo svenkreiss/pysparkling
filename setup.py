@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
-import versioneer
+from setuptools import find_packages, setup
 
+import versioneer
 
 setup(
     name='pysparkling',
@@ -37,6 +37,7 @@ setup(
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
+            'pytest-cov',
             'tornado>=4.3',
         ]
     },
