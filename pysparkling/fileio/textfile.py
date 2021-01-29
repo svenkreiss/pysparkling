@@ -9,8 +9,6 @@ from .fs.file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
-string_types = str
-
 
 class TextFile(File):
     """Derived from :class:`File`.
@@ -50,7 +48,7 @@ class TextFile(File):
         if stream is None:
             stream = StringIO()
 
-        if isinstance(stream, string_types):
+        if isinstance(stream, str):
             stream = StringIO(stream)
 
         stream = self.codec.compress(
