@@ -37,7 +37,7 @@ class GS(FileSystem):
                 'Google Storage is not supported. Install "gcloud".'
             )
 
-        super(GS, self).__init__(file_name)
+        super().__init__(file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)

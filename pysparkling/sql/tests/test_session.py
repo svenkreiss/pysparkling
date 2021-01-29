@@ -65,8 +65,8 @@ class SessionTests(TestCase):
             # Pandas is an optional dependency
             # pylint: disable=import-outside-toplevel
             import pandas as pd
-        except ImportError:
-            raise Exception("pandas is not importable")
+        except ImportError as e:
+            raise ImportError("pandas is not importable") from e
 
         pdf = pd.DataFrame([
             (1, "one"),
