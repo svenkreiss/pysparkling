@@ -209,7 +209,7 @@ def concat_strings(*children):
 
 
 def build_struct(*children):
-    return CreateStruct([convert_tree(c) for c in children[2:-1:2]])
+    return CreateStruct(*(convert_tree(c) for c in children[2:-1:2]))
 
 
 def potential_alias(*chidren):
