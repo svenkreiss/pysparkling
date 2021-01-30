@@ -2,9 +2,9 @@ import csv
 from collections import namedtuple
 
 import matplotlib
+import matplotlib.pyplot as plt
 
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 
 class Plot(object):
@@ -19,8 +19,14 @@ class Plot(object):
     def read(self):
         with open(self.filename, 'r') as f:
             reader = csv.reader(f)
+
+            try:
+                first_line = next(reader)
+            except StopIteration:
+                return
+
             self.record = namedtuple('record', [k.strip().replace('# ', '')
-                                                for k in next(reader)])
+                                                for k in first_line])
             for row_raw in reader:
                 row = self.record._make([int(v) for v in row_raw])
                 yield row

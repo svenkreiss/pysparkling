@@ -87,9 +87,9 @@ def quiet_logs(sc):
 
 
 if __name__ == '__main__':
-    sc = pyspark.SparkContext()
-    quiet_logs(sc)
-    ssc = pyspark.streaming.StreamingContext(sc, 1)
+    spark_context = pyspark.SparkContext()
+    quiet_logs(spark_context)
+    streaming_context = pyspark.streaming.StreamingContext(spark_context, 1)
 
     # simple_queue(ssc)
     # simple_queue_count(ssc)
@@ -100,8 +100,8 @@ if __name__ == '__main__':
     # stream_log(ssc)
     # stream_queue_default(ssc)
     # join_with_repeated_keys(ssc)
-    union(ssc)
+    union(streaming_context)
 
-    ssc.start()
+    streaming_context.start()
     time.sleep(3.0)
-    ssc.stop(stopGraceFully=True)
+    streaming_context.stop(stopGraceFully=True)

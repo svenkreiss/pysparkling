@@ -29,7 +29,7 @@ class Server(object):
                       ''.format(int(n / self.processes), self.port, format_,
                                 self.values))
 
-    def run(self, n=2000, to_kv=None, format_='hello'):
+    def _run_process(self, n, to_kv, format_):
         c = pysparkling.Context()
         stream_c = pysparkling.streaming.StreamingContext(c, 1.0)
 
@@ -57,6 +57,16 @@ class Server(object):
         stream_c.start()
         stream_c.awaitTermination(timeout=5.0)
 
+        return (
+            counts,
+            sensor_sums,
+            sensor_squares,
+            sensor_counts
+        )
+
+    def run(self, n=2000, to_kv=None, format_='hello'):
+        counts, sensor_sums, sensor_squares, sensor_counts = self._run_process(n, to_kv, format_)
+
         result = max(counts) if counts else 0
         sensor_expections = {
             # expectation of X and X^2
@@ -75,12 +85,12 @@ class Server(object):
         return result
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.WARNING)
 
     def kv_from_text(text):
         k, _, v = text.partition('|')
-        return (k, float(v))
+        return k, float(v)
 
     def kv_from_json(text):
         j = json.loads(text)
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
     def kv_from_struct(b):
         s, v = struct.unpack('If', b)
-        return ('sensor{}'.format(s), v)
+        return 'sensor{}'.format(s), v
 
     with open('tests/tcpperf_messages.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
@@ -117,3 +127,7 @@ if __name__ == '__main__':
                 server.run(n, kv_from_struct, 'struct'),
             )
             f.write(', '.join('{}'.format(d) for d in data) + '\n')
+
+
+if __name__ == '__main__':
+    main()
