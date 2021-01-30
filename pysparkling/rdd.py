@@ -1,7 +1,10 @@
 """Provides a Python implementation of RDDs."""
 
-from __future__ import (absolute_import, division, print_function, unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+from builtins import range, zip
+from collections import defaultdict
+from operator import itemgetter
 import copy
 import functools
 import io
@@ -13,9 +16,6 @@ import pickle
 import random
 import subprocess
 import sys
-from builtins import range, zip
-from collections import defaultdict
-from operator import itemgetter
 
 try:
     import numpy
@@ -23,11 +23,10 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .utils import portable_hash
-from .exceptions import FileAlreadyExistsException, ContextIsLockedException
-from .samplers import (BernoulliSampler, PoissonSampler,
-                       BernoulliSamplerPerKey, PoissonSamplerPerKey)
+from .exceptions import ContextIsLockedException, FileAlreadyExistsException
+from .samplers import BernoulliSampler, BernoulliSamplerPerKey, PoissonSampler, PoissonSamplerPerKey
 from .stat_counter import StatCounter
+from .utils import portable_hash
 
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 

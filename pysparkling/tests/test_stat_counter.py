@@ -1,9 +1,9 @@
 from __future__ import division
 
-import pysparkling
 from pysparkling.sql.functions import col
 from pysparkling.sql.types import IntegerType, Row, StructField, StructType
 from pysparkling.stat_counter import ColumnStatHelper
+import pysparkling
 
 
 def test_mean():

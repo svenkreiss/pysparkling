@@ -1,3 +1,4 @@
+from operator import itemgetter
 import collections
 import datetime
 import itertools
@@ -6,16 +7,16 @@ import math
 import random
 import re
 import sys
-from operator import itemgetter
 
-import pytz
 from pytz import UnknownTimeZoneError
+import pytz
 
 from pysparkling.sql.casts import get_time_formatter
-from pysparkling.sql.internal_utils.joins import \
+from pysparkling.sql.internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
+)
 from pysparkling.sql.schema_utils import get_on_fields
-from pysparkling.sql.types import create_row, Row, row_from_keyed_values
+from pysparkling.sql.types import Row, create_row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
 
 

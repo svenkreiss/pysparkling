@@ -1,11 +1,10 @@
+from unittest import TestCase
 import datetime
 import os
-from unittest import TestCase
 
 from pysparkling import Context, Row
 from pysparkling.sql.session import SparkSession
-from pysparkling.sql.types import DateType, IntegerType, StringType, StructField, StructType, \
-    TimestampType
+from pysparkling.sql.types import DateType, IntegerType, StringType, StructField, StructType, TimestampType
 
 spark = SparkSession(Context())
 

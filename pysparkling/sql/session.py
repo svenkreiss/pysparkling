@@ -1,6 +1,5 @@
 from threading import RLock
 
-import pysparkling
 from pysparkling import RDD
 from pysparkling.context import Context
 from pysparkling.sql.conf import RuntimeConfig
@@ -8,10 +7,11 @@ from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.readwriter import DataFrameReader
 from pysparkling.sql.schema_utils import infer_schema_from_list
-from pysparkling.sql.types import _create_converter, _has_nulltype, _infer_schema, \
-    _make_type_verifier, _merge_type, \
-    DataType, StructType
+from pysparkling.sql.types import (
+    DataType, StructType, _create_converter, _has_nulltype, _infer_schema, _make_type_verifier, _merge_type
+)
 from pysparkling.sql.utils import require_minimum_pandas_version
+import pysparkling
 
 
 class SparkSession(object):
