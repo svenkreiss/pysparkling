@@ -18,9 +18,17 @@ class SqlParsingError(Exception):
     pass
 
 
+class UnsupportedStatement(SqlParsingError):
+    pass
+
+
 def check_children(expected, children):
     if len(children) != expected:
-        raise SqlParsingError("Expecting {0} children, got {1}: {2}".format(expected, len(children), children))
+        raise SqlParsingError(
+            "Expecting {0} children, got {1}: {2}".format(
+                expected, len(children), children
+            )
+        )
 
 
 def unwrap(*children):
@@ -34,7 +42,7 @@ def never_found(*children):
 
 
 def unsupported(*children):
-    raise SqlParsingError("Unsupported statement")
+    raise UnsupportedStatement
 
 
 def empty(*children):
@@ -54,7 +62,10 @@ def convert_tree(tree):
     tree_type = tree.__class__.__name__
     if not hasattr(tree, "children"):
         return get_leaf_value(tree)
-    converter = CONVERTERS[tree_type]
+    try:
+        converter = CONVERTERS[tree_type]
+    except UnsupportedStatement:
+        raise SqlParsingError("Unsupported statement {0}".format(tree_type))
     return converter(*tree.children)
 
 
@@ -160,7 +171,7 @@ def get_leaf_value(*children):
     check_children(1, children)
     value = children[0]
     if value.__class__.__name__ != "TerminalNodeImpl":
-        raise SqlParsingError("Expecting TerminalNodeImpl, got {0}".format(value.__class__.__name__))
+        raise SqlParsingError("Expecting TerminalNodeImpl, got {0}".format(type(value).__name__))
     if not hasattr(value, "symbol"):
         raise SqlParsingError("Got leaf value but without symbol")
     return value.symbol.text
