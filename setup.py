@@ -38,6 +38,11 @@ setup(
             'pycodestyle',
             'pytest',
             'tornado>=4.3',
+        ],
+        'scripts': [
+            'ipyparallel',
+            'pyspark',
+            'matplotlib',
         ]
     },
 

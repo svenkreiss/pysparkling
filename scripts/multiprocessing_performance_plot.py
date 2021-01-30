@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import test_multiprocessing
+
+import pysparkling.tests.test_multiprocessing as test_mp
 
 
 def plot(has_hyperthreading=True):
-    n_cpu, r = test_multiprocessing.test_performance()
+    n_cpu, r = test_mp.test_performance()
     r = {n: 1.0 / (v[0] / r[1][0]) for n, v in r.items()}
 
     if has_hyperthreading:
