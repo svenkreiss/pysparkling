@@ -517,8 +517,8 @@ class RowStatHelper(object):
         elif stat.endswith("%"):
             try:
                 percentile = float(stat[:-1]) / 100
-            except ValueError:
-                raise ValueError(f"Unable to parse {stat} as a percentile")
+            except ValueError as e:
+                raise ValueError(f"Unable to parse {stat} as a percentile") from e
             value = stats_counter.get_quantile(percentile)
         else:
             raise ValueError(f"{stat} is not a recognised statistic")

@@ -1,14 +1,14 @@
-from __future__ import print_function, division
+from __future__ import division, print_function
 
-from collections import defaultdict
 import json
 import logging
 import math
 import os
-import pysparkling
 import struct
 import time
+from collections import defaultdict
 
+import pysparkling
 
 N_CONNECTIONS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
                  6000, 7000, 8000)
@@ -30,7 +30,7 @@ class Server(object):
                 f' &'
             )
 
-    def run(self, n=2000, to_kv=None, format_='hello'):
+    def _run_process(self, n, to_kv, format_):
         c = pysparkling.Context()
         stream_c = pysparkling.streaming.StreamingContext(c, 1.0)
 
@@ -58,6 +58,16 @@ class Server(object):
         stream_c.start()
         stream_c.awaitTermination(timeout=5.0)
 
+        return (
+            counts,
+            sensor_sums,
+            sensor_squares,
+            sensor_counts
+        )
+
+    def run(self, n=2000, to_kv=None, format_='hello'):
+        counts, sensor_sums, sensor_squares, sensor_counts = self._run_process(n, to_kv, format_)
+
         result = max(counts) if counts else 0
         sensor_expections = {
             # expectation of X and X^2
@@ -75,12 +85,12 @@ class Server(object):
         return result
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.WARNING)
 
     def kv_from_text(text):
         k, _, v = text.partition('|')
-        return (k, float(v))
+        return k, float(v)
 
     def kv_from_json(text):
         j = json.loads(text)
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
     def kv_from_struct(b):
         s, v = struct.unpack('If', b)
-        return (f'sensor{s}', v)
+        return f'sensor{s}', v
 
     with open('tests/tcpperf_messages.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
@@ -117,3 +127,7 @@ if __name__ == '__main__':
                 server.run(n, kv_from_struct, 'struct'),
             )
             f.write(', '.join(f'{d}' for d in data) + '\n')
+
+
+if __name__ == '__main__':
+    main()

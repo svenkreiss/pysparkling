@@ -5,7 +5,7 @@ class CollectList(Aggregation):
     pretty_name = "collect_list"
 
     def __init__(self, column):
-        super(CollectList, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.items = []
 
@@ -26,7 +26,7 @@ class CollectSet(Aggregation):
     pretty_name = "collect_set"
 
     def __init__(self, column):
-        super(CollectSet, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.items = set()
 
@@ -47,7 +47,7 @@ class SumDistinct(Aggregation):
     pretty_name = "sum_distinct"
 
     def __init__(self, column):
-        super(SumDistinct, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.items = set()
 
@@ -69,7 +69,7 @@ class First(Aggregation):
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
-        super(First, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.value = self._sentinel
         self.ignore_nulls = ignore_nulls.get_literal_value()
@@ -97,7 +97,7 @@ class Last(Aggregation):
     _sentinel = object()
 
     def __init__(self, column, ignore_nulls):
-        super(Last, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.value = None
         self.ignore_nulls = ignore_nulls.get_literal_value()
@@ -125,7 +125,7 @@ class CountDistinct(Aggregation):
     pretty_name = "count"
 
     def __init__(self, columns):
-        super(CountDistinct, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
         self.items = set()
 
@@ -148,7 +148,7 @@ class ApproxCountDistinct(Aggregation):
     pretty_name = "approx_count_distinct"
 
     def __init__(self, column):
-        super(ApproxCountDistinct, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.items = set()
 

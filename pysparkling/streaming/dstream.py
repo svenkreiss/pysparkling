@@ -627,7 +627,7 @@ class DStream(object):
 
 class TransformedDStream(DStream):
     def __init__(self, prev, func):
-        super(TransformedDStream, self).__init__(prev._stream, prev._context)
+        super().__init__(prev._stream, prev._context)
         self._prev = prev
         self._func = func
 
@@ -642,7 +642,7 @@ class TransformedDStream(DStream):
 
 class TransformedWithDStream(DStream):
     def __init__(self, prev, func, other_prev):
-        super(TransformedWithDStream, self).__init__(
+        super().__init__(
             prev._stream, prev._context)
         self._prev = prev
         self._func = func
@@ -662,7 +662,7 @@ class TransformedWithDStream(DStream):
 
 class WindowedDStream(DStream):
     def __init__(self, prev, windowDuration, slideDuration=None):
-        super(WindowedDStream, self).__init__(prev._stream, prev._context)
+        super().__init__(prev._stream, prev._context)
 
         if slideDuration is None:
             slideDuration = self._context.batch_duration
@@ -697,7 +697,7 @@ class WindowedDStream(DStream):
 
 class CogroupedDStream(DStream):
     def __init__(self, prev1, prev2, numPartitions=None, op='cogroup'):
-        super(CogroupedDStream, self).__init__(prev1._stream, prev1._context)
+        super().__init__(prev1._stream, prev1._context)
         self._prev1 = prev1
         self._prev2 = prev2
         self._num_partitions = numPartitions
@@ -716,7 +716,7 @@ class CogroupedDStream(DStream):
 
 class StatefulDStream(DStream):
     def __init__(self, prev, state_update_fn):
-        super(StatefulDStream, self).__init__(prev._stream, prev._context)
+        super().__init__(prev._stream, prev._context)
         self._prev = prev
         self._func = state_update_fn
         self._state_rdd = EmptyRDD(self._context._context)

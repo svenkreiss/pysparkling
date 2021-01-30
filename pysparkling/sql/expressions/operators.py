@@ -170,7 +170,7 @@ class EqNullSafe(BinaryOperation):
 
 class GetField(Expression):
     def __init__(self, item, field):
-        super(GetField, self).__init__(item, field)
+        super().__init__(item, field)
         self.item = item
         self.field = field
 
@@ -206,7 +206,7 @@ class Contains(Expression):
     pretty_name = "contains"
 
     def __init__(self, expr, value):
-        super(Contains, self).__init__(expr, value)
+        super().__init__(expr, value)
         self.expr = expr
         self.value = value
 
@@ -224,7 +224,7 @@ class StartsWith(Expression):
     pretty_name = "startswith"
 
     def __init__(self, arg1, substr):
-        super(StartsWith, self).__init__(arg1, substr)
+        super().__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -242,7 +242,7 @@ class EndsWith(Expression):
     pretty_name = "endswith"
 
     def __init__(self, arg1, substr):
-        super(EndsWith, self).__init__(arg1, substr)
+        super().__init__(arg1, substr)
         self.arg1 = arg1
         self.substr = substr
 
@@ -258,7 +258,7 @@ class EndsWith(Expression):
 
 class IsIn(Expression):
     def __init__(self, arg1, cols):
-        super(IsIn, self).__init__(arg1)
+        super().__init__(arg1)
         self.arg1 = arg1
         self.cols = [c.get_literal_value() for c in cols]
 
@@ -291,7 +291,7 @@ class IsNull(UnaryExpression):
 
 class Cast(Expression):
     def __init__(self, column, destination_type):
-        super(Cast, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.destination_type = destination_type
         self.caster = get_caster(
@@ -318,7 +318,7 @@ class Substring(Expression):
     pretty_name = "substring"
 
     def __init__(self, expr, start, length):
-        super(Substring, self).__init__(expr)
+        super().__init__(expr)
         self.expr = expr
         self.start = start.get_literal_value()
         self.length = length.get_literal_value()
@@ -336,7 +336,7 @@ class Substring(Expression):
 
 class Alias(Expression):
     def __init__(self, expr, alias):
-        super(Alias, self).__init__(expr, alias)
+        super().__init__(expr, alias)
         self.expr = expr
         self.alias = alias.get_literal_value()
 

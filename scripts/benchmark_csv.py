@@ -1,9 +1,10 @@
 """Benchmark csv reading performance."""
 
 import argparse
-import pysparkling
 import random
 from string import ascii_uppercase
+
+import pysparkling
 
 
 def create_csv(filename, lines=10000000, columns=12):

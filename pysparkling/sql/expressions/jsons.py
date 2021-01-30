@@ -14,7 +14,7 @@ class StructsToJson(Expression):
     )
 
     def __init__(self, column, options):
-        super(StructsToJson, self).__init__(column)
+        super().__init__(column)
         self.column = column
         # pylint: disable=import-outside-toplevel; circular import
         from pysparkling.sql.internal_utils.readers.jsonreader import JSONReader

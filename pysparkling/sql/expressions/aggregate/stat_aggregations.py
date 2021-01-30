@@ -9,7 +9,7 @@ class SimpleStatAggregation(Aggregation):
         # Top level import would cause cyclic dependencies
         # pylint: disable=import-outside-toplevel
         from pysparkling.stat_counter import ColumnStatHelper
-        super(SimpleStatAggregation, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.stat_helper = ColumnStatHelper(column)
 
@@ -35,7 +35,7 @@ class Count(SimpleStatAggregation):
         from pysparkling.stat_counter import ColumnStatHelper
         if isinstance(column.expr, StarOperator):
             column = Column(Literal(1))
-        super(Count, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.stat_helper = ColumnStatHelper(column)
 
