@@ -31,11 +31,12 @@ setup(
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
             'futures>=3.0.1',
-            'pylint>=2.3,<2.6',
+            'pylint',
             'pylzma',
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
+            'isort',
             'tornado>=4.3',
         ],
         'scripts': [
