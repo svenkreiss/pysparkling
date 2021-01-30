@@ -52,8 +52,6 @@ jobs:
         commit_message: "Optimized imports"
         commit_options: '--no-verify --signoff'
         file_pattern: '*.py'
-        skip_dirty_check: true
-        skip_fetch: true
 
     - name: Test pysparkling.rdd
       run: python -m pytest --pyargs pysparkling.rdd -vv
