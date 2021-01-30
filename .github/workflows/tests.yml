@@ -26,31 +26,52 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
+
     - name: Install
       run: |
         python -m pip install --upgrade pip
         python -m pip install -e ".[tests,scripts]" --use-deprecated=legacy-resolver
+
     - name: Print environment
       run: |
         python -m pip freeze
         python --version
         python -c "import pysparkling; print(pysparkling.__version__)"
+
+    - name: Optimize imports
+      run: |
+        isort .
+
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Optimized imports"
+        commit_options: '--no-verify --signoff'
+        file_pattern: '*.py'
+        skip_dirty_check: true
+        skip_fetch: true
+
     - name: Test pysparkling.rdd
       run: python -m pytest --pyargs pysparkling.rdd -vv
+
     - name: Test pysparkling.tests
       if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
       run: python -m pytest --pyargs pysparkling.tests -vv
+
     - name: Install SQL Dependencies
       run: |
         python -m pip install -e ".[sql]" --use-deprecated=legacy-resolver
+
     - name: Lint
       run: pylint pysparkling scripts --disable=fixme
+
     - name: pycodestyle
       run: python -m pycodestyle pysparkling scripts
+
     - name: Test All
       if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
       run: python -m pytest -vv
