@@ -212,15 +212,15 @@ def build_struct(*children):
     return CreateStruct(*(convert_tree(c) for c in children[2:-1:2]))
 
 
-def potential_alias(*chidren):
-    if len(chidren) == 1:
-        return convert_tree(chidren[0])
-    if len(chidren) in (2, 3):
+def potential_alias(*children):
+    if len(children) == 1:
+        return convert_tree(children[0])
+    if len(children) in (2, 3):
         return Alias(
-            convert_tree(chidren[0]),
-            convert_tree(chidren[-1])
+            convert_tree(children[0]),
+            convert_tree(children[-1])
         )
-    raise SqlParsingError("Expecting 1, 2 or 3 children, got {0}".format(len(chidren)))
+    raise SqlParsingError("Expecting 1, 2 or 3 children, got {0}".format(len(children)))
 
 
 def check_identifier(*children):
