@@ -39,6 +39,11 @@ setup(
             'pytest',
             'pytest-cov',
             'tornado>=4.3',
+        ],
+        'scripts': [
+            'ipyparallel',
+            'pyspark',
+            'matplotlib',
         ]
     },
 
