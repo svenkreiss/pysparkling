@@ -470,7 +470,7 @@ class Column:
             raise ValueError('Pysparkling does not support alias with metadata')
 
         if len(alias) == 1:
-            return Column(Alias(self, Literal(alias[0])))
+            return Column(Alias(self, alias[0]))
         # pylint: disable=W0511
         # todo: support it
         raise ValueError('Pysparkling does not support multiple aliases')
