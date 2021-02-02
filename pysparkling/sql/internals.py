@@ -15,7 +15,7 @@ from pysparkling.sql.internal_utils.joins import (
 )
 from pysparkling.sql.schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
 from pysparkling.sql.types import (
-    DataType, LongType, Row, StringType, StructField, StructType, create_row, row_from_keyed_values
+    create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, StructType
 )
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import CovarianceCounter, RowStatHelper

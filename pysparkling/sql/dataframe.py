@@ -4,10 +4,10 @@ from pysparkling import StorageLevel
 from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.fields import FieldAsExpression
 from pysparkling.sql.internal_utils.joins import CROSS_JOIN, JOIN_TYPES
-from pysparkling.sql.internals import CUBE_TYPE, ROLLUP_TYPE, InternalGroupedDataFrame
+from pysparkling.sql.internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
 from pysparkling.sql.types import (
-    ByteType, FloatType, IntegerType, IntegralType, ShortType, TimestampType,
-    _check_series_convert_timestamps_local_tz
+    _check_series_convert_timestamps_local_tz, ByteType, FloatType, IntegerType, IntegralType, ShortType,
+    TimestampType
 )
 from pysparkling.sql.utils import AnalysisException, IllegalArgumentException, require_minimum_pandas_version
 

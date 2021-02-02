@@ -17,7 +17,7 @@ from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import RDD, EmptyRDD
+from .rdd import EmptyRDD, RDD
 from .task_context import TaskContext
 
 log = logging.getLogger(__name__)

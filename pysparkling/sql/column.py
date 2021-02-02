@@ -10,7 +10,7 @@ from pysparkling.sql.expressions.operators import (
 from pysparkling.sql.expressions.orders import (
     Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, SortOrder
 )
-from pysparkling.sql.types import DataType, StructField, string_to_type
+from pysparkling.sql.types import DataType, string_to_type, StructField
 from pysparkling.sql.utils import AnalysisException, IllegalArgumentException
 
 
