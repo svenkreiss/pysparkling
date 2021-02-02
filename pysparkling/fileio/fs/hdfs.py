@@ -1,8 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 
+import logging
 from fnmatch import fnmatch
 from io import BytesIO, StringIO
-import logging
 
 from ...exceptions import FileSystemNotSupported
 from ...utils import format_file_uri, parse_file_uri

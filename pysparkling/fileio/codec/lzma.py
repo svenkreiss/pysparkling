@@ -6,8 +6,8 @@ try:
 except ImportError:
     lzma = None
 
-from io import BytesIO
 import logging
+from io import BytesIO
 
 from .codec import Codec
 

@@ -1,5 +1,5 @@
 from pysparkling.sql.casts import get_caster
-from pysparkling.sql.types import DataType, INTERNAL_TYPE_ORDER, python_to_spark_type, StructField
+from pysparkling.sql.types import INTERNAL_TYPE_ORDER, DataType, StructField, python_to_spark_type
 from pysparkling.sql.utils import AnalysisException
 
 expression_registry = {}

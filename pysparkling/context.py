@@ -2,13 +2,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import defaultdict
 import itertools
 import logging
 import pickle
 import struct
 import time
 import traceback
+from collections import defaultdict
 
 from . import __version__ as PYSPARKLING_VERSION
 from . import accumulators
@@ -17,7 +17,7 @@ from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import EmptyRDD, RDD
+from .rdd import RDD, EmptyRDD
 from .task_context import TaskContext
 
 log = logging.getLogger(__name__)

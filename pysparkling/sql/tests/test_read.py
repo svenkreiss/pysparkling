@@ -1,6 +1,6 @@
-from unittest import TestCase
 import datetime
 import os
+from unittest import TestCase
 
 from pysparkling import Context, Row
 from pysparkling.sql.session import SparkSession

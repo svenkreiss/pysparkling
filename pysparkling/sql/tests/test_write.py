@@ -1,7 +1,7 @@
-from unittest import TestCase
 import datetime
 import os
 import shutil
+from unittest import TestCase
 
 from dateutil.tz import tzlocal
 

@@ -1,12 +1,12 @@
 from __future__ import division, print_function
 
-from collections import defaultdict
 import json
 import logging
 import math
 import os
 import struct
 import time
+from collections import defaultdict
 
 import pysparkling
 

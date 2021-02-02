@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
-from io import BytesIO, StringIO, TextIOWrapper
 import logging
+from io import BytesIO, StringIO, TextIOWrapper
 
 from . import codec
 from .file import File

@@ -1,10 +1,10 @@
-from collections import Counter
-from copy import deepcopy
-from functools import partial
 import itertools
 import json
 import math
 import warnings
+from collections import Counter
+from copy import deepcopy
+from functools import partial
 
 from pysparkling import StorageLevel
 from pysparkling.sql.column import parse
@@ -15,7 +15,7 @@ from pysparkling.sql.internal_utils.joins import (
 )
 from pysparkling.sql.schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
 from pysparkling.sql.types import (
-    create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, StructType
+    DataType, LongType, Row, StringType, StructField, StructType, create_row, row_from_keyed_values
 )
 from pysparkling.sql.utils import IllegalArgumentException
 from pysparkling.stat_counter import CovarianceCounter, RowStatHelper

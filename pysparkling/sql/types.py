@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from array import array
 import ctypes
 import datetime
 import decimal
@@ -23,6 +22,7 @@ import json as _json
 import os
 import re
 import sys
+from array import array
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 
@@ -1728,8 +1728,8 @@ def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
     try:
         # pandas is an optional dependency
         # pylint: disable=import-outside-toplevel
-        from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
         import pandas as pd
+        from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
     except ImportError as e:
         raise Exception("require_minimum_pandas_version() was not called") from e
 

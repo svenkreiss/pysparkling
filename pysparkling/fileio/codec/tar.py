@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
-from io import BytesIO
 import logging
 import tarfile
+from io import BytesIO
 
 from .codec import Codec
 

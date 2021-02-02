@@ -5,8 +5,8 @@ try:
 except ImportError:
     py7zlib = None
 
-from io import BytesIO
 import logging
+from io import BytesIO
 
 from .codec import Codec
 

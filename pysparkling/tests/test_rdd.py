@@ -1,5 +1,5 @@
-from operator import add
 import unittest
+from operator import add
 
 from pysparkling import Context
 
