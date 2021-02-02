@@ -43,15 +43,9 @@ jobs:
         python --version
         python -c "import pysparkling; print(pysparkling.__version__)"
 
-    - name: Optimize imports
+    - name: Check if import order is fine
       run: |
-        isort .
-
-    - uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: "Optimized imports"
-        commit_options: '--no-verify --signoff'
-        file_pattern: '*.py'
+        isort . --check
 
     - name: Test pysparkling.rdd
       run: python -m pytest --pyargs pysparkling.rdd -vv
