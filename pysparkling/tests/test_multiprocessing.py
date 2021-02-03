@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 from concurrent import futures
 import logging
 import math
