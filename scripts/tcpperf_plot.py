@@ -1,6 +1,5 @@
-import csv
-
 from collections import namedtuple
+import csv
 
 import matplotlib
 import matplotlib.pyplot as plt

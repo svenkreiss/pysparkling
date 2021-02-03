@@ -1,12 +1,12 @@
 from __future__ import division, print_function
 
+from collections import defaultdict
 import json
 import logging
 import math
 import os
 import struct
 import time
-from collections import defaultdict
 
 import pysparkling
 
@@ -78,7 +78,7 @@ class Server(object):
             for k, ex_ex2 in sensor_expections.items()
         }
         print('run: n = {}, counts = {}, result = {}'
-              ''.format(n_, counts, result))
+              ''.format(n, counts, result))
         print('sensors = {}'.format(sensors))
         time.sleep(self.pause)
         self.port += 1
