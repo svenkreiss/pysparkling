@@ -15,9 +15,9 @@
 # limitations under the License.
 #
 
-from collections import namedtuple
 # This file is based on the PySpark version which in turn
 # was ported from spark/util/StatCounter.scala
+from collections import namedtuple
 import copy
 import math
 import numbers
