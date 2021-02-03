@@ -4,8 +4,7 @@ from unittest import TestCase
 
 from pysparkling import Context, Row
 from pysparkling.sql.session import SparkSession
-from pysparkling.sql.types import StructType, StructField, TimestampType, StringType, \
-    IntegerType, DateType
+from pysparkling.sql.types import DateType, IntegerType, StringType, StructField, StructType, TimestampType
 
 spark = SparkSession(Context())
 

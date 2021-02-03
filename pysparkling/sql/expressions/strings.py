@@ -1,6 +1,6 @@
 import string
 
-from pysparkling.sql.expressions.expressions import UnaryExpression, Expression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import StringType
 from pysparkling.utils import levenshtein_distance
 
