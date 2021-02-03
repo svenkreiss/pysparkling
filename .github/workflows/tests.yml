@@ -45,7 +45,7 @@ jobs:
 
     - name: Check if import order is fine
       run: |
-        isort . --check
+        isort . --check --diff
 
     - name: Test pysparkling.rdd
       run: python -m pytest --pyargs pysparkling.rdd -vv
