@@ -5,7 +5,6 @@ from ....fileio import TextFile
 from ...casts import get_caster
 from ...internal_utils.options import Options
 from ...internal_utils.readers.utils import guess_schema_from_strings, resolve_partitions
-from ...internals import DataFrameInternal
 from ...schema_utils import infer_schema_from_rdd
 from ...types import create_row, StringType, StructField, StructType
 
@@ -63,6 +62,9 @@ class CSVReader:
         )
         casted_rdd = rdd.map(cast_row)
         casted_rdd._name = paths
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ...internals import DataFrameInternal
 
         return DataFrameInternal(
             sc,

@@ -22,7 +22,7 @@ import copy
 import math
 import numbers
 
-from .sql.functions import parse
+from .sql.column import parse
 from .sql.types import row_from_keyed_values
 
 try:

@@ -2,7 +2,6 @@ from threading import RLock
 
 from ..__version__ import __version__
 from ..context import Context
-from ..rdd import RDD
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
@@ -31,8 +30,10 @@ class SparkSession:
     builder = Builder()
 
     def __init__(self, sparkContext, jsparkSession=None):
-        self._sc = sparkContext
+        # pylint: disable=import-outside-toplevel, cyclic-import
         from .context import SQLContext
+
+        self._sc = sparkContext
         self._wrapped = SQLContext(self._sc, self)
         SparkSession._instantiatedSession = self
         SparkSession._activeSession = self
@@ -258,6 +259,9 @@ class SparkSession:
         else:
             def prepare(obj):
                 return obj
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ..rdd import RDD
 
         if isinstance(data, RDD):
             rdd, schema = self._createFromRDD(data.map(prepare), schema, samplingRatio)

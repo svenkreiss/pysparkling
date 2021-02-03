@@ -5,7 +5,6 @@ import json
 from ...casts import get_struct_caster
 from ...internal_utils.options import Options
 from ...internal_utils.readers.utils import get_records, resolve_partitions
-from ...internals import DataFrameInternal
 from ...schema_utils import infer_schema_from_rdd
 from ...types import create_row, row_from_keyed_values, StructType
 
@@ -73,6 +72,9 @@ class JSONReader:
         cast_row = get_struct_caster(inferred_schema, full_schema, options=self.options)
         casted_rdd = rdd.map(cast_row)
         casted_rdd._name = paths
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ...internals import DataFrameInternal
 
         return DataFrameInternal(
             sc,

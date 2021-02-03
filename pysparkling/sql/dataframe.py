@@ -6,7 +6,6 @@ from .expressions.fields import FieldAsExpression
 from .group import GroupedData
 from .internal_utils.joins import CROSS_JOIN, JOIN_TYPES
 from .internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
-from .readwriter import DataFrameWriter
 from .types import (
     _check_series_convert_timestamps_local_tz, ByteType, FloatType, IntegerType, IntegralType, ShortType,
     TimestampType
@@ -66,6 +65,9 @@ class DataFrame:
 
     @property
     def write(self):
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .readwriter import DataFrameWriter
+
         return DataFrameWriter(self)
 
     @property

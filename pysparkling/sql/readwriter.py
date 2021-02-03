@@ -1,4 +1,3 @@
-from ..rdd import RDD
 from .dataframe import DataFrame
 from .internal_utils.readers import InternalReader
 from .internal_utils.readwrite import OptionUtils
@@ -32,6 +31,21 @@ class DataFrameReader(OptionUtils):
     def _df(self, jdf):
         return DataFrame(jdf, self._spark)
 
+    def _generic_read(self, path, method_to_read_if_rdd):
+        if isinstance(path, str):
+            path = [path]
+
+        if isinstance(path, list):
+            return self._df(method_to_read_if_rdd(path))
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ..rdd import RDD
+
+        if isinstance(path, RDD):
+            return self._df(method_to_read_if_rdd(path.collect()))
+
+        raise TypeError("path can be only string, list or RDD")
+
     # pylint: disable=R0914
     def csv(self, path, schema=None, sep=None, encoding=None, quote=None, escape=None,
             comment=None, header=None, inferSchema=None, ignoreLeadingWhiteSpace=None,
@@ -52,13 +66,8 @@ class DataFrameReader(OptionUtils):
             charToEscapeQuoteEscaping=charToEscapeQuoteEscaping, samplingRatio=samplingRatio,
             enforceSchema=enforceSchema, emptyValue=emptyValue, locale=locale, lineSep=lineSep
         )
-        if isinstance(path, str):
-            path = [path]
-        if isinstance(path, list):
-            return self._df(self._jreader.csv(path))
-        if isinstance(path, RDD):
-            return self._df(self._jreader.csv(path.collect()))
-        raise TypeError("path can be only string, list or RDD")
+
+        return self._generic_read(path, self._jreader.csv)
 
     # pylint: disable=R0914
     def json(self, path, schema=None, primitivesAsString=None, prefersDecimal=None,
@@ -77,27 +86,17 @@ class DataFrameReader(OptionUtils):
             allowUnquotedControlChars=allowUnquotedControlChars, lineSep=lineSep,
             samplingRatio=samplingRatio, dropFieldIfAllNull=dropFieldIfAllNull, encoding=encoding,
             locale=locale)
-        if isinstance(path, str):
-            path = [path]
-        if isinstance(path, list):
-            return self._df(self._jreader.json(path))
-        if isinstance(path, RDD):
-            return self._df(self._jreader.json(path.collect()))
-        raise TypeError("path can be only string, list or RDD")
 
-    def text(self, paths, wholetext=False, lineSep=None,
+        return self._generic_read(path, self._jreader.json)
+
+    def text(self, path, wholetext=False, lineSep=None,
              pathGlobFilter=None, recursiveFileLookup=None):
         self._set_opts(wholetext=wholetext,
                        lineSep=lineSep,
                        pathGlobFilter=pathGlobFilter,
                        recursiveFileLookup=recursiveFileLookup)
-        if isinstance(paths, str):
-            paths = [paths]
-        if isinstance(paths, list):
-            return self._df(self._jreader.text(paths))
-        if isinstance(paths, RDD):
-            return self._df(self._jreader.text(paths.collect()))
-        raise TypeError("paths can be only string, list or RDD")
+
+        return self._generic_read(path, self._jreader.text)
 
 
 class DataFrameWriter(OptionUtils):

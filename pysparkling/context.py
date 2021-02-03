@@ -14,7 +14,6 @@ from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import EmptyRDD, RDD
 from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
@@ -194,6 +193,9 @@ class Context:
         :rtype: RDD
         """
         if numSlices is None or numSlices <= 1:
+            # pylint: disable=import-outside-toplevel, cyclic-import
+            from .rdd import RDD
+
             return RDD([Partition(x, 0)], self)
 
         x_len_iter, x = itertools.tee(x, 2)
@@ -215,6 +217,8 @@ class Context:
         :param partitions: An iterable over the partitioned data.
         :rtype: RDD
         """
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .rdd import RDD
 
         return RDD(
             (Partition(p_data, i) for i, p_data in enumerate(partitions)),
@@ -526,6 +530,9 @@ class Context:
         :param rdds: Iterable of RDDs.
         :rtype: RDD
         """
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .rdd import EmptyRDD
+
         if all(isinstance(rdd, EmptyRDD) for rdd in rdds):
             return EmptyRDD(self)
 

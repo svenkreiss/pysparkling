@@ -1,4 +1,5 @@
 """pysparkling module"""
+# flake8: noqa
 
 # isort: off
 from .sql.types import Row

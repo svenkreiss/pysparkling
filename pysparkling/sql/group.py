@@ -1,6 +1,5 @@
 from .column import Column
-from .dataframe import DataFrame
-# pylint: disable=W0622
+# pylint: disable=redefined-builtin
 from .functions import avg, count, lit, max, mean, min, parse, sum
 
 
@@ -49,6 +48,9 @@ class GroupedData:
 
             # noinspection PyProtectedMember
             jdf = self._jgd.agg([parse(e) for e in exprs])
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .dataframe import DataFrame
 
         return DataFrame(jdf, self.sql_ctx)
 
