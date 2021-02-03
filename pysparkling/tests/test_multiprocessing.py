@@ -137,7 +137,9 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
 
         start = time.time()
         r.collect()
-        self.assertLess(time.time() - start, 0.5)
+
+        # Yep... On Windows it's a lot slower!
+        self.assertLess(time.time() - start, 0.5 if platform.system() != 'Windows' else 1.1)
 
 
 class ProcessPoolIdlePerformance(unittest.TestCase):
