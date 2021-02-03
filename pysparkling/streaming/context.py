@@ -6,7 +6,7 @@ from .filestream import FileBinaryStreamDeserializer, FileStream, FileTextStream
 from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:
-    from .tcpstream import TCPTextStream, TCPBinaryStream, TCPDeserializer
+    from .tcpstream import TCPBinaryStream, TCPDeserializer, TCPTextStream
 except ImportError:
     TCPTextStream = False
     TCPBinaryStream = False

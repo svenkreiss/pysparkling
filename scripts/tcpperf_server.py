@@ -1,10 +1,11 @@
 import json
+
+from collections import defaultdict
 import logging
 import math
 import os
 import struct
 import time
-from collections import defaultdict
 
 import pysparkling
 

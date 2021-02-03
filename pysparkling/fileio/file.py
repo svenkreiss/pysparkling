@@ -1,8 +1,7 @@
 import logging
 from io import BytesIO
 
-from . import codec
-from . import fs
+from . import codec, fs
 
 log = logging.getLogger(__name__)
 

@@ -5,7 +5,6 @@ from .http import Http
 from .local import Local
 from .s3 import S3
 
-
 __all__ = ['FileSystem', 'GS', 'Hdfs', 'Http', 'Local', 'S3']
 
 
