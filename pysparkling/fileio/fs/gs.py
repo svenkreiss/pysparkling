@@ -1,11 +1,10 @@
-import logging
 from fnmatch import fnmatch
 from io import BytesIO, StringIO
 import logging
 
-from .file_system import FileSystem
 from ...exceptions import FileSystemNotSupported
 from ...utils import parse_file_uri, Tokenizer
+from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
 

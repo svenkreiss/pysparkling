@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
+from collections import namedtuple
 # This file is based on the PySpark version which in turn
 # was ported from spark/util/StatCounter.scala
 import copy
 import math
 import numbers
-from collections import namedtuple
 
 from pysparkling.sql.functions import parse
 from pysparkling.sql.types import row_from_keyed_values

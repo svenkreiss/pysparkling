@@ -1,19 +1,18 @@
 """Provides a Python implementation of RDDs."""
+from builtins import range, zip
+from collections import defaultdict
 import copy
 import functools
 import io
 import itertools
 import logging
 import math
+from operator import itemgetter
 import os
 import pickle
 import random
 import subprocess
 import sys
-
-from builtins import range, zip
-from collections import defaultdict
-from operator import itemgetter
 
 try:
     import numpy

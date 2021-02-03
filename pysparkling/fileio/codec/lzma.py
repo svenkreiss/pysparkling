@@ -1,6 +1,6 @@
+from io import BytesIO
 import logging
 import lzma
-from io import BytesIO
 
 from .codec import Codec
 

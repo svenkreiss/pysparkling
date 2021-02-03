@@ -4,7 +4,6 @@ import pytest
 
 from pysparkling import Context, StorageLevel
 from pysparkling.sql.session import SparkSession
-
 from pysparkling.sql.types import (
     ArrayType, DoubleType, IntegerType, LongType, MapType, Row, row_from_keyed_values, StringType, StructField,
     StructType

@@ -1,6 +1,6 @@
 import gzip
-import logging
 from io import BytesIO
+import logging
 
 from .codec import Codec
 

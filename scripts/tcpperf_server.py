@@ -1,6 +1,5 @@
-import json
-
 from collections import defaultdict
+import json
 import logging
 import math
 import os
