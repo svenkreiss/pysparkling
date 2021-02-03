@@ -1,4 +1,4 @@
-from pysparkling.sql.session import SparkSession
+from .session import SparkSession
 
 
 class SQLContext:

@@ -1,6 +1,6 @@
-from pysparkling.sql.expressions.expressions import Expression
-from pysparkling.sql.types import StructField
-from pysparkling.sql.utils import AnalysisException
+from ..types import StructField
+from ..utils import AnalysisException
+from .expressions import Expression
 
 
 class FieldAsExpression(Expression):

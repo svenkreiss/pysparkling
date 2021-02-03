@@ -1,17 +1,15 @@
-from pysparkling.sql.expressions.expressions import Expression
-from pysparkling.sql.expressions.fields import find_position_in_schema
-from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.mappers import CaseWhen, StarOperator
-from pysparkling.sql.expressions.operators import (
+from .expressions.expressions import Expression
+from .expressions.fields import find_position_in_schema
+from .expressions.literals import Literal
+from .expressions.mappers import CaseWhen, StarOperator
+from .expressions.operators import (
     Add, Alias, And, BitwiseAnd, BitwiseOr, BitwiseXor, Cast, Contains, Divide, EndsWith, EqNullSafe, Equal, GetField,
     GreaterThan, GreaterThanOrEqual, Invert, IsIn, IsNotNull, IsNull, LessThan, LessThanOrEqual, Minus, Mod, Negate,
     Or, Pow, StartsWith, Substring, Time
 )
-from pysparkling.sql.expressions.orders import (
-    Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, SortOrder
-)
-from pysparkling.sql.types import DataType, string_to_type, StructField
-from pysparkling.sql.utils import AnalysisException, IllegalArgumentException
+from .expressions.orders import Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, SortOrder
+from .types import DataType, string_to_type, StructField
+from .utils import AnalysisException, IllegalArgumentException
 
 
 class Column:

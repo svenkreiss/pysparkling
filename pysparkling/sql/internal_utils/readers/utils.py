@@ -1,10 +1,10 @@
-from pysparkling.fileio import File, TextFile
-from pysparkling.sql.casts import get_caster
-from pysparkling.sql.types import (
+from ....fileio import File, TextFile
+from ...casts import get_caster
+from ...types import (
     DecimalType, DoubleType, IntegerType, LongType, row_from_keyed_values, StringType, StructField, StructType,
     TimestampType
 )
-from pysparkling.sql.utils import AnalysisException
+from ...utils import AnalysisException
 
 
 def resolve_partitions(patterns):

@@ -4,11 +4,11 @@ import random
 import re
 import string
 
-from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, UnaryExpression
-from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.types import create_row, StringType
-from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
+from ...utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
+from ..internal_utils.column import resolve_column
+from ..types import create_row, StringType
+from ..utils import AnalysisException
+from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 

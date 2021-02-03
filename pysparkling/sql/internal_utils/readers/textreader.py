@@ -1,11 +1,11 @@
 from functools import partial
 import itertools
 
-from pysparkling.fileio import TextFile
-from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readers.utils import resolve_partitions
-from pysparkling.sql.internals import DataFrameInternal
-from pysparkling.sql.types import create_row, StringType, StructField, StructType
+from ....fileio import TextFile
+from ...internal_utils.options import Options
+from ...internal_utils.readers.utils import resolve_partitions
+from ...internals import DataFrameInternal
+from ...types import create_row, StringType, StructField, StructType
 
 
 class TextReader:

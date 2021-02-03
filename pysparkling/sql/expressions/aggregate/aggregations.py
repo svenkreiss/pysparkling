@@ -1,4 +1,4 @@
-from pysparkling.sql.expressions.expressions import Expression
+from ..expressions import Expression
 
 
 class Aggregation(Expression):

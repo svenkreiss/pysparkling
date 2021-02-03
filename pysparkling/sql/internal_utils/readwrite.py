@@ -1,4 +1,4 @@
-from pysparkling.sql.utils import IllegalArgumentException
+from ..utils import IllegalArgumentException
 
 
 def to_option_stored_value(value):

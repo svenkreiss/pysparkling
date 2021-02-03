@@ -1,15 +1,17 @@
 import warnings
 
-from pysparkling import StorageLevel
-from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.fields import FieldAsExpression
-from pysparkling.sql.internal_utils.joins import CROSS_JOIN, JOIN_TYPES
-from pysparkling.sql.internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
-from pysparkling.sql.types import (
+from ..storagelevel import StorageLevel
+from .column import Column, parse
+from .expressions.fields import FieldAsExpression
+from .group import GroupedData
+from .internal_utils.joins import CROSS_JOIN, JOIN_TYPES
+from .internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
+from .readwriter import DataFrameWriter
+from .types import (
     _check_series_convert_timestamps_local_tz, ByteType, FloatType, IntegerType, IntegralType, ShortType,
     TimestampType
 )
-from pysparkling.sql.utils import AnalysisException, IllegalArgumentException, require_minimum_pandas_version
+from .utils import AnalysisException, IllegalArgumentException, require_minimum_pandas_version
 
 _NoValue = object()
 
@@ -64,10 +66,6 @@ class DataFrame:
 
     @property
     def write(self):
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.sql.readwriter import DataFrameWriter
-
         return DataFrameWriter(self)
 
     @property
@@ -1121,9 +1119,6 @@ class DataFrame:
         | Carl|  5|    1|
         +-----+---+-----+
         """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.sql.group import GroupedData
         jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols])
         return GroupedData(jgd, self)
 
@@ -1146,10 +1141,6 @@ class DataFrame:
         | Carl|   5|    1|
         +-----+----+-----+
         """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.sql.group import GroupedData
-
         jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], ROLLUP_TYPE)
         return GroupedData(jgd, self)
 
@@ -1190,10 +1181,6 @@ class DataFrame:
         +-----+----+-----+
 
         """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.sql.group import GroupedData
-
         jgd = InternalGroupedDataFrame(self._jdf, [parse(c) for c in cols], CUBE_TYPE)
         return GroupedData(jgd, self)
 

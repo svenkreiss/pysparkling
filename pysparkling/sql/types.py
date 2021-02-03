@@ -24,7 +24,7 @@ import os
 import re
 import sys
 
-from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
+from .utils import ParseException, require_minimum_pandas_version
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",

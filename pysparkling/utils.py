@@ -12,13 +12,13 @@ from typing import List, Optional, Union
 import pytz
 from pytz import UnknownTimeZoneError
 
-from pysparkling.sql.casts import get_time_formatter
-from pysparkling.sql.internal_utils.joins import (
+from .sql.casts import get_time_formatter
+from .sql.internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )
-from pysparkling.sql.schema_utils import get_on_fields
-from pysparkling.sql.types import create_row, Row, row_from_keyed_values
-from pysparkling.sql.utils import IllegalArgumentException
+from .sql.schema_utils import get_on_fields
+from .sql.types import create_row, Row, row_from_keyed_values
+from .sql.utils import IllegalArgumentException
 
 
 class Tokenizer:

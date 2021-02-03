@@ -1,14 +1,12 @@
-from pysparkling.sql.column import Column
-from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
-from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.mappers import StarOperator
+from ....stat_counter import ColumnStatHelper
+from ...column import Column
+from ..literals import Literal
+from ..mappers import StarOperator
+from .aggregations import Aggregation
 
 
 class SimpleStatAggregation(Aggregation):
     def __init__(self, column):
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.stat_counter import ColumnStatHelper
         super().__init__(column)
         self.column = column
         self.stat_helper = ColumnStatHelper(column)
@@ -30,9 +28,6 @@ class Count(SimpleStatAggregation):
     pretty_name = "count"
 
     def __init__(self, column):
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.stat_counter import ColumnStatHelper
         if isinstance(column.expr, StarOperator):
             column = Column(Literal(1))
         super().__init__(column)

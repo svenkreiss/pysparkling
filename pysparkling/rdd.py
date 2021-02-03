@@ -20,6 +20,7 @@ except ImportError:
     numpy = None
 
 from . import fileio
+from .context import Context
 from .exceptions import ContextIsLockedException, FileAlreadyExistsException
 from .samplers import BernoulliSampler, BernoulliSamplerPerKey, PoissonSampler, PoissonSamplerPerKey
 from .stat_counter import StatCounter
@@ -2079,10 +2080,7 @@ class RDD:
         >>> rdd.toDF().collect()
         [Row(age=1, name='Alice')]
         """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling import Context
-        from pysparkling.sql.session import SparkSession
+        from .sql.session import SparkSession
         sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
         return sparkSession.createDataFrame(self, schema, sampleRatio)
 

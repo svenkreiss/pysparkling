@@ -1,8 +1,8 @@
-from pysparkling.sql.internal_utils.readers.csvreader import CSVReader
-from pysparkling.sql.internal_utils.readers.jsonreader import JSONReader
-from pysparkling.sql.internal_utils.readers.textreader import TextReader
-from pysparkling.sql.internal_utils.readwrite import OptionUtils, to_option_stored_value
-from pysparkling.sql.types import StructType
+from ...internal_utils.readers.csvreader import CSVReader
+from ...internal_utils.readers.jsonreader import JSONReader
+from ...internal_utils.readers.textreader import TextReader
+from ...internal_utils.readwrite import OptionUtils, to_option_stored_value
+from ...types import StructType
 
 
 class InternalReader(OptionUtils):
