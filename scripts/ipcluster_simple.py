@@ -1,4 +1,5 @@
 from ipyparallel import Client
+
 rc = Client(packer='pickle')
 
 view = rc[:]

@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-
 # lzma only available in Python >= 3.3
 try:
     import lzma

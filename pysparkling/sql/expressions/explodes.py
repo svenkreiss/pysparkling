@@ -1,6 +1,5 @@
-from pysparkling.sql.types import StructField, IntegerType, DataType
-
 from pysparkling.sql.expressions.expressions import UnaryExpression
+from pysparkling.sql.types import DataType, IntegerType, StructField
 
 
 class Explode(UnaryExpression):
