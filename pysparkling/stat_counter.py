@@ -20,10 +20,10 @@
 
 from __future__ import division
 
+from collections import namedtuple
 import copy
 import math
 import numbers
-from collections import namedtuple
 
 from pysparkling.sql.functions import parse
 from pysparkling.sql.types import row_from_keyed_values

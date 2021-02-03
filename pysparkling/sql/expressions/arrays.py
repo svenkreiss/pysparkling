@@ -1,4 +1,4 @@
-from pysparkling.sql.expressions.expressions import Expression, UnaryExpression, BinaryOperation
+from pysparkling.sql.expressions.expressions import BinaryOperation, Expression, UnaryExpression
 from pysparkling.sql.utils import AnalysisException
 
 
