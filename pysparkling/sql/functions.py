@@ -10,13 +10,13 @@ from pysparkling.sql.expressions.aggregate.stat_aggregations import (
 )
 from pysparkling.sql.expressions.arrays import (
     ArrayColumn, ArrayContains, ArrayDistinct, ArrayExcept, ArrayIntersect, ArrayJoin, ArrayMax, ArrayMin,
-    ArrayPosition, ArrayRemove, ArrayRepeat, ArraySort, ArrayUnion, ArraysOverlap, ArraysZip, ElementAt, Flatten,
+    ArrayPosition, ArrayRemove, ArrayRepeat, ArraySort, ArraysOverlap, ArraysZip, ArrayUnion, ElementAt, Flatten,
     MapColumn, MapFromArraysColumn, Sequence, Size, Slice, SortArray
 )
 from pysparkling.sql.expressions.csvs import SchemaOfCsv
 from pysparkling.sql.expressions.dates import (
     AddMonths, CurrentDate, CurrentTimestamp, DateAdd, DateDiff, DateFormat, DateSub, DayOfMonth, DayOfWeek, DayOfYear,
-    FromUTCTimestamp, FromUnixTime, Hour, LastDay, Minute, Month, MonthsBetween, NextDay, ParseToDate,
+    FromUnixTime, FromUTCTimestamp, Hour, LastDay, Minute, Month, MonthsBetween, NextDay, ParseToDate,
     ParseToTimestamp, Quarter, Second, ToUTCTimestamp, TruncDate, TruncTimestamp, UnixTimestamp, WeekOfYear, Year
 )
 from pysparkling.sql.expressions.explodes import Explode, ExplodeOuter, PosExplode, PosExplodeOuter
@@ -32,8 +32,8 @@ from pysparkling.sql.expressions.mappers import (
 )
 from pysparkling.sql.expressions.operators import BitwiseNot, IsNull, Pow, Substring
 from pysparkling.sql.expressions.strings import (
-    InitCap, Levenshtein, SoundEx, StringInStr, StringLPad, StringLTrim, StringLocate, StringRPad, StringRTrim,
-    StringRepeat, StringTranslate, StringTrim
+    InitCap, Levenshtein, SoundEx, StringInStr, StringLocate, StringLPad, StringLTrim, StringRepeat, StringRPad,
+    StringRTrim, StringTranslate, StringTrim
 )
 from pysparkling.sql.expressions.userdefined import UserDefinedFunction
 from pysparkling.sql.types import DataType
