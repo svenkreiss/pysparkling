@@ -161,11 +161,11 @@ COMPLEX_ACCUMULATOR_PARAM = AddingAccumulatorParam(0.0j)
 
 
 if __name__ == "__main__":
-    """
-    Execute doctests with
-
-    $ python -m pysparkling.accumulators -v
-    """
+    #
+    # Execute doctests with
+    #
+    # $ python -m pysparkling.accumulators -v
+    #
     import doctest
     import sys
 

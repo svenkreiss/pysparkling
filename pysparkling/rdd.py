@@ -75,11 +75,10 @@ class RDD:
     def partitions(self):
         return self._p
 
-    """
-
-    Public API
-    ----------
-    """
+    #
+    # Public API
+    # ----------
+    #
 
     def aggregate(self, zeroValue, seqOp, combOp):
         """aggregate

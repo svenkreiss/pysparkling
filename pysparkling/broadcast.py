@@ -49,11 +49,11 @@ class Broadcast:
 
 
 if __name__ == "__main__":
-    """
-    Execute doctests with
-
-    $ python -m pysparkling.broadcast -v
-    """
+    #
+    # Execute doctests with
+    #
+    # $ python -m pysparkling.accumulators -v
+    #
     import doctest
     import sys
 
