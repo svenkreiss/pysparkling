@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 try:
     from gcloud import storage
-except ImportError as e:
+except ImportError:
     storage = None
 
 
