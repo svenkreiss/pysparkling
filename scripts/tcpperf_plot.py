@@ -1,4 +1,5 @@
 import csv
+
 from collections import namedtuple
 
 import matplotlib

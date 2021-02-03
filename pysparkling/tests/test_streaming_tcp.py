@@ -3,6 +3,7 @@ from __future__ import print_function
 from collections import Counter
 from contextlib import closing
 import struct
+
 import tornado.gen
 import tornado.tcpclient
 import tornado.testing

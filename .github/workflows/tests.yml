@@ -26,10 +26,12 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
+
     - name: Install
       run: |
         python -m pip install --upgrade pip
@@ -39,14 +41,30 @@ jobs:
         python -m pip freeze
         python --version
         python -c "import pysparkling; print(pysparkling.__version__)"
+
+    - name: Check if import order is fine
+      run: |
+        isort . --check --diff
+
+    - name: Test pysparkling.rdd
+      run: python -m pytest --pyargs pysparkling.rdd -vv
+
+    - name: Test pysparkling.tests
+      if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
+      run: python -m pytest --pyargs pysparkling.tests -vv
+
     - name: Install SQL Dependencies
       run: |
         python -m pip install -e ".[sql]" --use-deprecated=legacy-resolver
+
     - name: flake8
       run: flake8 pysparkling scripts
+
     - name: Lint
       run: pylint pysparkling scripts --disable=fixme
+
     - name: pycodestyle
       run: python -m pycodestyle pysparkling scripts
+
     - name: Test All
       run: python -m pytest -vv
