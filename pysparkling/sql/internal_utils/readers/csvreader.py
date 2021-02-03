@@ -10,7 +10,7 @@ from pysparkling.sql.schema_utils import infer_schema_from_rdd
 from pysparkling.sql.types import create_row, StringType, StructField, StructType
 
 
-class CSVReader(object):
+class CSVReader:
     default_options = dict(
         lineSep=None,
         encoding="utf-8",

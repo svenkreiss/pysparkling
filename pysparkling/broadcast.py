@@ -20,7 +20,7 @@
 __all__ = ['Broadcast']
 
 
-class Broadcast(object):
+class Broadcast:
     """
     A broadcast variable created with ``b = sc.broadcast(0)``.
     Access its value through ``b.value``.

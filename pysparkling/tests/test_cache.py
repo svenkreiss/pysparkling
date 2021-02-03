@@ -6,7 +6,7 @@ import time
 import pysparkling
 
 
-class Manip(object):
+class Manip:
     def __init__(self):
         self.count = 0
 

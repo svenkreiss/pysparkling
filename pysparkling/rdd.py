@@ -37,7 +37,7 @@ def _hash(v):
     return portable_hash(v) & 0xffffffff
 
 
-class RDD(object):
+class RDD:
     """RDD
 
     In Spark's original form, RDDs are Resilient, Distributed Datasets.
@@ -2190,7 +2190,7 @@ class EmptyRDD(RDD):
 
 # pickle-able helpers
 
-class MapF(object):
+class MapF:
     def __init__(self, f):
         self.f = f
 

@@ -20,7 +20,7 @@ from pysparkling.sql.types import create_row, Row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
 
 
-class Tokenizer(object):
+class Tokenizer:
     def __init__(self, expression):
         self.expression = expression
 
@@ -239,7 +239,7 @@ def format_cell(value):
     return str(value)
 
 
-class MonotonicallyIncreasingIDGenerator(object):
+class MonotonicallyIncreasingIDGenerator:
     def __init__(self, partition_index):
         self.value = partition_index * 8589934592 - 1
 
@@ -250,7 +250,7 @@ class MonotonicallyIncreasingIDGenerator(object):
 
 # pylint: disable=W0511
 # todo: store random-related utils in a separated module
-class XORShiftRandom(object):
+class XORShiftRandom:
     # pylint: disable=W0511
     # todo: align generated values with the ones in Spark
     def __init__(self, init):
@@ -297,7 +297,7 @@ class XORShiftRandom(object):
         return (highBits << 32) | (lowBits & 0xFFFFFFFF)
 
 
-class MurmurHash3(object):
+class MurmurHash3:
     @staticmethod
     def bytesHash(data, seed=0x3c074a61):
         length = len(data)

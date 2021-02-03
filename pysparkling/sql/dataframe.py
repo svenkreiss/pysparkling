@@ -14,7 +14,7 @@ from pysparkling.sql.utils import AnalysisException, IllegalArgumentException, r
 _NoValue = object()
 
 
-class DataFrame(object):
+class DataFrame:
     def __init__(self, jdf, sql_ctx):
         self._jdf = jdf
         self.sql_ctx = sql_ctx
@@ -1690,7 +1690,7 @@ class DataFrame(object):
         return self.filter(condition)
 
 
-class DataFrameNaFunctions(object):
+class DataFrameNaFunctions:
     def __init__(self, df):
         self.df = df
 
@@ -1710,7 +1710,7 @@ class DataFrameNaFunctions(object):
     replace.__doc__ = DataFrame.replace.__doc__
 
 
-class DataFrameStatFunctions(object):
+class DataFrameStatFunctions:
     def __init__(self, df):
         self.df = df
 

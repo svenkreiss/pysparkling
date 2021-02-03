@@ -8,7 +8,7 @@ from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.types import create_row, StringType, StructField, StructType
 
 
-class TextReader(object):
+class TextReader:
     default_options = dict(
         lineSep=None,
         encoding="utf-8",

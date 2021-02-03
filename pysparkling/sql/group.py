@@ -4,7 +4,7 @@ from pysparkling.sql.dataframe import DataFrame
 from pysparkling.sql.functions import avg, count, lit, max, mean, min, parse, sum
 
 
-class GroupedData(object):
+class GroupedData:
     def __init__(self, jgd, df):
         self._jgd = jgd
         self._df = df

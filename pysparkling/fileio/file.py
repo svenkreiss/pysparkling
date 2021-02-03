@@ -8,7 +8,7 @@ from . import codec, fs
 log = logging.getLogger(__name__)
 
 
-class File(object):
+class File:
     """File object.
 
     :param file_name: Any file name.

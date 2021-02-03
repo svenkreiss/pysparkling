@@ -3,7 +3,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class TaskContext(object):
+class TaskContext:
     def __init__(self, cache_manager, catch_exceptions,
                  stage_id=0, partition_id=0, max_retries=3, retry_wait=0):
         self.cache_manager = cache_manager

@@ -12,7 +12,7 @@ from ..rdd import EmptyRDD
 log = logging.getLogger(__name__)
 
 
-class TCPDeserializer(object):
+class TCPDeserializer:
     def __init__(self, context):
         self.context = context
 

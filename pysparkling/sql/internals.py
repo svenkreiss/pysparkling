@@ -25,7 +25,7 @@ from pysparkling.utils import (
 )
 
 
-class FieldIdGenerator(object):
+class FieldIdGenerator:
     """
     This metaclass adds an unique ID to all instances of its classes.
 
@@ -64,7 +64,7 @@ class FieldIdGenerator(object):
         return schema
 
 
-class DataFrameInternal(object):
+class DataFrameInternal:
     def __init__(self, sc, rdd, cols=None, convert_to_row=False, schema=None):
         """
         :type rdd: RDD
@@ -974,7 +974,7 @@ class SubTotalValue:
 GROUPED = SubTotalValue()
 
 
-class InternalGroupedDataFrame(object):
+class InternalGroupedDataFrame:
     def __init__(self,
                  jdf, grouping_cols, group_type=GROUP_BY_TYPE,
                  pivot_col=None, pivot_values=None):
@@ -1141,7 +1141,7 @@ class InternalGroupedDataFrame(object):
         )
 
 
-class GroupedStats(object):
+class GroupedStats:
     def __init__(self, grouping_cols, stats, pivot_col, pivot_values, groups=None):
         self.grouping_cols = grouping_cols
         self.stats = stats

@@ -14,7 +14,7 @@ from pysparkling.sql.types import DataType, string_to_type, StructField
 from pysparkling.sql.utils import AnalysisException, IllegalArgumentException
 
 
-class Column(object):
+class Column:
     """
     A column in a DataFrame.
 

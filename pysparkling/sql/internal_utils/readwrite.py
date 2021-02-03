@@ -9,7 +9,7 @@ def to_option_stored_value(value):
     return str(value)
 
 
-class OptionUtils(object):
+class OptionUtils:
     def _set_opts(self, schema=None, **options):
         """
         Set named options (filter out those the value is None)

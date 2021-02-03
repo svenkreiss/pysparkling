@@ -95,7 +95,7 @@ def runJob_map(i):  # pylint: disable=too-many-locals
     ))
 
 
-class Context(object):
+class Context:
     """Context object similar to a Spark Context.
 
     The variable `_stats` contains measured timing information about data and
@@ -571,7 +571,7 @@ class Context(object):
         return rdd
 
 
-class DummyPool(object):
+class DummyPool:
     def __init__(self):
         pass
 
@@ -595,7 +595,7 @@ def map_whole_text_file(f_name__encoding):
     )
 
 
-class FixedLengthChunker(object):
+class FixedLengthChunker:
     def __init__(self, recordLength):
         self.record_length = recordLength
 
@@ -604,7 +604,7 @@ class FixedLengthChunker(object):
             yield data[i: i + self.record_length]
 
 
-class VariableLengthChunker(object):
+class VariableLengthChunker:
     def __init__(self, recordLength):
         self.length_fmt = recordLength
         self.prefix_length = struct.calcsize(recordLength)

@@ -15,7 +15,7 @@ from pysparkling.sql.utils import AnalysisException
 from pysparkling.utils import get_json_encoder, portable_hash
 
 
-class InternalWriter(object):
+class InternalWriter:
     def __init__(self, df):
         self._df = df
         self._source = "parquet"
@@ -114,7 +114,7 @@ class WriteInFolder(Aggregation):
         return (self.column,)
 
 
-class DataWriter(object):
+class DataWriter:
     default_options = dict(
         dateFormat="yyyy-MM-dd",
         timestampFormat="yyyy-MM-dd'T'HH:mm:ss.SSSXXX",

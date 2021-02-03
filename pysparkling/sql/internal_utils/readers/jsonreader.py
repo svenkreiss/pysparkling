@@ -10,7 +10,7 @@ from pysparkling.sql.schema_utils import infer_schema_from_rdd
 from pysparkling.sql.types import create_row, row_from_keyed_values, StructType
 
 
-class JSONReader(object):
+class JSONReader:
     default_options = dict(
         primitivesAsString=False,
         prefersDecimal=False,

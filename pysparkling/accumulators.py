@@ -79,7 +79,7 @@ TypeError: No default accumulator param for type <type 'list'>
 __all__ = ['Accumulator', 'AccumulatorParam']
 
 
-class Accumulator(object):
+class Accumulator:
     """
     A shared variable that can be accumulated, i.e., has a commutative and associative "add"
     operation. Tasks can add values to an Accumulator with the ``+=`` operator
@@ -118,7 +118,7 @@ class Accumulator(object):
         return "Accumulator<value={0}>".format(self._value)
 
 
-class AccumulatorParam(object):
+class AccumulatorParam:
     """
     Helper object that defines how to accumulate values of a given type.
     """

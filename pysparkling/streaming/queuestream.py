@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from ..rdd import EmptyRDD, RDD
 
 
-class QueueStreamDeserializer(object):
+class QueueStreamDeserializer:
     def __init__(self, context):
         self.context = context
 
@@ -18,7 +18,7 @@ class QueueStreamDeserializer(object):
         return self.ensure_rdd(data)
 
 
-class QueueStream(object):
+class QueueStream:
     def __init__(self, queue, oneAtATime=True, default=None):
         self.queue = queue
         self.oneAtATime = oneAtATime

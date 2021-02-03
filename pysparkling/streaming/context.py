@@ -30,7 +30,7 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-class StreamingContext(object):
+class StreamingContext:
     """Stream processing.
 
     :param pysparkling.Context sparkContext: A pysparkling.Context.

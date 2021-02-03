@@ -14,7 +14,7 @@ class RegisterExpressions(type):
             expression_registry[cls.pretty_name] = cls
 
 
-class Expression(object, metaclass=RegisterExpressions):
+class Expression(metaclass=RegisterExpressions):
     pretty_name = None
 
     def __init__(self, *children):

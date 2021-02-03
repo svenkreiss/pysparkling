@@ -14,8 +14,8 @@ from pysparkling.sql.types import (
 from pysparkling.sql.utils import require_minimum_pandas_version
 
 
-class SparkSession(object):
-    class Builder(object):
+class SparkSession:
+    class Builder:
         _lock = RLock()
 
         def getOrCreate(self):
