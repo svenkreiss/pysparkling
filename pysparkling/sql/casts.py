@@ -7,8 +7,9 @@ from dateutil.tz import tzlocal
 import pytz
 
 from pysparkling.sql.types import (
-    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,
-    MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType, UserDefinedType, create_row
+    ArrayType, BinaryType, BooleanType, ByteType, create_row, DateType, DecimalType, DoubleType, FloatType,
+    IntegerType, LongType, MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType,
+    UserDefinedType
 )
 from pysparkling.sql.utils import AnalysisException
 
