@@ -1,7 +1,4 @@
 """Sends tcp messages."""
-
-from __future__ import absolute_import, division
-
 import argparse
 from contextlib import closing
 import json

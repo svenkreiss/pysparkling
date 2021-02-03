@@ -67,9 +67,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pysparkling'
-copyright = u'2015-2021, a project started by Sven Kreiss.'
-author = u'pysparkling contributors'
+project = 'pysparkling'
+copyright = '2015-2021, a project started by Sven Kreiss.'
+author = 'pysparkling contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

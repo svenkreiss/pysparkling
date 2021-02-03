@@ -1,13 +1,6 @@
-from __future__ import absolute_import
-
-# lzma only available in Python >= 3.3
-try:
-    import lzma
-except ImportError:
-    lzma = None
-
 from io import BytesIO
 import logging
+import lzma
 
 from .codec import Codec
 

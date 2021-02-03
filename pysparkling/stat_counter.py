@@ -17,9 +17,6 @@
 
 # This file is based on the PySpark version which in turn
 # was ported from spark/util/StatCounter.scala
-
-from __future__ import division
-
 from collections import namedtuple
 import copy
 import math

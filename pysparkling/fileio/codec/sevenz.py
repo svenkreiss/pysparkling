@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 try:
     import py7zlib
 except ImportError:
