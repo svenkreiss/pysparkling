@@ -5,7 +5,7 @@ from io import BytesIO, StringIO
 import logging
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer, parse_file_uri
+from ...utils import parse_file_uri, Tokenizer
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)

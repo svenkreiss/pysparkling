@@ -9,10 +9,11 @@ import random
 import struct
 import sys
 import time
+
 from tornado import gen
-from tornado.tcpclient import TCPClient
 from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado.iostream import StreamClosedError
+from tornado.tcpclient import TCPClient
 
 
 class Emitter(object):

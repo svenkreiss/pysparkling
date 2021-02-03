@@ -7,7 +7,7 @@ from .codec import Codec
 from .gz import Gz
 from .lzma import Lzma
 from .sevenz import SevenZ
-from .tar import Tar, TarGz, TarBz2
+from .tar import Tar, TarBz2, TarGz
 from .zip import Zip
 
 log = logging.getLogger(__name__)

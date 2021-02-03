@@ -1,14 +1,13 @@
-import itertools
 from functools import partial
+import itertools
 
 from pysparkling.fileio import TextFile
 from pysparkling.sql.casts import get_caster
 from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readers.utils import resolve_partitions, \
-    guess_schema_from_strings
+from pysparkling.sql.internal_utils.readers.utils import guess_schema_from_strings, resolve_partitions
 from pysparkling.sql.internals import DataFrameInternal
 from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import StructType, StringType, StructField, create_row
+from pysparkling.sql.types import create_row, StringType, StructField, StructType
 
 
 class CSVReader(object):

@@ -12,7 +12,7 @@ from pysparkling.sql.functions import col
 from pysparkling.sql.internal_utils.options import Options
 from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import portable_hash, get_json_encoder
+from pysparkling.utils import get_json_encoder, portable_hash
 
 
 class InternalWriter(object):

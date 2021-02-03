@@ -4,12 +4,11 @@ import logging
 import time
 
 from .dstream import DStream
-from .filestream import (FileStream, FileTextStreamDeserializer,
-                         FileBinaryStreamDeserializer)
+from .filestream import FileBinaryStreamDeserializer, FileStream, FileTextStreamDeserializer
 from .queuestream import QueueStream, QueueStreamDeserializer
 
 try:
-    from .tcpstream import TCPTextStream, TCPBinaryStream, TCPDeserializer
+    from .tcpstream import TCPBinaryStream, TCPDeserializer, TCPTextStream
 except ImportError:
     TCPTextStream = False
     TCPBinaryStream = False
