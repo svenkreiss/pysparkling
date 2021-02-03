@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
 from fnmatch import fnmatch
-import logging
 from io import BytesIO, StringIO
+import logging
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer, parse_file_uri
+from ...utils import parse_file_uri, Tokenizer
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class GS(FileSystem):
                 'Google Storage is not supported. Install "gcloud".'
             )
 
-        super(GS, self).__init__(file_name)
+        super().__init__(file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)

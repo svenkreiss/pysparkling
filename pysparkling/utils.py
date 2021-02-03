@@ -3,19 +3,20 @@ import datetime
 import itertools
 import json
 import math
+from operator import itemgetter
 import random
 import re
 import sys
-from operator import itemgetter
 
 import pytz
 from pytz import UnknownTimeZoneError
 
 from pysparkling.sql.casts import get_time_formatter
+from pysparkling.sql.internal_utils.joins import (
+    CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
+)
 from pysparkling.sql.schema_utils import get_on_fields
-from pysparkling.sql.internal_utils.joins import FULL_JOIN, RIGHT_JOIN, LEFT_JOIN, \
-    CROSS_JOIN, INNER_JOIN, LEFT_SEMI_JOIN, LEFT_ANTI_JOIN
-from pysparkling.sql.types import Row, create_row, row_from_keyed_values
+from pysparkling.sql.types import create_row, Row, row_from_keyed_values
 from pysparkling.sql.utils import IllegalArgumentException
 
 
@@ -595,7 +596,7 @@ def get_json_encoder(options):
                     )
                 return item
 
-            return super(CustomJSONEncoder, self).encode(encode_rows(o))
+            return super().encode(encode_rows(o))
 
         # default can be overridden if passed a parameter during init
         # pylint doesn't like the behavior but it is the expected one
@@ -605,6 +606,6 @@ def get_json_encoder(options):
                 return timestamp_formatter(o)
             if isinstance(o, datetime.date):
                 return date_formatter(o)
-            return super(CustomJSONEncoder, self).default(o)
+            return super().default(o)
 
     return CustomJSONEncoder

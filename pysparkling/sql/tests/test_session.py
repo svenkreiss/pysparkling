@@ -2,11 +2,12 @@ from unittest import TestCase
 
 import pytest
 
-from pysparkling import StorageLevel
-from pysparkling.sql.types import Row, StructType, StructField, LongType, StringType, DoubleType, \
-    ArrayType, MapType, IntegerType, row_from_keyed_values
+from pysparkling import Context, StorageLevel
 from pysparkling.sql.session import SparkSession
-from pysparkling import Context
+from pysparkling.sql.types import (
+    ArrayType, DoubleType, IntegerType, LongType, MapType, Row, row_from_keyed_values, StringType, StructField,
+    StructType
+)
 from pysparkling.sql.utils import require_minimum_pandas_version
 
 try:
@@ -65,8 +66,8 @@ class SessionTests(TestCase):
             # Pandas is an optional dependency
             # pylint: disable=import-outside-toplevel
             import pandas as pd
-        except ImportError:
-            raise Exception("pandas is not importable")
+        except ImportError as e:
+            raise ImportError("pandas is not importable") from e
 
         pdf = pd.DataFrame([
             (1, "one"),

@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import test_multiprocessing
+
+import pysparkling.tests.test_multiprocessing as test_mp
 
 
 def plot(has_hyperthreading=True):
-    n_cpu, r = test_multiprocessing.test_performance()
+    n_cpu, r = test_mp.test_performance()
     r = {n: 1.0 / (v[0] / r[1][0]) for n, v in r.items()}
 
     if has_hyperthreading:
@@ -49,8 +50,8 @@ def plot(has_hyperthreading=True):
     ax.set_xlabel('n processes')
     ax.set_ylabel('speedup')
     ax.set_xticks(x)
-    ax.set_xticklabels(['no\nserialization\n(single process)'] +
-                       [str(s) for s in x[1:]])
+    ax.set_xticklabels(['no\nserialization\n(single process)']
+                       + [str(s) for s in x[1:]])
     ax.set_xlim(-0.5, max(x) + 0.5)
     ax.set_ylim(0, max(x))
     ax.legend((bars[0], bars_ideal[0]), ('measured', 'ideal'),

@@ -1,11 +1,11 @@
 from __future__ import absolute_import, unicode_literals
 
 from fnmatch import fnmatch
-import logging
 from io import BytesIO, StringIO
+import logging
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import parse_file_uri, format_file_uri
+from ...utils import format_file_uri, parse_file_uri
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class Hdfs(FileSystem):
                 'hdfs not supported. Install the python package "hdfs".'
             )
 
-        super(Hdfs, self).__init__(file_name)
+        super().__init__(file_name)
 
     @staticmethod
     def client_and_path(path):

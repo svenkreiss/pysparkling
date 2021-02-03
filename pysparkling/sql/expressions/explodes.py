@@ -1,11 +1,10 @@
-from pysparkling.sql.types import StructField, IntegerType, DataType
-
 from pysparkling.sql.expressions.expressions import UnaryExpression
+from pysparkling.sql.types import DataType, IntegerType, StructField
 
 
 class Explode(UnaryExpression):
     def __init__(self, column):
-        super(Explode, self).__init__(column)
+        super().__init__(column)
         self.column = column
 
     @property

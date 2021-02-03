@@ -1,15 +1,16 @@
 import datetime
+from functools import lru_cache, partial
 import re
 import time
-from functools import partial, lru_cache
 
-import pytz
 from dateutil.tz import tzlocal
+import pytz
 
-from pysparkling.sql.types import UserDefinedType, NumericType, DateType, \
-    TimestampType, ArrayType, StructType, MapType, BooleanType, StringType, BinaryType, \
-    FloatType, ByteType, ShortType, IntegerType, LongType, DoubleType, NullType, \
-    DecimalType, create_row
+from pysparkling.sql.types import (
+    ArrayType, BinaryType, BooleanType, ByteType, create_row, DateType, DecimalType, DoubleType, FloatType,
+    IntegerType, LongType, MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType,
+    UserDefinedType
+)
 from pysparkling.sql.utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
@@ -298,10 +299,10 @@ def cast_to_float(value, from_type, options):
     # bounding between float min&max values
     try:
         return cast_value(value, options=options)
-    except ValueError:
+    except ValueError as e:
         if isinstance(from_type, (DateType, TimestampType, NumericType, StringType)):
             return None
-        raise AnalysisException("Cannot cast type {0} to float".format(from_type))
+        raise AnalysisException("Cannot cast type {0} to float".format(from_type)) from e
 
 
 def cast_value(value, options):

@@ -1,4 +1,5 @@
-from IPython.parallel import Client
+from ipyparallel import Client
+
 rc = Client(packer='pickle')
 
 view = rc[:]

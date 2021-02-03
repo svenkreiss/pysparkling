@@ -1,7 +1,6 @@
 """Context."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import defaultdict
 import itertools
@@ -12,22 +11,14 @@ import time
 import traceback
 
 from . import __version__ as PYSPARKLING_VERSION
-from .broadcast import Broadcast
 from . import accumulators
+from .broadcast import Broadcast
 from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import RDD, EmptyRDD
+from .rdd import EmptyRDD, RDD
 from .task_context import TaskContext
-
-# Python 2 compatibility
-if not hasattr(time, 'perf_counter'):
-    try:  # Python 2
-        time.perf_counter = time.clock
-    except AttributeError:  # Unexpected
-        raise Exception("`time`should contain either clock (py2) or perf_counter (py3)")
-
 
 log = logging.getLogger(__name__)
 

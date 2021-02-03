@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
-import logging
 from io import BytesIO, StringIO
+import logging
 
-from .file_system import FileSystem
 from ...exceptions import ConnectionException, FileSystemNotSupported
+from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class Http(FileSystem):
                 'http not supported. Install "requests".'
             )
 
-        super(Http, self).__init__(file_name)
+        super().__init__(file_name)
         self.headers = None
 
     @staticmethod

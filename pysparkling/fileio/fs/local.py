@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
-import glob
 from fnmatch import fnmatch
+import glob
 import io
 import logging
 import os

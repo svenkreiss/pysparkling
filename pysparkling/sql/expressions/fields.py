@@ -1,12 +1,11 @@
-from pysparkling.sql.types import StructField
-
 from pysparkling.sql.expressions.expressions import Expression
+from pysparkling.sql.types import StructField
 from pysparkling.sql.utils import AnalysisException
 
 
 class FieldAsExpression(Expression):
     def __init__(self, field):
-        super(FieldAsExpression, self).__init__()
+        super().__init__()
         self.field = field
 
     def eval(self, row, schema):

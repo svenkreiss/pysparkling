@@ -3,8 +3,7 @@ from __future__ import absolute_import
 from io import BytesIO
 import logging
 
-from . import codec
-from . import fs
+from . import codec, fs
 
 log = logging.getLogger(__name__)
 

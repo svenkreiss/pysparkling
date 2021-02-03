@@ -4,13 +4,11 @@ import random
 import re
 import string
 
-from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, \
-    UnaryExpression
+from pysparkling.sql.expressions.expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from pysparkling.sql.internal_utils.column import resolve_column
 from pysparkling.sql.types import create_row, StringType
 from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import XORShiftRandom, half_up_round, half_even_round, \
-    MonotonicallyIncreasingIDGenerator
+from pysparkling.utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 
@@ -35,7 +33,7 @@ class StarOperator(Expression):
 
 class CaseWhen(Expression):
     def __init__(self, conditions, values):
-        super(CaseWhen, self).__init__(conditions, values)
+        super().__init__(conditions, values)
         self.conditions = conditions
         self.values = values
 
@@ -76,7 +74,7 @@ class CaseWhen(Expression):
 
 class Otherwise(Expression):
     def __init__(self, conditions, values, default):
-        super(Otherwise, self).__init__(conditions, values, default)
+        super().__init__(conditions, values, default)
 
         self.conditions = conditions
         self.values = values
@@ -112,7 +110,7 @@ class RegExpExtract(Expression):
     pretty_name = "regexp_extract"
 
     def __init__(self, e, exp, groupIdx):
-        super(RegExpExtract, self).__init__(e, exp, groupIdx)
+        super().__init__(e, exp, groupIdx)
 
         self.exp = exp.get_literal_value()
         self.groupIdx = groupIdx.get_literal_value()
@@ -144,7 +142,7 @@ class RegExpReplace(Expression):
     pretty_name = "regexp_replace"
 
     def __init__(self, e, exp, replacement):
-        super(RegExpReplace, self).__init__(e, exp, replacement)
+        super().__init__(e, exp, replacement)
 
         self.exp = exp.get_literal_value()
         self.replacement = replacement.get_literal_value()
@@ -168,7 +166,7 @@ class Round(NullSafeColumnOperation):
     pretty_name = "round"
 
     def __init__(self, column, scale):
-        super(Round, self).__init__(column)
+        super().__init__(column)
         self.scale = scale.get_literal_value()
 
     def unsafe_operation(self, value):
@@ -185,7 +183,7 @@ class Bround(NullSafeColumnOperation):
     pretty_name = "bround"
 
     def __init__(self, column, scale):
-        super(Bround, self).__init__(column)
+        super().__init__(column)
         self.scale = scale.get_literal_value()
 
     def unsafe_operation(self, value):
@@ -202,7 +200,7 @@ class FormatNumber(Expression):
     pretty_name = "format_number"
 
     def __init__(self, column, digits):
-        super(FormatNumber, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.digits = digits.get_literal_value()
 
@@ -226,7 +224,7 @@ class SubstringIndex(Expression):
     pretty_name = "substring_index"
 
     def __init__(self, column, delim, count):
-        super(SubstringIndex, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.delim = delim.get_literal_value()
         self.count = count.get_literal_value()
@@ -247,7 +245,7 @@ class Coalesce(Expression):
     pretty_name = "coalesce"
 
     def __init__(self, columns):
-        super(Coalesce, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -272,7 +270,7 @@ class NaNvl(Expression):
     pretty_name = "nanvl"
 
     def __init__(self, col1, col2):
-        super(NaNvl, self).__init__(col1, col2)
+        super().__init__(col1, col2)
         self.col1 = col1
         self.col2 = col2
 
@@ -294,7 +292,7 @@ class Hypot(Expression):
     pretty_name = "hypot"
 
     def __init__(self, a, b):
-        super(Hypot, self).__init__(a, b)
+        super().__init__(a, b)
         self.a = a
         self.b = b
 
@@ -354,7 +352,7 @@ class Atan2(Expression):
     pretty_name = "ATAN"
 
     def __init__(self, y, x):
-        super(Atan2).__init__(y, x)
+        super().__init__(y, x)
         self.y = y
         self.x = x
 
@@ -449,7 +447,7 @@ class Log(Expression):
     pretty_name = "LOG"
 
     def __init__(self, base, value):
-        super(Log, self).__init__(base, value)
+        super().__init__(base, value)
         self.base = base.get_literal_value()
         self.value = value
 
@@ -526,7 +524,7 @@ class Rand(Expression):
     pretty_name = "rand"
 
     def __init__(self, seed=None):
-        super(Rand, self).__init__()
+        super().__init__()
         self.seed = seed.get_literal_value() if seed is not None else random.random()
         self.random_generator = None
 
@@ -544,7 +542,7 @@ class Randn(Expression):
     pretty_name = "randn"
 
     def __init__(self, seed=None):
-        super(Randn, self).__init__()
+        super().__init__()
         self.seed = seed.get_literal_value()
         self.random_generator = None
 
@@ -562,7 +560,7 @@ class SparkPartitionID(Expression):
     pretty_name = "SPARK_PARTITION_ID"
 
     def __init__(self):
-        super(SparkPartitionID, self).__init__()
+        super().__init__()
         self.partition_index = None
 
     def eval(self, row, schema):
@@ -579,7 +577,7 @@ class CreateStruct(Expression):
     pretty_name = "struct"
 
     def __init__(self, columns):
-        super(CreateStruct, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -605,7 +603,7 @@ class ShiftLeft(Expression):
     pretty_name = "shiftleft"
 
     def __init__(self, arg, num_bits):
-        super(ShiftLeft, self).__init__(arg)
+        super().__init__(arg)
         self.arg = arg
         self.num_bits = num_bits.get_literal_value()
 
@@ -623,7 +621,7 @@ class ShiftRight(Expression):
     pretty_name = "shiftright"
 
     def __init__(self, arg, num_bits):
-        super(ShiftRight, self).__init__(arg)
+        super().__init__(arg)
         self.arg = arg
         self.num_bits = num_bits.get_literal_value()
 
@@ -641,7 +639,7 @@ class ShiftRightUnsigned(Expression):
     pretty_name = "shiftrightunsigned"
 
     def __init__(self, arg, num_bits):
-        super(ShiftRightUnsigned, self).__init__(arg)
+        super().__init__(arg)
         self.arg = arg
         self.num_bits = num_bits.get_literal_value()
 
@@ -660,7 +658,7 @@ class Greatest(Expression):
     pretty_name = "greatest"
 
     def __init__(self, columns):
-        super(Greatest, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -675,7 +673,7 @@ class Least(Expression):
     pretty_name = "least"
 
     def __init__(self, columns):
-        super(Least, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -711,7 +709,7 @@ class Concat(Expression):
     pretty_name = "concat"
 
     def __init__(self, columns):
-        super(Concat, self).__init__(columns)
+        super().__init__(columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -725,7 +723,7 @@ class ConcatWs(Expression):
     pretty_name = "concat_ws"
 
     def __init__(self, sep, columns):
-        super(ConcatWs, self).__init__(columns)
+        super().__init__(columns)
         self.sep = sep.get_literal_value()
         self.columns = columns
 
@@ -777,7 +775,7 @@ class MapConcat(Expression):
     pretty_name = "map_concat"
 
     def __init__(self, columns):
-        super(MapConcat, self).__init__(*columns)
+        super().__init__(*columns)
         self.columns = columns
 
     def eval(self, row, schema):
@@ -796,7 +794,7 @@ class StringSplit(Expression):
     pretty_name = "split"
 
     def __init__(self, column, regex, limit):
-        super(StringSplit, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.regex = regex.get_literal_value()
         self.compiled_regex = re.compile(self.regex)
@@ -823,7 +821,7 @@ class Conv(Expression):
     pretty_name = "conv"
 
     def __init__(self, column, from_base, to_base):
-        super(Conv, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.from_base = from_base.get_literal_value()
         self.to_base = to_base.get_literal_value()
@@ -960,7 +958,7 @@ class MonotonicallyIncreasingID(Expression):
     pretty_name = "monotonically_increasing_id"
 
     def __init__(self):
-        super(MonotonicallyIncreasingID, self).__init__()
+        super().__init__()
         self.generator = None
 
     def eval(self, row, schema):
@@ -994,7 +992,7 @@ class GroupingID(Expression):
     pretty_name = "grouping_id"
 
     def __init__(self, columns):
-        super(GroupingID, self).__init__(*columns)
+        super().__init__(*columns)
         self.columns = columns
 
     def eval(self, row, schema):

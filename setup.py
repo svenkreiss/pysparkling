@@ -1,6 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 import versioneer
-
 
 setup(
     name='pysparkling',
@@ -32,12 +31,18 @@ setup(
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
             'futures>=3.0.1',
-            'pylint>=2.3,<2.6',
+            'pylint',
             'pylzma',
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
+            'isort',
             'tornado>=4.3',
+        ],
+        'scripts': [
+            'ipyparallel',
+            'pyspark',
+            'matplotlib',
         ]
     },
 
@@ -48,8 +53,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',

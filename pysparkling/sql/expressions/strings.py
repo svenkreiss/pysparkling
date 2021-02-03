@@ -1,6 +1,6 @@
 import string
 
-from pysparkling.sql.expressions.expressions import UnaryExpression, Expression
+from pysparkling.sql.expressions.expressions import Expression, UnaryExpression
 from pysparkling.sql.types import StringType
 from pysparkling.utils import levenshtein_distance
 
@@ -30,7 +30,7 @@ class StringInStr(Expression):
     pretty_name = "instr"
 
     def __init__(self, column, substr):
-        super(StringInStr, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.substr = substr.get_literal_value()
 
@@ -52,7 +52,7 @@ class StringLocate(Expression):
     pretty_name = "locate"
 
     def __init__(self, substr, column, pos):
-        super(StringLocate, self).__init__(column)
+        super().__init__(column)
         self.substr = substr.get_literal_value()
         self.column = column
         self.start = pos.get_literal_value() - 1
@@ -80,7 +80,7 @@ class StringLPad(Expression):
     pretty_name = "lpad"
 
     def __init__(self, column, length, pad):
-        super(StringLPad, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.length = length.get_literal_value()
         self.pad = pad.get_literal_value()
@@ -103,7 +103,7 @@ class StringRPad(Expression):
     pretty_name = "rpad"
 
     def __init__(self, column, length, pad):
-        super(StringRPad, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.length = length.get_literal_value()
         self.pad = pad.get_literal_value()
@@ -126,7 +126,7 @@ class StringRepeat(Expression):
     pretty_name = "repeat"
 
     def __init__(self, column, n):
-        super(StringRepeat, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.n = n.get_literal_value()
 
@@ -145,7 +145,7 @@ class StringTranslate(Expression):
     pretty_name = "translate"
 
     def __init__(self, column, matching_string, replace_string):
-        super(StringTranslate, self).__init__(column)
+        super().__init__(column)
         self.column = column
         self.matching_string = matching_string.get_literal_value()
         self.replace_string = replace_string.get_literal_value()
@@ -179,7 +179,7 @@ class Levenshtein(Expression):
     pretty_name = "levenshtein"
 
     def __init__(self, column1, column2):
-        super(Levenshtein, self).__init__(column1, column2)
+        super().__init__(column1, column2)
         self.column1 = column1
         self.column2 = column2
 

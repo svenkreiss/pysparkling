@@ -20,10 +20,10 @@
 
 from __future__ import division
 
+from collections import namedtuple
 import copy
 import math
 import numbers
-from collections import namedtuple
 
 from pysparkling.sql.functions import parse
 from pysparkling.sql.types import row_from_keyed_values
@@ -517,8 +517,8 @@ class RowStatHelper(object):
         elif stat.endswith("%"):
             try:
                 percentile = float(stat[:-1]) / 100
-            except ValueError:
-                raise ValueError("Unable to parse {0} as a percentile".format(stat))
+            except ValueError as e:
+                raise ValueError("Unable to parse {0} as a percentile".format(stat)) from e
             value = stats_counter.get_quantile(percentile)
         else:
             raise ValueError("{0} is not a recognised statistic".format(stat))

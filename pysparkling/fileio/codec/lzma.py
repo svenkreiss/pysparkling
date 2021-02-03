@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-
 # lzma only available in Python >= 3.3
 try:
     import lzma
@@ -25,7 +24,7 @@ class Lzma(Codec):
         if lzma is None:
             log.warning('LZMA codec not supported. It is only supported '
                         'in Python>=3.3. Not compressing streams.')
-        super(Lzma, self).__init__()
+        super().__init__()
 
     def compress(self, stream):
         if lzma is None:

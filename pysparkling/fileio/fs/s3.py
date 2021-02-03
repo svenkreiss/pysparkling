@@ -5,7 +5,7 @@ from io import BytesIO, StringIO
 import logging
 
 from ...exceptions import FileSystemNotSupported
-from ...utils import Tokenizer, parse_file_uri
+from ...utils import parse_file_uri, Tokenizer
 from .file_system import FileSystem
 
 log = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class S3(FileSystem):
         if boto is None:
             raise FileSystemNotSupported('S3 not supported. Install "boto".')
 
-        super(S3, self).__init__(file_name)
+        super().__init__(file_name)
 
         # obtain key
         t = Tokenizer(self.file_name)
