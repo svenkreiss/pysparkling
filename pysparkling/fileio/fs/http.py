@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-import logging
 from io import BytesIO, StringIO
+import logging
 
 from ...exceptions import ConnectionException, FileSystemNotSupported
 from .file_system import FileSystem

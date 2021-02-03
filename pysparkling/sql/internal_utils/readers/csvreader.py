@@ -1,5 +1,5 @@
-import itertools
 from functools import partial
+import itertools
 
 from pysparkling.fileio import TextFile
 from pysparkling.sql.casts import get_caster

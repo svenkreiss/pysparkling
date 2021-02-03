@@ -1,10 +1,10 @@
 import datetime
+from functools import lru_cache, partial
 import re
 import time
-from functools import lru_cache, partial
 
-import pytz
 from dateutil.tz import tzlocal
+import pytz
 
 from pysparkling.sql.types import (
     ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,

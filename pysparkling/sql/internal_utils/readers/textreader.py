@@ -1,5 +1,5 @@
-import itertools
 from functools import partial
+import itertools
 
 from pysparkling.fileio import TextFile
 from pysparkling.sql.internal_utils.options import Options

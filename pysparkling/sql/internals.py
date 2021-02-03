@@ -1,10 +1,10 @@
+from collections import Counter
+from copy import deepcopy
+from functools import partial
 import itertools
 import json
 import math
 import warnings
-from collections import Counter
-from copy import deepcopy
-from functools import partial
 
 from pysparkling import StorageLevel
 from pysparkling.sql.column import parse

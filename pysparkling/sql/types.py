@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from array import array
 import ctypes
 import datetime
 import decimal
@@ -22,7 +23,6 @@ import json as _json
 import os
 import re
 import sys
-from array import array
 
 from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
 

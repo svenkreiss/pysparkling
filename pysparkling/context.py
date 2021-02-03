@@ -2,13 +2,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from collections import defaultdict
 import itertools
 import logging
 import pickle
 import struct
 import time
 import traceback
-from collections import defaultdict
 
 from . import __version__ as PYSPARKLING_VERSION
 from . import accumulators

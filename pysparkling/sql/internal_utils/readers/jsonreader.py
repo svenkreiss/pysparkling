@@ -1,6 +1,6 @@
+from functools import partial
 import itertools
 import json
-from functools import partial
 
 from pysparkling.sql.casts import get_struct_caster
 from pysparkling.sql.internal_utils.options import Options

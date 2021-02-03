@@ -3,10 +3,10 @@ import datetime
 import itertools
 import json
 import math
+from operator import itemgetter
 import random
 import re
 import sys
-from operator import itemgetter
 
 import pytz
 from pytz import UnknownTimeZoneError
