@@ -7,6 +7,7 @@ from operator import itemgetter
 import random
 import re
 import sys
+from typing import List, Optional, Union
 
 import pytz
 from pytz import UnknownTimeZoneError
@@ -21,10 +22,10 @@ from pysparkling.sql.utils import IllegalArgumentException
 
 
 class Tokenizer:
-    def __init__(self, expression):
+    def __init__(self, expression: str):
         self.expression = expression
 
-    def next(self, separator=None):
+    def get_next(self, separator: Optional[Union[List[str], str]] = None) -> str:
         if isinstance(separator, list):
             separator_positions_and_lengths = [
                 (self.expression.find(s), s)
@@ -51,8 +52,8 @@ class Tokenizer:
 
 def parse_file_uri(expr):
     t = Tokenizer(expr)
-    scheme = t.next('://')
-    domain = t.next('/')
+    scheme = t.get_next('://')
+    domain = t.get_next('/')
     last_slash_position = t.expression.rfind('/')
     folder_path = '/' + t.expression[:last_slash_position + 1]
     file_pattern = t.expression[last_slash_position + 1:]

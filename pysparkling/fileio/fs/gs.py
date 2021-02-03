@@ -41,13 +41,13 @@ class GS(FileSystem):
 
         # obtain key
         t = Tokenizer(self.file_name)
-        t.next('://')  # skip scheme
-        bucket_name = t.next('/')
+        t.get_next('://')  # skip scheme
+        bucket_name = t.get_next('/')
         if ':' in bucket_name:
             project_name, _, bucket_name = bucket_name.partition(':')
         else:
             project_name = GS.project_name
-        blob_name = t.next()
+        blob_name = t.get_next()
 
         client = GS._get_client(project_name)
         bucket = client.get_bucket(bucket_name)
@@ -70,13 +70,13 @@ class GS(FileSystem):
         files = []
 
         t = Tokenizer(expr)
-        scheme = t.next('://')
-        bucket_name = t.next('/')
+        scheme = t.get_next('://')
+        bucket_name = t.get_next('/')
         if ':' in bucket_name:
             project_name, _, bucket_name = bucket_name.partition(':')
         else:
             project_name = GS.project_name
-        prefix = t.next(['*', '?'])
+        prefix = t.get_next(['*', '?'])
 
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
         expr_s = len(scheme) + 3 + len(project_name) + 1 + len(bucket_name) + 1
@@ -117,13 +117,13 @@ class GS(FileSystem):
 
     def exists(self):
         t = Tokenizer(self.file_name)
-        t.next('//')  # skip scheme
-        bucket_name = t.next('/')
+        t.get_next('//')  # skip scheme
+        bucket_name = t.get_next('/')
         if ':' in bucket_name:
             project_name, _, bucket_name = bucket_name.partition(':')
         else:
             project_name = GS.project_name
-        blob_name = t.next()
+        blob_name = t.get_next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
         return (bucket.get_blob(blob_name)
                 or list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
