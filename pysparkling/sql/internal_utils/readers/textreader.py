@@ -4,7 +4,6 @@ import itertools
 from ....fileio import TextFile
 from ...internal_utils.options import Options
 from ...internal_utils.readers.utils import resolve_partitions
-from ...internals import DataFrameInternal
 from ...types import create_row, StringType, StructField, StructType
 
 
@@ -45,6 +44,9 @@ class TextReader:
             full_schema = self.schema
 
         rdd._name = paths
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ...internals import DataFrameInternal
 
         return DataFrameInternal(
             sc,
