@@ -35,7 +35,7 @@ class DataFrameWriterTests(TestCase):
         self.clean()
 
         tz = datetime.datetime.now().astimezone().strftime('%z')  # +0100
-        self.tz = f'{tz[:3]}:{tz[4:]}'  # --> +01:00
+        self.tz = f'{tz[:3]}:{tz[3:]}'  # --> +01:00
 
     def tearDown(self):
         self.clean()
@@ -108,8 +108,8 @@ class DataFrameWriterTests(TestCase):
             {
                 '_SUCCESS': [],
                 'part-00000-8447389540241120843.json': [
-                    f'{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000{self.tz}"}\n',
-                    f'{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000{self.tz}"}\n',
+                    f'{{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000{self.tz}"}}\n',
+                    f'{{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000{self.tz}"}}\n',
                 ],
             }
         )
