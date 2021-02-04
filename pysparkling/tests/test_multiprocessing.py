@@ -4,7 +4,6 @@ import math
 import multiprocessing
 import os
 import pickle
-import platform
 import pprint
 import random
 import time
