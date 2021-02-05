@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from pysparkling import Context
 
 # read all the paths of warc and wat files of the latest Common Crawl

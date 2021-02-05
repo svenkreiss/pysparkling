@@ -113,7 +113,7 @@ class SessionTests(TestCase):
 
     def test_session_create_data_frame_from_list_with_schema(self):
         schema = StructType([StructField("map", MapType(StringType(), IntegerType()), True)])
-        df = self.spark.createDataFrame([({u'a': 1},)], schema=schema)
+        df = self.spark.createDataFrame([({'a': 1},)], schema=schema)
         self.assertEqual(df.count(), 1)
         self.assertListEqual(
             df.collect(),

@@ -2,9 +2,6 @@
 
 Run with `spark-submit scripts/pyspark_streaming.py`.
 """
-
-from __future__ import print_function
-
 import time
 
 import pyspark.streaming

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import logging
 import os
 import pickle
@@ -58,7 +56,7 @@ def test_local_textFile_name():
 
 
 def test_wholeTextFiles():
-    all_files = Context().wholeTextFiles(f'{LOCAL_TEST_PATH}/*.py')
+    all_files = Context().wholeTextFiles(f'{LOCAL_TEST_PATH}{os.path.sep}*.py')
     this_file = all_files.lookup(__file__)
     print(this_file)
     assert 'test_wholeTextFiles' in this_file[0]
@@ -155,7 +153,7 @@ def test_http_textFile():
         'https://s3-us-west-2.amazonaws.com/human-microbiome-project/DEMO/'
         'HM16STR/46333/by_subject/1139.fsa'
     )
-    assert u'TGCTGCGGTGAATGCGTTCCCGGGTCT' in myrdd.collect()
+    assert 'TGCTGCGGTGAATGCGTTCCCGGGTCT' in myrdd.collect()
 
 
 def test_saveAsTextFile():

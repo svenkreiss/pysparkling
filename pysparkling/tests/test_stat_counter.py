@@ -1,5 +1,3 @@
-from __future__ import division
-
 import pysparkling
 from pysparkling.sql.functions import col
 from pysparkling.sql.types import IntegerType, Row, StructField, StructType

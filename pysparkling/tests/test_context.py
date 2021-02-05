@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import logging
 import unittest
 
@@ -76,7 +74,7 @@ class Context(unittest.TestCase):
         self.assertEqual(union, ['Hello', 'World'])
 
     def test_version(self):
-        self.assertTrue(isinstance(pysparkling.Context().version, str))
+        self.assertIsInstance(pysparkling.Context().version, str)
 
 
 if __name__ == '__main__':
