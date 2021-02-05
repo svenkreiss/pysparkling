@@ -93,7 +93,7 @@ def cast_sequence(value, from_type, options):
         for sub_value, sub_value_type in zip(value, types)
     ]
 
-    return '[' + ', '.join('' if x is None else f' {x}' for x in casted_values).strip() + ']'
+    return '[' + ','.join('' if x is None else f' {x}' for x in casted_values).strip() + ']'
 
 
 def cast_to_binary(value, from_type, options):
