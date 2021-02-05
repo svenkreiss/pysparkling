@@ -14,18 +14,26 @@ class Local(FileSystem):
     """:class:`.FileSystem` implementation for the local file system."""
 
     @staticmethod
-    def resolve_filenames(expr):
+    def resolve_filenames(expr: str):
         if expr.startswith('file://'):
             expr = expr[7:]
+
         if os.path.isfile(expr):
             return [expr]
-        if '/' not in expr:
+
+        os_sep = [os.path.sep]
+        if os.path.altsep:
+            os_sep.append(os.path.altsep)
+
+        if not any(sep in expr for sep in os_sep):
             expr = '.' + os.path.sep + expr
 
         t = Tokenizer(expr)
         prefix = t.next(['*', '?'])
-        if not prefix.endswith('/') and '/' in prefix:
+
+        if not any(prefix.endswith(sep) for sep in os_sep) and any(sep in prefix for sep in os_sep):
             prefix = os.path.dirname(prefix)
+
         files = []
         for root, _, filenames in os.walk(prefix):
             for filename in filenames:

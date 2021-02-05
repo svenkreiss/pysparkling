@@ -56,7 +56,7 @@ def test_local_textFile_name():
 
 
 def test_wholeTextFiles():
-    all_files = Context().wholeTextFiles('{}/*.py'.format(LOCAL_TEST_PATH))
+    all_files = Context().wholeTextFiles(f'{LOCAL_TEST_PATH}{os.path.sep}*.py')
     this_file = all_files.lookup(__file__)
     print(this_file)
     assert 'test_wholeTextFiles' in this_file[0]

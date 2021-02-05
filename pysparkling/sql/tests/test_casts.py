@@ -1,10 +1,8 @@
 import collections
 import datetime
-import os
-import time
 from unittest import TestCase
 
-import pytest
+import pytz
 
 from pysparkling.sql.casts import (
     cast_from_none, cast_to_array, cast_to_binary, cast_to_boolean, cast_to_byte, cast_to_date, cast_to_decimal,
@@ -19,13 +17,21 @@ from pysparkling.sql.types import (
 BASE_OPTIONS = {}
 
 
-@pytest.mark.skipif(not hasattr(time, 'tzset'), reason='tzset not supported on Windows')
 class CastTests(TestCase):
     maxDiff = None
 
     def setUp(self):
-        os.environ['TZ'] = 'Europe/Paris'
-        time.tzset()  # pylint: disable=no-member
+        # TODO: what is the behaviour of Spark when you load up something in another timezone?
+        #
+        # os.environ['TZ'] = 'Europe/Paris'
+        #
+        # if hasattr(time, 'tzset'):
+        #     time.tzset()  # pylint: disable=no-member
+
+        now_here = datetime.datetime.now().astimezone()
+        now_utc = now_here.replace(tzinfo=pytz.utc)
+
+        self.tz_diff = now_utc - now_here
 
     def test_identity(self):
         x = object()
@@ -246,7 +252,7 @@ class CastTests(TestCase):
                 TimestampType(),
                 options=BASE_OPTIONS
             ),
-            1566943360.0
+            1566939760.0 + self.tz_diff.seconds
         )
 
     def test_cast_string_to_binary(self):
@@ -327,7 +333,7 @@ class CastTests(TestCase):
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 7, 40, 36)
+            datetime.datetime(2019, 10, 1, 6, 40, 36) + self.tz_diff
         )
 
     def test_cast_weird_tz_string_to_timestamp(self):
@@ -337,7 +343,7 @@ class CastTests(TestCase):
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 4, 35, 36)
+            datetime.datetime(2019, 10, 1, 3, 35, 36) + self.tz_diff
         )
 
     def test_cast_short_tz_string_to_timestamp(self):
@@ -347,7 +353,7 @@ class CastTests(TestCase):
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 4, 40, 36)
+            datetime.datetime(2019, 10, 1, 3, 40, 36) + self.tz_diff
         )
 
     def test_cast_longer_tz_string_to_timestamp(self):
@@ -357,7 +363,7 @@ class CastTests(TestCase):
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 4, 40, 36)
+            datetime.datetime(2019, 10, 1, 3, 40, 36) + self.tz_diff
         )
 
     def test_cast_date_string_to_timestamp(self):
@@ -422,7 +428,7 @@ class CastTests(TestCase):
                 BooleanType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1970, 1, 1, 1, 0, 1, 0)
+            datetime.datetime(1970, 1, 1, 0, 0, 1) + self.tz_diff
         )
 
     def test_cast_int_to_timestamp(self):
@@ -432,7 +438,7 @@ class CastTests(TestCase):
                 IntegerType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1971, 1, 1, 1, 0, 0, 0)
+            datetime.datetime(1971, 1, 1, 0, 0, 0) + self.tz_diff
         )
 
     def test_cast_decimal_to_timestamp(self):
@@ -442,7 +448,7 @@ class CastTests(TestCase):
                 DecimalType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1970, 1, 1, 1, 2, 27, 580000)
+            datetime.datetime(1970, 1, 1, 0, 2, 27, 580000) + self.tz_diff
         )
 
     def test_cast_date_to_decimal(self):
@@ -464,7 +470,7 @@ class CastTests(TestCase):
                 DecimalType(),
                 options=BASE_OPTIONS
             ),
-            1566943200.0
+            1566939600.0 + self.tz_diff.seconds
         )
 
     def test_cast_timestamp_to_decimal_with_too_small_precision(self):
@@ -486,7 +492,7 @@ class CastTests(TestCase):
                 DecimalType(precision=11, scale=1),
                 options=BASE_OPTIONS
             ),
-            1566943200.0
+            1566939600.0 + self.tz_diff.seconds
         )
 
     def test_cast_float_to_decimal_with_scale(self):

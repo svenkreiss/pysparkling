@@ -4,7 +4,6 @@ import math
 import multiprocessing
 import os
 import pickle
-import platform
 import pprint
 import random
 import time
@@ -126,17 +125,23 @@ class ProcessPool(unittest.TestCase):  # cannot work here: LazyTestInjection):
         self.assertIn((4, 2), r)
 
     def test_cache(self):
-        r = self.sc.parallelize(range(3), 3)
+        to_check = list(range(5))
+        r = self.sc.parallelize(to_check, 3)
 
         def sleep05(v):
             time.sleep(0.5)
             return v
 
+        # Spin up the pool: --> Mind you, not caching here yet!
+        r.map(sleep05).collect()
+
+        # And continue with the procedure
         r = r.map(sleep05).cache()
-        self.assertEqual(r.collect(), [0, 1, 2])
+        self.assertCountEqual(r.collect(), to_check)
 
         start = time.time()
         r.collect()
+
         self.assertLess(time.time() - start, 0.5)
 
 
@@ -145,23 +150,31 @@ class ProcessPoolIdlePerformance(unittest.TestCase):
 
     The "load" on these tests are sleeps.
     """
+    @staticmethod
+    def _sub_procedure(pool, n):
+        sc = pysparkling.Context(pool=pool,
+                                 serializer=cloudpickle.dumps,
+                                 deserializer=pickle.loads)
+        rdd = sc.parallelize(range(n), 10)
+        rdd.map(lambda _: time.sleep(0.01)).collect()
 
     def runtime(self, n=10, processes=1):
-        start = time.time()
         with futures.ProcessPoolExecutor(processes) as pool:
-            sc = pysparkling.Context(pool=pool,
-                                     serializer=cloudpickle.dumps,
-                                     deserializer=pickle.loads)
-            rdd = sc.parallelize(range(n), 10)
-            rdd.map(lambda _: time.sleep(0.1)).collect()
-        return time.time() - start
+            # 1: go through everything... Just to spin up the pool
+            self._sub_procedure(pool, n)
 
-    @unittest.skipIf(platform.python_implementation() == 'PyPy',
-                     'test fails in PyPy')
+            # 2: now we're going to time it.
+            start = time.time()
+            self._sub_procedure(pool, n)
+            stop = time.time()  # Don't calculate the stopping of the pool as well.
+
+        return stop - start
+
     def test_basic(self):
         t1 = self.runtime(processes=1)
         t10 = self.runtime(processes=10)
-        self.assertLess(t10, t1 / 2.0)
+
+        self.assertLess(t10, t1 / 2)
 
 
 # pickle-able map function
