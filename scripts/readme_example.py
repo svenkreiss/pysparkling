@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from pysparkling import Context
 
 my_rdd = Context().textFile('tests/*.py')

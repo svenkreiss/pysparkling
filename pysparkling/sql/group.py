@@ -13,7 +13,7 @@ class GroupedData(object):
     def agg(self, *exprs):
         """
         # >>> sorted(gdf.agg({"*": "count"}).collect())
-        # [Row(name=u'Alice', count(1)=1), Row(name=u'Bob', count(1)=1)]
+        # [Row(name='Alice', count(1)=1), Row(name='Bob', count(1)=1)]
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
