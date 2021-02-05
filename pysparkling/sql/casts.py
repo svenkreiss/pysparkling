@@ -468,7 +468,7 @@ def get_sub_formatter(group):
     if token == "XXX":
         def timezone_formatter(value):
             tz = value.strftime("%z")
-            return f"{0}{1}{2}:{3}{4}".format(*tz) if tz else ""
+            return f"{tz[:3]}:{tz[3:]}" if tz else ""
 
         return timezone_formatter
 
