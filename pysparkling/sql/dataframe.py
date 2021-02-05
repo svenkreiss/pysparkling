@@ -79,6 +79,7 @@ class DataFrame(object):
         return self._jdf.unbound_schema
 
     def printSchema(self):
+        print('root')
         print(self.schema.treeString())
 
     def explain(self, extended=False):
