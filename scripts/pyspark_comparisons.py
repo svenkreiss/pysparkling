@@ -9,9 +9,9 @@ def simple_textFile():
     print(SC.parallelize([1, 2, 3]).name())
 
 
-def indent_line(lst):
+def indent_line(l):
     print('============== INDENTING LINE ================')
-    return '--- ' + lst
+    return '--- ' + l
 
 
 def lazy_execution():

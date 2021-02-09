@@ -1186,7 +1186,7 @@ class RDD:
                 if lb <= r < ub:
                     lists[i].append(e)
 
-        return [self.context.parallelize(lst) for lst in lists]
+        return [self.context.parallelize(l) for l in lists]
 
     def reduce(self, f):
         """reduce
@@ -2198,13 +2198,13 @@ def unit_map(task_context, elements):
     return list(elements)
 
 
-def unit_collect(lst):
-    return [x for p in lst for x in p]
+def unit_collect(l):
+    return [x for p in l for x in p]
 
 
 def sum_counts_by_keys(list_of_pairlists):
     r = defaultdict(int)  # calling int results in a zero
-    for pair_lst in list_of_pairlists:
-        for key, count in pair_lst.items():
+    for l in list_of_pairlists:
+        for key, count in l.items():
             r[key] += count
     return r
