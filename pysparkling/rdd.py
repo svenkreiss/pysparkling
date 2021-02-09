@@ -167,9 +167,9 @@ class RDD:
                 r[k] = seqFunc(r[k], v)
             return r
 
-        def combFuncByKey(lst):
+        def combFuncByKey(l):
             r = defaultdict(lambda: copy.deepcopy(zeroValue))
-            for p in lst:
+            for p in l:
                 for k, v in p.items():
                     r[k] = combFunc(r[k], v)
             return r
