@@ -91,7 +91,7 @@ class GroupedData:
         [Row(year=2012, Java=20000, dotNET=15000), Row(year=2013, Java=30000, dotNET=48000)]
         >>> df4.groupBy("year").pivot("course", ["dotNET"]).sum("earnings").collect()
         [Row(year=2012, dotNET=15000), Row(year=2013, dotNET=48000)]
-        >>> df4.groupBy("year").pivot("course").agg(sum("earnings")).show()
+        >>> df4.groupBy("year").pivot("course").agg(F.sum("earnings")).show()
         +----+-----+------+
         |year| Java|dotNET|
         +----+-----+------+
