@@ -1,6 +1,4 @@
-from ...internal_utils.readers.csvreader import CSVReader
-from ...internal_utils.readers.jsonreader import JSONReader
-from ...internal_utils.readers.textreader import TextReader
+from ...internal_utils.readers import csvreader, jsonreader, textreader
 from ...internal_utils.readwrite import OptionUtils, to_option_stored_value
 from ...types import StructType
 
@@ -24,10 +22,10 @@ class InternalReader(OptionUtils):
         self._schema = None
 
     def csv(self, paths):
-        return CSVReader(self._spark, paths, self._schema, self._options).read()
+        return csvreader.CSVReader(self._spark, paths, self._schema, self._options).read()
 
     def json(self, paths):
-        return JSONReader(self._spark, paths, self._schema, self._options).read()
+        return jsonreader.JSONReader(self._spark, paths, self._schema, self._options).read()
 
     def text(self, paths):
-        return TextReader(self._spark, paths, self._schema, self._options).read()
+        return textreader.TextReader(self._spark, paths, self._schema, self._options).read()
