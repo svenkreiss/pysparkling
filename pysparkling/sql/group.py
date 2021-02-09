@@ -1,6 +1,5 @@
 from .column import Column
-# pylint: disable=redefined-builtin
-from .functions import avg, count, lit, max, mean, min, parse, sum
+from . import functions as F
 
 
 class GroupedData:
@@ -16,7 +15,7 @@ class GroupedData:
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import col, avg
+        >>> from pysparkling.sql import functions as F
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
@@ -25,7 +24,7 @@ class GroupedData:
         >>> from pysparkling.sql import functions as F
         >>> sorted(gdf.agg(F.min(df.age)).collect())
         [Row(name='Alice', min(age)=2), Row(name='Bob', min(age)=5)]
-        >>> df.groupBy("age").agg(avg("age"), col("age")).show()
+        >>> df.groupBy("age").agg(F.avg("age"), F.col("age")).show()
         +---+--------+---+
         |age|avg(age)|age|
         +---+--------+---+
@@ -47,7 +46,7 @@ class GroupedData:
                 raise ValueError("all exprs should be Column")
 
             # noinspection PyProtectedMember
-            jdf = self._jgd.agg([parse(e) for e in exprs])
+            jdf = self._jgd.agg([F.parse(e) for e in exprs])
 
         # pylint: disable=import-outside-toplevel, cyclic-import
         from .dataframe import DataFrame
@@ -55,30 +54,30 @@ class GroupedData:
         return DataFrame(jdf, self.sql_ctx)
 
     def count(self):
-        return self.agg(count(lit(1)).alias("count"))
+        return self.agg(F.count(F.lit(1)).alias("count"))
 
     # pylint: disable=W0511
     # todo: avg, max, etc should work when cols is left empty
     def mean(self, *cols):
-        return self.agg(*(mean(parse(col)) for col in cols))
+        return self.agg(*(F.mean(F.parse(col)) for col in cols))
 
     def avg(self, *cols):
-        return self.agg(*(avg(parse(col)) for col in cols))
+        return self.agg(*(F.avg(F.parse(col)) for col in cols))
 
     def max(self, *cols):
-        return self.agg(*(max(parse(col)) for col in cols))
+        return self.agg(*(F.max(F.parse(col)) for col in cols))
 
     def min(self, *cols):
-        return self.agg(*(min(parse(col)) for col in cols))
+        return self.agg(*(F.min(F.parse(col)) for col in cols))
 
     def sum(self, *cols):
-        return self.agg(*(sum(parse(col)) for col in cols))
+        return self.agg(*(F.sum(F.parse(col)) for col in cols))
 
     def pivot(self, pivot_col, values=None):
         """
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
-        >>> from pysparkling.sql.functions import col, avg, sum
+        >>> from pysparkling.sql import functions as F
         >>> sc = Context()
         >>> spark = SparkSession(sc)
         >>> df4 = sc.parallelize([Row(course="dotNET", year=2012, earnings=10000),
@@ -99,14 +98,14 @@ class GroupedData:
         |2012|20000| 15000|
         |2013|30000| 48000|
         +----+-----+------+
-        >>> df4.groupBy("year").pivot("course", ["dotNET", "PHP"]).agg(sum("earnings")).show()
+        >>> df4.groupBy("year").pivot("course", ["dotNET", "PHP"]).agg(F.sum("earnings")).show()
         +----+------+----+
         |year|dotNET| PHP|
         +----+------+----+
         |2012| 15000|null|
         |2013| 48000|null|
         +----+------+----+
-        >>> df4.groupBy("year").pivot("course").agg(sum("earnings"), avg("earnings")).show()
+        >>> df4.groupBy("year").pivot("course").agg(F.sum("earnings"), F.avg("earnings")).show()
         +----+------------------+------------------+--------------------+--------------------+
         |year|Java_sum(earnings)|Java_avg(earnings)|dotNET_sum(earnings)|dotNET_avg(earnings)|
         +----+------------------+------------------+--------------------+--------------------+
@@ -114,7 +113,7 @@ class GroupedData:
         |2013|             30000|           30000.0|               48000|             48000.0|
         +----+------------------+------------------+--------------------+--------------------+
         """
-        jgd = self._jgd.pivot(parse(pivot_col), values)
+        jgd = self._jgd.pivot(F.parse(pivot_col), values)
         return GroupedData(jgd, self._df)
 
     # pylint: disable=W0511
