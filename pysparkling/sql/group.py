@@ -1,5 +1,5 @@
-from .column import Column
 from . import functions as F
+from .column import Column
 
 
 class GroupedData:
