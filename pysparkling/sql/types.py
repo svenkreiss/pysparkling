@@ -569,7 +569,7 @@ class StructType(DataType):
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- arr: array (nullable = true)
-         |    |-- element: string (containsNull = true)
+         |    |-- element: array (containsNull = true)
          |    |    |-- element: string (containsNull = true)
 
         :return: str with the schema inside.
