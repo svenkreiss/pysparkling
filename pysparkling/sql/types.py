@@ -562,13 +562,13 @@ class StructType(DataType):
         >>> schema = StructType.fromDDL('some_str: string, arr: array<string>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
-         |-- arr: array(nullable = true)
+         |-- arr: array (nullable = true)
          |    |-- element: string (containsNull = true)
 
         >>> schema = StructType.fromDDL('some_str: string, arr: array<array<string>>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
-         |-- arr: array(nullable = true)
+         |-- arr: array (nullable = true)
          |    |-- element: string (containsNull = true)
          |    |    |-- element: string (containsNull = true)
 
