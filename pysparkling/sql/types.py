@@ -590,8 +590,18 @@ class StructType(DataType):
             txt = []
 
             indent += 1
-            txt.append(_dump('element', data_type.elementType, nullable=data_type.containsNull, nullable_name='containsNull'))
+
+            txt.append(
+                _dump(
+                    'element',
+                    data_type.elementType,
+                    nullable=data_type.containsNull,
+                    nullable_name='containsNull'
+                )
+            )
+
             txt.extend(_dump_array(data_type.elementType))
+
             indent -= 1
 
             return txt
