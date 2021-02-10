@@ -559,12 +559,49 @@ class StructType(DataType):
          |-- some_int: integer (nullable = true)
          |-- some_date: date (nullable = true)
 
+        >>> schema = StructType.fromDDL('some_str: string, arr: array<string>')
+        >>> print(schema.treeString())
+         |-- some_str: string (nullable = true)
+         |-- arr: array(nullable = true)
+         |    |-- element: string (containsNull = true)
+
+        >>> schema = StructType.fromDDL('some_str: string, arr: array<array<string>>')
+        >>> print(schema.treeString())
+         |-- some_str: string (nullable = true)
+         |-- arr: array(nullable = true)
+         |    |-- element: string (containsNull = true)
+         |    |    |-- element: string (containsNull = true)
+
         :return: str with the schema inside.
         """
-        return '\n'.join(
-            f' |-- {field.name}: {field.dataType.typeName()} (nullable = {"true" if field.nullable else "false"})'
-            for field in self.fields
-        )
+        txt = []
+        indent = 0
+
+        def _dump(name: str, type_: DataType, nullable: bool, nullable_name: str = 'nullable') -> str:
+            pre = ' |   ' * indent
+            return f'{pre} |-- {name}: {type_.typeName()} ({nullable_name} = {"true" if nullable else "false"})'
+
+        def _dump_array(data_type):
+            if not isinstance(data_type, ArrayType):
+                return []
+
+            nonlocal indent
+
+            txt = []
+
+            indent += 1
+            txt.append(_dump('element', data_type.elementType, nullable=data_type.containsNull, nullable_name='containsNull'))
+            txt.extend(_dump_array(data_type.elementType))
+            indent -= 1
+
+            return txt
+
+        for field in self.fields:
+            data_type = field.dataType
+            txt.append(_dump(field.name, data_type, field.nullable))
+            txt.extend(_dump_array(data_type))
+
+        return '\n'.join(txt)
 
     def __repr__(self):
         return ("StructType(List(%s))" %
