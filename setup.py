@@ -36,6 +36,7 @@ setup(
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
+            'pytest-cov',
             'isort',
             'tornado>=4.3',
         ],
