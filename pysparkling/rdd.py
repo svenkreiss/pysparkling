@@ -20,7 +20,6 @@ except ImportError:
     numpy = None
 
 from . import fileio
-from .context import Context
 from .exceptions import ContextIsLockedException, FileAlreadyExistsException
 from .samplers import BernoulliSampler, BernoulliSamplerPerKey, PoissonSampler, PoissonSamplerPerKey
 from .stat_counter import StatCounter
@@ -2083,7 +2082,7 @@ class RDD:
         # pylint: disable=import-outside-toplevel  # against a cyclic-import
         from .sql.session import SparkSession
 
-        sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
+        sparkSession = SparkSession._instantiatedSession or SparkSession(self.context)
         return sparkSession.createDataFrame(self, schema, sampleRatio)
 
 
