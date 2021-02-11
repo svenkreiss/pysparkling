@@ -14,7 +14,7 @@ from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition
-from .rdd import RDD
+from .rdd import EmptyRDD, RDD
 from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
@@ -525,9 +525,6 @@ class Context:
         :param rdds: Iterable of RDDs.
         :rtype: RDD
         """
-        # pylint: disable=import-outside-toplevel, cyclic-import
-        from .rdd import EmptyRDD
-
         if all(isinstance(rdd, EmptyRDD) for rdd in rdds):
             return EmptyRDD(self)
 
