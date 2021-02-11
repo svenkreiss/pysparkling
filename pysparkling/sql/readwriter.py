@@ -1,4 +1,3 @@
-from ..rdd import RDD
 from .dataframe import DataFrame
 from .internal_utils.readers import InternalReader
 from .internal_utils.readwrite import OptionUtils
@@ -38,6 +37,9 @@ class DataFrameReader(OptionUtils):
 
         if isinstance(path, list):
             return self._df(method_to_read_if_rdd(path))
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ..rdd import RDD
 
         if isinstance(path, RDD):
             return self._df(method_to_read_if_rdd(path.collect()))

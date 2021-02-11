@@ -2,7 +2,6 @@ from threading import RLock
 
 from ..__version__ import __version__
 from ..context import Context
-from ..rdd import RDD
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
@@ -260,6 +259,9 @@ class SparkSession:
         else:
             def prepare(obj):
                 return obj
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ..rdd import RDD
 
         if isinstance(data, RDD):
             rdd, schema = self._createFromRDD(data.map(prepare), schema, samplingRatio)
