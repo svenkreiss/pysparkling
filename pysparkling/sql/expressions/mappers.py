@@ -263,7 +263,7 @@ class IsNaN(UnaryExpression):
     pretty_name = "isnan"
 
     def eval(self, row, schema):
-        return self.eval(row, schema) is float("nan")
+        return math.isnan(self.eval(row, schema))
 
 
 class NaNvl(Expression):
