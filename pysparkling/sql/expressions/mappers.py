@@ -962,7 +962,7 @@ class MonotonicallyIncreasingID(Expression):
         self.generator = None
 
     def eval(self, row, schema):
-        return self.generator.next()
+        return next(self.generator)
 
     def initialize(self, partition_index):
         self.generator = MonotonicallyIncreasingIDGenerator(partition_index)

@@ -244,7 +244,10 @@ class MonotonicallyIncreasingIDGenerator:
     def __init__(self, partition_index):
         self.value = partition_index * 8589934592 - 1
 
-    def next(self):
+    def __iter__(self):
+        return self
+
+    def __next__(self):
         self.value += 1
         return self.value
 
