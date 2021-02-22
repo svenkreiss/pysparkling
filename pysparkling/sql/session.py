@@ -1,7 +1,8 @@
 from threading import RLock
 
-from .. import Context, RDD
 from ..__version__ import __version__
+from ..context import Context
+from ..rdd import RDD
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
