@@ -530,14 +530,14 @@ class Column:
         :param condition: a boolean :class:`Column` expression.
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pysparkling.sql import functions as F
+        >>> from pysparkling.sql import functions
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
-        >>> df.select(df.name, F.when(df.age > 4, 1).when(df.age < 3, -1).otherwise(0)).show()
+        >>> df.select(df.name, functions.when(df.age > 4, 1).when(df.age < 3, -1).otherwise(0)).show()
         +-----+------------------------------------------------------------+
         | name|CASE WHEN (age > 4) THEN 1 WHEN (age < 3) THEN -1 ELSE 0 END|
         +-----+------------------------------------------------------------+
@@ -564,14 +564,14 @@ class Column:
 
         :param value: a literal value, or a :class:`Column` expression.
 
-        >>> from pysparkling.sql import functions as F
+        >>> from pysparkling.sql import functions
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession
         >>> spark = SparkSession(Context())
         >>> df = spark.createDataFrame(
         ...   [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
         ... )
-        >>> df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
+        >>> df.select(df.name, functions.when(df.age > 3, 1).otherwise(0)).show()
         +-----+-------------------------------------+
         | name|CASE WHEN (age > 3) THEN 1 ELSE 0 END|
         +-----+-------------------------------------+
