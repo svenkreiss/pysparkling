@@ -66,8 +66,7 @@ class Emitter(object):
         return (s, v)
 
     def text(self):
-        a, b = self.r()
-        return f'sensor{a}|{b}\n'.encode('utf8')
+        return 'sensor{}|{}\n'.format(*self.r()).encode('utf8')
 
     def json(self):
         s, v = self.r()
