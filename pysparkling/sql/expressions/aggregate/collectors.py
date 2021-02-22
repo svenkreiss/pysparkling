@@ -1,4 +1,4 @@
-from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
+from .aggregations import Aggregation
 
 
 class CollectList(Aggregation):

@@ -7,7 +7,7 @@ from ..rdd import EmptyRDD
 log = logging.getLogger(__name__)
 
 
-class DStream(object):
+class DStream:
     """A discrete stream of RDDs.
 
     Usually a DStream is created by a

@@ -3,7 +3,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Codec(object):
+class Codec:
     """Codec."""
     def __init__(self):
         pass

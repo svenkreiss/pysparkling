@@ -28,7 +28,7 @@ def poisson(lambda_):
     return pysparkling_poisson(lambda_)
 
 
-class BernoulliSampler(object):
+class BernoulliSampler:
     def __init__(self, expectation):
         self.expectation = expectation
 
@@ -36,7 +36,7 @@ class BernoulliSampler(object):
         return 1 if random.random() < self.expectation else 0
 
 
-class PoissonSampler(object):
+class PoissonSampler:
     def __init__(self, expectation):
         self.expectation = expectation
 
@@ -44,7 +44,7 @@ class PoissonSampler(object):
         return poisson(self.expectation)
 
 
-class BernoulliSamplerPerKey(object):
+class BernoulliSamplerPerKey:
     def __init__(self, expectations):
         self.expectations = expectations
 
@@ -53,7 +53,7 @@ class BernoulliSamplerPerKey(object):
         return 1 if random.random() < self.expectations.get(key, 0.0) else 0
 
 
-class PoissonSamplerPerKey(object):
+class PoissonSamplerPerKey:
     def __init__(self, expectations):
         self.expectations = expectations
 

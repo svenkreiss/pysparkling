@@ -13,7 +13,7 @@ from tornado.iostream import StreamClosedError
 from tornado.tcpclient import TCPClient
 
 
-class Emitter(object):
+class Emitter:
     def __init__(self, port, n=1000, values=1, duration=3.0):
         self.port = port
         self.n = n

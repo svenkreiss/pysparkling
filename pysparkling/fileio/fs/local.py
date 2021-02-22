@@ -29,7 +29,7 @@ class Local(FileSystem):
             expr = '.' + os.path.sep + expr
 
         t = Tokenizer(expr)
-        prefix = t.next(['*', '?'])
+        prefix = t.get_next(['*', '?'])
 
         if not any(prefix.endswith(sep) for sep in os_sep) and any(sep in prefix for sep in os_sep):
             prefix = os.path.dirname(prefix)

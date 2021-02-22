@@ -36,9 +36,9 @@ class S3(FileSystem):
 
         # obtain key
         t = Tokenizer(self.file_name)
-        t.next('://')  # skip scheme
-        bucket_name = t.next('/')
-        key_name = t.next()
+        t.get_next('://')  # skip scheme
+        bucket_name = t.get_next('/')
+        key_name = t.get_next()
         conn = self._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
         self.key = bucket.get_key(key_name)
@@ -58,9 +58,9 @@ class S3(FileSystem):
         files = []
 
         t = Tokenizer(expr)
-        scheme = t.next('://')
-        bucket_name = t.next('/')
-        prefix = t.next(['*', '?'])
+        scheme = t.get_next('://')
+        bucket_name = t.get_next('/')
+        prefix = t.get_next(['*', '?'])
 
         bucket = cls._get_conn().get_bucket(
             bucket_name,
@@ -94,9 +94,9 @@ class S3(FileSystem):
 
     def exists(self):
         t = Tokenizer(self.file_name)
-        t.next('//')  # skip scheme
-        bucket_name = t.next('/')
-        key_name = t.next()
+        t.get_next('//')  # skip scheme
+        bucket_name = t.get_next('/')
+        key_name = t.get_next()
         conn = self._get_conn()
         bucket = conn.get_bucket(bucket_name, validate=False)
         return (bucket.get_key(key_name)

@@ -20,7 +20,7 @@
 __all__ = ['Broadcast']
 
 
-class Broadcast(object):
+class Broadcast:
     """
     A broadcast variable created with ``b = sc.broadcast(0)``.
     Access its value through ``b.value``.
@@ -49,11 +49,11 @@ class Broadcast(object):
 
 
 if __name__ == "__main__":
-    """
-    Execute doctests with
-
-    $ python -m pysparkling.broadcast -v
-    """
+    #
+    # Execute doctests with
+    #
+    # $ python -m pysparkling.accumulators -v
+    #
     import doctest
     import sys
 

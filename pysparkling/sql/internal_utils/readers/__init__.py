@@ -1,1 +1,5 @@
-from pysparkling.sql.internal_utils.readers.common import InternalReader
+from .common import InternalReader
+
+__all__ = [
+    'InternalReader'
+]

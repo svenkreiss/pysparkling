@@ -79,7 +79,7 @@ TypeError: No default accumulator param for type <type 'list'>
 __all__ = ['Accumulator', 'AccumulatorParam']
 
 
-class Accumulator(object):
+class Accumulator:
     """
     A shared variable that can be accumulated, i.e., has a commutative and associative "add"
     operation. Tasks can add values to an Accumulator with the ``+=`` operator
@@ -118,7 +118,7 @@ class Accumulator(object):
         return f"Accumulator<value={self._value}>"
 
 
-class AccumulatorParam(object):
+class AccumulatorParam:
     """
     Helper object that defines how to accumulate values of a given type.
     """
@@ -161,11 +161,11 @@ COMPLEX_ACCUMULATOR_PARAM = AddingAccumulatorParam(0.0j)
 
 
 if __name__ == "__main__":
-    """
-    Execute doctests with
-
-    $ python -m pysparkling.accumulators -v
-    """
+    #
+    # Execute doctests with
+    #
+    # $ python -m pysparkling.accumulators -v
+    #
     import doctest
     import sys
 

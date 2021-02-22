@@ -7,7 +7,7 @@ from pysparkling.fileio import File
 CURRENT_FILE_LOCATION = __file__
 
 
-class MockedHdfsClient(object):
+class MockedHdfsClient:
     def list(self, path, status):
         if path == "/user/username/":
             return [
@@ -23,7 +23,7 @@ class MockedHdfsClient(object):
         raise NotImplementedError(f"Return value not mocked for '{path}'")
 
 
-class MockedS3Bucket(object):
+class MockedS3Bucket:
     def list(self, *args, **kwargs):
         return [
             MockedS3Key("user/username/input/part-00001.gz"),
@@ -32,12 +32,12 @@ class MockedS3Bucket(object):
         ]
 
 
-class MockedS3Connection(object):
+class MockedS3Connection:
     def get_bucket(self, *args, **kwargs):
         return MockedS3Bucket()
 
 
-class MockedS3Key(object):
+class MockedS3Key:
     def __init__(self, name):
         self.name = name
 

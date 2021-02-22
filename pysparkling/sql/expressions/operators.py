@@ -1,9 +1,6 @@
-from pysparkling import Row
-from pysparkling.sql.casts import get_caster
-from pysparkling.sql.expressions.expressions import (
-    BinaryOperation, Expression, NullSafeBinaryOperation, TypeSafeBinaryOperation, UnaryExpression
-)
-from pysparkling.sql.types import StructType
+from ..casts import get_caster
+from ..types import Row, StructType
+from .expressions import BinaryOperation, Expression, NullSafeBinaryOperation, TypeSafeBinaryOperation, UnaryExpression
 
 
 class Negate(UnaryExpression):

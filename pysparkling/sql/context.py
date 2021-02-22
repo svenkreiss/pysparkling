@@ -1,7 +1,7 @@
-from pysparkling.sql.session import SparkSession
+from .session import SparkSession
 
 
-class SQLContext(object):
+class SQLContext:
     _instantiatedContext = None
 
     def __init__(self, sparkContext, sparkSession=None, jsqlContext=None):

@@ -1,8 +1,9 @@
 import json
 
-from pysparkling.sql.expressions.expressions import Expression
-from pysparkling.sql.internal_utils.options import Options
-from pysparkling.utils import get_json_encoder
+from ...utils import get_json_encoder
+from ..internal_utils.options import Options
+from ..internal_utils.readers.jsonreader import JSONReader
+from .expressions import Expression
 
 
 class StructsToJson(Expression):
@@ -16,8 +17,6 @@ class StructsToJson(Expression):
     def __init__(self, column, options):
         super().__init__(column)
         self.column = column
-        # pylint: disable=import-outside-toplevel; circular import
-        from pysparkling.sql.internal_utils.readers.jsonreader import JSONReader
         self.input_options = options
         self.options = Options(JSONReader.default_options, options)
         self.encoder = get_json_encoder(self.options)

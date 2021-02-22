@@ -7,24 +7,25 @@ from operator import itemgetter
 import random
 import re
 import sys
+from typing import List, Optional, Union
 
 import pytz
 from pytz import UnknownTimeZoneError
 
-from pysparkling.sql.casts import get_time_formatter
-from pysparkling.sql.internal_utils.joins import (
+from .sql.casts import get_time_formatter
+from .sql.internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )
-from pysparkling.sql.schema_utils import get_on_fields
-from pysparkling.sql.types import create_row, Row, row_from_keyed_values
-from pysparkling.sql.utils import IllegalArgumentException
+from .sql.schema_utils import get_on_fields
+from .sql.types import create_row, Row, row_from_keyed_values
+from .sql.utils import IllegalArgumentException
 
 
-class Tokenizer(object):
-    def __init__(self, expression):
+class Tokenizer:
+    def __init__(self, expression: str):
         self.expression = expression
 
-    def next(self, separator=None):
+    def get_next(self, separator: Optional[Union[List[str], str]] = None) -> str:
         if isinstance(separator, list):
             separator_positions_and_lengths = [
                 (self.expression.find(s), s)
@@ -51,8 +52,8 @@ class Tokenizer(object):
 
 def parse_file_uri(expr):
     t = Tokenizer(expr)
-    scheme = t.next('://')
-    domain = t.next('/')
+    scheme = t.get_next('://')
+    domain = t.get_next('/')
     last_slash_position = t.expression.rfind('/')
     folder_path = '/' + t.expression[:last_slash_position + 1]
     file_pattern = t.expression[last_slash_position + 1:]
@@ -236,18 +237,21 @@ def format_cell(value):
     return str(value)
 
 
-class MonotonicallyIncreasingIDGenerator(object):
+class MonotonicallyIncreasingIDGenerator:
     def __init__(self, partition_index):
         self.value = partition_index * 8589934592 - 1
 
-    def next(self):
+    def __iter__(self):
+        return self
+
+    def __next__(self):
         self.value += 1
         return self.value
 
 
 # pylint: disable=W0511
 # todo: store random-related utils in a separated module
-class XORShiftRandom(object):
+class XORShiftRandom:
     # pylint: disable=W0511
     # todo: align generated values with the ones in Spark
     def __init__(self, init):
@@ -294,7 +298,7 @@ class XORShiftRandom(object):
         return (highBits << 32) | (lowBits & 0xFFFFFFFF)
 
 
-class MurmurHash3(object):
+class MurmurHash3:
     @staticmethod
     def bytesHash(data, seed=0x3c074a61):
         length = len(data)

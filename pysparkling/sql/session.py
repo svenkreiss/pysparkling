@@ -1,21 +1,21 @@
 from threading import RLock
 
-import pysparkling
-from pysparkling import RDD
-from pysparkling.context import Context
-from pysparkling.sql.conf import RuntimeConfig
-from pysparkling.sql.dataframe import DataFrame
-from pysparkling.sql.internals import DataFrameInternal
-from pysparkling.sql.readwriter import DataFrameReader
-from pysparkling.sql.schema_utils import infer_schema_from_list
-from pysparkling.sql.types import (
+from ..__version__ import __version__
+from ..context import Context
+from ..rdd import RDD
+from .conf import RuntimeConfig
+from .dataframe import DataFrame
+from .internals import DataFrameInternal
+from .readwriter import DataFrameReader
+from .schema_utils import infer_schema_from_list
+from .types import (
     _create_converter, _has_nulltype, _infer_schema, _make_type_verifier, _merge_type, DataType, StructType
 )
-from pysparkling.sql.utils import require_minimum_pandas_version
+from .utils import require_minimum_pandas_version
 
 
-class SparkSession(object):
-    class Builder(object):
+class SparkSession:
+    class Builder:
         _lock = RLock()
 
         def getOrCreate(self):
@@ -31,9 +31,9 @@ class SparkSession(object):
     builder = Builder()
 
     def __init__(self, sparkContext, jsparkSession=None):
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling.sql.context import SQLContext
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .context import SQLContext
+
         self._sc = sparkContext
         self._wrapped = SQLContext(self._sc, self)
         SparkSession._instantiatedSession = self
@@ -58,7 +58,7 @@ class SparkSession(object):
 
     @property
     def version(self):
-        return pysparkling.__version__
+        return __version__
 
     @property
     def conf(self):
@@ -82,7 +82,7 @@ class SparkSession(object):
 
         :return: :class:`Catalog`
         """
-        # from pysparkling.sql.catalog import Catalog
+        # from .catalog import Catalog
         # if not hasattr(self, "_catalog"):
         #     # Compatibility with Pyspark behavior
         #     # noinspection PyAttributeOutsideInit
@@ -95,7 +95,7 @@ class SparkSession(object):
         # pylint: disable=W0511
         # todo: Add support of udf registration
         raise NotImplementedError("Pysparkling does not support yet catalog")
-        # from pysparkling.sql.udf import UDFRegistration
+        # from .udf import UDFRegistration
         # return UDFRegistration(self)
 
     def _inferSchema(self, rdd, samplingRatio=None, names=None):
@@ -104,7 +104,7 @@ class SparkSession(object):
 
         :param rdd: an RDD of Row or tuple
         :param samplingRatio: sampling ratio, or no sampling (default)
-        :return: :class:`pysparkling.sql.types.StructType`
+        :return: :class:`.types.StructType`
         """
         first = rdd.first()
         if not first:
