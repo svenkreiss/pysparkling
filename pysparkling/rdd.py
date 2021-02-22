@@ -2079,7 +2079,7 @@ class RDD:
         >>> rdd.toDF().collect()
         [Row(age=1, name='Alice')]
         """
-        # pylint: disable=import-outside-toplevel  # against a cyclic-import
+        # pylint: disable=import-outside-toplevel, cyclic-import
         from .sql.session import SparkSession
 
         sparkSession = SparkSession._instantiatedSession or SparkSession(self.context)
