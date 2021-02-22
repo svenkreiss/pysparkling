@@ -50,7 +50,7 @@ class Context(unittest.TestCase):
 
     def test_retry(self):
 
-        class EverySecondCallFails(object):
+        class EverySecondCallFails:
             def __init__(self):
                 self.attempt = 0
 

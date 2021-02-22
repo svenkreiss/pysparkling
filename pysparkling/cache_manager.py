@@ -7,7 +7,7 @@ import zlib
 log = logging.getLogger(__name__)
 
 
-class CacheManager(object):
+class CacheManager:
     """cache manager
 
     When mem_obj or disk_location are None, it means the object does not

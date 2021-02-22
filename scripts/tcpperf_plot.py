@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 matplotlib.use('Agg')
 
 
-class Plot(object):
+class Plot:
     def __init__(self, filename, x_label=None, y_label=None):
         self.filename = filename
         self.x_label = x_label or 'connections per second'

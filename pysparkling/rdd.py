@@ -34,14 +34,14 @@ def _hash(v):
     return portable_hash(v) & 0xffffffff
 
 
-class RDD(object):
+class RDD:
     """RDD
 
     In Spark's original form, RDDs are Resilient, Distributed Datasets.
     This class reimplements the same interface with the goal of being
     fast on small data at the cost of being resilient and distributed.
 
-    :param list partitions:
+    :param Iterable partitions:
         A list of instances of :class:`Partition`.
 
     :param Context ctx:
@@ -72,11 +72,10 @@ class RDD(object):
     def partitions(self):
         return self._p
 
-    """
-
-    Public API
-    ----------
-    """
+    #
+    # Public API
+    # ----------
+    #
 
     def aggregate(self, zeroValue, seqOp, combOp):
         """aggregate
@@ -2080,11 +2079,10 @@ class RDD(object):
         >>> rdd.toDF().collect()
         [Row(age=1, name='Alice')]
         """
-        # Top level import would cause cyclic dependencies
-        # pylint: disable=import-outside-toplevel
-        from pysparkling import Context
-        from pysparkling.sql.session import SparkSession
-        sparkSession = SparkSession._instantiatedSession or SparkSession(Context())
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .sql.session import SparkSession
+
+        sparkSession = SparkSession._instantiatedSession or SparkSession(self.context)
         return sparkSession.createDataFrame(self, schema, sampleRatio)
 
 
@@ -2187,7 +2185,7 @@ class EmptyRDD(RDD):
 
 # pickle-able helpers
 
-class MapF(object):
+class MapF:
     def __init__(self, f):
         self.f = f
 

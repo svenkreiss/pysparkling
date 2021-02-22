@@ -1,14 +1,13 @@
 from functools import partial
 import itertools
 
-from pysparkling.fileio import TextFile
-from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readers.utils import resolve_partitions
-from pysparkling.sql.internals import DataFrameInternal
-from pysparkling.sql.types import create_row, StringType, StructField, StructType
+from ....fileio import TextFile
+from ...internal_utils.options import Options
+from ...internal_utils.readers.utils import resolve_partitions
+from ...types import create_row, StringType, StructField, StructType
 
 
-class TextReader(object):
+class TextReader:
     default_options = dict(
         lineSep=None,
         encoding="utf-8",
@@ -45,6 +44,9 @@ class TextReader(object):
             full_schema = self.schema
 
         rdd._name = paths
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ...internals import DataFrameInternal
 
         return DataFrameInternal(
             sc,

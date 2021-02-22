@@ -1,16 +1,15 @@
 from functools import partial
 import itertools
 
-from pysparkling.fileio import TextFile
-from pysparkling.sql.casts import get_caster
-from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readers.utils import guess_schema_from_strings, resolve_partitions
-from pysparkling.sql.internals import DataFrameInternal
-from pysparkling.sql.schema_utils import infer_schema_from_rdd
-from pysparkling.sql.types import create_row, StringType, StructField, StructType
+from ....fileio import TextFile
+from ...casts import get_caster
+from ...internal_utils.options import Options
+from ...internal_utils.readers.utils import guess_schema_from_strings, resolve_partitions
+from ...schema_utils import infer_schema_from_rdd
+from ...types import create_row, StringType, StructField, StructType
 
 
-class CSVReader(object):
+class CSVReader:
     default_options = dict(
         lineSep=None,
         encoding="utf-8",
@@ -63,6 +62,9 @@ class CSVReader(object):
         )
         casted_rdd = rdd.map(cast_row)
         casted_rdd._name = paths
+
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from ...internals import DataFrameInternal
 
         return DataFrameInternal(
             sc,

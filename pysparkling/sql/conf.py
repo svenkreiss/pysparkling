@@ -1,7 +1,7 @@
 _sentinel = object()
 
 
-class RuntimeConfig(object):
+class RuntimeConfig:
     def __init__(self, jconf=None):
         self._conf = {}
 

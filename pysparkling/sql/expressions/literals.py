@@ -1,5 +1,5 @@
-from pysparkling.sql.expressions.expressions import Expression
-from pysparkling.sql.utils import AnalysisException
+from ..utils import AnalysisException
+from .expressions import Expression
 
 
 class Literal(Expression):

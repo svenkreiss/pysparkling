@@ -15,7 +15,7 @@ import cloudpickle
 import pysparkling
 
 
-class Processor(object):
+class Processor:
     """This modifies lines but also keeps track whether it was executed."""
     def __init__(self):
         self.executed = False
@@ -25,7 +25,7 @@ class Processor(object):
         return '--- {}'.format(line)
 
 
-class LazyTestInjection(object):
+class LazyTestInjection:
     def lazy_execution_test(self):
         r = self.sc.textFile(__file__)  # pylint: disable=no-member
 

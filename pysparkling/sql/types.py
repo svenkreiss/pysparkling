@@ -24,7 +24,7 @@ import os
 import re
 import sys
 
-from pysparkling.sql.utils import ParseException, require_minimum_pandas_version
+from .utils import ParseException, require_minimum_pandas_version
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-class DataType(object):
+class DataType:
     """Base class for data types."""
 
     def __repr__(self):
@@ -1205,8 +1205,9 @@ def _create_converter(dataType):
             raise TypeError("Unexpected obj type: %s" % type(obj))
 
         if convert_fields:
-            return tuple([convert(d.get(name)) for name, convert in zip(names, converters)])
-        return tuple([d.get(name) for name in names])
+            return tuple(convert(d.get(name)) for name, convert in zip(names, converters))
+
+        return tuple(d.get(name) for name in names)
 
     return convert_struct
 

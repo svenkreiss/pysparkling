@@ -1,10 +1,10 @@
 from functools import reduce
 
-from pysparkling.sql.internal_utils.joins import (
+from .internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )
-from pysparkling.sql.types import _get_null_fields, _has_nulltype, _infer_schema, _merge_type, StructField, StructType
-from pysparkling.sql.utils import IllegalArgumentException
+from .types import _get_null_fields, _has_nulltype, _infer_schema, _merge_type, StructField, StructType
+from .utils import IllegalArgumentException
 
 
 def infer_schema_from_rdd(rdd):

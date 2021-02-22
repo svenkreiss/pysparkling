@@ -13,7 +13,7 @@ N_CONNECTIONS = (100, 1000, 2000, 3000, 3500, 4000, 4500, 5000,
 N_CONNECTIONS_1K = (10, 20, 30, 40, 45, 50, 60, 70, 80, 90, 100)
 
 
-class Server(object):
+class Server:
     def __init__(self, pause=60, values=1, start_port=8123, processes=2):
         self.pause = pause
         self.values = values

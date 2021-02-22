@@ -163,7 +163,7 @@ class RDDTest(unittest.TestCase):
 
     def test_groupByKey(self):
         # This will fail if the values of the RDD need to be compared
-        class IncomparableValue(object):
+        class IncomparableValue:
             def __init__(self, value):
                 self.value = value
 
@@ -193,7 +193,7 @@ class RDDTest(unittest.TestCase):
 
     def test_reduceByKey(self):
         # This will fail if the values of the RDD need to be compared
-        class IncomparableValueAddable(object):
+        class IncomparableValueAddable:
             def __init__(self, value):
                 self.value = value
 
@@ -224,7 +224,7 @@ class RDDTest(unittest.TestCase):
 
     def test_reduceByKey_with_numPartition(self):
         # This will fail if the values of the RDD need to be compared
-        class IncomparableValueAddable(object):
+        class IncomparableValueAddable:
             def __init__(self, value):
                 self.value = value
 

@@ -3,7 +3,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class FileSystem(object):
+class FileSystem:
     """Interface class for the file system.
 
     :param str file_name: File name.

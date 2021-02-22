@@ -6,12 +6,12 @@ import time
 from dateutil.tz import tzlocal
 import pytz
 
-from pysparkling.sql.types import (
+from .types import (
     ArrayType, BinaryType, BooleanType, ByteType, create_row, DateType, DecimalType, DoubleType, FloatType,
     IntegerType, LongType, MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType,
     UserDefinedType
 )
-from pysparkling.sql.utils import AnalysisException
+from .utils import AnalysisException
 
 NO_TIMESTAMP_CONVERSION = object()
 

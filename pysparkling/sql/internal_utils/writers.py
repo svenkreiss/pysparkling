@@ -4,18 +4,18 @@ import json
 import os
 import shutil
 
-from pysparkling import Row
-from pysparkling.sql.casts import cast_to_string
-from pysparkling.sql.expressions.aggregate.aggregations import Aggregation
-from pysparkling.sql.expressions.mappers import StarOperator
-from pysparkling.sql.functions import col
-from pysparkling.sql.internal_utils.options import Options
-from pysparkling.sql.internal_utils.readwrite import to_option_stored_value
-from pysparkling.sql.utils import AnalysisException
-from pysparkling.utils import get_json_encoder, portable_hash
+from ...utils import get_json_encoder, portable_hash
+from ..casts import cast_to_string
+from ..expressions.aggregate.aggregations import Aggregation
+from ..expressions.mappers import StarOperator
+from ..functions import col
+from ..internal_utils.options import Options
+from ..internal_utils.readwrite import to_option_stored_value
+from ..types import Row
+from ..utils import AnalysisException
 
 
-class InternalWriter(object):
+class InternalWriter:
     def __init__(self, df):
         self._df = df
         self._source = "parquet"
@@ -114,7 +114,7 @@ class WriteInFolder(Aggregation):
         return (self.column,)
 
 
-class DataWriter(object):
+class DataWriter:
     default_options = dict(
         dateFormat="yyyy-MM-dd",
         timestampFormat="yyyy-MM-dd'T'HH:mm:ss.SSSXXX",

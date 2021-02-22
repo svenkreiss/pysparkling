@@ -6,26 +6,24 @@ import json
 import math
 import warnings
 
-from pysparkling import StorageLevel
-from pysparkling.sql.column import parse
-from pysparkling.sql.functions import array, collect_set, count, lit, map_from_arrays, rand, struct
-from pysparkling.sql.internal_utils.column import resolve_column
-from pysparkling.sql.internal_utils.joins import (
-    CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
-)
-from pysparkling.sql.schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
-from pysparkling.sql.types import (
-    create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, StructType
-)
-from pysparkling.sql.utils import IllegalArgumentException
-from pysparkling.stat_counter import CovarianceCounter, RowStatHelper
-from pysparkling.utils import (
+from ..stat_counter import CovarianceCounter, RowStatHelper
+from ..storagelevel import StorageLevel
+from ..utils import (
     compute_weighted_percentiles, format_cell, get_keyfunc, merge_rows, merge_rows_joined_on_values, pad_cell,
     portable_hash, reservoir_sample_and_size, str_half_width
 )
+from .column import parse
+from .functions import array, collect_set, count, lit, map_from_arrays, rand, struct
+from .internal_utils.column import resolve_column
+from .internal_utils.joins import (
+    CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
+)
+from .schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
+from .types import create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, StructType
+from .utils import IllegalArgumentException
 
 
-class FieldIdGenerator(object):
+class FieldIdGenerator:
     """
     This metaclass adds an unique ID to all instances of its classes.
 
@@ -64,7 +62,7 @@ class FieldIdGenerator(object):
         return schema
 
 
-class DataFrameInternal(object):
+class DataFrameInternal:
     def __init__(self, sc, rdd, cols=None, convert_to_row=False, schema=None):
         """
         :type rdd: RDD
@@ -974,7 +972,7 @@ class SubTotalValue:
 GROUPED = SubTotalValue()
 
 
-class InternalGroupedDataFrame(object):
+class InternalGroupedDataFrame:
     def __init__(self,
                  jdf, grouping_cols, group_type=GROUP_BY_TYPE,
                  pivot_col=None, pivot_values=None):
@@ -1141,7 +1139,7 @@ class InternalGroupedDataFrame(object):
         )
 
 
-class GroupedStats(object):
+class GroupedStats:
     def __init__(self, grouping_cols, stats, pivot_col, pivot_values, groups=None):
         self.grouping_cols = grouping_cols
         self.stats = stats
