@@ -137,7 +137,7 @@ class Hdfs(FileSystem):
         return cls._get_folder_files_by_expr(c, scheme, domain, folder_path, expr)
 
     def load(self):
-        log.debug(f'Hdfs read for {self.file_name}.')
+        log.debug('Hdfs read for %s.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
 
         with c.read(path) as reader:
@@ -146,7 +146,7 @@ class Hdfs(FileSystem):
         return r
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
-        log.debug(f'Hdfs text read for {self.file_name}.')
+        log.debug('Hdfs text read for %s.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
 
         with c.read(path) as reader:
@@ -155,7 +155,7 @@ class Hdfs(FileSystem):
         return r
 
     def dump(self, stream):
-        log.debug(f'Dump to {self.file_name} with hdfs write.')
+        log.debug('Dump to %s with hdfs write.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
         c.write(path, stream)
         return self

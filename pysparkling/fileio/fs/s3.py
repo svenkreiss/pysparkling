@@ -103,17 +103,17 @@ class S3(FileSystem):
                 or bucket.list(prefix=f'{key_name}/'))
 
     def load(self):
-        log.debug(f'Loading {self.key.name} with size {self.key.size}.')
+        log.debug('Loading %s with size %s.', self.key.name, self.key.size)
         return BytesIO(self.key.get_contents_as_string())
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
-        log.debug(f'Loading {self.key.name} with size {self.key.size}.')
+        log.debug('Loading %s with size %s.', self.key.name, self.key.size)
         return StringIO(
             self.key.get_contents_as_string().decode(encoding, encoding_errors)
         )
 
     def dump(self, stream):
-        log.debug(f'Dumping to {self.key.name}.')
+        log.debug('Dumping to %s.', self.key.name)
         self.key.set_contents_from_file(stream)
         return self
 

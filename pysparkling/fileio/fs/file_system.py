@@ -17,7 +17,7 @@ class FileSystem(object):
 
         :rtype: list
         """
-        log.error(f'Cannot resolve: {expr}')
+        log.error('Cannot resolve: %s', expr)
 
     @staticmethod
     def resolve_content(expr):
@@ -25,21 +25,21 @@ class FileSystem(object):
 
         :rtype: list
         """
-        log.error(f'Cannot resolve: {expr}')
+        log.error('Cannot resolve: %s', expr)
 
     def exists(self):
         """Check whether the given file_name exists.
 
         :rtype: bool
         """
-        log.warning(f'Could not determine whether {self.file_name} exists due to unhandled scheme.')
+        log.warning('Could not determine whether %s exists due to unhandled scheme.', self.file_name)
 
     def load(self):
         """Load a file to a stream.
 
         :rtype: io.BytesIO
         """
-        log.error(f'Cannot load: {self.file_name}')
+        log.error('Cannot load: %s', self.file_name)
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
         """Load a file to a stream.
@@ -49,14 +49,14 @@ class FileSystem(object):
 
         :rtype: io.StringIO
         """
-        log.error(f'Cannot load: {self.file_name}')
+        log.error('Cannot load: %s', self.file_name)
 
     def dump(self, stream):
         """Dump a stream to a file.
 
         :param io.BytesIO stream: Input tream.
         """
-        log.error(f'Cannot dump: {self.file_name}')
+        log.error('Cannot dump: %s', self.file_name)
 
     def make_public(self, recursive=False):
         """Make the file public (only on some file systems).
@@ -64,4 +64,4 @@ class FileSystem(object):
         :param bool recursive: Recurse.
         :rtype: FileSystem
         """
-        log.warning(f'Cannot make {self.file_name} public.')
+        log.warning('Cannot make %s public.', self.file_name)

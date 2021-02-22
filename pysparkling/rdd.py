@@ -41,7 +41,7 @@ class RDD(object):
     This class reimplements the same interface with the goal of being
     fast on small data at the cost of being resilient and distributed.
 
-    :param list partitions:
+    :param Iterable partitions:
         A list of instances of :class:`Partition`.
 
     :param Context ctx:
@@ -2164,7 +2164,7 @@ class PersistedRDD(RDD):
             task_context.cache_manager.add(self._cid, data, self.storageLevel)
             self._cache_manager = task_context.cache_manager
         else:
-            log.debug(f'Using cache of RDD {self._cid[0]} partition {self._cid[1]}.')
+            log.debug('Using cache of RDD %s partition %s.', *self._cid)
             data = task_context.cache_manager.get(self._cid)
 
         return iter(data)

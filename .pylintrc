@@ -3,7 +3,7 @@
 variable-rgx=[a-z0-9_]{1,30}$
 good-names=log
 
-disable=invalid-name,unused-argument,too-few-public-methods,no-self-use,missing-docstring,logging-format-interpolation,too-many-instance-attributes,duplicate-code,too-many-public-methods,too-many-arguments,protected-access,pointless-string-statement,too-many-lines,useless-object-inheritance,cyclic-import,bad-option-value,logging-fstring-interpolation
+disable=invalid-name,unused-argument,too-few-public-methods,no-self-use,missing-docstring,logging-format-interpolation,too-many-instance-attributes,duplicate-code,too-many-public-methods,too-many-arguments,protected-access,pointless-string-statement,too-many-lines,useless-object-inheritance,cyclic-import,bad-option-value
 # TODO: cyclic-import is temporary
 
 [FORMAT]

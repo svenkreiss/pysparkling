@@ -36,23 +36,21 @@ def _run_task(task_context, rdd, func, partition):
     task_context.attempt_number += 1
 
     log.debug(
-        f'Running stage {task_context.stage_id} '
-        f'for partition {task_context.partition_id} '
-        f'of {rdd.name()} (id: {rdd.id()}).'
+        'Running stage %s for partition %s of %s (id: %s).',
+        task_context.stage_id, task_context.partition_id, rdd.name(), rdd.id()
     )
 
     try:
         return func(task_context, rdd.compute(partition, task_context))
     except Exception as e:  # pylint: disable=broad-except
         log.warning(
-            f'Attempt {task_context.attempt_number} failed '
-            f'for partition {partition.index} '
-            f'of {rdd.name()} (id: {rdd.id()}): '
-            f'{traceback.format_exc()}'
+            'Attempt %s failed for partition %s of %s (id: %s): %s',
+            task_context.attempt_number, partition.index, rdd.name(), rdd.id(), traceback.format_exc()
         )
 
         if task_context.attempt_number == task_context.max_retries:
-            log.error(f'Partition {partition.index} of {rdd.name()} failed.')
+            log.error('Partition %s of %s failed.', partition.index, rdd.name())
+
             if not task_context.catch_exceptions:
                 raise e
 
@@ -255,7 +253,7 @@ class Context(object):
 
         """
         resolved_names = File.resolve_filenames(name)
-        log.debug(f'pickleFile() resolved "{name}" to {len(resolved_names)} files.')
+        log.debug('pickleFile() resolved "%s" to %s files.', name, len(resolved_names))
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -406,7 +404,7 @@ class Context(object):
         ['bellobello']
         """
         resolved_names = File.resolve_filenames(path)
-        log.debug(f'binaryFile() resolved "{path}" to {len(resolved_names)} files.')
+        log.debug('binaryFile() resolved "%s" to %s files.', path, len(resolved_names))
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -504,7 +502,7 @@ class Context(object):
         :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(filename)
-        log.debug(f'textFile() resolved "{filename}" to {len(resolved_names)} files.')
+        log.debug('textFile() resolved "%s" to %s files.', filename, len(resolved_names))
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
@@ -551,7 +549,7 @@ class Context(object):
         :rtype: RDD
         """
         resolved_names = TextFile.resolve_filenames(path)
-        log.debug(f'wholeTextFiles() resolved "{path}" to {len(resolved_names)} files.')
+        log.debug('wholeTextFiles() resolved "%s" to %s files.', path, len(resolved_names))
 
         n_partitions = len(resolved_names)
         if minPartitions and minPartitions > n_partitions:
