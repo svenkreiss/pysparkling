@@ -45,12 +45,12 @@ class CaseWhen(Expression):
         return None
 
     def __str__(self):
-        return "CASE {0} END".format(
-            " ".join(
-                "WHEN {0} THEN {1}".format(condition, value)
-                for condition, value in zip(self.conditions, self.values)
-            )
+        when_statements = " ".join(
+            f"WHEN {condition} THEN {value}"
+            for condition, value in zip(self.conditions, self.values)
         )
+
+        return f"CASE {when_statements} END"
 
     def args(self):
         return (
@@ -90,13 +90,12 @@ class Otherwise(Expression):
         return None
 
     def __str__(self):
-        return "CASE {0} ELSE {1} END".format(
-            " ".join(
-                "WHEN {0} THEN {1}".format(condition, value)
-                for condition, value in zip(self.conditions, self.values)
-            ),
-            self.default
+        whens = " ".join(
+            f"WHEN {condition} THEN {value}"
+            for condition, value in zip(self.conditions, self.values)
         )
+
+        return f"CASE {whens} ELSE {self.default} END"
 
     def args(self):
         return (
@@ -211,7 +210,7 @@ class FormatNumber(Expression):
         if not isinstance(value, (int, float)):
             return None
         rounded_value = half_even_round(value, self.digits)
-        return "{0:,}".format(rounded_value)
+        return f"{rounded_value:,}"
 
     def args(self):
         return (

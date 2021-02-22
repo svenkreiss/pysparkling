@@ -81,8 +81,7 @@ class GS(FileSystem):
         expr = expr[expr_s:]
         for k in bucket.list_blobs(prefix=prefix):
             if fnmatch(k.name, expr) or fnmatch(k.name, expr + '/part*'):
-                files.append('{0}://{1}:{2}/{3}'.format(
-                    scheme, project_name, bucket_name, k.name))
+                files.append(f'{scheme}://{project_name}:{bucket_name}/{k.name}')
         return files
 
     @staticmethod
@@ -97,9 +96,9 @@ class GS(FileSystem):
 
         folder_path = folder_path[1:]  # Remove leading slash
 
-        expr = "{0}{1}".format(folder_path, pattern)
+        expr = f"{folder_path}{pattern}"
         # Match all files inside folders that match expr
-        pattern_expr = "{0}{1}*".format(expr, "" if expr.endswith("/") else "/")
+        pattern_expr = f"{expr}{'' if expr.endswith('/') else '/'}*"
 
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
 
@@ -109,7 +108,7 @@ class GS(FileSystem):
                     fnmatch(k.name, expr) or fnmatch(k.name, pattern_expr)
             ):
                 files.append(
-                    '{0}://{1}/{2}'.format(scheme, raw_bucket_name, k.name)
+                    f'{scheme}://{raw_bucket_name}/{k.name}'
                 )
         return files
 
@@ -124,16 +123,14 @@ class GS(FileSystem):
         blob_name = t.get_next()
         bucket = GS._get_client(project_name).get_bucket(bucket_name)
         return (bucket.get_blob(blob_name)
-                or list(bucket.list_blobs(prefix='{}/'.format(blob_name))))
+                or list(bucket.list_blobs(prefix=f'{blob_name}/')))
 
     def load(self):
-        log.debug('Loading {0} with size {1}.'
-                  ''.format(self.blob.name, self.blob.size))
+        log.debug('Loading %s with size %s.', self.blob.name, self.blob.size)
         return BytesIO(self.blob.download_as_string())
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
-        log.debug('Loading {0} with size {1}.'
-                  ''.format(self.blob.name, self.blob.size))
+        log.debug('Loading %s with size %s.', self.blob.name, self.blob.size)
         return StringIO(
             self.blob.download_as_string().decode(
                 encoding, encoding_errors
@@ -141,7 +138,7 @@ class GS(FileSystem):
         )
 
     def dump(self, stream):
-        log.debug('Dumping to {0}.'.format(self.blob.name))
+        log.debug('Dumping to %s.', self.blob.name)
         self.blob.upload_from_string(stream.read(),
                                      content_type=self.mime_type)
         return self

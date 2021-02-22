@@ -71,7 +71,7 @@ class Emitter:
     def json(self):
         s, v = self.r()
         return (json.dumps({
-            'sensor{}'.format(s): v,
+            f'sensor{s}': v,
         }) + '\n').encode('utf8')
 
     def bello(self):
@@ -103,7 +103,7 @@ def main():
     e = Emitter(args.port, args.n, args.values)
     e.message = getattr(e, args.format)
     e.start()
-    print('{} sent {} messages'.format(sys.argv[0], e.i))
+    print(f'{sys.argv[0]} sent {e.i} messages')
 
 
 if __name__ == '__main__':

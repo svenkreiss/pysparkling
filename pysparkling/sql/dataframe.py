@@ -203,14 +203,13 @@ class DataFrame:
             parameters = parameters[0]
 
         if not isinstance(name, str):
-            raise TypeError("name should be provided as str, got {0}".format(type(name)))
+            raise TypeError(f"name should be provided as str, got {type(name)}")
 
         allowed_types = (str, list, float, int)
         for p in parameters:
             if not isinstance(p, allowed_types):
                 raise TypeError(
-                    "all parameters should be in {0}, got {1} of type {2}".format(
-                        allowed_types, p, type(p)))
+                    f"all parameters should be in {allowed_types}, got {p} of type {type(p)}")
 
         # No hint are supported by pysparkling hence nothing is done here
         jdf = self._jdf
@@ -574,7 +573,7 @@ class DataFrame:
     def randomSplit(self, weights, seed=None):
         for w in weights:
             if w < 0.0:
-                raise ValueError("Weights must be positive. Found weight value: {}".format(w))
+                raise ValueError(f"Weights must be positive. Found weight value: {w}")
         seed = int(seed) if seed is not None else None
         rdd_array = self._jdf.randomSplit(weights, seed)
         return [DataFrame(rdd, self.sql_ctx) for rdd in rdd_array]
@@ -733,7 +732,7 @@ class DataFrame:
 
         how = how.lower().replace("_", "")
         if how not in JOIN_TYPES:
-            raise IllegalArgumentException("Invalid how argument in join: {0}".format(how))
+            raise IllegalArgumentException(f"Invalid how argument in join: {how}")
         how = JOIN_TYPES[how]
 
         if how == CROSS_JOIN and on is not None:
@@ -760,7 +759,7 @@ class DataFrame:
         """
         ascending = kwargs.pop("ascending", True)
         if kwargs:
-            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
+            raise TypeError(f"Unrecognized arguments: {kwargs}")
         sorted_jdf = self._jdf.sortWithinPartitions(cols, ascending=ascending)
         return DataFrame(sorted_jdf, self.sql_ctx)
 
@@ -833,7 +832,7 @@ class DataFrame:
             raise TypeError("ascending can only be boolean or list, but got %s" % type(ascending))
 
         if kwargs:
-            raise TypeError("Unrecognized arguments: {0}".format(kwargs))
+            raise TypeError(f"Unrecognized arguments: {kwargs}")
 
         return cols
 
@@ -1414,22 +1413,24 @@ class DataFrame:
 
         # Validate input types
         valid_types = (bool, float, int, str, list, tuple)
+
         if not isinstance(to_replace, valid_types) and not isinstance(to_replace, dict):
             raise ValueError(
                 "to_replace should be a bool, float, int, string, list, tuple, or dict. "
-                "Got {0}".format(type(to_replace)))
+                f"Got {type(to_replace)}")
         if not isinstance(value, valid_types) and value is not None \
                 and not isinstance(to_replace, dict):
             raise ValueError("If to_replace is not a dict, value should be "
                              "a bool, float, int, string, list, tuple or None. "
-                             "Got {0}".format(type(value)))
+                             f"Got {type(value)}")
         if isinstance(to_replace, (list, tuple)) and isinstance(value, (list, tuple)):
             if len(to_replace) != len(value):
-                raise ValueError("to_replace and value lists should be of the same length. "
-                                 "Got {0} and {1}".format(len(to_replace), len(value)))
-        if not (subset is None or isinstance(subset, (list, tuple, str))):
-            raise ValueError("subset should be a list or tuple of column names, "
-                             "column name or None. Got {0}".format(type(subset)))
+                raise ValueError("to_replace and value lists should be of the same length."
+                                 f" Got {len(to_replace)} and {len(value)}")
+
+        if subset is not None and not isinstance(subset, (list, tuple, str)):
+            raise ValueError("subset should be a list or tuple of column names, column name or"
+                             f" None. Got {type(subset)}")
         return value
 
     def approxQuantile(self, col, probabilities, relativeError):

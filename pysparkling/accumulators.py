@@ -115,7 +115,7 @@ class Accumulator:
         return str(self._value)
 
     def __repr__(self):
-        return "Accumulator<value={0}>".format(self._value)
+        return f"Accumulator<value={self._value}>"
 
 
 class AccumulatorParam:

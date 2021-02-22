@@ -44,7 +44,7 @@ class Hdfs(FileSystem):
                     'hdfs not supported. Install the python package "hdfs".'
                 )
             Hdfs._conn[cache_id] = hdfs.InsecureClient(  # pylint: disable=no-member
-                'http://{0}:{1}'.format(domain, port)
+                f'http://{domain}:{port}'
             )
         return Hdfs._conn[cache_id], folder_path + file_pattern
 
@@ -64,7 +64,7 @@ class Hdfs(FileSystem):
 
         files = []
         for fn, file_status in c.list(folder_path, status=True):
-            file_local_path = '{0}{1}'.format(folder_path, fn)
+            file_local_path = f'{folder_path}{fn}'
             file_path = format_file_uri(scheme, domain, file_local_path)
             part_file_expr = expr + ("" if expr.endswith("/") else "/") + 'part*'
 
@@ -107,7 +107,7 @@ class Hdfs(FileSystem):
         """
         file_paths = []
         for fn, file_status in c.list(folder_path, status=True):
-            file_local_path = '{0}{1}'.format(folder_path, fn)
+            file_local_path = f'{folder_path}{fn}'
             if expr is None or fnmatch(file_local_path, expr):
                 if file_status["type"] == "DIRECTORY":
                     file_paths += cls._get_folder_files_by_expr(
@@ -137,7 +137,7 @@ class Hdfs(FileSystem):
         return cls._get_folder_files_by_expr(c, scheme, domain, folder_path, expr)
 
     def load(self):
-        log.debug('Hdfs read for {0}.'.format(self.file_name))
+        log.debug('Hdfs read for %s.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
 
         with c.read(path) as reader:
@@ -146,7 +146,7 @@ class Hdfs(FileSystem):
         return r
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
-        log.debug('Hdfs text read for {0}.'.format(self.file_name))
+        log.debug('Hdfs text read for %s.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
 
         with c.read(path) as reader:
@@ -155,7 +155,7 @@ class Hdfs(FileSystem):
         return r
 
     def dump(self, stream):
-        log.debug('Dump to {0} with hdfs write.'.format(self.file_name))
+        log.debug('Dump to %s with hdfs write.', self.file_name)
         c, path = Hdfs.client_and_path(self.file_name)
         c.write(path, stream)
         return self

@@ -35,7 +35,7 @@ class Http(FileSystem):
         return r.status_code == 200
 
     def load(self):
-        log.debug('Http GET request for {0}.'.format(self.file_name))
+        log.debug('Http GET request for %s.', self.file_name)
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:
             raise ConnectionException()
@@ -43,13 +43,13 @@ class Http(FileSystem):
 
     def load_text(self, encoding='utf8', encoding_errors='ignore'):
         # warning: encoding and encoding_errors are ignored
-        log.debug('Http GET request for {0}.'.format(self.file_name))
+        log.debug('Http GET request for %s.', self.file_name)
         r = requests.get(self.file_name, headers=self.headers)
         if r.status_code != 200:
             raise ConnectionException()
         return StringIO(r.text)
 
     def dump(self, stream):
-        log.debug('Dump to {0} with http PUT.'.format(self.file_name))
+        log.debug('Dump to %s with http PUT.', self.file_name)
         requests.put(self.file_name, data=b''.join(stream))
         return self

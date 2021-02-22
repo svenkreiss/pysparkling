@@ -2,18 +2,22 @@
 
 import argparse
 import random
+from string import ascii_uppercase
 
 import pysparkling
 
 
 def create_csv(filename, lines=10000000, columns=12):
     with open(filename, 'w') as f:
-        f.write('{}\n'.format(','.join(chr(ord('A') + i)
-                                       for i in range(columns))))
+        column_names = ','.join(ascii_uppercase[i] for i in range(columns))
+        f.write(f'{column_names}\n')
+
         for _ in range(lines):
-            values = ('{:.3f}'.format(100 * (c + 1) * random.random())
-                      for c in range(columns))
-            f.write('{}\n'.format(','.join(values)))
+            values = ','.join(
+                f'{100 * (c + 1) * random.random():.3f}'
+                for c in range(columns)
+            )
+            f.write(f'{values}\n')
 
 
 def read_csv(filename):

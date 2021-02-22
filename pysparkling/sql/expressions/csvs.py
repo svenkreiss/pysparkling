@@ -25,7 +25,7 @@ class SchemaOfCsv(Expression):
         if not isinstance(value, str) or value == "":
             raise AnalysisException(
                 "type mismatch: The input csv should be a string literal and not null; "
-                "however, got {0}.".format(value)
+                f"however, got {value}."
             )
         record_as_row = csv_record_to_row(value, self.options)
         schema = guess_schema_from_strings(record_as_row.__fields__, [record_as_row], self.options)

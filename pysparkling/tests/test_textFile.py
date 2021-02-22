@@ -26,7 +26,7 @@ LOCAL_TEST_PATH = os.path.dirname(__file__)
 
 def test_cache():
     # this crashes in version 0.2.28
-    lines = Context().textFile('{}/*textFil*.py'.format(LOCAL_TEST_PATH))
+    lines = Context().textFile(f'{LOCAL_TEST_PATH}/*textFil*.py')
     lines = lines.map(lambda l: '-' + l).cache()
     print(len(lines.collect()))
     lines = lines.map(lambda l: '+' + l)
@@ -37,22 +37,22 @@ def test_cache():
 
 
 def test_local_textFile_1():
-    lines = Context().textFile('{}/*textFil*.py'.format(LOCAL_TEST_PATH))
+    lines = Context().textFile(f'{LOCAL_TEST_PATH}/*textFil*.py')
     lines = lines.collect()
     print(lines)
     assert 'from pysparkling import Context' in lines
 
 
 def test_local_textFile_2():
-    line_count = Context().textFile('{}/*.py'.format(LOCAL_TEST_PATH)).count()
+    line_count = Context().textFile(f'{LOCAL_TEST_PATH}/*.py').count()
     print(line_count)
     assert line_count > 90
 
 
 def test_local_textFile_name():
-    name = Context().textFile('{}/*.py'.format(LOCAL_TEST_PATH)).name()
+    name = Context().textFile(f'{LOCAL_TEST_PATH}/*.py').name()
     print(name)
-    assert name.startswith('{}/*.py'.format(LOCAL_TEST_PATH))
+    assert name.startswith(f'{LOCAL_TEST_PATH}/*.py')
 
 
 def test_wholeTextFiles():
@@ -79,11 +79,9 @@ def test_s3_textFile():
 def test_s3_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{:d}.txt'.format(
-        S3_TEST_PATH, random.random() * 999999.0
-    )
+    fn = f'{S3_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.txt'
 
-    rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
+    rdd = Context().parallelize(f'Line {n}' for n in range(200))
     rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
@@ -97,11 +95,10 @@ def test_s3_textFile_loop():
 def test_hdfs_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{:d}.txt'.format(
-        HDFS_TEST_PATH, random.random() * 999999.0)
-    print('HDFS test file: {0}'.format(fn))
+    fn = f'{HDFS_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.txt'
+    print(f'HDFS test file: {fn}')
 
-    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd = Context().parallelize(f'Hello World {x}' for x in range(10))
     rdd.saveAsTextFile(fn)
     read_rdd = Context().textFile(fn)
     print(rdd.collect())
@@ -116,12 +113,10 @@ def test_hdfs_textFile_loop():
 def test_hdfs_file_exists():
     random.seed()
 
-    fn1 = '{}/pysparkling_test_{:d}.txt'.format(
-        HDFS_TEST_PATH, random.random() * 999999.0)
-    fn2 = '{}/pysparkling_test_{:d}.txt'.format(
-        HDFS_TEST_PATH, random.random() * 999999.0)
+    fn1 = f'{HDFS_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.txt'
+    fn2 = f'{HDFS_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.txt'
 
-    rdd = Context().parallelize('Hello World {0}'.format(x) for x in range(10))
+    rdd = Context().parallelize(f'Hello World {x}' for x in range(10))
     rdd.saveAsTextFile(fn1)
 
     assert File(fn1).exists() and not File(fn2).exists()
@@ -132,10 +127,9 @@ def test_hdfs_file_exists():
 def test_gs_textFile_loop():
     random.seed()
 
-    fn = '{}/pysparkling_test_{:d}.txt'.format(
-        GS_TEST_PATH, random.random() * 999999.0)
+    fn = f'{GS_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.txt'
 
-    rdd = Context().parallelize('Line {0}'.format(n) for n in range(200))
+    rdd = Context().parallelize(f'Line {n}' for n in range(200))
     rdd.saveAsTextFile(fn)
     rdd_check = Context().textFile(fn)
 
@@ -150,8 +144,7 @@ def test_gs_textFile_loop():
 def test_dumpToFile():
     random.seed()
 
-    fn = '{}/pysparkling_test_{:d}.pickle'.format(
-        S3_TEST_PATH, random.random() * 999999.0)
+    fn = f'{S3_TEST_PATH}/pysparkling_test_{random.random() * 999999.0:d}.pickle'
     File(fn).dump(pickle.dumps({'hello': 'world'}))
 
 
@@ -240,7 +233,7 @@ def test_read_7z():
     # file was created with:
     # 7z a tests/data.7z tests/readme_example.py
     # (brew install p7zip)
-    rdd = Context().textFile('{}/data.7z'.format(LOCAL_TEST_PATH))
+    rdd = Context().textFile(f'{LOCAL_TEST_PATH}/data.7z')
     print(rdd.collect())
     assert 'from pysparkling import Context' in rdd.collect()
 
@@ -248,7 +241,7 @@ def test_read_7z():
 def test_read_tar_gz():
     # file was created with:
     # tar -cvzf data.tar.gz hello.txt
-    rdd = Context().textFile('{}/data.tar.gz'.format(LOCAL_TEST_PATH))
+    rdd = Context().textFile(f'{LOCAL_TEST_PATH}/data.tar.gz')
     print(rdd.collect())
     assert 'Hello pysparkling!' in rdd.collect()
 
@@ -265,21 +258,21 @@ def test_read_tar_gz_20news():
 
 def test_pyspark_compatibility_txt():
     kv = Context().textFile(
-        '{}/pyspark/key_value.txt'.format(LOCAL_TEST_PATH)).collect()
+        f'{LOCAL_TEST_PATH}/pyspark/key_value.txt').collect()
     print(kv)
     assert u"('a', 1)" in kv and u"('b', 2)" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_bz2():
     kv = Context().textFile(
-        '{}/pyspark/key_value.txt.bz2'.format(LOCAL_TEST_PATH)).collect()
+        f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.bz2').collect()
     print(kv)
     assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_gz():
     kv = Context().textFile(
-        '{}/pyspark/key_value.txt.gz'.format(LOCAL_TEST_PATH)).collect()
+        f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.gz').collect()
     print(kv)
     assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
 

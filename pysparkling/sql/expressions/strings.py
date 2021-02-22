@@ -89,7 +89,7 @@ class StringLPad(Expression):
         value = self.column.cast(StringType()).eval(row, schema)
         delta = self.length - len(value)
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
-        return "{0}{1}".format(padding, value)
+        return f"{padding}{value}"
 
     def args(self):
         return (
@@ -112,7 +112,7 @@ class StringRPad(Expression):
         value = self.column.cast(StringType()).eval(row, schema)
         delta = self.length - len(value)
         padding = (self.pad * delta)[:delta]  # Handle pad with multiple characters
-        return "{0}{1}".format(value, padding)
+        return f"{value}{padding}"
 
     def args(self):
         return (

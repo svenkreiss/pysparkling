@@ -973,7 +973,7 @@ class RDD:
             self,
             MapF(f),
             preservesPartitioning=True,
-        ).setName('{}:{}'.format(self.name(), f))
+        ).setName(f'{self.name()}:{f}')
 
     def mapPartitions(self, f, preservesPartitioning=False):
         """map partitions
@@ -995,7 +995,7 @@ class RDD:
             self,
             lambda tc, i, x: f(x),
             preservesPartitioning=preservesPartitioning,
-        ).setName('{}:{}'.format(self.name(), f))
+        ).setName(f'{self.name()}:{f}')
 
     def mapPartitionsWithIndex(self, f, preservesPartitioning=False):
         """map partitions with index
@@ -1017,7 +1017,7 @@ class RDD:
             self,
             lambda tc, i, x: f(i, x),
             preservesPartitioning=preservesPartitioning,
-        ).setName('{}:{}'.format(self.name(), f))
+        ).setName(f'{self.name()}:{f}')
 
     def mapValues(self, f):
         """map values in a pair dataset
@@ -1029,7 +1029,7 @@ class RDD:
             self,
             lambda tc, i, x: ((e[0], f(e[1])) for e in x),
             preservesPartitioning=True,
-        ).setName('{}:{}'.format(self.name(), f))
+        ).setName(f'{self.name()}:{f}')
 
     def max(self):
         """returns the maximum element
@@ -1502,7 +1502,7 @@ class RDD:
 
         if fileio.File(path).exists():
             raise FileAlreadyExistsException(
-                'Output {0} already exists.'.format(path)
+                f'Output {path} already exists.'
             )
 
         codec_suffix = ''
@@ -1524,8 +1524,7 @@ class RDD:
         self.context.runJob(
             self,
             lambda tc, x: _map(
-                os.path.join(path, 'part-{0:05d}{1}'.format(tc.partitionId(),
-                                                            codec_suffix)),
+                os.path.join(path, f'part-{tc.partitionId():05d}{codec_suffix}'),
                 list(x),
             ),
             resultHandler=list,
@@ -1548,13 +1547,12 @@ class RDD:
         :rtype: RDD
         """
         if fileio.TextFile(path).exists():
-            raise FileAlreadyExistsException(
-                'Output {0} already exists.'.format(path))
+            raise FileAlreadyExistsException(f'Output {path} already exists.')
 
         def to_stringio(data):
             stringio = io.StringIO()
             for line in data:
-                stringio.write('{}\n'.format(line))
+                stringio.write(f'{line}\n')
             stringio.seek(0)
             return stringio
 
@@ -1573,8 +1571,7 @@ class RDD:
             self.mapPartitions(to_stringio),
             lambda tc, stringio: (
                 fileio.TextFile(
-                    os.path.join(path, 'part-{0:05d}{1}'.format(
-                        tc.partitionId(), codec_suffix))
+                    os.path.join(path, f'part-{tc.partitionId():05d}{codec_suffix}')
                 ).dump(stringio)
             ),
             resultHandler=list,
@@ -2096,7 +2093,7 @@ class MapPartitionsRDD(RDD):
         RDD.__init__(self, prev.partitions(), prev.context)
 
         self.prev = prev
-        self._name = '{}:{}'.format(prev.name(), f)
+        self._name = f'{prev.name()}:{f}'
         self.f = f
         self.preservesPartitioning = preservesPartitioning
 
@@ -2165,7 +2162,7 @@ class PersistedRDD(RDD):
             task_context.cache_manager.add(self._cid, data, self.storageLevel)
             self._cache_manager = task_context.cache_manager
         else:
-            log.debug('Using cache of RDD {} partition {}.'.format(*self._cid))
+            log.debug('Using cache of RDD %s partition %s.', *self._cid)
             data = task_context.cache_manager.get(self._cid)
 
         return iter(data)

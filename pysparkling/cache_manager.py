@@ -47,14 +47,14 @@ class CacheManager:
             'disk_location': None,
             'checksum': None,
         }
-        log.debug('Added {0} to cache.'.format(ident))
+        log.debug('Added %s to cache.', ident)
 
     def get(self, ident):
         if ident not in self.cache_obj:
-            log.debug('{0} not found in cache.'.format(ident))
+            log.debug('%s not found in cache.', ident)
             return None
 
-        log.debug('Returning {0} from cache.'.format(ident))
+        log.debug('Returning %s from cache.', ident)
         return self.cache_obj[ident]['mem_obj']
 
     def has(self, ident):

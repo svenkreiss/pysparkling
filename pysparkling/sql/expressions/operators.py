@@ -8,7 +8,7 @@ class Negate(UnaryExpression):
         return - self.column.eval(row, schema)
 
     def __str__(self):
-        return "(- {0})".format(self.column)
+        return f"(- {self.column})"
 
 
 class Add(NullSafeBinaryOperation):
@@ -16,7 +16,7 @@ class Add(NullSafeBinaryOperation):
         return value1 + value2
 
     def __str__(self):
-        return "({0} + {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} + {self.arg2})"
 
 
 class Minus(NullSafeBinaryOperation):
@@ -24,7 +24,7 @@ class Minus(NullSafeBinaryOperation):
         return value1 - value2
 
     def __str__(self):
-        return "({0} - {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} - {self.arg2})"
 
 
 class Time(NullSafeBinaryOperation):
@@ -32,7 +32,7 @@ class Time(NullSafeBinaryOperation):
         return value1 * value2
 
     def __str__(self):
-        return "({0} * {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} * {self.arg2})"
 
 
 class Divide(NullSafeBinaryOperation):
@@ -40,7 +40,7 @@ class Divide(NullSafeBinaryOperation):
         return value1 / value2 if value2 != 0 else None
 
     def __str__(self):
-        return "({0} / {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} / {self.arg2})"
 
 
 class Mod(NullSafeBinaryOperation):
@@ -48,7 +48,7 @@ class Mod(NullSafeBinaryOperation):
         return value1 % value2
 
     def __str__(self):
-        return "({0} % {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} % {self.arg2})"
 
 
 class Pow(NullSafeBinaryOperation):
@@ -56,7 +56,7 @@ class Pow(NullSafeBinaryOperation):
         return float(value1 ** value2)
 
     def __str__(self):
-        return "POWER({0}, {1})".format(self.arg1, self.arg2)
+        return f"POWER({self.arg1}, {self.arg2})"
 
 
 class Equal(TypeSafeBinaryOperation):
@@ -64,7 +64,7 @@ class Equal(TypeSafeBinaryOperation):
         return value_1 == value_2
 
     def __str__(self):
-        return "({0} = {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} = {self.arg2})"
 
 
 class LessThan(TypeSafeBinaryOperation):
@@ -72,7 +72,7 @@ class LessThan(TypeSafeBinaryOperation):
         return value_1 < value_2
 
     def __str__(self):
-        return "({0} < {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} < {self.arg2})"
 
 
 class LessThanOrEqual(TypeSafeBinaryOperation):
@@ -80,7 +80,7 @@ class LessThanOrEqual(TypeSafeBinaryOperation):
         return value_1 <= value_2
 
     def __str__(self):
-        return "({0} <= {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} <= {self.arg2})"
 
 
 class GreaterThan(TypeSafeBinaryOperation):
@@ -88,7 +88,7 @@ class GreaterThan(TypeSafeBinaryOperation):
         return value_1 > value_2
 
     def __str__(self):
-        return "({0} > {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} > {self.arg2})"
 
 
 class GreaterThanOrEqual(TypeSafeBinaryOperation):
@@ -96,7 +96,7 @@ class GreaterThanOrEqual(TypeSafeBinaryOperation):
         return value_1 >= value_2
 
     def __str__(self):
-        return "({0} >= {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} >= {self.arg2})"
 
 
 class And(TypeSafeBinaryOperation):
@@ -104,7 +104,7 @@ class And(TypeSafeBinaryOperation):
         return value_1 and value_2
 
     def __str__(self):
-        return "({0} AND {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} AND {self.arg2})"
 
 
 class Or(TypeSafeBinaryOperation):
@@ -112,7 +112,7 @@ class Or(TypeSafeBinaryOperation):
         return value_1 or value_2
 
     def __str__(self):
-        return "({0} OR {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} OR {self.arg2})"
 
 
 class Invert(UnaryExpression):
@@ -123,7 +123,7 @@ class Invert(UnaryExpression):
         return not value
 
     def __str__(self):
-        return "(NOT {0})".format(self.column)
+        return f"(NOT {self.column})"
 
 
 class BitwiseOr(BinaryOperation):
@@ -131,7 +131,7 @@ class BitwiseOr(BinaryOperation):
         return self.arg1.eval(row, schema) | self.arg2.eval(row, schema)
 
     def __str__(self):
-        return "({0} | {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} | {self.arg2})"
 
 
 class BitwiseAnd(BinaryOperation):
@@ -139,7 +139,7 @@ class BitwiseAnd(BinaryOperation):
         return self.arg1.eval(row, schema) & self.arg2.eval(row, schema)
 
     def __str__(self):
-        return "({0} & {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} & {self.arg2})"
 
 
 class BitwiseXor(BinaryOperation):
@@ -147,7 +147,7 @@ class BitwiseXor(BinaryOperation):
         return self.arg1.eval(row, schema) ^ self.arg2.eval(row, schema)
 
     def __str__(self):
-        return "({0} ^ {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} ^ {self.arg2})"
 
 
 class BitwiseNot(UnaryExpression):
@@ -155,7 +155,7 @@ class BitwiseNot(UnaryExpression):
         return ~(self.column.eval(row, schema))
 
     def __str__(self):
-        return "~{0}".format(self.column)
+        return f"~{self.column}"
 
 
 class EqNullSafe(BinaryOperation):
@@ -163,7 +163,7 @@ class EqNullSafe(BinaryOperation):
         return self.arg1.eval(row, schema) == self.arg2.eval(row, schema)
 
     def __str__(self):
-        return "({0} <=> {1})".format(self.arg1, self.arg2)
+        return f"({self.arg1} <=> {self.arg2})"
 
 
 class GetField(Expression):
@@ -190,8 +190,8 @@ class GetField(Expression):
         if (hasattr(self.item.expr, "field")
                 and hasattr(self.item.expr.field, "dataType")
                 and isinstance(self.item.expr.field.dataType, StructType)):
-            return "{0}.{1}".format(self.item, self.field)
-        return "{0}[{1}]".format(self.item, self.field)
+            return f"{self.item}.{self.field}"
+        return f"{self.item}[{self.field}]"
 
     def args(self):
         return (
@@ -264,10 +264,8 @@ class IsIn(Expression):
         return self.arg1.eval(row, schema) in self.cols
 
     def __str__(self):
-        return "({0} IN ({1}))".format(
-            self.arg1,
-            ", ".join(str(col) for col in self.cols)
-        )
+        all_cols = ', '.join(str(col) for col in self.cols)
+        return f"({self.arg1} IN ({all_cols}))"
 
     def args(self):
         return [self.arg1] + self.cols
@@ -278,7 +276,7 @@ class IsNotNull(UnaryExpression):
         return self.column.eval(row, schema) is not None
 
     def __str__(self):
-        return "({0} IS NOT NULL)".format(self.column)
+        return f"({self.column} IS NOT NULL)"
 
 
 class IsNull(UnaryExpression):
@@ -286,7 +284,7 @@ class IsNull(UnaryExpression):
         return self.column.eval(row, schema) is None
 
     def __str__(self):
-        return "({0} IS NULL)".format(self.column)
+        return f"({self.column} IS NULL)"
 
 
 class Cast(Expression):
@@ -302,13 +300,10 @@ class Cast(Expression):
         return self.caster(self.column.eval(row, schema))
 
     def __str__(self):
-        return "{0}".format(self.column)
+        return str(self.column)
 
     def __repr__(self):
-        return "CAST({0} AS {1})".format(
-            self.column,
-            self.destination_type.simpleString().upper()
-        )
+        return f"CAST({self.column} AS {self.destination_type.simpleString().upper()})"
 
     def args(self):
         return (
@@ -373,7 +368,7 @@ class UnaryPositive(UnaryExpression):
         return self.column.eval(row, schema)
 
     def __str__(self):
-        return "(+ {0})".format(self.column)
+        return f"(+ {self.column})"
 
 
 __all__ = [

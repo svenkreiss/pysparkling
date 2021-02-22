@@ -22,10 +22,11 @@ class Server:
 
     def client(self, n=2000, format_='hello'):
         for _ in range(self.processes):
-            os.system('python tests/tcpperf_client.py '
-                      '-n {} --port {} --format {} --values {} &'
-                      ''.format(int(n / self.processes), self.port, format_,
-                                self.values))
+            os.system(
+                f'python tests/tcpperf_client.py -n {int(n / self.processes)}'
+                f' --port {self.port} --format {format_} --values {self.values}'
+                f' &'
+            )
 
     def _run_process(self, n, to_kv, format_):
         c = pysparkling.Context()
@@ -75,9 +76,8 @@ class Server:
             k: (ex_ex2[0], math.sqrt(ex_ex2[1] - ex_ex2[0] ** 2))
             for k, ex_ex2 in sensor_expections.items()
         }
-        print('run: n = {}, counts = {}, result = {}'
-              ''.format(n, counts, result))
-        print('sensors = {}'.format(sensors))
+        print(f'run: n = {n}, counts = {counts}, result = {result}')
+        print(f'sensors = {sensors}')
         time.sleep(self.pause)
         self.port += 1
         return result
@@ -96,7 +96,7 @@ def main():
 
     def kv_from_struct(b):
         s, v = struct.unpack('If', b)
-        return 'sensor{}'.format(s), v
+        return f'sensor{s}', v
 
     with open('tests/tcpperf_messages.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
@@ -110,7 +110,7 @@ def main():
                 server_1k.run(n, kv_from_json, 'json'),
                 server_1k.run(n, kv_from_struct, 'struct'),
             )
-            f.write(', '.join('{}'.format(d) for d in data) + '\n')
+            f.write(', '.join(f'{d}' for d in data) + '\n')
 
     with open('tests/tcpperf_connections.csv', 'w') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
@@ -124,7 +124,7 @@ def main():
                 server.run(n, kv_from_json, 'json'),
                 server.run(n, kv_from_struct, 'struct'),
             )
-            f.write(', '.join('{}'.format(d) for d in data) + '\n')
+            f.write(', '.join(f'{d}' for d in data) + '\n')
 
 
 if __name__ == '__main__':

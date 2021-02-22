@@ -365,11 +365,11 @@ class ParseToTimestamp(Expression):
     def args(self):
         if self.format is None:
             return (
-                "'{0}'".format(self.column),
+                f"'{self.column}'",
             )
         return (
-            "'{0}'".format(self.column),
-            "'{0}'".format(self.format)
+            f"'{self.column}'",
+            f"'{self.format}'"
         )
 
 
@@ -389,11 +389,11 @@ class ParseToDate(Expression):
     def args(self):
         if self.format is None:
             return (
-                "'{0}'".format(self.column),
+                f"'{self.column}'",
             )
         return (
-            "'{0}'".format(self.column),
-            "'{0}'".format(self.format)
+            f"'{self.column}'",
+            f"'{self.format}'"
         )
 
 

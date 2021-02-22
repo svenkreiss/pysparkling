@@ -62,7 +62,7 @@ def parse_file_uri(expr):
 
 
 def format_file_uri(scheme, domain, *local_path_components):
-    return '{0}://{1}{2}'.format(scheme, domain, "/".join(local_path_components))
+    return f'{scheme}://{domain}{"/".join(local_path_components)}'
 
 
 def reservoir_sample_and_size(iterable, k, seed):
@@ -226,15 +226,12 @@ def format_cell(value):
     if isinstance(value, bool):
         return str(value).lower()
     if isinstance(value, Row):
-        return "[{0}]".format(
-            ", ".join(format_cell(sub_value) for sub_value in value)
-        )
+        return f"[{', '.join(format_cell(sub_value) for sub_value in value)}]"
     if isinstance(value, dict):
         return "[{0}]".format(
             ", ".join(
-                "{0} -> {1}".format(
-                    format_cell(key), format_cell(sub_value)
-                ) for key, sub_value in value.items()
+                f"{format_cell(key)} -> {format_cell(sub_value)}"
+                for key, sub_value in value.items()
             )
         )
     return str(value)
@@ -403,7 +400,7 @@ def merge_rows_joined_on_values(left, right, left_schema, right_schema, how, on)
     elif how in (LEFT_SEMI_JOIN, LEFT_ANTI_JOIN):
         right_parts = ()
     else:
-        raise IllegalArgumentException("Argument 'how' cannot be '{0}'".format(how))
+        raise IllegalArgumentException(f"Argument 'how' cannot be '{how}'")
 
     return row_from_keyed_values(itertools.chain(on_parts, left_parts, right_parts))
 
