@@ -1205,8 +1205,9 @@ def _create_converter(dataType):
             raise TypeError("Unexpected obj type: %s" % type(obj))
 
         if convert_fields:
-            return tuple([convert(d.get(name)) for name, convert in zip(names, converters)])
-        return tuple([d.get(name) for name in names])
+            return tuple(convert(d.get(name)) for name, convert in zip(names, converters))
+
+        return tuple(d.get(name) for name in names)
 
     return convert_struct
 
