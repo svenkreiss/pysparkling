@@ -7,8 +7,8 @@ import struct
 import time
 import traceback
 
-from . import __version__ as PYSPARKLING_VERSION
 from . import accumulators
+from .__version__ import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
 from .cache_manager import CacheManager
 from .exceptions import ContextIsLockedException

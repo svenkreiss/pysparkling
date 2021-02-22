@@ -1,14 +1,8 @@
 """pysparkling module"""
 # flake8: noqa
 
-# isort: off
-from ._version import get_versions
-
-__version__ = get_versions()['version']
-del get_versions
-# isort: on
-
 from . import exceptions, fileio, streaming
+from .__version__ import __version__
 from .accumulators import Accumulator, AccumulatorParam
 from .broadcast import Broadcast
 from .cache_manager import CacheManager, TimedCacheManager
