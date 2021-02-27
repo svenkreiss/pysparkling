@@ -39,6 +39,7 @@ setup(
             'pytest-cov',
             'isort',
             'tornado>=4.3',
+            'ply',
         ],
         'scripts': [
             'ipyparallel',
