@@ -18,7 +18,7 @@ setup(
         'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0',
-        'pythonsqlparser==0.1.0',
+        'pythonsqlparser==0.1.1',
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
