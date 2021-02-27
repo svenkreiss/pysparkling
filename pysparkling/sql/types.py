@@ -693,26 +693,8 @@ class StructType(DataType):
 
     @classmethod
     def fromDDL(cls, string):
-        def get_class(type_: str) -> DataType:
-            type_to_load = f'{type_.strip().title()}Type'
-
-            if type_to_load not in globals():
-                match = re.match(r'^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
-                if match:
-                    return ArrayType(get_class(match.group(1)))
-
-                raise ValueError(f"Couldn't find '{type_to_load}'?")
-
-            return globals()[type_to_load]()
-
-        fields = StructType()
-
-        for description in string.split(','):
-            name, type_ = [x.strip() for x in description.split(':')]
-
-            fields.add(StructField(name.strip(), get_class(type_), True))
-
-        return fields
+        from .ast.ast_to_python import parse_schema
+        return parse_schema(string)
 
 
 class UserDefinedType(DataType):
@@ -1840,8 +1822,8 @@ STRING_TO_TYPE = dict(
     byte=ByteType(),
     smallint=ShortType(),
     short=ShortType(),
-    int=LongType(),
-    integer=LongType(),
+    int=IntegerType(),
+    integer=IntegerType(),
     bigint=LongType(),
     long=LongType(),
     float=FloatType(),

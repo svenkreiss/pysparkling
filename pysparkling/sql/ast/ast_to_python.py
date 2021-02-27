@@ -7,11 +7,14 @@ from pysparkling.sql.column import parse, Column
 from pysparkling.sql.expressions.expressions import expression_registry
 from pysparkling.sql.expressions.literals import Literal
 from pysparkling.sql.expressions.mappers import CreateStruct, Concat
-from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, GreaterThan, \
-    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, Or, Negate, \
+from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, \
+    GreaterThan, \
+    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, \
+    Or, Negate, \
     BitwiseNot, UnaryPositive, Alias
 from pysparkling.sql import functions
-from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type
+from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type, StructField, \
+    StructType
 
 
 class SqlParsingError(Exception):
@@ -122,6 +125,8 @@ def cast_context(*children):
 
 
 def detect_data_type(*children):
+    if children[0].__class__.__name__ == 'ErrorNodeImpl':
+        children = children[1:]
     data_type = convert_tree(children[0])
     params = [convert_tree(c) for c in children[2:-1:2]]
     return parsed_string_to_type(data_type, params)
@@ -141,7 +146,7 @@ def parenthesis_context(*children):
     return convert_tree(children[1])
 
 
-def parse_boolean(*children):
+def convert_boolean(*children):
     check_children(1, children)
     value = convert_tree(children[0])
     if value.lower() == "false":
@@ -157,10 +162,21 @@ def convert_to_literal(*children):
     return Literal(value)
 
 
-def parse_column(*children):
+def convert_column(*children):
     check_children(1, children)
     value = convert_tree(children[0])
     return Column(value)
+
+
+def convert_field(*children):
+    name = convert_tree(children[0])
+    data_type = convert_tree(children[1])
+    return StructField(name, data_type)
+
+
+def convert_table_schema(*children):
+    check_children(2, children)
+    return StructType(fields=convert_tree(children[0]))
 
 
 def convert_to_null(*children):
@@ -256,15 +272,15 @@ CONVERTERS = {
     'BigIntLiteralContext': concat_to_value,
     'BooleanExpressionContext': never_found,
     'BooleanLiteralContext': unwrap,
-    'BooleanValueContext': parse_boolean,
+    'BooleanValueContext': convert_boolean,
     'BucketSpecContext': unsupported,
     'CacheTableContext': unsupported,
     'CastContext': cast_context,
     'ClearCacheContext': unsupported,
     'ColPositionContext': unsupported,
-    'ColTypeContext': unsupported,
+    'ColTypeContext': convert_field,
     'ColTypeListContext': implicit_list,
-    'ColumnReferenceContext': parse_column,
+    'ColumnReferenceContext': convert_column,
     'CommentNamespaceContext': unsupported,
     'CommentSpecContext': unsupported,
     'CommentTableContext': unsupported,
@@ -470,7 +486,7 @@ CONVERTERS = {
     'SingleMultipartIdentifierContext': child_and_eof,
     'SingleStatementContext': first_child_only,
     'SingleTableIdentifierContext': child_and_eof,
-    'SingleTableSchemaContext': child_and_eof,
+    'SingleTableSchemaContext': convert_table_schema,
     'SkewSpecContext': unsupported,
     'SmallIntLiteralContext': concat_to_value,
     'SortItemContext': unsupported,
@@ -566,6 +582,10 @@ def parse_sql(string, rule, debug=False):
 
 def parse_data_type(string, debug=False):
     return parse_sql(string, "singleDataType", debug)
+
+
+def parse_schema(string, debug=False):
+    return parse_sql(string, "singleTableSchema", debug)
 
 
 def parse_expression(string, debug=False):
