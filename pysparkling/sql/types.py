@@ -23,14 +23,9 @@ import json as _json
 import os
 import re
 import sys
+from typing import Union
 
-from .utils import ParseException, require_minimum_pandas_version
-
-__all__ = [
-    "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
-    "TimestampType", "DecimalType", "DoubleType", "FloatType", "ByteType", "IntegerType",
-    "LongType", "ShortType", "ArrayType", "MapType", "StructField", "StructType"
-]
+from .utils import require_minimum_pandas_version
 
 
 class DataType:
@@ -43,7 +38,11 @@ class DataType:
         return hash(str(self))
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+        return (
+            isinstance(other, self.__class__)
+            and set(self.__dict__.keys()) == set(other.__dict__.keys())
+            and all(self.__dict__[k] == other.__dict__[k] for k in self.__dict__)
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -198,8 +197,8 @@ class DecimalType(FractionalType):
     """
 
     def __init__(self, precision=10, scale=0):
-        self.precision = precision
-        self.scale = scale
+        self.precision = int(precision)
+        self.scale = int(scale)
         self.hasPrecisionInfo = True  # this is public API
 
     def simpleString(self):
@@ -394,7 +393,7 @@ class StructField(DataType):
         False
         """
         assert isinstance(dataType, DataType), \
-            "dataType %s should be an instance of %s" % (dataType, DataType)
+            "dataType %s should be an instance of %s (got %s)" % (dataType, DataType, type(self))
         assert isinstance(name, str), "field name %s should be string" % name
         self.name = name
         self.dataType = dataType
@@ -532,7 +531,7 @@ class StructType(DataType):
         """Return the number of fields."""
         return len(self.fields)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[str, int, slice]):
         """Access fields by name or slice."""
         if isinstance(key, str):
             for field in self:
@@ -692,27 +691,8 @@ class StructType(DataType):
         return create_row(self.names, values)
 
     @classmethod
-    def fromDDL(cls, string):
-        def get_class(type_: str) -> DataType:
-            type_to_load = f'{type_.strip().title()}Type'
-
-            if type_to_load not in globals():
-                match = re.match(r'^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
-                if match:
-                    return ArrayType(get_class(match.group(1)))
-
-                raise ValueError(f"Couldn't find '{type_to_load}'?")
-
-            return globals()[type_to_load]()
-
-        fields = StructType()
-
-        for description in string.split(','):
-            name, type_ = [x.strip() for x in description.split(':')]
-
-            fields.add(StructField(name.strip(), get_class(type_), True))
-
-        return fields
+    def fromDDL(cls, s: str):
+        return _parse_datatype_string(s)
 
 
 class UserDefinedType(DataType):
@@ -835,45 +815,6 @@ _all_complex_types = dict((v.typeName(), v)
                           for v in [ArrayType, MapType, StructType])
 
 _FIXED_DECIMAL = re.compile(r"decimal\(\s*(\d+)\s*,\s*(-?\d+)\s*\)")
-
-
-def _parse_datatype_string(s):
-    """
-    Parses the given data type string to a :class:`DataType`. The data type string format equals
-    to :class:`DataType.simpleString`, except that top level struct type can omit
-    the ``struct<>`` and atomic types use ``typeName()`` as their format, e.g. use ``byte`` instead
-    of ``tinyint`` for :class:`ByteType`. We can also use ``int`` as a short name
-    for :class:`IntegerType`. Since Spark 2.3, this also supports a schema in a DDL-formatted
-    string and case-insensitive strings.
-    """
-    raise NotImplementedError("_parse_datatype_string is not yet supported by pysparkling")
-    # pylint: disable=W0511
-    # todo: implement in pure Python the code below
-    # NB: it probably requires to use antl4r
-
-    # sc = SparkContext._active_spark_context
-    #
-    # def from_ddl_schema(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.types.StructType.fromDDL(type_str).json())
-    #
-    # def from_ddl_datatype(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.api.python.PythonSQLUtils.parseDataType(type_str).json())
-    #
-    # try:
-    #     # DDL format, "fieldname datatype, fieldname datatype".
-    #     return from_ddl_schema(s)
-    # except Exception as e:
-    #     try:
-    #         # For backwards compatibility, "integer", "struct<fieldname: datatype>" and etc.
-    #         return from_ddl_datatype(s)
-    #     except:
-    #         try:
-    #             # For backwards compatibility, "fieldname: datatype, fieldname: datatype" case.
-    #             return from_ddl_datatype("struct<%s>" % s.strip())
-    #         except:
-    #             raise e
 
 
 def _parse_datatype_json_string(json_string):
@@ -1832,41 +1773,6 @@ def _check_series_convert_timestamps_tz_local(s, timezone):
     return _check_series_convert_timestamps_localize(s, timezone, None)
 
 
-# As defined with visitPrimitiveDataType in spark master sql/catalyst/src/main/scala/
-# org/apache/spark/sql/catalyst/parser/AstBuilder.scala
-STRING_TO_TYPE = dict(
-    boolean=BooleanType(),
-    tinyint=ByteType(),
-    byte=ByteType(),
-    smallint=ShortType(),
-    short=ShortType(),
-    int=LongType(),
-    integer=LongType(),
-    bigint=LongType(),
-    long=LongType(),
-    float=FloatType(),
-    double=DoubleType(),
-    date=DateType(),
-    timestamp=TimestampType(),
-    string=StringType(),
-    binary=BinaryType(),
-    decimal=DecimalType()
-)
-
-
-def string_to_type(string):
-    if string in STRING_TO_TYPE:
-        return STRING_TO_TYPE[string]
-    if string.startswith("decimal("):
-        arguments = string[8:-1]
-        if arguments.count(",") == 1:
-            precision, scale = arguments.split(",")
-        else:
-            precision, scale = arguments, 0
-        return DecimalType(precision=int(precision), scale=int(scale))
-    raise ParseException(f"Unable to parse data type {string}")
-
-
 # Internal type hierarchy:
 # Lower order types are converted to first order type when performing operation
 # across multiple types (e.g. datetime.date(2019,1,1) == "2019-01-01")
@@ -1880,12 +1786,17 @@ INTERNAL_TYPE_ORDER = [
 ]
 
 PYTHON_TO_SPARK_TYPE = {
-    float: FloatType(),
-    int: IntegerType(),
-    str: StringType(),
+    type(None): NullType(),
     bool: BooleanType(),
-    datetime.datetime: TimestampType(),
+    int: IntegerType(),
+    float: DoubleType(),
+    str: StringType(),
+    bytearray: BinaryType,
+    bytes: BinaryType,
+    decimal.Decimal: DecimalType(),
     datetime.date: DateType(),
+    datetime.datetime: TimestampType(),
+    datetime.time: TimestampType(),
 }
 
 
@@ -1901,3 +1812,51 @@ def python_to_spark_type(python_type):
     raise NotImplementedError(
         f"Pysparkling does not currently support type {python_type} for the requested operation"
     )
+
+
+def _parse_datatype_string(s: str) -> Union[DataType, StructType]:
+    """
+    Parses the given data type string to a :class:`DataType`. The data type string format equals
+    :class:`DataType.simpleString`, except that the top level struct type can omit
+    the ``struct<>`` and atomic types use ``typeName()`` as their format, e.g. use ``byte`` instead
+    of ``tinyint`` for :class:`ByteType`. We can also use ``int`` as a short name
+    for :class:`IntegerType`. Since Spark 2.3, this also supports a schema in a DDL-formatted
+    string and case-insensitive strings.
+
+    >>> _parse_datatype_string("int ")
+    IntegerType
+    >>> _parse_datatype_string("INT ")
+    IntegerType
+    >>> _parse_datatype_string("a: byte, b: decimal(  16 , 8   ) ")
+    StructType(List(StructField(a,ByteType,true),StructField(b,DecimalType(16,8),true)))
+    >>> _parse_datatype_string("a DOUBLE, b STRING")
+    StructType(List(StructField(a,DoubleType,true),StructField(b,StringType,true)))
+    >>> _parse_datatype_string("a: array< short>")
+    StructType(List(StructField(a,ArrayType(ShortType,true),true)))
+    >>> _parse_datatype_string(" map<string , string > ")
+    MapType(StringType,StringType,true)
+
+    >>> # Error cases
+    >>> _parse_datatype_string("blabla") # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    ParseException:...
+    >>> _parse_datatype_string("a: int,") # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    ParseException:...
+    >>> _parse_datatype_string("array<int") # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    ParseException:...
+    >>> _parse_datatype_string("map<int, boolean>>") # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    ParseException:...
+    """
+    # pylint: disable=import-outside-toplevel, cyclic-import
+    from .parsers.types_parser import parser
+    return parser.parse(s)
+
+
+string_to_type = _parse_datatype_string
