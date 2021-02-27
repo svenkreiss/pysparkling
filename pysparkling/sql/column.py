@@ -1,4 +1,3 @@
-from pysparkling.sql.ast.ast_to_python import parse_data_type
 from .expressions.expressions import Expression
 from .expressions.fields import find_position_in_schema
 from .expressions.literals import Literal
@@ -512,6 +511,8 @@ class Column:
         """
 
         if isinstance(dataType, str):
+            # pylint: disable=import-outside-toplevel, cyclic-import
+            from pysparkling.sql.ast.ast_to_python import parse_data_type
             dataType = parse_data_type(dataType)
         elif not isinstance(dataType, DataType):
             raise NotImplementedError(f"Unknown cast type: {dataType}")
