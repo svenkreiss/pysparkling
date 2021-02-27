@@ -4,11 +4,11 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-
 from pysparkling.sql.ast.ast_to_python import parse_data_type
-from pysparkling.sql.types import BooleanType, ByteType, ShortType, IntegerType, \
-    LongType, FloatType, DoubleType, DateType, TimestampType, StringType, BinaryType, \
-    DecimalType, ArrayType, MapType, StructType, StructField
+from pysparkling.sql.types import (
+    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,
+    MapType, ShortType, StringType, StructField, StructType, TimestampType
+)
 
 
 class TypeParsingTest(TestCase):

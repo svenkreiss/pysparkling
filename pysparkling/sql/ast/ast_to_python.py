@@ -3,18 +3,16 @@ import logging
 
 from sqlparser import string_to_ast
 
-from pysparkling.sql.column import parse, Column
+from pysparkling.sql import functions
+from pysparkling.sql.column import Column, parse
 from pysparkling.sql.expressions.expressions import expression_registry
 from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.mappers import CreateStruct, Concat
-from pysparkling.sql.expressions.operators import Equal, Invert, LessThan, LessThanOrEqual, \
-    GreaterThan, \
-    GreaterThanOrEqual, Add, Minus, Time, Divide, Mod, Cast, And, BitwiseAnd, BitwiseOr, BitwiseXor, \
-    Or, Negate, \
-    BitwiseNot, UnaryPositive, Alias
-from pysparkling.sql import functions
-from pysparkling.sql.types import DoubleType, StringType, parsed_string_to_type, StructField, \
-    StructType
+from pysparkling.sql.expressions.mappers import Concat, CreateStruct
+from pysparkling.sql.expressions.operators import (
+    Add, Alias, And, BitwiseAnd, BitwiseNot, BitwiseOr, BitwiseXor, Cast, Divide, Equal, GreaterThan,
+    GreaterThanOrEqual, Invert, LessThan, LessThanOrEqual, Minus, Mod, Negate, Or, Time, UnaryPositive
+)
+from pysparkling.sql.types import DoubleType, parsed_string_to_type, StringType, StructField, StructType
 
 
 class SqlParsingError(Exception):
