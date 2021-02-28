@@ -3,16 +3,16 @@ import logging
 
 from sqlparser import string_to_ast
 
-from pysparkling.sql import functions
-from pysparkling.sql.column import Column, parse
-from pysparkling.sql.expressions.expressions import expression_registry
-from pysparkling.sql.expressions.literals import Literal
-from pysparkling.sql.expressions.mappers import Concat, CreateStruct
-from pysparkling.sql.expressions.operators import (
+from ...sql import functions
+from ..column import Column, parse
+from ..expressions.expressions import expression_registry
+from ..expressions.literals import Literal
+from ..expressions.mappers import Concat, CreateStruct
+from ..expressions.operators import (
     Add, Alias, And, BitwiseAnd, BitwiseNot, BitwiseOr, BitwiseXor, Cast, Divide, Equal, GreaterThan,
     GreaterThanOrEqual, Invert, LessThan, LessThanOrEqual, Minus, Mod, Negate, Or, Time, UnaryPositive
 )
-from pysparkling.sql.types import DoubleType, parsed_string_to_type, StringType, StructField, StructType
+from ..types import DoubleType, parsed_string_to_type, StringType, StructField, StructType
 
 
 class SqlParsingError(Exception):
@@ -66,7 +66,7 @@ def convert_tree(tree):
     try:
         converter = CONVERTERS[tree_type]
     except UnsupportedStatement:
-        raise SqlParsingError("Unsupported statement {0}".format(tree_type))
+        raise SqlParsingError("Unsupported statement {0}".format(tree_type)) from None
     return converter(*tree.children)
 
 
@@ -86,14 +86,14 @@ def call_function(*children):
     )
     if not complex_function:
         last_argument_position = None
-        filter_clause = None
-        over_clause = None
-        set_clause = None
+        # filter_clause = None
+        # over_clause = None
+        # set_clause = None
     else:
         last_argument_position = params.index(")")
-        filter_clause = ...  # todo
-        over_clause = ...  # todo
-        set_clause = ...  # todo
+        # filter_clause = ...  # todo
+        # over_clause = ...  # todo
+        # set_clause = ...  # todo
 
     # parameters are comma separated
     function_arguments = params[0:last_argument_position:2]

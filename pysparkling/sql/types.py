@@ -693,6 +693,7 @@ class StructType(DataType):
 
     @classmethod
     def fromDDL(cls, string):
+        # pylint: disable=import-outside-toplevel, cyclic-import
         from .ast.ast_to_python import parse_schema
         return parse_schema(string)
 

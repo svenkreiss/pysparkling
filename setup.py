@@ -18,13 +18,16 @@ setup(
         'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0',
-        'pythonsqlparser==0.1.1',
+        'pythonsqlparser',
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
         'performance': ['matplotlib>=1.5.3'],
         'streaming': ['tornado>=4.3'],
-        'dev': ['antlr4-python3-runtime==4.7.1'],
+        'dev': [
+            'antlr4-python3-runtime==4.7.1',
+            'parameterized',
+        ],
         'sql': [
             'numpy',
             'pandas>=0.23.2',
