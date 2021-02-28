@@ -4,7 +4,9 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
+from pysparkling import Context
 from pysparkling.sql.ast.ast_to_python import parse_data_type
+from pysparkling.sql.session import SparkSession
 from pysparkling.sql.types import (
     ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,
     MapType, ShortType, StringType, StructField, StructType, TimestampType
@@ -76,8 +78,6 @@ class TypeParsingTest(TestCase):
 
     @parameterized.expand(SCHEMA_SCENARIOS.items())
     def test_dataframe_schema_parsing(self, schema, printed_schema):
-        from pysparkling import Context
-        from pysparkling.sql.session import SparkSession
         spark = SparkSession(Context())
         df = spark.createDataFrame([], schema=schema)
 
