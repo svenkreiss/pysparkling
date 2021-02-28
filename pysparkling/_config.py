@@ -79,20 +79,26 @@ class Version:
 
 
 class SparkVersion:
+    attr_name = '_spark_version'
+
     def __get__(self, instance, owner):
-        if not instance or not hasattr(instance, '_spark_version'):
+        if not instance or not hasattr(instance, self.attr_name):
             return None
 
-        return getattr(instance, '_spark_version')
+        return getattr(instance, self.attr_name)
 
     def __set__(self, instance, value):
-        if not instance:
+        if value is None:
+            self.__delete__(instance)
             return
 
         if not isinstance(value, Version):
             value = Version(value)
 
-        setattr(instance, '_spark_version', value)
+        setattr(instance, self.attr_name, value)
+
+    def __delete__(self, instance):
+        delattr(instance, self.attr_name)
 
 
 class Configuration:
