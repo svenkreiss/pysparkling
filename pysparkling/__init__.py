@@ -9,7 +9,7 @@ from .cache_manager import CacheManager, TimedCacheManager
 from .context import Context
 from .rdd import RDD
 from .sql.types import Row
-from .stat_counter import StatCounter
+from .statcounter import StatCounter
 from .storagelevel import StorageLevel
 
 __all__ = ['RDD', 'Context', 'Broadcast', 'StatCounter', 'CacheManager', 'Row',

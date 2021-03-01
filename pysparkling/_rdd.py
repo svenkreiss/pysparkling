@@ -1,37 +1,11 @@
-"""Provides a Python implementation of RDDs."""
-from builtins import range, zip
-from collections import defaultdict
 import copy
 import functools
 import io
 import itertools
-import logging
-import math
-from operator import itemgetter
-import os
 import pickle
-import random
 import subprocess
-import sys
-
-try:
-    import numpy
-except ImportError:
-    numpy = None
-
-from . import fileio
-from .exceptions import ContextIsLockedException, FileAlreadyExistsException
-from .samplers import BernoulliSampler, BernoulliSamplerPerKey, PoissonSampler, PoissonSamplerPerKey
-from .statcounter import StatCounter
-from .utils import portable_hash
-
-maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
-
-log = logging.getLogger(__name__)
-
-
-def _hash(v):
-    return portable_hash(v) & 0xffffffff
+from collections import defaultdict
+import random
 
 
 class RDD:
@@ -312,10 +286,10 @@ class RDD:
         number_of_small_groups = new_num_partitions - number_of_big_groups
 
         partition_mapping = (
-            [p for p in range(number_of_big_groups) for _ in range(big_group_size)]
-            + [p for p in range(number_of_big_groups,
-                                number_of_big_groups + number_of_small_groups)
-               for _ in range(small_group_size)]
+                [p for p in range(number_of_big_groups) for _ in range(big_group_size)]
+                + [p for p in range(number_of_big_groups,
+                                    number_of_big_groups + number_of_small_groups)
+                   for _ in range(small_group_size)]
         )
         new_partitions = {i: [] for i in range(new_num_partitions)}
 
@@ -2061,125 +2035,24 @@ class RDD:
             preservesPartitioning=True,
         )
 
-
-class MapPartitionsRDD(RDD):
-    def __init__(self, prev, f, preservesPartitioning=False):
-        """``prev`` is the previous RDD.
-
-        ``f`` is a function with the signature
-        ``(task_context, partition index, iterator over elements)``.
+    def toDF(self, schema=None, sampleRatio=None):
         """
-        RDD.__init__(self, prev.partitions(), prev.context)
+        Converts current :class:`RDD` into a :class:`DataFrame`
 
-        self.prev = prev
-        self._name = f'{prev.name()}:{f}'
-        self.f = f
-        self.preservesPartitioning = preservesPartitioning
+        This is a shorthand for ``spark.createDataFrame(rdd, schema, sampleRatio)``
 
-    def compute(self, split, task_context):
-        return self.f(task_context, split.index,
-                      self.prev.compute(split, task_context._create_child()))
+        :param schema: a :class:`pysparkling.sql.types.StructType` or list of names of columns
+        :param samplingRatio: the sample ratio of rows used for inferring
+        :return: a DataFrame
 
-    def partitions(self):
-        return self.prev.partitions()
-
-
-class PartitionwiseSampledRDD(RDD):
-    def __init__(self, prev, sampler, preservesPartitioning=False,
-                 seed=None):
-        """RDD with sampled partitions.
-
-        :param RDD prev: previous RDD
-        :param sampler: a sampler
-        :param bool preservesPartitioning: preserve partitioning (not used)
-        :param int seed: random number generator seed (can be None)
+        >>> from pysparkling import Context, Row
+        >>> rdd = Context().parallelize([Row(age=1, name='Alice')])
+        >>> rdd.toDF().collect()
+        [Row(age=1, name='Alice')]
         """
-        RDD.__init__(self, prev.partitions(), prev.context)
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from .sql.session import SparkSession
 
-        if seed is None:
-            seed = random.randint(0, 2 ** 31)
+        sparkSession = SparkSession._instantiatedSession or SparkSession(self.context)
+        return sparkSession.createDataFrame(self, schema, sampleRatio)
 
-        self.prev = prev
-        self.sampler = sampler
-        self.preservesPartitioning = preservesPartitioning
-        self.seed = seed
-
-    def compute(self, split, task_context):
-        random.seed(self.seed + split.index)
-        if numpy is not None:
-            numpy.random.seed(self.seed + split.index)
-        return (
-            x
-            for x in self.prev.compute(split, task_context._create_child())
-            for _ in range(self.sampler(x))
-        )
-
-    def partitions(self):
-        return self.prev.partitions()
-
-
-class PersistedRDD(RDD):
-    def __init__(self, prev, storageLevel=None):
-        """persisted RDD
-
-        :param RDD prev: previous RDD
-        """
-        RDD.__init__(self, prev.partitions(), prev.context)
-        self.prev = prev
-        self.storageLevel = storageLevel
-        self._cache_manager = None
-        self._cid = None
-
-    def compute(self, split, task_context):
-        if self._rdd_id is None or split.index is None:
-            self._cid = None
-        else:
-            self._cid = (self._rdd_id, split.index)
-
-        if not task_context.cache_manager.has(self._cid):
-            data = list(self.prev.compute(split, task_context._create_child()))
-            task_context.cache_manager.add(self._cid, data, self.storageLevel)
-            self._cache_manager = task_context.cache_manager
-        else:
-            log.debug('Using cache of RDD %s partition %s.', *self._cid)
-            data = task_context.cache_manager.get(self._cid)
-
-        return iter(data)
-
-    def unpersist(self, blocking=False):
-        if self._cache_manager:
-            self._cache_manager.delete(self._cid)
-
-        unpersisted_rdd = RDD(self.partitions(), self.context)
-        return unpersisted_rdd
-
-
-class EmptyRDD(RDD):
-    def __init__(self, context):
-        RDD.__init__(self, [], context)
-
-
-# pickle-able helpers
-
-class MapF:
-    def __init__(self, f):
-        self.f = f
-
-    def __call__(self, tc, i, x):
-        return (self.f(xx) for xx in x)
-
-
-def unit_map(task_context, elements):
-    return list(elements)
-
-
-def unit_collect(l):
-    return [x for p in l for x in p]
-
-
-def sum_counts_by_keys(list_of_pairlists):
-    r = defaultdict(int)  # calling int results in a zero
-    for l in list_of_pairlists:
-        for key, count in l.items():
-            r[key] += count
-    return r

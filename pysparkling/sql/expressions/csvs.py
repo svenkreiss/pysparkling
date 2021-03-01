@@ -1,4 +1,4 @@
-from ..casts import NO_TIMESTAMP_CONVERSION
+from .._date_time import NO_TIMESTAMP_CONVERSION
 from ..internal_utils.options import Options
 from ..internal_utils.readers.csvreader import csv_record_to_row, CSVReader
 from ..internal_utils.readers.utils import guess_schema_from_strings

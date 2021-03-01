@@ -1,8 +1,8 @@
+from ..._row import row_from_keyed_values
 from ....fileio import File, TextFile
 from ...casts import get_caster
 from ...types import (
-    DecimalType, DoubleType, IntegerType, LongType, row_from_keyed_values, StringType, StructField, StructType,
-    TimestampType
+    DecimalType, DoubleType, IntegerType, LongType, StringType, StructField, StructType, TimestampType
 )
 from ...utils import AnalysisException
 

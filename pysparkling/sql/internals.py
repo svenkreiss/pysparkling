@@ -6,11 +6,11 @@ import json
 import math
 import warnings
 
-from ..stat_counter import CovarianceCounter, RowStatHelper
+from ._row import Row, create_row, row_from_keyed_values
+from ._statcounter import CovarianceCounter, RowStatHelper
 from ..storagelevel import StorageLevel
 from ..utils import (
-    compute_weighted_percentiles, format_cell, get_keyfunc, merge_rows, merge_rows_joined_on_values, pad_cell,
-    portable_hash, reservoir_sample_and_size, str_half_width
+    compute_weighted_percentiles, get_keyfunc, portable_hash, reservoir_sample_and_size
 )
 from .column import parse
 from .functions import array, collect_set, count, lit, map_from_arrays, rand, struct
@@ -19,8 +19,9 @@ from .internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )
 from .schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
-from .types import create_row, DataType, LongType, Row, row_from_keyed_values, StringType, StructField, StructType
-from .utils import IllegalArgumentException
+from .types import DataType, LongType, StringType, StructField, StructType
+from .utils import IllegalArgumentException, format_cell, merge_rows, merge_rows_joined_on_values, pad_cell, \
+    str_half_width
 
 
 def _generate_show_layout(char: str, fields):
@@ -637,7 +638,7 @@ class DataFrameInternal:
         output += sep
         output += _generate_show_layout('|', padded_header)
         output += sep
-        output += '\n'.join(_generate_show_layout('|', row) for row in padded_rows)
+        output += ''.join(_generate_show_layout('|', row) for row in padded_rows)
         output += sep
         return output
 

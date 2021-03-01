@@ -1,4 +1,4 @@
-from ....stat_counter import ColumnStatHelper
+from ..._statcounter import ColumnStatHelper
 from ...column import Column
 from ..literals import Literal
 from ..mappers import StarOperator

@@ -4,7 +4,8 @@ import json
 import os
 import shutil
 
-from ...utils import get_json_encoder, portable_hash
+from .._json import get_json_encoder
+from ...utils import portable_hash
 from ..casts import cast_to_string
 from ..expressions.aggregate.aggregations import Aggregation
 from ..expressions.mappers import StarOperator

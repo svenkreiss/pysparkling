@@ -1438,7 +1438,7 @@ class DataFrame:
         Approximate a list of quantiles (probabilities) for one or a list of columns (col)
         with an error related to relativeError.
 
-        More information in pysparkling.stat_counter.ColumnStatHelper
+        More information in pysparkling.sql._statcounter.ColumnStatHelper
 
         >>> from pysparkling import Context, Row
         >>> from pysparkling.sql.session import SparkSession

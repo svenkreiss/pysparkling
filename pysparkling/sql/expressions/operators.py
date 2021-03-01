@@ -1,5 +1,6 @@
 from ..casts import get_caster
-from ..types import Row, StructType
+from .._row import Row
+from ..types import StructType
 from .expressions import BinaryOperation, Expression, NullSafeBinaryOperation, TypeSafeBinaryOperation, UnaryExpression
 
 

@@ -59,12 +59,6 @@ def merge_schemas(left_schema, right_schema, how, on=None):
     return StructType(fields=on_fields + other_left_fields + other_right_fields)
 
 
-def get_on_fields(left_schema, right_schema, on):
-    left_on_fields = [next(field for field in left_schema if field.name == c) for c in on]
-    right_on_fields = [next(field for field in right_schema if field.name == c) for c in on]
-    return left_on_fields, right_on_fields
-
-
 def get_schema_from_cols(cols, current_schema):
     new_schema = StructType(fields=[
         field for col in cols for field in col.find_fields_in_schema(current_schema)

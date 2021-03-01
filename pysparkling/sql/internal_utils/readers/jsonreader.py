@@ -2,11 +2,12 @@ from functools import partial
 import itertools
 import json
 
+from ..._row import create_row, row_from_keyed_values
 from ...casts import get_struct_caster
 from ...internal_utils.options import Options
 from ...internal_utils.readers.utils import get_records, resolve_partitions
 from ...schema_utils import infer_schema_from_rdd
-from ...types import create_row, row_from_keyed_values, StructType
+from ...types import StructType
 
 
 class JSONReader:

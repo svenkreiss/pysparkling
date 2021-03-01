@@ -1,6 +1,6 @@
 import json
 
-from ...utils import get_json_encoder
+from .._json import get_json_encoder
 from ..internal_utils.options import Options
 from ..internal_utils.readers.jsonreader import JSONReader
 from .expressions import Expression
