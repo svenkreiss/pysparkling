@@ -15,9 +15,9 @@ class SQLContext:
     @classmethod
     def getOrCreate(cls, sc):
         """
-        Get the existing SQLContext or create a new one with given SparkContext.
+        Get the existing SQLContext or create a new one with given Context.
 
-        :param sc: SparkContext
+        :param sc: Context
         """
         if cls._instantiatedContext is None:
             cls(sc, SparkSession(sc), None)
@@ -26,7 +26,7 @@ class SQLContext:
     def newSession(self):
         """
         Returns a new SQLContext as new session, that has separate SQLConf,
-        registered temporary views and UDFs, but shared SparkContext and
+        registered temporary views and UDFs, but shared Context and
         table cache.
         """
         return self.__class__(self._sc, self.sparkSession.newSession())

@@ -826,7 +826,7 @@ def _parse_datatype_string(s):
     # todo: implement in pure Python the code below
     # NB: it probably requires to use antl4r
 
-    # sc = SparkContext._active_spark_context
+    # sc = Context._active_spark_context
     #
     # def from_ddl_schema(type_str):
     #     return _parse_datatype_json_string(

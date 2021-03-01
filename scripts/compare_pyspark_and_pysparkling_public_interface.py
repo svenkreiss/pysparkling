@@ -1,4 +1,6 @@
+import contextlib
 from importlib import import_module
+import io
 import logging
 from pathlib import Path
 
@@ -23,16 +25,24 @@ files_to_compare = [
 files_to_compare = sorted(files_to_compare)
 
 
+@contextlib.contextmanager
+def suppress_std():
+    with contextlib.redirect_stdout(io.StringIO()):
+        with contextlib.redirect_stderr(io.StringIO()):
+            yield
+
+
 def tell_files_to_be_internalized():
-    log.info('# Files that should not be exposed:')
+    log.info('Files that should not be exposed:')
+    log.info('---')
 
     pysparkling_files = {
         file.relative_to(pysparkling_root)
         for file in pysparkling_root.rglob('*.py')
         if (
-                not file.name.startswith('_')
-                and not any(parent.name.startswith('_') for parent in file.parents)
-                and not any('tests' in x.name for x in file.parents)
+            not file.name.startswith('_')
+            and not any(parent.name.startswith('_') for parent in file.parents)
+            and not any('tests' in x.name for x in file.parents)
         )
     }
 
@@ -45,22 +55,19 @@ def tell_files_to_be_internalized():
         )
     }
 
-    print(pysparkling_files)
-    print(pyspark_files)
-
     for file in sorted(pysparkling_files - pyspark_files):
         log.info('- %s', file)
 
 
-
-
+# pylint: disable=too-many-branches
 def compare_with_module(pysparkling_path, converted_to_module_name, pyspark_mod):
     pysparkling_module_name = 'pysparkling' + converted_to_module_name[7:]
 
     try:
-        pysparkling_mod = import_module(pysparkling_module_name)
+        with suppress_std():
+            pysparkling_mod = import_module(pysparkling_module_name)
     except ImportError:
-        log.error(f" --> CANNOT LOAD %s", pysparkling_module_name)
+        log.error("  *--> CANNOT LOAD %s*", pysparkling_module_name.replace('_', r'\_'))
         return
 
     pyspark_vars = set(vars(pyspark_mod))
@@ -70,7 +77,7 @@ def compare_with_module(pysparkling_path, converted_to_module_name, pyspark_mod)
         pyspark_all = set(pyspark_mod.__all__)
 
         if '__all__' not in pysparkling_vars:
-            log.warning('  __all__ is not defined in pysparkling! Going to check the symbols anyway.')
+            log.warning(r'  \_\_all\_\_ is not defined in pysparkling! Going to check the symbols anyway.')
             fake_all = True
             pysparkling_all = set(vars(pysparkling_mod))
         else:
@@ -79,17 +86,17 @@ def compare_with_module(pysparkling_path, converted_to_module_name, pyspark_mod)
 
         if pysparkling_all != pyspark_all:
             if not fake_all:
-                log.warning('  __all__ is not the same:')
+                log.warning(r'  \_\_all\_\_ is not the same:')
 
             if pyspark_all - pysparkling_all:
-                log.warning('    pysparkling is still missing:')
+                log.warning('    **pysparkling is still missing:**')
                 for x in sorted(pyspark_all - pysparkling_all):
                     log.warning('    - %s', x)
             elif fake_all:
-                log.info("    Just add ```__all__ = %s```", pyspark_mod.__all__)
+                log.info(r"    Just add ```\_\_all\_\_ = %s```", pyspark_mod.__all__)
 
             if not fake_all and pysparkling_all - pyspark_all:
-                log.warning('    pysparkling has these too much:')
+                log.warning('    **pysparkling has these too much:**')
                 for x in sorted(pysparkling_all - pyspark_all):
                     log.warning('    - %s', x)
             return
@@ -109,7 +116,8 @@ def compare_with_module(pysparkling_path, converted_to_module_name, pyspark_mod)
 
 
 def tell_differences_between_modules():
-    log.info('# REPORT: pyspark vs pysparkling')
+    log.info('REPORT: pyspark vs pysparkling')
+    log.info('---')
 
     for file in files_to_compare:
         relative_path = file.relative_to(pyspark_root.parent)
@@ -120,11 +128,12 @@ def tell_differences_between_modules():
             .replace('/', '.')       # --> module name
         )
 
-        log.info('* %s', converted_to_module_name)
+        log.info('* %s', converted_to_module_name.replace('_', r'\_'))
         try:
-            mod = import_module(converted_to_module_name)
+            with suppress_std():
+                mod = import_module(converted_to_module_name)
         except ImportError:
-            log.error(f" --> CANNOT IMPORT %s", converted_to_module_name)
+            log.error("  --> CANNOT IMPORT %s", converted_to_module_name.replace('_', r'\_'))
             continue
 
         pysparkling_path = pysparkling_root / file.relative_to(pyspark_root)

@@ -73,7 +73,7 @@ class SparkSession:
             --------
             For an existing SparkConf, use `conf` parameter.
 
-            >>> from pyspark.conf import SparkConf
+            >>> from pysparkling.conf import SparkConf
             >>> SparkSession.builder.config(conf=SparkConf())  # doctest: +ELLIPSIS
             <pysparkling.sql.session...
 
@@ -145,7 +145,7 @@ class SparkSession:
     def newSession(self):
         """
         Returns a new SparkSession as new session, that has separate SQLConf,
-        registered temporary views and UDFs, but shared SparkContext and
+        registered temporary views and UDFs, but shared Context and
         table cache.
         """
         return self.__class__(self._sc)
@@ -169,7 +169,7 @@ class SparkSession:
 
         This is the interface through which the user can get and set all Spark and Hadoop
         configurations that are relevant to Spark SQL. When getting the value of a config,
-        this defaults to the value set in the underlying :class:`SparkContext`, if any.
+        this defaults to the value set in the underlying :class:`Context`, if any.
         """
         if not hasattr(self, "_conf"):
             # Compatibility with Pyspark behavior

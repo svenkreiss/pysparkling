@@ -19,6 +19,8 @@ from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
 
+__all__ = ['Context']
+
 
 def unit_fn(arg):
     """Used as dummy serializer and deserializer."""
