@@ -9,6 +9,7 @@ import warnings
 from ..storagelevel import StorageLevel
 from ..utils import compute_weighted_percentiles, get_keyfunc, portable_hash, reservoir_sample_and_size
 from ._row import create_row, Row, row_from_keyed_values
+from ._schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
 from ._statcounter import CovarianceCounter, RowStatHelper
 from ._utils import format_cell, merge_rows, merge_rows_joined_on_values, pad_cell, str_half_width
 from .column import parse
@@ -17,7 +18,6 @@ from .internal_utils.column import resolve_column
 from .internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )
-from .schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
 from .types import DataType, LongType, StringType, StructField, StructType
 from .utils import IllegalArgumentException
 

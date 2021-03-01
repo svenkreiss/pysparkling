@@ -25,6 +25,8 @@ try:
 except ImportError:
     speedups = None
 
+__all__ = ['StreamingContext']
+
 log = logging.getLogger(__name__)
 
 

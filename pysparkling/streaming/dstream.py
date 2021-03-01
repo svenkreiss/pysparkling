@@ -4,6 +4,8 @@ import pprint as py_pprint
 
 from ..rdd import EmptyRDD
 
+__all__ = ['DStream']
+
 log = logging.getLogger(__name__)
 
 

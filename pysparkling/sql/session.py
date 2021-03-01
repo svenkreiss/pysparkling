@@ -3,12 +3,12 @@ from threading import RLock
 from ..__version__ import __version__
 from ..context import Context
 from ..rdd import RDD
+from ._schema_utils import infer_schema_from_list
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
 from .pandas.utils import require_minimum_pandas_version
 from .readwriter import DataFrameReader
-from .schema_utils import infer_schema_from_list
 from .types import (
     _create_converter, _has_nulltype, _infer_schema, _make_type_verifier, _merge_type, DataType, StructType
 )

@@ -25,6 +25,8 @@ from .samplers import BernoulliSampler, BernoulliSamplerPerKey, PoissonSampler, 
 from .statcounter import StatCounter
 from .utils import portable_hash
 
+__all__ = ['RDD']
+
 maxint = sys.maxint if hasattr(sys, 'maxint') else sys.maxsize  # pylint: disable=no-member
 
 log = logging.getLogger(__name__)

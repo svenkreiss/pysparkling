@@ -1,6 +1,8 @@
 from . import functions
 from .column import Column
 
+__all__ = ['GroupedData']
+
 
 class GroupedData:
     def __init__(self, jgd, df):
