@@ -1,10 +1,10 @@
 import datetime
 import itertools
 import math
+from operator import itemgetter
 import random
 import re
 import sys
-from operator import itemgetter
 from typing import List, Optional, Union
 
 import pytz
@@ -164,6 +164,7 @@ def get_keyfunc(cols, schema, nulls_are_smaller=False):
         return tuple(values)
 
     return key
+
 
 class MonotonicallyIncreasingIDGenerator:
     def __init__(self, partition_index):

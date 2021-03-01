@@ -1,5 +1,6 @@
 from functools import reduce
 
+from ._utils import get_on_fields
 from .internal_utils.joins import (
     CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, RIGHT_JOIN
 )

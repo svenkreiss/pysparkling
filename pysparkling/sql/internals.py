@@ -6,12 +6,11 @@ import json
 import math
 import warnings
 
-from ._row import Row, create_row, row_from_keyed_values
-from ._statcounter import CovarianceCounter, RowStatHelper
 from ..storagelevel import StorageLevel
-from ..utils import (
-    compute_weighted_percentiles, get_keyfunc, portable_hash, reservoir_sample_and_size
-)
+from ..utils import compute_weighted_percentiles, get_keyfunc, portable_hash, reservoir_sample_and_size
+from ._row import create_row, Row, row_from_keyed_values
+from ._statcounter import CovarianceCounter, RowStatHelper
+from ._utils import format_cell, merge_rows, merge_rows_joined_on_values, pad_cell, str_half_width
 from .column import parse
 from .functions import array, collect_set, count, lit, map_from_arrays, rand, struct
 from .internal_utils.column import resolve_column
@@ -20,8 +19,7 @@ from .internal_utils.joins import (
 )
 from .schema_utils import get_schema_from_cols, infer_schema_from_rdd, merge_schemas
 from .types import DataType, LongType, StringType, StructField, StructType
-from .utils import IllegalArgumentException, format_cell, merge_rows, merge_rows_joined_on_values, pad_cell, \
-    str_half_width
+from .utils import IllegalArgumentException
 
 
 def _generate_show_layout(char: str, fields):

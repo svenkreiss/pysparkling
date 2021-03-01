@@ -1,16 +1,15 @@
 import datetime
-import re
 from functools import partial
+import re
 
-import pytz
 from dateutil.tz import tzlocal
+import pytz
 
 from ._date_time import get_datetime_parser, get_time_formatter
 from ._row import create_row
 from .types import (
-    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType,
-    IntegerType, LongType, MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType,
-    UserDefinedType
+    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,
+    MapType, NullType, NumericType, ShortType, StringType, StructType, TimestampType, UserDefinedType
 )
 from .utils import AnalysisException
 

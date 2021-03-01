@@ -1,9 +1,9 @@
+from . import Expression
 from .._date_time import NO_TIMESTAMP_CONVERSION
 from ..internal_utils.options import Options
 from ..internal_utils.readers.csvreader import csv_record_to_row, CSVReader
 from ..internal_utils.readers.utils import guess_schema_from_strings
 from ..utils import AnalysisException
-from .expressions import Expression
 
 sql_csv_function_options = dict(
     dateFormat=NO_TIMESTAMP_CONVERSION,

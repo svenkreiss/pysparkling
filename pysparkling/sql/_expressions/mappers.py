@@ -4,11 +4,11 @@ import random
 import re
 import string
 
+from . import Expression, NullSafeColumnOperation, UnaryExpression
 from ...utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
 from ..internal_utils.column import resolve_column
 from ..types import create_row, StringType
 from ..utils import AnalysisException
-from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 

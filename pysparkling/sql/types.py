@@ -20,16 +20,13 @@ import datetime
 import decimal
 import itertools
 import json as _json
-import os
 import re
 import sys
-from typing import Dict
 
-from ._row import Row, create_row
-from .utils import ParseException, require_minimum_pandas_version
+from ._row import create_row, Row
 
 __all__ = [
-    "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType", 'NumericType',
+    "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
     "TimestampType", "DecimalType", "DoubleType", "FloatType", "ByteType", "IntegerType",
     "LongType", "ShortType", "ArrayType", "MapType", "StructField", "StructType"
 ]
@@ -104,13 +101,11 @@ class DataTypeSingleton(type):
         return cls._instances[cls]
 
 
-class NullType(DataType):
+class NullType(DataType, metaclass=DataTypeSingleton):
     """Null type.
 
     The data type representing None, used for the types that cannot be inferred.
     """
-
-    __metaclass__ = DataTypeSingleton
 
 
 class AtomicType(DataType):
@@ -123,11 +118,9 @@ class NumericType(AtomicType):
     """
 
 
-class IntegralType(NumericType):
+class IntegralType(NumericType, metaclass=DataTypeSingleton):
     """Integral data types.
     """
-
-    __metaclass__ = DataTypeSingleton
 
 
 class FractionalType(NumericType):
@@ -135,32 +128,21 @@ class FractionalType(NumericType):
     """
 
 
-class StringType(AtomicType):
+class StringType(AtomicType, metaclass=DataTypeSingleton):
     """String data type.
     """
 
-    __metaclass__ = DataTypeSingleton
+
+class BinaryType(AtomicType, metaclass=DataTypeSingleton):
+    """Binary (byte array) data type."""
 
 
-class BinaryType(AtomicType):
-    """Binary (byte array) data type.
-    """
-
-    __metaclass__ = DataTypeSingleton
+class BooleanType(AtomicType, metaclass=DataTypeSingleton):
+    """Boolean data type."""
 
 
-class BooleanType(AtomicType):
-    """Boolean data type.
-    """
-
-    __metaclass__ = DataTypeSingleton
-
-
-class DateType(AtomicType):
-    """Date (datetime.date) data type.
-    """
-
-    __metaclass__ = DataTypeSingleton
+class DateType(AtomicType, metaclass=DataTypeSingleton):
+    """Date (datetime.date) data type."""
 
     EPOCH_ORDINAL = datetime.datetime(1970, 1, 1).toordinal()
 
@@ -168,11 +150,8 @@ class DateType(AtomicType):
         return False
 
 
-class TimestampType(AtomicType):
-    """Timestamp (datetime.datetime) data type.
-    """
-
-    __metaclass__ = DataTypeSingleton
+class TimestampType(AtomicType, metaclass=DataTypeSingleton):
+    """Timestamp (datetime.datetime) data type."""
 
     def needConversion(self):
         return True
@@ -214,18 +193,12 @@ class DecimalType(FractionalType):
         return "DecimalType(%d,%d)" % (self.precision, self.scale)
 
 
-class DoubleType(FractionalType):
-    """Double data type, representing double precision floats.
-    """
-
-    __metaclass__ = DataTypeSingleton
+class DoubleType(FractionalType, metaclass=DataTypeSingleton):
+    """Double data type, representing double precision floats."""
 
 
-class FloatType(FractionalType):
-    """Float data type, representing single precision floats.
-    """
-
-    __metaclass__ = DataTypeSingleton
+class FloatType(FractionalType, metaclass=DataTypeSingleton):
+    """Float data type, representing single precision floats."""
 
 
 class ByteType(IntegralType):
@@ -913,6 +886,7 @@ _type_mappings = {
     datetime.date: DateType,
     datetime.datetime: TimestampType,
     datetime.time: TimestampType,
+    bytes: BinaryType,
 }
 
 # Mapping Python array types to Spark SQL DataType
@@ -1224,7 +1198,7 @@ _acceptable_types = {
     DoubleType: (float,),
     DecimalType: (decimal.Decimal,),
     StringType: (str,),
-    BinaryType: (bytearray,),
+    BinaryType: (bytearray, bytes),
     DateType: (datetime.date, datetime.datetime,),
     TimestampType: (datetime.datetime,),
     ArrayType: (list, tuple, array,),
@@ -1233,6 +1207,7 @@ _acceptable_types = {
 }
 
 
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def _make_type_verifier(dataType, nullable=True, name=None):
     """
     Make a verifier that checks the type of obj against dataType and raises a TypeError if they do
@@ -1297,7 +1272,9 @@ def _make_type_verifier(dataType, nullable=True, name=None):
         if obj is None:
             if nullable:
                 return True
+
             raise ValueError(new_msg("This field is not nullable, but got None"))
+
         return False
 
     _type = type(dataType)
@@ -1308,44 +1285,24 @@ def _make_type_verifier(dataType, nullable=True, name=None):
 
     def verify_acceptable_types(obj):
         # subclass of them can not be fromInternal in JVM
-        convertible_types = tuple(_acceptable_types[_type])
-        if not isinstance(obj, convertible_types):
+        if type(obj) not in _acceptable_types[_type]:
             raise TypeError(new_msg("%s can not accept object %r in type %s"
                                     % (dataType, obj, type(obj))))
 
-    verify_value = get_verifier(
-        dataType,
-        name,
-        new_name,
-        assert_acceptable_types,
-        verify_acceptable_types,
-        new_msg
-    )
-
-    def verify(obj):
-        if not verify_nullability(obj):
-            verify_value(obj)
-
-    return verify
-
-
-def get_verifier(dataType, name, new_name,
-                 assert_acceptable_types, verify_acceptable_types, new_msg):
     if isinstance(dataType, StringType):
         # StringType can work with any types
-        def no_check(value):
-            return value
+        verify_value = lambda _: _
 
-        verifier = no_check
     elif isinstance(dataType, UserDefinedType):
-        field_verifier = _make_type_verifier(dataType.sqlType(), name=name)
+        verifier = _make_type_verifier(dataType.sqlType(), name=name)
 
         def verify_udf(obj):
             if not (hasattr(obj, '__UDT__') and obj.__UDT__ == dataType):
                 raise ValueError(new_msg("%r is not an instance of type %r" % (obj, dataType)))
-            field_verifier(dataType.toInternal(obj))
+            verifier(dataType.toInternal(obj))
 
-        verifier = verify_udf
+        verify_value = verify_udf
+
     elif isinstance(dataType, ByteType):
         def verify_byte(obj):
             assert_acceptable_types(obj)
@@ -1353,7 +1310,8 @@ def get_verifier(dataType, name, new_name,
             if obj < -128 or obj > 127:
                 raise ValueError(new_msg("object of ByteType out of range, got: %s" % obj))
 
-        verifier = verify_byte
+        verify_value = verify_byte
+
     elif isinstance(dataType, ShortType):
         def verify_short(obj):
             assert_acceptable_types(obj)
@@ -1361,341 +1319,91 @@ def get_verifier(dataType, name, new_name,
             if obj < -32768 or obj > 32767:
                 raise ValueError(new_msg("object of ShortType out of range, got: %s" % obj))
 
-        verifier = verify_short
+        verify_value = verify_short
+
     elif isinstance(dataType, IntegerType):
         def verify_integer(obj):
             assert_acceptable_types(obj)
             verify_acceptable_types(obj)
             if obj < -2147483648 or obj > 2147483647:
-                raise ValueError(new_msg("object of IntegerType out of range, got: %s" % obj))
+                raise ValueError(
+                    new_msg("object of IntegerType out of range, got: %s" % obj))
 
-        verifier = verify_integer
+        verify_value = verify_integer
+
+    elif isinstance(dataType, LongType):
+        def verify_long(obj):
+            assert_acceptable_types(obj)
+            verify_acceptable_types(obj)
+            if obj < -9223372036854775808 or obj > 9223372036854775807:
+                raise ValueError(
+                    new_msg("object of LongType out of range, got: %s" % obj))
+
+        verify_value = verify_long
+
     elif isinstance(dataType, ArrayType):
-        verifier = get_array_verifier(dataType, name,
-                                      assert_acceptable_types, verify_acceptable_types)
+        element_verifier = _make_type_verifier(
+            dataType.elementType, dataType.containsNull, name="element in array %s" % name)
+
+        def verify_array(obj):
+            assert_acceptable_types(obj)
+            verify_acceptable_types(obj)
+            for i in obj:
+                element_verifier(i)
+
+        verify_value = verify_array
+
     elif isinstance(dataType, MapType):
-        verifier = get_map_verifier(dataType, name,
-                                    assert_acceptable_types, verify_acceptable_types)
+        key_verifier = _make_type_verifier(dataType.keyType, False, name="key of map %s" % name)
+        value_verifier = _make_type_verifier(
+            dataType.valueType, dataType.valueContainsNull, name="value of map %s" % name)
+
+        def verify_map(obj):
+            assert_acceptable_types(obj)
+            verify_acceptable_types(obj)
+            for k, v in obj.items():
+                key_verifier(k)
+                value_verifier(v)
+
+        verify_value = verify_map
+
     elif isinstance(dataType, StructType):
-        verifier = get_struct_verifier(dataType, new_name,
-                                       assert_acceptable_types, new_msg)
+        verifiers = []
+        for f in dataType.fields:
+            verifier = _make_type_verifier(f.dataType, f.nullable, name=new_name(f.name))
+            verifiers.append((f.name, verifier))
+
+        def verify_struct(obj):
+            assert_acceptable_types(obj)
+
+            if isinstance(obj, dict):
+                for f, verifier in verifiers:
+                    verifier(obj.get(f))
+            elif isinstance(obj, (tuple, list)):
+                if len(obj) != len(verifiers):
+                    raise ValueError(
+                        new_msg("Length of object (%d) does not match with "
+                                "length of fields (%d)" % (len(obj), len(verifiers))))
+                for v, (_, verifier) in zip(obj, verifiers):
+                    verifier(v)
+            elif hasattr(obj, "__dict__"):
+                d = obj.__dict__
+                for f, verifier in verifiers:
+                    verifier(d.get(f))
+            else:
+                raise TypeError(new_msg("StructType can not accept object %r in type %s"
+                                        % (obj, type(obj))))
+        verify_value = verify_struct
+
     else:
         def verify_default(obj):
             assert_acceptable_types(obj)
             verify_acceptable_types(obj)
 
-        verifier = verify_default
+        verify_value = verify_default
 
-    return verifier
+    def verify(obj):
+        if not verify_nullability(obj):
+            verify_value(obj)
 
-
-def get_array_verifier(dataType, name, assert_acceptable_types, verify_acceptable_types):
-    element_verifier = _make_type_verifier(
-        dataType.elementType, dataType.containsNull, name="element in array %s" % name)
-
-    def verify_array(obj):
-        assert_acceptable_types(obj)
-        verify_acceptable_types(obj)
-        for i in obj:
-            element_verifier(i)
-
-    return verify_array
-
-
-def get_struct_verifier(dataType, new_name, assert_acceptable_types, new_msg):
-    verifiers = []
-    for field in dataType.fields:
-        field_verifier = _make_type_verifier(
-            field.dataType,
-            field.nullable,
-            name=new_name(field.name)
-        )
-        verifiers.append((field.name, field_verifier))
-
-    def verify_struct(obj):
-        assert_acceptable_types(obj)
-
-        if isinstance(obj, dict):
-            for f, verifier in verifiers:
-                verifier(obj.get(f))
-        elif isinstance(obj, Row):
-            # the order in obj could be different than dataType.fields
-            for f, verifier in verifiers:
-                verifier(obj[f])
-        elif isinstance(obj, (tuple, list)):
-            if len(obj) != len(verifiers):
-                raise ValueError(
-                    new_msg("Length of object (%d) does not match with "
-                            "length of fields (%d)" % (len(obj), len(verifiers))))
-            for v, (_, verifier) in zip(obj, verifiers):
-                verifier(v)
-        elif hasattr(obj, "__dict__"):
-            d = obj.__dict__
-            for f, verifier in verifiers:
-                verifier(d.get(f))
-        else:
-            raise TypeError(new_msg("StructType can not accept object %r in type %s"
-                                    % (obj, type(obj))))
-
-    return verify_struct
-
-
-def get_map_verifier(dataType, name, assert_acceptable_types, verify_acceptable_types):
-    key_verifier = _make_type_verifier(dataType.keyType, False, name="key of map %s" % name)
-    value_verifier = _make_type_verifier(
-        dataType.valueType, dataType.valueContainsNull, name="value of map %s" % name)
-
-    def verify_map(obj):
-        assert_acceptable_types(obj)
-        verify_acceptable_types(obj)
-        for k, v in obj.items():
-            key_verifier(k)
-            value_verifier(v)
-
-    return verify_map
-
-
-# This is used to unpickle a Row from JVM
-def _create_row_inbound_converter(dataType):
-    return lambda *a: dataType.fromInternal(a)
-
-
-def _get_local_timezone():
-    """ Get local timezone using pytz with environment variable, or dateutil.
-
-    If there is a 'TZ' environment variable, pass it to pandas to use pytz and use it as timezone
-    string, otherwise use the special word 'dateutil/:' which means that pandas uses dateutil and
-    it reads system configuration to know the system local timezone.
-
-    See also:
-    - https://github.com/pandas-dev/pandas/blob/0.19.x/pandas/tslib.pyx#L1753
-    - https://github.com/dateutil/dateutil/blob/2.6.1/dateutil/tz/tz.py#L1338
-    """
-    return os.environ.get('TZ', 'dateutil/:')
-
-
-def _check_series_localize_timestamps(s, timezone):
-    """
-    Convert timezone aware timestamps to timezone-naive in the specified timezone or local timezone.
-
-    If the input series is not a timestamp series, then the same series is returned. If the input
-    series is a timestamp series, then a converted series is returned.
-
-    :param s: pandas.Series
-    :param timezone: the timezone to convert. if None then use local timezone
-    :return pandas.Series that have been converted to tz-naive
-    """
-    require_minimum_pandas_version()
-
-    try:
-        # pandas is an optional dependency
-        # pylint: disable=import-outside-toplevel
-        from pandas.api.types import is_datetime64tz_dtype
-    except ImportError as e:
-        raise Exception("require_minimum_pandas_version() was not called") from e
-    tz = timezone or _get_local_timezone()
-    # pylint: disable=W0511
-    # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
-    if is_datetime64tz_dtype(s.dtype):
-        return s.dt.tz_convert(tz).dt.tz_localize(None)
-    return s
-
-
-def _check_dataframe_localize_timestamps(pdf, timezone):
-    """
-    Convert timezone aware timestamps to timezone-naive in the specified timezone or local timezone
-
-    :param pdf: pandas.DataFrame
-    :param timezone: the timezone to convert. if None then use local timezone
-    :return pandas.DataFrame where any timezone aware columns have been converted to tz-naive
-    """
-    require_minimum_pandas_version()
-
-    for column, series in pdf.iteritems():
-        pdf[column] = _check_series_localize_timestamps(series, timezone)
-    return pdf
-
-
-def _check_series_convert_timestamps_internal(s, timezone):
-    """
-    Convert a tz-naive timestamp in the specified timezone or local timezone to UTC normalized for
-    Spark internal storage
-
-    :param s: a pandas.Series
-    :param timezone: the timezone to convert. if None then use local timezone
-    :return pandas.Series where if it is a timestamp, has been UTC normalized without a time zone
-    """
-    require_minimum_pandas_version()
-
-    try:
-        # pandas is an optional dependency
-        # pylint: disable=import-outside-toplevel
-        from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
-    except ImportError as e:
-        raise Exception("require_minimum_pandas_version() was not called") from e
-
-    # pylint: disable=W0511
-    # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
-    if is_datetime64_dtype(s.dtype):
-        # When tz_localize a tz-naive timestamp, the result is ambiguous if the tz-naive
-        # timestamp is during the hour when the clock is adjusted backward during due to
-        # daylight saving time (dst).
-        # E.g., for America/New_York, the clock is adjusted backward on 2015-11-01 2:00 to
-        # 2015-11-01 1:00 from dst-time to standard time, and therefore, when tz_localize
-        # a tz-naive timestamp 2015-11-01 1:30 with America/New_York timezone, it can be either
-        # dst time (2015-01-01 1:30-0400) or standard time (2015-11-01 1:30-0500).
-        #
-        # Here we explicit choose to use standard time. This matches the default behavior of
-        # pytz.
-        #
-        # Here are some code to help understand this behavior:
-        # >>> import datetime
-        # >>> import pandas as pd
-        # >>> import pytz
-        # >>>
-        # >>> t = datetime.datetime(2015, 11, 1, 1, 30)
-        # >>> ts = pd.Series([t])
-        # >>> tz = pytz.timezone('America/New_York')
-        # >>>
-        # >>> ts.dt.tz_localize(tz, ambiguous=True)
-        # 0   2015-11-01 01:30:00-04:00
-        # dtype: datetime64[ns, America/New_York]
-        # >>>
-        # >>> ts.dt.tz_localize(tz, ambiguous=False)
-        # 0   2015-11-01 01:30:00-05:00
-        # dtype: datetime64[ns, America/New_York]
-        # >>>
-        # >>> str(tz.localize(t))
-        # '2015-11-01 01:30:00-05:00'
-        tz = timezone or _get_local_timezone()
-        return s.dt.tz_localize(tz, ambiguous=False).dt.tz_convert('UTC')
-    if is_datetime64tz_dtype(s.dtype):
-        return s.dt.tz_convert('UTC')
-    return s
-
-
-def _check_series_convert_timestamps_localize(s, from_timezone, to_timezone):
-    """
-    Convert timestamp to timezone-naive in the specified timezone or local timezone
-
-    :param s: a pandas.Series
-    :param from_timezone: the timezone to convert from. if None then use local timezone
-    :param to_timezone: the timezone to convert to. if None then use local timezone
-    :return pandas.Series where if it is a timestamp, has been converted to tz-naive
-    """
-    require_minimum_pandas_version()
-
-    try:
-        # pandas is an optional dependency
-        # pylint: disable=import-outside-toplevel
-        import pandas as pd
-        from pandas.api.types import is_datetime64_dtype, is_datetime64tz_dtype
-    except ImportError as e:
-        raise Exception("require_minimum_pandas_version() was not called") from e
-
-    from_tz = from_timezone or _get_local_timezone()
-    to_tz = to_timezone or _get_local_timezone()
-    # pylint: disable=W0511
-    # TODO: handle nested timestamps, such as ArrayType(TimestampType())?
-    if is_datetime64tz_dtype(s.dtype):
-        return s.dt.tz_convert(to_tz).dt.tz_localize(None)
-    if is_datetime64_dtype(s.dtype) and from_tz != to_tz:
-        # `s.dt.tz_localize('tzlocal()')` doesn't work properly when including NaT.
-        return s.apply(
-            lambda ts: ts.tz_localize(from_tz, ambiguous=False).tz_convert(to_tz).tz_localize(None)
-            if ts is not pd.NaT else pd.NaT)
-    return s
-
-
-def _check_series_convert_timestamps_local_tz(s, timezone):
-    """
-    Convert timestamp to timezone-naive in the specified timezone or local timezone
-
-    :param s: a pandas.Series
-    :param timezone: the timezone to convert to. if None then use local timezone
-    :return pandas.Series where if it is a timestamp, has been converted to tz-naive
-    """
-    return _check_series_convert_timestamps_localize(s, None, timezone)
-
-
-def _check_series_convert_timestamps_tz_local(s, timezone):
-    """
-    Convert timestamp to timezone-naive in the specified timezone or local timezone
-
-    :param s: a pandas.Series
-    :param timezone: the timezone to convert from. if None then use local timezone
-    :return pandas.Series where if it is a timestamp, has been converted to tz-naive
-    """
-    return _check_series_convert_timestamps_localize(s, timezone, None)
-
-
-# As defined with visitPrimitiveDataType in spark master sql/catalyst/src/main/scala/
-# org/apache/spark/sql/catalyst/parser/AstBuilder.scala
-STRING_TO_TYPE = dict(
-    boolean=BooleanType(),
-    tinyint=ByteType(),
-    byte=ByteType(),
-    smallint=ShortType(),
-    short=ShortType(),
-    int=LongType(),
-    integer=LongType(),
-    bigint=LongType(),
-    long=LongType(),
-    float=FloatType(),
-    double=DoubleType(),
-    date=DateType(),
-    timestamp=TimestampType(),
-    string=StringType(),
-    binary=BinaryType(),
-    decimal=DecimalType()
-)
-
-
-def string_to_type(string):
-    if string in STRING_TO_TYPE:
-        return STRING_TO_TYPE[string]
-    if string.startswith("decimal("):
-        arguments = string[8:-1]
-        if arguments.count(",") == 1:
-            precision, scale = arguments.split(",")
-        else:
-            precision, scale = arguments, 0
-        return DecimalType(precision=int(precision), scale=int(scale))
-    raise ParseException(f"Unable to parse data type {string}")
-
-
-# Internal type hierarchy:
-# Lower order types are converted to first order type when performing operation
-# across multiple types (e.g. datetime.date(2019,1,1) == "2019-01-01")
-INTERNAL_TYPE_ORDER = [
-    float,
-    int,
-    str,
-    bool,
-    datetime.datetime,
-    datetime.date,
-]
-
-PYTHON_TO_SPARK_TYPE: Dict[type, DataType] = {
-    float: FloatType(),
-    int: LongType(),
-    str: StringType(),
-    bool: BooleanType(),
-    datetime.datetime: TimestampType(),
-    datetime.date: DateType(),
-}
-
-
-
-def python_to_spark_type(python_type):
-    """
-    :type python_type: type
-    :rtype DataType
-    """
-    # pylint: disable=W0511
-    # todo: support Decimal
-    if python_type in PYTHON_TO_SPARK_TYPE:
-        return PYTHON_TO_SPARK_TYPE[python_type]
-    raise NotImplementedError(
-        f"Pysparkling does not currently support type {python_type} for the requested operation"
-    )
+    return verify

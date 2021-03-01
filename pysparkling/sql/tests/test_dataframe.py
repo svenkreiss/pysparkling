@@ -3,8 +3,8 @@ import pytest
 from pysparkling.sql import SparkSession
 
 
-@pytest.fixture()
-def spark():
+@pytest.fixture(name='spark')
+def fixture_spark():
     return (
         SparkSession.builder
         .master("local")
@@ -13,8 +13,8 @@ def spark():
     )
 
 
-@pytest.fixture()
-def df(spark):
+@pytest.fixture(name='df')
+def fixture_df(spark):
     data = [
         ('James', '', 'Smith', '1991-04-01', 'M', 3000),
         ('Michael', 'Rose', '', '2000-05-19', 'M', 4000),

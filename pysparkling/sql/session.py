@@ -6,12 +6,12 @@ from ..rdd import RDD
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
+from .pandas.utils import require_minimum_pandas_version
 from .readwriter import DataFrameReader
 from .schema_utils import infer_schema_from_list
 from .types import (
     _create_converter, _has_nulltype, _infer_schema, _make_type_verifier, _merge_type, DataType, StructType
 )
-from .utils import require_minimum_pandas_version
 
 __all__ = ['SparkSession']
 
@@ -74,13 +74,13 @@ class SparkSession:
             For an existing SparkConf, use `conf` parameter.
 
             >>> from pyspark.conf import SparkConf
-            >>> SparkSession.builder.config(conf=SparkConf())
-            <pyspark.sql.session...
+            >>> SparkSession.builder.config(conf=SparkConf())  # doctest: +ELLIPSIS
+            <pysparkling.sql.session...
 
             For a (key, value) pair, you can omit parameter names.
 
-            >>> SparkSession.builder.config("spark.some.config.option", "some-value")
-            <pyspark.sql.session...
+            >>> SparkSession.builder.config("spark.some.config.option", "some-value")  # doctest: +ELLIPSIS
+            <pysparkling.sql.session...
 
             """
             with self._lock:

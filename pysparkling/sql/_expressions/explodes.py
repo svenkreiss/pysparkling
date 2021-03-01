@@ -1,5 +1,5 @@
+from . import UnaryExpression
 from ..types import DataType, IntegerType, StructField
-from .expressions import UnaryExpression
 
 
 class Explode(UnaryExpression):

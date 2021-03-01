@@ -1,159 +1,107 @@
-import collections
-import datetime
-import itertools
-import json
-import re
-
-from .internal_utils.joins import CROSS_JOIN, FULL_JOIN, INNER_JOIN, LEFT_ANTI_JOIN, LEFT_JOIN, LEFT_SEMI_JOIN, \
-    RIGHT_JOIN
-from ._row import Row, create_row, row_from_keyed_values
-from .casts import get_time_formatter
-
-
 class CapturedException(Exception):
     pass
 
 
 class AnalysisException(CapturedException):
-    pass
+    """
+    Failed to analyze a SQL query plan.
+    """
 
 
 class ParseException(CapturedException):
-    pass
+    """
+    Failed to parse a SQL command.
+    """
 
 
 class IllegalArgumentException(CapturedException):
-    pass
-
-
-def require_minimum_pandas_version():
-    """ Raise an ImportError if Pandas version is < 0.23.2
     """
-    minimum_pandas_version = (0, 23, 2)
-
-    # pandas is an optional dependency
-    # pylint: disable=import-outside-toplevel
-    try:
-        import pandas
-    except ImportError:
-        raise ImportError(f"Pandas >= {minimum_pandas_version} must be installed; however none were found.") from None
-
-    if parse_pandas_version(pandas.__version__) < minimum_pandas_version:
-        raise ImportError(
-            f"Pandas >= {minimum_pandas_version} must be installed;"
-            f" however, your version was {pandas.__version__}."
-        )
-
-
-def parse_pandas_version(version):
-    return tuple(int(part) for part in version.split("."))
-
-
-def merge_rows_joined_on_values(left, right, left_schema, right_schema, how, on):
-    left_names = left_schema.names
-    right_names = right_schema.names
-
-    left_on_fields, right_on_fields = get_on_fields(left_schema, right_schema, on)
-
-    on_parts = [
-        (on_field, left[on_field] if left is not None else right[on_field])
-        for on_field in on
-    ]
-
-    if left is None and how in (FULL_JOIN, RIGHT_JOIN):
-        left = create_row(left_names, [None for _ in left_names])
-    if right is None and how in (LEFT_JOIN, FULL_JOIN):
-        right = create_row(right_names, [None for _ in right_names])
-
-    left_parts = (
-        (field.name, value)
-        for field, value in zip(left_schema.fields, left)
-        if field not in left_on_fields
-    )
-
-    if how in (INNER_JOIN, CROSS_JOIN, LEFT_JOIN, FULL_JOIN, RIGHT_JOIN):
-        right_parts = (
-            (field.name, value)
-            for field, value in zip(right_schema.fields, right)
-            if field not in right_on_fields
-        )
-    elif how in (LEFT_SEMI_JOIN, LEFT_ANTI_JOIN):
-        right_parts = ()
-    else:
-        raise IllegalArgumentException(f"Argument 'how' cannot be '{how}'")
-
-    return row_from_keyed_values(itertools.chain(on_parts, left_parts, right_parts))
-
-
-def merge_rows(left, right):
-    return create_row(
-        itertools.chain(left.__fields__, right.__fields__),
-        left + right
-    )
-
-
-FULL_WIDTH_REGEX = re.compile(
-    "["
-    + r"\u1100-\u115F"
-    + r"\u2E80-\uA4CF"
-    + r"\uAC00-\uD7A3"
-    + r"\uF900-\uFAFF"
-    + r"\uFE10-\uFE19"
-    + r"\uFE30-\uFE6F"
-    + r"\uFF00-\uFF60"
-    + r"\uFFE0-\uFFE6"
-    + "]"
-)
-
-
-def str_half_width(value):
+    Failed to analyze a SQL query plan.
     """
-    Compute string length with full width characters counting for 2 normal ones
-    """
-    string = format_cell(value)
-    if string is None:
-        return 0
-    if not isinstance(string, str):
-        string = str(string)
-    return len(string) + len(FULL_WIDTH_REGEX.findall(string))
 
 
-def pad_cell(cell, truncate, col_width):
+class StreamingQueryException(CapturedException):
     """
-    Compute how to pad the value "cell" truncated to truncate so that it fits col width
-    :param cell: Any
-    :param truncate: int
-    :param col_width: int
-    :return:
+    Exception that stopped a :class:`StreamingQuery`.
     """
-    cell = format_cell(cell)
-    cell_width = col_width - str_half_width(cell) + len(cell)
-    if truncate > 0:
-        return cell.rjust(cell_width)
-    return cell.ljust(cell_width)
 
 
-def format_cell(value):
+class QueryExecutionException(CapturedException):
     """
-    Convert a cell value to a string using the logic needed in DataFrame.show()
+    Failed to execute a query.
     """
-    if value is None:
-        return "null"
+
+
+class PythonException(CapturedException):
+    """
+    Exceptions thrown from Python workers.
+    """
+
+
+class UnknownException(CapturedException):
+    """
+    None of the above exceptions.
+    """
+
+
+def convert_exception(e):
+    """In pyspark, this method converts a received string into a Python exception."""
+    return
+
+
+def capture_sql_exception(f):
+    """This is a decorator to convert py4j exceptions into nicer Python exceptions."""
+    return
+
+
+def install_exception_handler():
+    """Don't implement, but also don't raise."""
+    return
+
+
+def toJArray(gateway, jtype, arr):
+    """Convert python list to java type array"""
+    return
+
+
+def require_test_compiled():
+    """ Raise Exception if test classes are not compiled"""
+
+    raise RuntimeError("Tests don't exist for pysparkling as they do for Spark.")
+
+
+class ForeachBatchFunction:
+    """
+    This is the Python implementation of Java interface 'ForeachBatchFunction'. This wraps
+    the user-defined 'foreachBatch' function such that it can be called from the JVM when
+    the query is active.
+    """
+    # ==> Not implemented; do we actually need it?
+    # def __init__(self, sql_ctx, func):
+    #     self.sql_ctx = sql_ctx
+    #     self.func = func
+    #
+    # def call(self, jdf, batch_id):
+    #     from pyspark.sql.dataframe import DataFrame
+    #     try:
+    #         self.func(DataFrame(jdf, self.sql_ctx), batch_id)
+    #     except Exception as e:
+    #         self.error = e
+    #         raise e
+    #
+    # class Java:
+    #     implements = ['org.apache.spark.sql.execution.streaming.sources.PythonForeachBatchFunction']
+
+
+def to_str(value):
+    """
+    A wrapper over str(), but converts bool values to lower case strings.
+    If None is given, just returns None, instead of converting it to string "None".
+    """
     if isinstance(value, bool):
         return str(value).lower()
-    if isinstance(value, Row):
-        return f"[{', '.join(format_cell(sub_value) for sub_value in value)}]"
-    if isinstance(value, dict):
-        return "[{0}]".format(
-            ", ".join(
-                f"{format_cell(key)} -> {format_cell(sub_value)}"
-                for key, sub_value in value.items()
-            )
-        )
+
+    if value is None:
+        return value
+
     return str(value)
-
-
-def get_on_fields(left_schema, right_schema, on):
-    left_on_fields = [next(field for field in left_schema if field.name == c) for c in on]
-    right_on_fields = [next(field for field in right_schema if field.name == c) for c in on]
-    return left_on_fields, right_on_fields

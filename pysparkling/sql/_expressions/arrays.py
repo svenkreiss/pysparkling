@@ -1,5 +1,5 @@
+from . import BinaryOperation, Expression, UnaryExpression
 from ..utils import AnalysisException
-from .expressions import BinaryOperation, Expression, UnaryExpression
 
 
 class ArraysOverlap(BinaryOperation):

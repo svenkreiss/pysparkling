@@ -1,6 +1,6 @@
+from collections import namedtuple
 import math
 import numbers
-from collections import namedtuple
 
 from ._row import row_from_keyed_values
 from .column import parse

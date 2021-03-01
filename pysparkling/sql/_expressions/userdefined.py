@@ -1,4 +1,4 @@
-from .expressions import Expression
+from . import Expression
 
 
 class UserDefinedFunction(Expression):

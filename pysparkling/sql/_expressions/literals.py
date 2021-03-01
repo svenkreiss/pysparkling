@@ -1,5 +1,5 @@
+from . import Expression
 from ..utils import AnalysisException
-from .expressions import Expression
 
 
 class Literal(Expression):

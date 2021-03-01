@@ -1,6 +1,6 @@
+from . import Expression
 from ..types import StructField
 from ..utils import AnalysisException
-from .expressions import Expression
 
 
 class FieldAsExpression(Expression):

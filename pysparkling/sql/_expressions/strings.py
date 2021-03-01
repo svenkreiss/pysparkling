@@ -1,8 +1,8 @@
 import string
 
+from . import Expression, UnaryExpression
 from ...utils import levenshtein_distance
 from ..types import StringType
-from .expressions import Expression, UnaryExpression
 
 
 class StringTrim(UnaryExpression):

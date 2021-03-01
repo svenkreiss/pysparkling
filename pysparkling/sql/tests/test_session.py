@@ -2,13 +2,13 @@ from unittest import TestCase
 
 import pytest
 
-from pysparkling import Context, StorageLevel
+from pysparkling import Context, Row, StorageLevel
+from pysparkling.sql._row import row_from_keyed_values
+from pysparkling.sql.pandas.utils import require_minimum_pandas_version
 from pysparkling.sql.session import SparkSession
 from pysparkling.sql.types import (
-    ArrayType, DoubleType, IntegerType, LongType, MapType, Row, row_from_keyed_values, StringType, StructField,
-    StructType
+    ArrayType, DoubleType, IntegerType, LongType, MapType, StringType, StructField, StructType
 )
-from pysparkling.sql.utils import require_minimum_pandas_version
 
 try:
     require_minimum_pandas_version()

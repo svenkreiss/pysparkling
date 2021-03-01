@@ -1,28 +1,27 @@
 import math
 
-from .column import Column, ensure_column, parse
-from .expressions.aggregate.collectors import (
+from ._expressions.aggregate.collectors import (
     ApproxCountDistinct, CollectList, CollectSet, CountDistinct, First, Last, SumDistinct
 )
-from .expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
-from .expressions.aggregate.stat_aggregations import (
+from ._expressions.aggregate.covariance_aggregations import Corr, CovarPop, CovarSamp
+from ._expressions.aggregate.stat_aggregations import (
     Avg, Count, Kurtosis, Max, Min, Skewness, StddevPop, StddevSamp, Sum, VarPop, VarSamp
 )
-from .expressions.arrays import (
+from ._expressions.arrays import (
     ArrayColumn, ArrayContains, ArrayDistinct, ArrayExcept, ArrayIntersect, ArrayJoin, ArrayMax, ArrayMin,
     ArrayPosition, ArrayRemove, ArrayRepeat, ArraySort, ArraysOverlap, ArraysZip, ArrayUnion, ElementAt, Flatten,
     MapColumn, MapFromArraysColumn, Sequence, Size, Slice, SortArray
 )
-from .expressions.csvs import SchemaOfCsv
-from .expressions.dates import (
+from ._expressions.csvs import SchemaOfCsv
+from ._expressions.dates import (
     AddMonths, CurrentDate, CurrentTimestamp, DateAdd, DateDiff, DateFormat, DateSub, DayOfMonth, DayOfWeek, DayOfYear,
     FromUnixTime, FromUTCTimestamp, Hour, LastDay, Minute, Month, MonthsBetween, NextDay, ParseToDate,
     ParseToTimestamp, Quarter, Second, ToUTCTimestamp, TruncDate, TruncTimestamp, UnixTimestamp, WeekOfYear, Year
 )
-from .expressions.explodes import Explode, ExplodeOuter, PosExplode, PosExplodeOuter
-from .expressions.jsons import StructsToJson
-from .expressions.literals import Literal
-from .expressions.mappers import (
+from ._expressions.explodes import Explode, ExplodeOuter, PosExplode, PosExplodeOuter
+from ._expressions.jsons import StructsToJson
+from ._expressions.literals import Literal
+from ._expressions.mappers import (
     Abs, Acos, Ascii, Asin, Atan, Atan2, Base64, Bin, Bround, CaseWhen, Cbrt, Ceil, Coalesce, Concat, ConcatWs, Conv,
     Cos, Cosh, CreateStruct, Exp, ExpM1, Factorial, Floor, FormatNumber, Greatest, Grouping, GroupingID, Hex, Hypot,
     InputFileName, IsNaN, Least, Length, Log, Log1p, Log2, Log10, Lower, MapConcat, MapEntries, MapFromEntries,
@@ -30,12 +29,13 @@ from .expressions.mappers import (
     Round, ShiftLeft, ShiftRight, ShiftRightUnsigned, Signum, Sin, Sinh, SparkPartitionID, Sqrt, StringSplit,
     SubstringIndex, Tan, Tanh, ToDegrees, ToRadians, UnBase64, Unhex, Upper
 )
-from .expressions.operators import BitwiseNot, IsNull, Pow, Substring
-from .expressions.strings import (
+from ._expressions.operators import BitwiseNot, IsNull, Pow, Substring
+from ._expressions.strings import (
     InitCap, Levenshtein, SoundEx, StringInStr, StringLocate, StringLPad, StringLTrim, StringRepeat, StringRPad,
     StringRTrim, StringTranslate, StringTrim
 )
-from .expressions.userdefined import UserDefinedFunction
+from ._expressions.userdefined import UserDefinedFunction
+from .column import Column, ensure_column, parse
 from .types import DataType
 from .utils import AnalysisException
 

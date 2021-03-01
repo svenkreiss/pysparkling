@@ -1,5 +1,5 @@
-from .aggregations import Aggregation
 from ..._statcounter import CovarianceCounter
+from .aggregations import Aggregation
 
 
 class CovarianceStatAggregation(Aggregation):
