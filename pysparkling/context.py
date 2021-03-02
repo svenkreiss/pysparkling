@@ -11,6 +11,7 @@ from . import accumulators
 from .__version__ import __version__ as PYSPARKLING_VERSION
 from .broadcast import Broadcast
 from .cache_manager import CacheManager
+from .conf import SparkConf
 from .exceptions import ContextIsLockedException
 from .fileio import File, TextFile
 from .partition import Partition

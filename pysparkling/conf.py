@@ -32,7 +32,7 @@ class SparkConf:
     Examples
     --------
     >>> from pysparkling.conf import SparkConf
-    >>> from pysparkling.context import Context
+    >>> from pysparkling.context import SparkContext
     >>> conf = SparkConf()
     >>> conf.setMaster("local").setAppName("My app")  # doctest: +ELLIPSIS
     <pysparkling.conf.SparkConf object at ...>
@@ -40,7 +40,7 @@ class SparkConf:
     'local'
     >>> conf.get("spark.app.name")
     'My app'
-    >>> sc = Context(conf=conf)
+    >>> sc = SparkContext(conf=conf)
     >>> sc.master
     'local'
     >>> sc.appName
@@ -49,35 +49,32 @@ class SparkConf:
     True
 
     >>> conf = SparkConf(loadDefaults=False)
-    >>> conf.setSparkHome("/path")
+    >>> conf.setSparkHome("/path")  # doctest: +ELLIPSIS
     <pysparkling.conf.SparkConf object at ...>
     >>> conf.get("spark.home")
     '/path'
-    >>> conf.setExecutorEnv("VAR1", "value1")
+    >>> conf.setExecutorEnv("VAR1", "value1")  # doctest: +ELLIPSIS
     <pysparkling.conf.SparkConf object at ...>
-    >>> conf.setExecutorEnv(pairs = [("VAR3", "value3"), ("VAR4", "value4")])
+    >>> conf.setExecutorEnv(pairs = [("VAR3", "value3"), ("VAR4", "value4")])  # doctest: +ELLIPSIS
     <pysparkling.conf.SparkConf object at ...>
     >>> conf.get("spark.executorEnv.VAR1")
     'value1'
     >>> print(conf.toDebugString())
+    spark.home=/path
     spark.executorEnv.VAR1=value1
     spark.executorEnv.VAR3=value3
     spark.executorEnv.VAR4=value4
-    spark.home=/path
     >>> for p in sorted(conf.getAll(), key=lambda p: p[0]):
     ...     print(p)
     ('spark.executorEnv.VAR1', 'value1')
     ('spark.executorEnv.VAR3', 'value3')
     ('spark.executorEnv.VAR4', 'value4')
     ('spark.home', '/path')
-    >>> conf._jconf.setExecutorEnv("VAR5", "value5")
-    JavaObject id...
     >>> print(conf.toDebugString())
+    spark.home=/path
     spark.executorEnv.VAR1=value1
     spark.executorEnv.VAR3=value3
     spark.executorEnv.VAR4=value4
-    spark.executorEnv.VAR5=value5
-    spark.home=/path
     """
 
     def __init__(self, loadDefaults=True, _jvm=None, _jconf=None):

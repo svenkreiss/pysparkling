@@ -1,8 +1,8 @@
 import importlib
+from importlib.abc import Loader, MetaPathFinder
 import sys
 import time
 import warnings
-from importlib.abc import Loader, MetaPathFinder
 
 
 class Pyspark2Pysparkling(MetaPathFinder, Loader):
@@ -46,6 +46,10 @@ class Pyspark2Pysparkling(MetaPathFinder, Loader):
 
         return return_value
 
+    def module_repr(self, module):
+        # Delegate to the old loader
+        return self.old_loader.module_repr(module)
+
     @classmethod
     def is_enabled(cls):
         return cls in sys.meta_path
@@ -81,11 +85,11 @@ class Pyspark2Pysparkling(MetaPathFinder, Loader):
 
 def _test():
     # Comment or un-comment the next line to make the magic work...
-    # Pyspark2Pysparkling.setup()
+    Pyspark2Pysparkling.setup()
 
     start = time.time()
 
-    # pylint: disable=wrong-import-position
+    # pylint: disable=import-outside-toplevel
     from pyspark.sql import SparkSession
 
     spark = (
