@@ -20,6 +20,9 @@ from .task_context import TaskContext
 
 log = logging.getLogger(__name__)
 
+__all__ = ['SparkContext']
+
+
 def unit_fn(arg):
     """Used as dummy serializer and deserializer."""
     return arg
@@ -608,3 +611,29 @@ class VariableLengthChunker:
             length = struct.unpack(self.length_fmt, prefix)[0]
             package, data = data[:length], data[length:]
             yield package
+
+
+class SparkContext:
+    """Accepts the same initialization parameters as pyspark, but redirects everything to Context."""
+
+    _spark_active_context = None
+
+    def __init__(self, master=None, appName=None, sparkHome=None, pyFiles=None,
+                 environment=None, batchSize=0, serializer=None, conf=None,
+                 gateway=None, jsc=None, profiler_cls=None):
+        if SparkContext._spark_active_context is not None:
+            raise ValueError("Only one spark session can be active at one time.")
+
+        SparkContext._spark_active_context = Context(
+            serializer=serializer,
+        )
+
+        conf = conf or SparkConf()
+
+        self.master = master or conf.get('spark.master', None)
+        self.appName = appName or conf.get('spark.app.name', None)
+        self.sparkHome = sparkHome or conf.get('spark.home', None)
+
+    def __getattr__(self, item):
+        """Redirect just everything to Context()."""
+        return getattr(self._spark_active_context, item)
