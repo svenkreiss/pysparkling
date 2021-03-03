@@ -5,17 +5,19 @@ import time
 import warnings
 
 
-class Pyspark2Pysparkling(MetaPathFinder, Loader):
+class _TransparentImporter(MetaPathFinder, Loader):
+    __from__ = None
+    __to__ = None
 
     @classmethod
     def find_spec(cls, name, path, target=None):
-        if name.startswith('pysparkling'):
+        if not (
+            name == cls.__from__  # Root
+            or name[:len(cls.__from__)+1] == f'{cls.__from__}.'  # Submodule/package
+        ):
             return None  # Nope. We're not providing this..
 
-        if not name.startswith('pyspark'):
-            return None  # Not handling these either...
-
-        new_name = 'pysparkling' + name[7:]
+        new_name = cls.__to__ + name[len(cls.__from__):]
 
         for finder in sys.meta_path[1:]:
             module_spec = finder.find_spec(fullname=new_name, path=path, target=target)
@@ -41,7 +43,7 @@ class Pyspark2Pysparkling(MetaPathFinder, Loader):
 
         # Cache it for future use
         new_name = module.__name__
-        old_name = 'pyspark' + new_name[11:]
+        old_name = self.__from__ + new_name[len(self.__to__):]
         sys.modules[old_name] = module
 
         return return_value
@@ -60,37 +62,53 @@ class Pyspark2Pysparkling(MetaPathFinder, Loader):
 
         # Find any already loaded 'pyspark' modules:
         modules_to_set = [
-            (pyspark_name, 'pysparkling' + pyspark_name[7:])
-            for pyspark_name in sys.modules
-            if pyspark_name.startswith('pyspark') and not pyspark_name.startswith('pysparkling')
+            (source_name, cls.__to__ + source_name[len(cls.__from__):])
+            for source_name in sys.modules
+            if source_name.startswith(cls.__from__) and not source_name.startswith(cls.__to__)
         ]
 
-        if modules_to_set:
-            warnings.warn(
-                "pyspark was already loaded."
-                " Please setup pysparkling first to ensure no nasty side-effects take place."
-            )
+        if not modules_to_set:
+            return
 
-        for pyspark_name, new_name in modules_to_set:
+        warnings.warn(
+            f"{cls.__from__} was already loaded."
+            f" Please setup {cls.__to__} first to ensure no nasty side-effects take place."
+        )
+
+        for old_name, new_name in modules_to_set:
             try:
                 # Pysparkling was already loaded?
-                pysparkling_module = sys.modules[new_name]
+                new_module = sys.modules[new_name]
             except KeyError:
                 # Load it
-                pysparkling_module = importlib.import_module(new_name)
+                new_module = importlib.import_module(new_name)
 
             # And override it in the pyspark one
-            sys.modules[pyspark_name] = pysparkling_module
+            sys.modules[old_name] = new_module
 
 
-def _test():
+class Pyspark2Pysparkling(_TransparentImporter):
+    __from__ = 'pyspark'
+    __to__ = 'pysparkling'
+
+
+class Pysparkling2Pyspark(_TransparentImporter):
+    __from__ = 'pysparkling'
+    __to__ = 'pyspark'
+
+
+def _test(pyspark2pysparkling: bool = True):
     # Comment or un-comment the next line to make the magic work...
-    Pyspark2Pysparkling.setup()
+    if pyspark2pysparkling:
+        Pyspark2Pysparkling.setup()
+        # pylint: disable=import-outside-toplevel
+        from pyspark.sql import SparkSession
+    else:
+        Pysparkling2Pyspark.setup()
+        # pylint: disable=import-outside-toplevel
+        from pysparkling.sql import SparkSession
 
     start = time.time()
-
-    # pylint: disable=import-outside-toplevel
-    from pyspark.sql import SparkSession
 
     spark = (
         SparkSession.builder
@@ -98,8 +116,8 @@ def _test():
         .appName("SparkByExamples.com")
         .getOrCreate()
     )
-    dataList = [("Java", 20000), ("Python", 100000), ("Scala", 3000)]
-    rdd = spark.sparkContext.parallelize(dataList)
+    data_list = [("Java", 20000), ("Python", 100000), ("Scala", 3000)]
+    rdd = spark.sparkContext.parallelize(data_list)
     print(rdd.collect())
 
     data = [
