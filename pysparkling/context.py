@@ -613,27 +613,26 @@ class VariableLengthChunker:
             yield package
 
 
-class SparkContext:
+class SparkContext(Context):
     """Accepts the same initialization parameters as pyspark, but redirects everything to Context."""
 
     _spark_active_context = None
 
+    def __new__(cls, *args, **kwargs):
+        if cls._spark_active_context:
+            raise ValueError("Only one spark session can be active at one time.")
+
+        obj = super().__new__(cls, *args, **kwargs)
+        cls._spark_active_context = obj
+        return obj
+
     def __init__(self, master=None, appName=None, sparkHome=None, pyFiles=None,
                  environment=None, batchSize=0, serializer=None, conf=None,
                  gateway=None, jsc=None, profiler_cls=None):
-        if SparkContext._spark_active_context is not None:
-            raise ValueError("Only one spark session can be active at one time.")
+        super().__init__(serializer=serializer)
 
-        SparkContext._spark_active_context = Context(
-            serializer=serializer,
-        )
+        self.conf = conf or SparkConf()
 
-        conf = conf or SparkConf()
-
-        self.master = master or conf.get('spark.master', None)
-        self.appName = appName or conf.get('spark.app.name', None)
-        self.sparkHome = sparkHome or conf.get('spark.home', None)
-
-    def __getattr__(self, item):
-        """Redirect just everything to Context()."""
-        return getattr(self._spark_active_context, item)
+        self.master = master or self.conf.get('spark.master', None)
+        self.appName = appName or self.conf.get('spark.app.name', None)
+        self.sparkHome = sparkHome or self.conf.get('spark.home', None)
