@@ -622,7 +622,7 @@ class SparkContext(Context):
         if cls._spark_active_context:
             raise ValueError("Only one spark session can be active at one time.")
 
-        obj = super().__new__(cls, *args, **kwargs)
+        obj = super().__new__(cls)
         cls._spark_active_context = obj
         return obj
 
