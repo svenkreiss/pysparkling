@@ -206,6 +206,19 @@ def explicit_list(*children):
     )
 
 
+def convert_to_complex_col_type(*children):
+    name = convert_tree(children[0])
+    data_type = convert_tree(children[2])
+    if len(children) > 3:
+        params = [convert_tree(c) for c in children[3:]]
+        nullable = not (params[0].lower() == 'not' and params[1].lower() == ['null'])
+        metadata = params[3:] or None
+    else:
+        nullable = False
+        metadata = None
+    return name, data_type, nullable, metadata
+
+
 def implicit_list(*children):
     return tuple(
         convert_tree(c)
@@ -240,8 +253,15 @@ def potential_alias(*children):
     raise SqlParsingError("Expecting 1, 2 or 3 children, got {0}".format(len(children)))
 
 
+def get_quoted_identifier(*children):
+    value = get_leaf_value(*children)
+    return value[1:-1]
+
+
 def check_identifier(*children):
     check_children(2, children)
+    if children[0].children is None:
+        raise SqlParsingError("Expected identifier not found") from children[0].exception
     identifier = convert_tree(children[0])
     if children[1].children:
         extra = convert_tree(children[1])
@@ -287,7 +307,7 @@ CONVERTERS = {
     'CommentTableContext': unsupported,
     'ComparisonContext': binary_operation,
     'ComparisonOperatorContext': get_leaf_value,
-    'ComplexColTypeContext': implicit_list,
+    'ComplexColTypeContext': convert_to_complex_col_type,
     'ComplexColTypeListContext': implicit_list,
     'ComplexDataTypeContext': detect_data_type,
     'ConstantContext': never_found,
@@ -432,7 +452,7 @@ CONVERTERS = {
     'QueryTermContext': never_found,
     'QueryTermDefaultContext': unwrap,
     'QuotedIdentifierAlternativeContext': unwrap,
-    'QuotedIdentifierContext': get_leaf_value,
+    'QuotedIdentifierContext': get_quoted_identifier,
     'RealIdentContext': empty,
     'RecoverPartitionsContext': unsupported,
     'RefreshResourceContext': unsupported,
@@ -527,7 +547,7 @@ CONVERTERS = {
     'TypeConstructorContext': unsupported,
     'UncacheTableContext': unsupported,
     'UnitToUnitIntervalContext': unsupported,
-    'UnquotedIdentifierContext': get_leaf_value,
+    'UnquotedIdentifierContext': unwrap,
     'UnsetTablePropertiesContext': unsupported,
     'UnsupportedHiveNativeCommandsContext': unsupported,
     'UpdateTableContext': unsupported,
