@@ -1,5 +1,6 @@
 from threading import RLock
 
+from .ast.ast_to_python import parse_ddl_string
 from ..__version__ import __version__
 from ..context import Context
 from ..rdd import RDD
@@ -223,7 +224,7 @@ class SparkSession:
             raise TypeError("data is already a DataFrame")
 
         if isinstance(schema, str):
-            schema = StructType.fromDDL(schema)
+            schema = parse_ddl_string(schema)
         elif isinstance(schema, (list, tuple)):
             # Must re-encode any unicode strings to be consistent with StructField names
             schema = [x.encode('utf-8') if not isinstance(x, str) else x for x in schema]

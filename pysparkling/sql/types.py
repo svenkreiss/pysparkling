@@ -553,19 +553,20 @@ class StructType(DataType):
 
     def treeString(self):
         """
-        >>> schema = StructType.fromDDL('some_str: string, some_int: integer, some_date: date')
+        >>> from pysparkling.sql.ast.ast_to_python import parse_ddl_string
+        >>> schema = parse_ddl_string('some_str: string, some_int: integer, some_date: date')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- some_int: integer (nullable = true)
          |-- some_date: date (nullable = true)
 
-        >>> schema = StructType.fromDDL('some_str: string, arr: array<string>')
+        >>> schema = parse_ddl_string('some_str: string, arr: array<string>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- arr: array (nullable = true)
          |    |-- element: string (containsNull = true)
 
-        >>> schema = StructType.fromDDL('some_str: string, arr: array<array<string>>')
+        >>> schema = parse_ddl_string('some_str: string, arr: array<array<string>>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- arr: array (nullable = true)
@@ -690,12 +691,6 @@ class StructType(DataType):
         else:
             values = obj
         return create_row(self.names, values)
-
-    @classmethod
-    def fromDDL(cls, string):
-        # pylint: disable=import-outside-toplevel, cyclic-import
-        from .ast.ast_to_python import parse_schema
-        return parse_schema(string)
 
 
 class UserDefinedType(DataType):
@@ -829,34 +824,8 @@ def _parse_datatype_string(s):
     for :class:`IntegerType`. Since Spark 2.3, this also supports a schema in a DDL-formatted
     string and case-insensitive strings.
     """
-    raise NotImplementedError("_parse_datatype_string is not yet supported by pysparkling")
-    # pylint: disable=W0511
-    # todo: implement in pure Python the code below
-    # NB: it probably requires to use antl4r
-
-    # sc = SparkContext._active_spark_context
-    #
-    # def from_ddl_schema(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.types.StructType.fromDDL(type_str).json())
-    #
-    # def from_ddl_datatype(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.api.python.PythonSQLUtils.parseDataType(type_str).json())
-    #
-    # try:
-    #     # DDL format, "fieldname datatype, fieldname datatype".
-    #     return from_ddl_schema(s)
-    # except Exception as e:
-    #     try:
-    #         # For backwards compatibility, "integer", "struct<fieldname: datatype>" and etc.
-    #         return from_ddl_datatype(s)
-    #     except:
-    #         try:
-    #             # For backwards compatibility, "fieldname: datatype, fieldname: datatype" case.
-    #             return from_ddl_datatype("struct<%s>" % s.strip())
-    #         except:
-    #             raise e
+    from pysparkling.sql.ast.ast_to_python import parse_ddl_string
+    return parse_ddl_string(s)
 
 
 def _parse_datatype_json_string(json_string):
