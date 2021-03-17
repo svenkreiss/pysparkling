@@ -177,7 +177,7 @@ def convert_field(*children):
 
 def convert_table_schema(*children):
     check_children(2, children)
-    return StructType(fields=convert_tree(children[0]))
+    return StructType(fields=list(convert_tree(children[0])))
 
 
 def convert_to_null(*children):
