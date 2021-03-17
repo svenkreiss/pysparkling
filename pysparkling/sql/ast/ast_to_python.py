@@ -611,3 +611,13 @@ def parse_schema(string, debug=False):
 
 def parse_expression(string, debug=False):
     return parse_sql(string, "singleExpression", debug)
+
+
+def parse_ddl_string(string, debug=False):
+    try:
+        return parse_schema(string, debug)
+    except ParseException:
+        try:
+            return parse_data_type(string, debug)
+        except ParseException:
+            return parse_data_type(f"struct<{string.strip()}>")
