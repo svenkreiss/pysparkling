@@ -2,6 +2,7 @@ import ast
 import logging
 
 from sqlparser import string_to_ast
+from ..utils import ParseException
 
 from ...sql import functions
 from ..column import Column, parse
@@ -15,7 +16,7 @@ from ..expressions.operators import (
 from ..types import DoubleType, parsed_string_to_type, StringType, StructField, StructType
 
 
-class SqlParsingError(Exception):
+class SqlParsingError(ParseException):
     pass
 
 
