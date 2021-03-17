@@ -68,7 +68,11 @@ def convert_tree(tree):
         converter = CONVERTERS[tree_type]
     except UnsupportedStatement:
         raise SqlParsingError("Unsupported statement {0}".format(tree_type)) from None
-    return converter(*tree.children)
+    children = tree.children or ()
+    for c in tree.children:
+        if c.__class__.__name__ == 'ErrorNodeImpl':
+            raise SqlParsingError(f'Unable to parse data type, unexpected {c.symbol}')
+    return converter(*children)
 
 
 def call_function(*children):
@@ -124,8 +128,6 @@ def cast_context(*children):
 
 
 def detect_data_type(*children):
-    if children[0].__class__.__name__ == 'ErrorNodeImpl':
-        children = children[1:]
     data_type = convert_tree(children[0])
     params = [convert_tree(c) for c in children[2:-1:2]]
     return parsed_string_to_type(data_type, params)
