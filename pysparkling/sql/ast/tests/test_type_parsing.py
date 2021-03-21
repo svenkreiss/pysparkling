@@ -117,11 +117,18 @@ class TypeParsingTest(TestCase):
     def test_equal(self, string, data_type):
         self.assertEqual(parse_data_type(string), data_type)
 
-    def test_adhoc(self):
-        string = "Struct<x: INT Not null, y: STRING COMMENT 'test'>"
+    def test_comment(self):
+        string = (
+            "Struct<"
+            "x: INT Not null, "
+            "y: STRING COMMENT 'nullable', "
+            "z: string not null COMMENT 'test'"
+            ">"
+        )
         data_type = StructType([
-            StructField("x", IntegerType(), True),
-            StructField("y", StringType(), True, {'comment': 'test'}),
+            StructField("x", IntegerType(), False),
+            StructField("y", StringType(), True, {'comment': 'nullable'}),
+            StructField("z", StringType(), False, {'comment': 'test'}),
         ])
         self.assertEqual(parse_data_type(string), data_type)
 
