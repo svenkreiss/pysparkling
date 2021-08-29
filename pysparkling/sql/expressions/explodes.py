@@ -1,4 +1,4 @@
-from ..types import DataType, IntegerType, StructField
+from ..types import DataType, IntegerType, StructField, StructType
 from .expressions import UnaryExpression
 
 
@@ -20,6 +20,9 @@ class Explode(UnaryExpression):
     def __str__(self):
         return "col"
 
+    def data_type(self, schema):
+        return self.column.data_type(schema).elementType
+
 
 class ExplodeOuter(Explode):
     def eval(self, row, schema):
@@ -30,6 +33,9 @@ class ExplodeOuter(Explode):
 
     def __str__(self):
         return "col"
+
+    def data_type(self, schema):
+        return self.column.data_type(schema).elementType
 
 
 class PosExplode(UnaryExpression):
@@ -53,8 +59,11 @@ class PosExplode(UnaryExpression):
     def output_fields(self, schema):
         return [
             StructField("pos", IntegerType(), False),
-            StructField("col", DataType(), False)
+            StructField("col", self.column.data_type(schema).elementType, False)
         ]
+
+    def data_type(self, schema):
+        return StructType(self.output_fields(schema))
 
 
 class PosExplodeOuter(PosExplode):
