@@ -36,12 +36,11 @@ class Expression(metaclass=RegisteredExpressions):
     def output_fields(self, schema):
         return [StructField(
             name=str(self),
-            dataType=self.data_type,
+            dataType=self.data_type(schema),
             nullable=self.is_nullable
         )]
 
-    @property
-    def data_type(self):
+    def data_type(self, schema):
         # pylint: disable=W0511
         # todo: be more specific
         return DataType()

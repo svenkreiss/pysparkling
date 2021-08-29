@@ -292,12 +292,16 @@ class Cast(Expression):
         super().__init__(column)
         self.column = column
         self.destination_type = destination_type
-        self.caster = get_caster(
-            from_type=self.column.data_type, to_type=destination_type, options={}
-        )
 
     def eval(self, row, schema):
-        return self.caster(self.column.eval(row, schema))
+        caster = get_caster(
+            from_type=self.column.data_type(schema),
+            to_type=self.destination_type,
+            options={}
+        )
+        return caster(
+            self.column.eval(row, schema)
+        )
 
     def __str__(self):
         return str(self.column)
