@@ -333,10 +333,10 @@ class Substring(Expression):
 
 
 class Alias(Expression):
-    def __init__(self, expr, alias):
+    def __init__(self, expr, alias: str):
         super().__init__(expr, alias)
         self.expr = expr
-        self.alias = alias.get_literal_value()
+        self.alias = alias
 
     @property
     def may_output_multiple_cols(self):

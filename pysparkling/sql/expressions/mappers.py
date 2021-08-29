@@ -9,6 +9,7 @@ from ..internal_utils.column import resolve_column
 from ..types import create_row, StringType
 from ..utils import AnalysisException
 from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
+from .operators import Cast
 
 JVM_MAX_INTEGER_SIZE = 2 ** 63
 
@@ -243,7 +244,7 @@ class SubstringIndex(Expression):
 class Coalesce(Expression):
     pretty_name = "coalesce"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -575,7 +576,7 @@ class SparkPartitionID(Expression):
 class CreateStruct(Expression):
     pretty_name = "struct"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -656,7 +657,7 @@ class ShiftRightUnsigned(Expression):
 class Greatest(Expression):
     pretty_name = "greatest"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -671,7 +672,7 @@ class Greatest(Expression):
 class Least(Expression):
     pretty_name = "least"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -707,7 +708,7 @@ class Upper(UnaryExpression):
 class Concat(Expression):
     pretty_name = "concat"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -721,7 +722,7 @@ class Concat(Expression):
 class ConcatWs(Expression):
     pretty_name = "concat_ws"
 
-    def __init__(self, sep, columns):
+    def __init__(self, sep, *columns):
         super().__init__(columns)
         self.sep = sep.get_literal_value()
         self.columns = columns
@@ -731,7 +732,7 @@ class ConcatWs(Expression):
 
     def args(self):
         if self.columns:
-            return [self.sep] + self.columns
+            return [self.sep] + list(self.columns)
         return [self.sep]
 
 
@@ -773,7 +774,7 @@ class MapFromEntries(UnaryExpression):
 class MapConcat(Expression):
     pretty_name = "map_concat"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(*columns)
         self.columns = columns
 
@@ -826,7 +827,7 @@ class Conv(Expression):
         self.to_base = to_base.get_literal_value()
 
     def eval(self, row, schema):
-        value = self.column.cast(StringType()).eval(row, schema)
+        value = Cast(self.column, StringType()).eval(row, schema)
         return self.convert(
             value,
             self.from_base,
@@ -990,7 +991,7 @@ class UnBase64(UnaryExpression):
 class GroupingID(Expression):
     pretty_name = "grouping_id"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(*columns)
         self.columns = columns
 

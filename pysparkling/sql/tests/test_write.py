@@ -6,6 +6,7 @@ from unittest import TestCase
 from dateutil.tz import tzlocal
 
 from pysparkling import Context, Row
+from pysparkling.sql.casts import tz_diff
 from pysparkling.sql.session import SparkSession
 from pysparkling.sql.utils import AnalysisException
 
@@ -23,6 +24,21 @@ def get_folder_content(folder_path):
     return folder_content
 
 
+def format_as_offset(delta: datetime.timedelta):
+    """
+    Format a timedelta as a timezone offset string, e.g. "+01:00"
+    """
+    if delta.days < 0:
+        sign = "-"
+        delta = -delta
+    else:
+        sign = "+"
+    hours = delta.seconds // 3600
+    minutes = (delta.seconds % 3600) // 60
+    formatted = f'{sign}{hours:02d}:{minutes:02d}'
+    return formatted
+
+
 class DataFrameWriterTests(TestCase):
     maxDiff = None
 
@@ -34,16 +50,17 @@ class DataFrameWriterTests(TestCase):
     def setUp(self):
         self.clean()
 
-        tz = datetime.datetime.now().astimezone().strftime('%z')  # +0100
-        self.tz = f'{tz[:3]}:{tz[3:]}'  # --> +01:00
-
     def tearDown(self):
         self.clean()
 
     def test_write_to_csv(self):
+        alice_time = datetime.datetime(2017, 1, 1, tzinfo=tzlocal())
+        bob_time = datetime.datetime(2014, 3, 2, tzinfo=tzlocal())
+        alice_tz = format_as_offset(tz_diff(alice_time))
+        bob_tz = format_as_offset(tz_diff(bob_time))
         df = spark.createDataFrame(
-            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tzlocal()), ),
-             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tzlocal()))]
+            [Row(age=2, name='Alice', time=alice_time),
+             Row(age=5, name='Bob', time=bob_time)]
         )
         df.write.csv(".tmp/wonderland/")
         self.assertDictEqual(
@@ -51,8 +68,8 @@ class DataFrameWriterTests(TestCase):
             {
                 '_SUCCESS': [],
                 'part-00000-8447389540241120843.csv': [
-                    f'2,Alice,2017-01-01T00:00:00.000{self.tz}\n',
-                    f'5,Bob,2014-03-02T00:00:00.000{self.tz}\n'
+                    f'2,Alice,2017-01-01T00:00:00.000{alice_tz}\n',
+                    f'5,Bob,2014-03-02T00:00:00.000{bob_tz}\n'
                 ]
             }
         )
@@ -98,9 +115,13 @@ class DataFrameWriterTests(TestCase):
         )
 
     def test_write_to_json(self):
+        alice_time = datetime.datetime(2017, 1, 1, tzinfo=tzlocal())
+        bob_time = datetime.datetime(2014, 3, 2, tzinfo=tzlocal())
+        alice_tz = format_as_offset(tz_diff(alice_time))
+        bob_tz = format_as_offset(tz_diff(bob_time))
         df = spark.createDataFrame(
-            [Row(age=2, name='Alice', time=datetime.datetime(2017, 1, 1, tzinfo=tzlocal()), ),
-             Row(age=5, name='Bob', time=datetime.datetime(2014, 3, 2, tzinfo=tzlocal()))]
+            [Row(age=2, name='Alice', time=alice_time),
+             Row(age=5, name='Bob', time=bob_time)]
         )
         df.write.json(".tmp/wonderland/")
         self.assertDictEqual(
@@ -108,8 +129,8 @@ class DataFrameWriterTests(TestCase):
             {
                 '_SUCCESS': [],
                 'part-00000-8447389540241120843.json': [
-                    f'{{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000{self.tz}"}}\n',
-                    f'{{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000{self.tz}"}}\n',
+                    f'{{"age":2,"name":"Alice","time":"2017-01-01T00:00:00.000{alice_tz}"}}\n',
+                    f'{{"age":5,"name":"Bob","time":"2014-03-02T00:00:00.000{bob_tz}"}}\n',
                 ],
             }
         )
