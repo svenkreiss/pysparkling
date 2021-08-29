@@ -2,7 +2,7 @@ import ast
 import logging
 
 from sqlparser import string_to_ast
-from ..utils import ParseException
+from sqlparser.internalparser import SqlParsingError
 
 from ...sql import functions
 from ..column import Column, parse
@@ -14,10 +14,6 @@ from ..expressions.operators import (
     GreaterThanOrEqual, Invert, LessThan, LessThanOrEqual, Minus, Mod, Negate, Or, Time, UnaryPositive
 )
 from ..types import DoubleType, parsed_string_to_type, StringType, StructField, StructType
-
-
-class SqlParsingError(ParseException):
-    pass
 
 
 class UnsupportedStatement(SqlParsingError):
@@ -44,7 +40,11 @@ def never_found(*children):
 
 
 def unsupported(*children):
-    raise UnsupportedStatement
+    if children:
+        parent_context = children[0].parentCtx.__class__.__name__
+    else:
+        parent_context = 'unknown'
+    raise UnsupportedStatement(parent_context)
 
 
 def empty(*children):
@@ -615,9 +615,12 @@ def parse_expression(string, debug=False):
 
 def parse_ddl_string(string, debug=False):
     try:
+        # DDL format, "fieldname datatype, fieldname datatype".
         return parse_schema(string, debug)
-    except ParseException:
+    except SqlParsingError:
         try:
+            # For backwards compatibility, "integer", "struct<fieldname: datatype>" and etc.
             return parse_data_type(string, debug)
-        except ParseException:
+        except SqlParsingError:
+            # For backwards compatibility, "fieldname: datatype, fieldname: datatype" case.
             return parse_data_type(f"struct<{string.strip()}>")

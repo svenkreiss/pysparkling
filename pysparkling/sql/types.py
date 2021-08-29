@@ -24,7 +24,8 @@ import os
 import re
 import sys
 
-from .utils import ParseException, require_minimum_pandas_version
+from sqlparser.internalparser import SqlParsingError
+from .utils import require_minimum_pandas_version
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -1819,18 +1820,17 @@ def parsed_string_to_type(data_type, arguments):
         elif len(arguments) == 1:
             precision, scale = arguments[0], 0
         else:
-            raise ParseException("Unrecognized decimal parameters: {0}".format(arguments))
+            raise SqlParsingError("Unrecognized decimal parameters: {0}".format(arguments))
         return DecimalType(precision=int(precision), scale=int(scale))
     if data_type == "array" and len(arguments) == 1:
         return ArrayType(arguments[0])
     if data_type == "map" and len(arguments) == 2:
         return MapType(arguments[0], arguments[1])
-    if data_type == "struct" and len(arguments) == 1:
-        return StructType([
-            StructField(name, data_type)
-            for name, data_type in arguments[0]
-        ])
-    raise ParseException(
+    if data_type == "struct" and len(arguments) == 1 and all(len(arg) >= 2 for arg in arguments[0]):
+        return StructType([StructField(*arg) for arg in arguments[0]])
+    if data_type in ("char", "varchar") and len(arguments) == 1:
+        return StringType()
+    raise SqlParsingError(
         "Unable to parse data type {0}{1}".format(data_type, arguments if arguments else "")
     )
 

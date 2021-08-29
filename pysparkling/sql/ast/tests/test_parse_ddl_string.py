@@ -8,7 +8,7 @@ from pysparkling.sql.types import (
     ShortType, StringType,
     StructField, StructType
 )
-from pysparkling.sql.utils import ParseException
+from sqlparser import SqlParsingError
 
 
 class TestFunctions(TestCase):
@@ -96,17 +96,17 @@ class TestFunctions(TestCase):
 
     # Error cases
     def test_wrong_type(self):
-        with pytest.raises(ParseException):
+        with pytest.raises(SqlParsingError):
             parse_ddl_string("blabla")
 
     def test_comma_at_end(self):
-        with pytest.raises(ParseException):
+        with pytest.raises(SqlParsingError):
             parse_ddl_string("a: int,")
 
     def test_unclosed_array(self):
-        with pytest.raises(ParseException):
+        with pytest.raises(SqlParsingError):
             parse_ddl_string("array<int")
 
     def test_too_much_closed_map(self):
-        with pytest.raises(ParseException):
+        with pytest.raises(SqlParsingError):
             parse_ddl_string("map<int, boolean>>")
