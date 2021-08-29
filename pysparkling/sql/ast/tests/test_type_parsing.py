@@ -8,9 +8,8 @@ from pysparkling import Context
 from pysparkling.sql.ast.ast_to_python import parse_data_type
 from pysparkling.sql.session import SparkSession
 from pysparkling.sql.types import (
-    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType,
-    IntegerType, LongType,
-    MapType, ShortType, StringType, StructField, StructType, TimestampType, NullType
+    ArrayType, BinaryType, BooleanType, ByteType, DateType, DecimalType, DoubleType, FloatType, IntegerType, LongType,
+    MapType, ShortType, StringType, StructField, StructType, TimestampType
 )
 
 

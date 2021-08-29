@@ -25,6 +25,7 @@ import re
 import sys
 
 from sqlparser.internalparser import SqlParsingError
+
 from .utils import require_minimum_pandas_version
 
 __all__ = [

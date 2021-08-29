@@ -1,14 +1,13 @@
 from unittest import TestCase
 
 import pytest
-from pysparkling.sql.ast.ast_to_python import parse_ddl_string
+from sqlparser import SqlParsingError
 
+from pysparkling.sql.ast.ast_to_python import parse_ddl_string
 from pysparkling.sql.types import (
-    ArrayType, ByteType, DateType, DecimalType, DoubleType, IntegerType, LongType, MapType,
-    ShortType, StringType,
+    ArrayType, ByteType, DateType, DecimalType, DoubleType, IntegerType, LongType, MapType, ShortType, StringType,
     StructField, StructType
 )
-from sqlparser import SqlParsingError
 
 
 class TestFunctions(TestCase):

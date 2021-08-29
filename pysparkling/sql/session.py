@@ -1,9 +1,9 @@
 from threading import RLock
 
-from .ast.ast_to_python import parse_ddl_string
 from ..__version__ import __version__
 from ..context import Context
 from ..rdd import RDD
+from .ast.ast_to_python import parse_ddl_string
 from .conf import RuntimeConfig
 from .dataframe import DataFrame
 from .internals import DataFrameInternal
