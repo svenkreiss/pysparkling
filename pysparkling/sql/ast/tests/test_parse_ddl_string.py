@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import pytest
-from sqlparser import SqlParsingError
+from sqlparser.internalparser import SqlParsingError
 
 from pysparkling.sql.ast.ast_to_python import parse_ddl_string
 from pysparkling.sql.types import (
