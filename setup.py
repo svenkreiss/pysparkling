@@ -36,7 +36,7 @@ setup(
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
             'futures>=3.0.1',
-            'pylint~=2.7',
+            'pylint',
             'pylzma',
             'memory-profiler>=0.47',
             'pycodestyle',
@@ -44,7 +44,7 @@ setup(
             'pytest-cov',
             'isort',
             'tornado>=4.3',
-            'parameterized>=0.7.4',
+            'parameterized==0.7.4',
         ],
         'scripts': [
             'ipyparallel',
