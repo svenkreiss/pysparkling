@@ -84,7 +84,6 @@ def call_function(*children):
     function_expression = expression_registry.get(function_name.lower())
     params = [convert_tree(c) for c in children[2:-1]]
 
-    # todo: there must be a cleaner way to do that
     complex_function = any(
         not isinstance(param, Column) and param == ')'
         for param in params
@@ -95,10 +94,12 @@ def call_function(*children):
         # over_clause = None
         # set_clause = None
     else:
+        # pylint: disable=fixme
+        # todo: Handle complex functions
         last_argument_position = params.index(")")
-        # filter_clause = ...  # todo
-        # over_clause = ...  # todo
-        # set_clause = ...  # todo
+        # filter_clause = ...
+        # over_clause = ...
+        # set_clause = ...
 
     # parameters are comma separated
     function_arguments = params[0:last_argument_position:2]

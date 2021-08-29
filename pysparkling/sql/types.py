@@ -826,6 +826,7 @@ def _parse_datatype_string(s):
     for :class:`IntegerType`. Since Spark 2.3, this also supports a schema in a DDL-formatted
     string and case-insensitive strings.
     """
+    # pylint: disable=import-outside-toplevel, cyclic-import
     from pysparkling.sql.ast.ast_to_python import parse_ddl_string
     return parse_ddl_string(s)
 
