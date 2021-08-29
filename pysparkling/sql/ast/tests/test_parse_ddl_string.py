@@ -23,7 +23,7 @@ class TestFunctions(TestCase):
             'StructType(List('
             'StructField(some_str,StringType,true),'
             'StructField(some_int,IntegerType,true),'
-            'StructField(some_date,DateType,true)'
+            'StructField(some_date,DateType,false)'
             '))'
         )
 

@@ -211,10 +211,15 @@ def convert_to_complex_col_type(*children):
     data_type = convert_tree(children[2])
     if len(children) > 3:
         params = [convert_tree(c) for c in children[3:]]
-        nullable = not (params[0].lower() == 'not' and params[1].lower() == ['null'])
-        metadata = params[3:] or None
+        if len(params) >= 2 and isinstance(params[0], str) and isinstance(params[1], str):
+            nullable = (params[0].lower(), params[1].lower()) != ('not', 'null')
+            raw_metadata = params[2:]
+        else:
+            nullable = True
+            raw_metadata = params
+        metadata = {k.lower(): v for k, v in raw_metadata} or None
     else:
-        nullable = False
+        nullable = True
         metadata = None
     return name, data_type, nullable, metadata
 
@@ -272,6 +277,11 @@ def check_identifier(*children):
     return identifier
 
 
+def convert_comment(*children):
+    check_children(2, children)
+    return "COMMENT", convert_tree(children[1])[1:-1]
+
+
 CONVERTERS = {
     'AddTableColumnsContext': unsupported,
     'AddTablePartitionContext': unsupported,
@@ -303,7 +313,7 @@ CONVERTERS = {
     'ColTypeListContext': implicit_list,
     'ColumnReferenceContext': convert_column,
     'CommentNamespaceContext': unsupported,
-    'CommentSpecContext': unsupported,
+    'CommentSpecContext': convert_comment,
     'CommentTableContext': unsupported,
     'ComparisonContext': binary_operation,
     'ComparisonOperatorContext': get_leaf_value,
@@ -325,7 +335,7 @@ CONVERTERS = {
     'CreateViewContext': unsupported,
     'CtesContext': unsupported,
     'CurrentDatetimeContext': unsupported,
-    'DataTypeContext': never_found,
+    'DataTypeContext': empty,
     'DecimalLiteralContext': concat_to_value,
     'DeleteFromTableContext': unsupported,
     'DereferenceContext': unsupported,

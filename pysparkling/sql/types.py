@@ -1806,7 +1806,8 @@ STRING_TO_TYPE = dict(
     binary=BinaryType(),
     decimal=DecimalType(),
     dec=DecimalType(),
-    numeric=DecimalType()
+    numeric=DecimalType(),
+    struct=StructType(),
 )
 
 
@@ -1814,7 +1815,7 @@ def parsed_string_to_type(data_type, arguments):
     data_type = data_type.lower()
     if not arguments and data_type in STRING_TO_TYPE:
         return STRING_TO_TYPE[data_type]
-    if data_type == "decimal":
+    if data_type in ("dec", "decimal"):
         if len(arguments) == 2:
             precision, scale = arguments
         elif len(arguments) == 1:
