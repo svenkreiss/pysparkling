@@ -2,12 +2,10 @@ import collections
 import datetime
 from unittest import TestCase
 
-import pytz
-
 from pysparkling.sql.casts import (
-    cast_from_none, cast_to_array, cast_to_binary, cast_to_boolean, cast_to_byte, cast_to_date, cast_to_decimal,
-    cast_to_float, cast_to_int, cast_to_long, cast_to_map, cast_to_short, cast_to_string, cast_to_struct,
-    cast_to_timestamp, FloatType, identity
+    cast_from_none, cast_to_array, cast_to_binary, cast_to_boolean, cast_to_byte, cast_to_date,
+    cast_to_decimal, cast_to_float, cast_to_int, cast_to_long, cast_to_map, cast_to_short,
+    cast_to_string, cast_to_struct, cast_to_timestamp, FloatType, identity, tz_diff
 )
 from pysparkling.sql.types import (
     ArrayType, BooleanType, ByteType, DataType, DateType, DecimalType, DoubleType, IntegerType, LongType, MapType,
@@ -19,19 +17,6 @@ BASE_OPTIONS = {}
 
 class CastTests(TestCase):
     maxDiff = None
-
-    def setUp(self):
-        # TODO: what is the behaviour of Spark when you load up something in another timezone?
-        #
-        # os.environ['TZ'] = 'Europe/Paris'
-        #
-        # if hasattr(time, 'tzset'):
-        #     time.tzset()  # pylint: disable=no-member
-
-        now_here = datetime.datetime.now().astimezone()
-        now_utc = now_here.replace(tzinfo=pytz.utc)
-
-        self.tz_diff = now_utc - now_here
 
     def test_identity(self):
         x = object()
@@ -246,13 +231,14 @@ class CastTests(TestCase):
         # there is a discrepancy in behaviours
         # This test is using a value for which Spark can handle the exact value
         # Hence the behaviour is the same in pysparkling and PySpark
+        input_date = datetime.datetime(2019, 8, 28, 0, 2, 40)
         self.assertEqual(
             cast_to_float(
-                datetime.datetime(2019, 8, 28, 0, 2, 40),
+                input_date,
                 TimestampType(),
                 options=BASE_OPTIONS
             ),
-            1566939760.0 + self.tz_diff.seconds
+            1566950560.0 - tz_diff(input_date).seconds
         )
 
     def test_cast_string_to_binary(self):
@@ -327,43 +313,51 @@ class CastTests(TestCase):
         )
 
     def test_cast_gmt_string_to_timestamp(self):
+        gmt_expectation = datetime.datetime(2019, 10, 1, 5, 40, 36)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 "2019-10-01T05:40:36Z",
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 6, 40, 36) + self.tz_diff
+            expected
         )
 
     def test_cast_weird_tz_string_to_timestamp(self):
+        gmt_expectation = datetime.datetime(2019, 10, 1, 2, 35, 36)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 "2019-10-01T05:40:36+3:5",
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 3, 35, 36) + self.tz_diff
+            expected
         )
 
     def test_cast_short_tz_string_to_timestamp(self):
+        gmt_expectation = datetime.datetime(2019, 10, 1, 2, 40, 36)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 "2019-10-01T05:40:36+03",
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 3, 40, 36) + self.tz_diff
+            expected
         )
 
     def test_cast_longer_tz_string_to_timestamp(self):
+        gmt_expectation = datetime.datetime(2019, 10, 1, 2, 40, 36)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 "2019-10-01T05:40:36+03:",
                 StringType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(2019, 10, 1, 3, 40, 36) + self.tz_diff
+            expected
         )
 
     def test_cast_date_string_to_timestamp(self):
@@ -422,33 +416,39 @@ class CastTests(TestCase):
         )
 
     def test_cast_bool_to_timestamp(self):
+        gmt_expectation = datetime.datetime(1970, 1, 1, 0, 0, 1)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 True,
                 BooleanType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1970, 1, 1, 0, 0, 1) + self.tz_diff
+            expected
         )
 
     def test_cast_int_to_timestamp(self):
+        gmt_expectation = datetime.datetime(1971, 1, 1, 0, 0, 0)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 86400 * 365,
                 IntegerType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1971, 1, 1, 0, 0, 0) + self.tz_diff
+            expected
         )
 
     def test_cast_decimal_to_timestamp(self):
+        gmt_expectation = datetime.datetime(1970, 1, 1, 0, 2, 27, 580000)
+        expected = gmt_expectation + tz_diff(gmt_expectation)
         self.assertEqual(
             cast_to_timestamp(
                 147.58,
                 DecimalType(),
                 options=BASE_OPTIONS
             ),
-            datetime.datetime(1970, 1, 1, 0, 2, 27, 580000) + self.tz_diff
+            expected
         )
 
     def test_cast_date_to_decimal(self):
@@ -463,14 +463,16 @@ class CastTests(TestCase):
         )
 
     def test_cast_timestamp_to_decimal_without_scale(self):
+        input_date = datetime.datetime(2019, 8, 28)
+        gmt_expectation = 1566950400.0
         self.assertEqual(
             cast_to_decimal(
-                datetime.datetime(2019, 8, 28),
+                input_date,
                 TimestampType(),
                 DecimalType(),
                 options=BASE_OPTIONS
             ),
-            1566939600.0 + self.tz_diff.seconds
+            gmt_expectation - tz_diff(input_date).seconds
         )
 
     def test_cast_timestamp_to_decimal_with_too_small_precision(self):
@@ -485,14 +487,16 @@ class CastTests(TestCase):
         )
 
     def test_cast_timestamp_to_decimal_with_scale(self):
+        input_date = datetime.datetime(2019, 8, 28)
+        gmt_expectation = 1566950400.0
         self.assertEqual(
             cast_to_decimal(
-                datetime.datetime(2019, 8, 28),
+                input_date,
                 TimestampType(),
                 DecimalType(precision=11, scale=1),
                 options=BASE_OPTIONS
             ),
-            1566939600.0 + self.tz_diff.seconds
+            gmt_expectation - tz_diff(input_date).seconds
         )
 
     def test_cast_float_to_decimal_with_scale(self):
