@@ -1238,7 +1238,7 @@ class Grouping(UnaryExpression):
     def eval(self, row, schema):
         metadata = row.get_metadata()
         if metadata is None or "grouping" not in metadata:
-            raise AnalysisException("grouping_id() can only be used with GroupingSets/Cube/Rollup")
+            raise AnalysisException("grouping() can only be used with GroupingSets/Cube/Rollup")
         pos = self.column.find_position_in_schema(schema)
         return int(metadata["grouping"][pos])
 
