@@ -119,7 +119,7 @@ class MapFromArraysColumn(Expression):
         )
 
     def data_type(self, schema):
-        if not self.keys:
+        if not isinstance(self.keys, Column) and not self.keys:
             return MapType(keyType=NullType, valueType=NullType)
         return MapType(
             keyType=self.keys[0].data_type(schema),
