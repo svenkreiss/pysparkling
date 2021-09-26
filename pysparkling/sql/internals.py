@@ -638,7 +638,7 @@ class DataFrameInternal:
         output += sep
         output += _generate_show_layout('|', padded_header)
         output += sep
-        output += '\n'.join(_generate_show_layout('|', row) for row in padded_rows)
+        output += ''.join(_generate_show_layout('|', row) for row in padded_rows)
         output += sep
         return output
 
