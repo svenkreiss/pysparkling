@@ -1,4 +1,5 @@
-from ..types import BooleanType, ArrayType, NullType, MapType, IntegerType, StringType, StructType
+from ..column import Column
+from ..types import ArrayType, BooleanType, IntegerType, MapType, NullType, StringType, StructType
 from ..utils import AnalysisException
 from .expressions import BinaryOperation, Expression, UnaryExpression
 
@@ -337,7 +338,7 @@ class ArraysZip(Expression):
 
     def eval(self, row, schema):
         return [
-            {i: v for i, v in enumerate(combination)}
+            dict(enumerate(combination))
             for combination in zip(
                 *(c.eval(row, schema) for c in self.columns)
             )

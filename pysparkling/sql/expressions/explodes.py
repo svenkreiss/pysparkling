@@ -1,4 +1,4 @@
-from ..types import DataType, IntegerType, StructField, StructType
+from ..types import IntegerType, StructField, StructType
 from .expressions import UnaryExpression
 
 

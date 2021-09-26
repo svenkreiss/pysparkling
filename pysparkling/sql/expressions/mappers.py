@@ -6,8 +6,10 @@ import string
 
 from ...utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
 from ..internal_utils.column import resolve_column
-from ..types import create_row, StringType, NullType, BooleanType, DoubleType, LongType, IntegerType, ArrayType, \
-    StructType, StructField, MapType, BinaryType
+from ..types import (
+    ArrayType, BinaryType, BooleanType, create_row, DoubleType, IntegerType, LongType, MapType, NullType, StringType,
+    StructField, StructType
+)
 from ..utils import AnalysisException
 from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from .operators import Cast

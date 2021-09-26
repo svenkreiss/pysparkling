@@ -1,7 +1,7 @@
 import string
 
 from ...utils import levenshtein_distance
-from ..types import StringType, IntegerType
+from ..types import IntegerType, StringType
 from .expressions import Expression, UnaryExpression
 from .operators import Cast
 

@@ -1,9 +1,9 @@
 import json
 
-from ..types import StringType
 from ...utils import get_json_encoder
 from ..internal_utils.options import Options
 from ..internal_utils.readers.jsonreader import JSONReader
+from ..types import StringType
 from .expressions import Expression
 
 

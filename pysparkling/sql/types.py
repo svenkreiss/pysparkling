@@ -26,7 +26,7 @@ import sys
 
 from sqlparser.internalparser import SqlParsingError
 
-from .utils import require_minimum_pandas_version, AnalysisException
+from .utils import AnalysisException, require_minimum_pandas_version
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -1144,20 +1144,19 @@ def merge_decimal_types(p1, s1, p2, s2, operation):
     if operation in ("add", "minus"):
         result_scale = max(s1, s2)
         return DecimalType.adjust_precision_scale(max(p1 - s1, p2 - s2) + result_scale + 1, result_scale)
-    elif operation == "multiply":
+    if operation == "multiply":
         return DecimalType.adjust_precision_scale(p1 + p2 + 1, s1 + s2)
-    elif operation == "divide":
+    if operation == "divide":
         result_scale = max(6, s1 + p2 + 1)
         return DecimalType.adjust_precision_scale(p1 - s1 + s2 + result_scale, result_scale)
-    elif operation == "mod":
+    if operation == "mod":
         result_scale = max(s1, s2)
         return DecimalType.adjust_precision_scale(min(p1 - s1, p2 - s2) + result_scale, result_scale)
-    elif operation in ("bitwise_or", "bitwise_and", "bitwise_xor"):
+    if operation in ("bitwise_or", "bitwise_and", "bitwise_xor"):
         if (p1, s1) != (p2, s2):
             raise AnalysisException("data type mismatch: differing types")
         return DecimalType.adjust_precision_scale(p1, s1)
-    else:
-        raise ValueError(f"Unknown operation {operation}")
+    raise ValueError(f"Unknown operation {operation}")
 
 
 def _need_converter(dataType):

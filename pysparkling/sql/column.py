@@ -688,6 +688,7 @@ class Column:
             try:
                 return schema[self.expr].dataType
             except KeyError:
+                # pylint: disable=raise-missing-from
                 raise AnalysisException(
                     f"cannot resolve '`{self.expr}`' given input columns: {schema.fields};"
                 )

@@ -1,5 +1,5 @@
 from ..casts import get_caster
-from ..types import Row, StructType, DoubleType, BooleanType, StringType, largest_numeric_type
+from ..types import BooleanType, DoubleType, largest_numeric_type, Row, StringType, StructType
 from .expressions import BinaryOperation, Expression, NullSafeBinaryOperation, TypeSafeBinaryOperation, UnaryExpression
 
 
