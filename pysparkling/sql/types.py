@@ -26,7 +26,7 @@ import sys
 
 from sqlparser.internalparser import SqlParsingError
 
-from .utils import require_minimum_pandas_version
+from .utils import require_minimum_pandas_version, AnalysisException
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -199,6 +199,9 @@ class DecimalType(FractionalType):
     :param scale: the number of digits on right side of dot. (default: 0)
     """
 
+    _MAX_PRECISION = 38
+    _MINIMUM_ADJUSTED_SCALE = 6
+
     def __init__(self, precision=10, scale=0):
         self.precision = precision
         self.scale = scale
@@ -212,6 +215,19 @@ class DecimalType(FractionalType):
 
     def __repr__(self):
         return "DecimalType(%d,%d)" % (self.precision, self.scale)
+
+    @classmethod
+    def adjust_precision_scale(cls, precision, scale):
+        if precision <= cls._MAX_PRECISION:
+            return cls(precision, scale)
+        if scale < 0:
+            return cls(cls._MAX_PRECISION, scale)
+
+        current_digits = precision - scale
+        min_scale_value = min(scale, cls._MINIMUM_ADJUSTED_SCALE)
+        adjusted_scale = max(cls._MAX_PRECISION - current_digits, min_scale_value)
+
+        return cls(cls._MAX_PRECISION, adjusted_scale)
 
 
 class DoubleType(FractionalType):
@@ -1091,6 +1107,57 @@ def _merge_type(a, b, name=None):
                        _merge_type(a.valueType, b.valueType, name='value of map %s' % name),
                        True)
     return a
+
+
+INTEGRAL_TYPES_ORDER = (
+    # DecimalType, FloatType, DoubleType,
+    ByteType, ShortType, IntegerType, LongType
+)
+
+
+def largest_numeric_type(a, b, operation):
+    if a == b:
+        return a
+    if not isinstance(a, NumericType) or not isinstance(b, NumericType):
+        raise AnalysisException(f"Expected two numeric types, got {a} and {b}")
+    a_is_fractional = isinstance(a, FractionalType)
+    b_is_fractional = isinstance(b, FractionalType)
+    if not a_is_fractional and not b_is_fractional:
+        a_index = INTEGRAL_TYPES_ORDER.index(a)
+        b_index = INTEGRAL_TYPES_ORDER.index(b)
+        return INTEGRAL_TYPES_ORDER[max(a_index, b_index)]
+    if a_is_fractional and not b_is_fractional:
+        return a
+    if not a_is_fractional and b_is_fractional:
+        return b
+    if isinstance(a, (FloatType, DoubleType)) and isinstance(b, (FloatType, DoubleType)):
+        return DoubleType()
+    if isinstance(a, DecimalType) and isinstance(b, DecimalType):
+        return merge_decimal_types(a.precision, a.scale, b.precision, b.scale, operation)
+    raise AnalysisException(f"Unable to merge types {a} and {b}")
+
+
+def merge_decimal_types(p1, s1, p2, s2, operation):
+    """
+    Computes from 2 decimals precision and scale the operation result type
+    """
+    if operation in ("add", "minus"):
+        result_scale = max(s1, s2)
+        return DecimalType.adjust_precision_scale(max(p1 - s1, p2 - s2) + result_scale + 1, result_scale)
+    elif operation == "multiply":
+        return DecimalType.adjust_precision_scale(p1 + p2 + 1, s1 + s2)
+    elif operation == "divide":
+        result_scale = max(6, s1 + p2 + 1)
+        return DecimalType.adjust_precision_scale(p1 - s1 + s2 + result_scale, result_scale)
+    elif operation == "mod":
+        result_scale = max(s1, s2)
+        return DecimalType.adjust_precision_scale(min(p1 - s1, p2 - s2) + result_scale, result_scale)
+    elif operation in ("bitwise_or", "bitwise_and", "bitwise_xor"):
+        if (p1, s1) != (p2, s2):
+            raise AnalysisException("data type mismatch: differing types")
+        return DecimalType.adjust_precision_scale(p1, s1)
+    else:
+        raise ValueError(f"Unknown operation {operation}")
 
 
 def _need_converter(dataType):
