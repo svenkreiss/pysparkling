@@ -598,7 +598,7 @@ class Rint(UnaryExpression):
     pretty_name = "ROUND"
 
     def eval(self, row, schema):
-        return round(self.column.eval(row, schema))
+        return float(round(self.column.eval(row, schema)))
 
     def data_type(self, schema):
         return DoubleType()
@@ -745,7 +745,7 @@ class ShiftLeft(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        return self.arg.eval(row, schema) << self.num_bits
+        return int(self.arg.eval(row, schema)) << self.num_bits
 
     def args(self):
         return (
@@ -766,7 +766,7 @@ class ShiftRight(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        return self.arg.eval(row, schema) >> self.num_bits
+        return int(self.arg.eval(row, schema)) >> self.num_bits
 
     def args(self):
         return (
@@ -787,7 +787,7 @@ class ShiftRightUnsigned(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        rightShifted = self.arg.eval(row, schema) >> self.num_bits
+        rightShifted = int(self.arg.eval(row, schema)) >> self.num_bits
         return rightShifted % JVM_MAX_INTEGER_SIZE
 
     def args(self):
