@@ -2,6 +2,7 @@ from ..casts import NO_TIMESTAMP_CONVERSION
 from ..internal_utils.options import Options
 from ..internal_utils.readers.csvreader import csv_record_to_row, CSVReader
 from ..internal_utils.readers.utils import guess_schema_from_strings
+from ..types import StringType
 from ..utils import AnalysisException
 from .expressions import Expression
 
@@ -33,3 +34,6 @@ class SchemaOfCsv(Expression):
 
     def args(self):
         return (self.column,)
+
+    def data_type(self, schema):
+        return StringType()
