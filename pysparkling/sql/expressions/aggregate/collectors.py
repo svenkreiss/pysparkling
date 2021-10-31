@@ -124,7 +124,7 @@ class Last(Aggregation):
 class CountDistinct(Aggregation):
     pretty_name = "count"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
         self.items = set()

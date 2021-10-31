@@ -515,3 +515,15 @@ def get_datetime_parser(java_time_format):
     for token, _ in JAVA_TIME_FORMAT_TOKENS.findall(java_time_format):
         python_pattern += FORMAT_MAPPING.get(token, token)
     return lambda value: datetime.datetime.strptime(value, python_pattern)
+
+
+def tz_diff(date):
+    """
+    Return as a timedelta the offset on this date for the local timezone compared to UTC
+    """
+    time_here = date.astimezone()
+    time_utc = time_here.replace(tzinfo=pytz.utc)
+
+    offset = time_utc - time_here
+
+    return offset

@@ -40,7 +40,7 @@ class ArrayContains(Expression):
 class ArrayColumn(Expression):
     pretty_name = "array"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
 
@@ -54,7 +54,7 @@ class ArrayColumn(Expression):
 class MapColumn(Expression):
     pretty_name = "map"
 
-    def __init__(self, columns):
+    def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
         self.keys = columns[::2]
@@ -253,20 +253,20 @@ class SortArray(Expression):
 class ArraysZip(Expression):
     pretty_name = "arrays_zip"
 
-    def __init__(self, cols):
-        super().__init__(*cols)
-        self.cols = cols
+    def __init__(self, columns):
+        super().__init__(*columns)
+        self.columns = columns
 
     def eval(self, row, schema):
         return [
             list(combination)
             for combination in zip(
-                *(c.eval(row, schema) for c in self.cols)
+                *(c.eval(row, schema) for c in self.columns)
             )
         ]
 
     def args(self):
-        return self.cols
+        return self.columns
 
 
 class Flatten(UnaryExpression):

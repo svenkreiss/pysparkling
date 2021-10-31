@@ -5,16 +5,16 @@ from ..utils import AnalysisException
 expression_registry = {}
 
 
-class RegisterExpressions(type):
+class RegisteredExpressions(type):
     pretty_name = None
 
     def __init__(cls, what, bases, dct):
         super().__init__(what, bases, dct)
         if cls.pretty_name is not None:
-            expression_registry[cls.pretty_name] = cls
+            expression_registry[cls.pretty_name.lower()] = cls
 
 
-class Expression(metaclass=RegisterExpressions):
+class Expression(metaclass=RegisteredExpressions):
     pretty_name = None
 
     def __init__(self, *children):

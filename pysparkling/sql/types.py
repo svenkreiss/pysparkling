@@ -24,7 +24,9 @@ import os
 import re
 import sys
 
-from .utils import ParseException, require_minimum_pandas_version
+from sqlparser.internalparser import SqlParsingError
+
+from .utils import require_minimum_pandas_version
 
 __all__ = [
     "DataType", "NullType", "StringType", "BinaryType", "BooleanType", "DateType",
@@ -553,19 +555,20 @@ class StructType(DataType):
 
     def treeString(self):
         """
-        >>> schema = StructType.fromDDL('some_str: string, some_int: integer, some_date: date')
+        >>> from pysparkling.sql.ast.ast_to_python import parse_ddl_string
+        >>> schema = parse_ddl_string('some_str: string, some_int: integer, some_date: date')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- some_int: integer (nullable = true)
          |-- some_date: date (nullable = true)
 
-        >>> schema = StructType.fromDDL('some_str: string, arr: array<string>')
+        >>> schema = parse_ddl_string('some_str: string, arr: array<string>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- arr: array (nullable = true)
          |    |-- element: string (containsNull = true)
 
-        >>> schema = StructType.fromDDL('some_str: string, arr: array<array<string>>')
+        >>> schema = parse_ddl_string('some_str: string, arr: array<array<string>>')
         >>> print(schema.treeString())
          |-- some_str: string (nullable = true)
          |-- arr: array (nullable = true)
@@ -690,29 +693,6 @@ class StructType(DataType):
         else:
             values = obj
         return create_row(self.names, values)
-
-    @classmethod
-    def fromDDL(cls, string):
-        def get_class(type_: str) -> DataType:
-            type_to_load = f'{type_.strip().title()}Type'
-
-            if type_to_load not in globals():
-                match = re.match(r'^\s*array\s*<(.*)>\s*$', type_, flags=re.IGNORECASE)
-                if match:
-                    return ArrayType(get_class(match.group(1)))
-
-                raise ValueError(f"Couldn't find '{type_to_load}'?")
-
-            return globals()[type_to_load]()
-
-        fields = StructType()
-
-        for description in string.split(','):
-            name, type_ = [x.strip() for x in description.split(':')]
-
-            fields.add(StructField(name.strip(), get_class(type_), True))
-
-        return fields
 
 
 class UserDefinedType(DataType):
@@ -846,34 +826,9 @@ def _parse_datatype_string(s):
     for :class:`IntegerType`. Since Spark 2.3, this also supports a schema in a DDL-formatted
     string and case-insensitive strings.
     """
-    raise NotImplementedError("_parse_datatype_string is not yet supported by pysparkling")
-    # pylint: disable=W0511
-    # todo: implement in pure Python the code below
-    # NB: it probably requires to use antl4r
-
-    # sc = SparkContext._active_spark_context
-    #
-    # def from_ddl_schema(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.types.StructType.fromDDL(type_str).json())
-    #
-    # def from_ddl_datatype(type_str):
-    #     return _parse_datatype_json_string(
-    #         sc._jvm.org.apache.spark.sql.api.python.PythonSQLUtils.parseDataType(type_str).json())
-    #
-    # try:
-    #     # DDL format, "fieldname datatype, fieldname datatype".
-    #     return from_ddl_schema(s)
-    # except Exception as e:
-    #     try:
-    #         # For backwards compatibility, "integer", "struct<fieldname: datatype>" and etc.
-    #         return from_ddl_datatype(s)
-    #     except:
-    #         try:
-    #             # For backwards compatibility, "fieldname: datatype, fieldname: datatype" case.
-    #             return from_ddl_datatype("struct<%s>" % s.strip())
-    #         except:
-    #             raise e
+    # pylint: disable=import-outside-toplevel, cyclic-import
+    from pysparkling.sql.ast.ast_to_python import parse_ddl_string
+    return parse_ddl_string(s)
 
 
 def _parse_datatype_json_string(json_string):
@@ -1840,31 +1795,47 @@ STRING_TO_TYPE = dict(
     byte=ByteType(),
     smallint=ShortType(),
     short=ShortType(),
-    int=LongType(),
-    integer=LongType(),
+    int=IntegerType(),
+    integer=IntegerType(),
     bigint=LongType(),
     long=LongType(),
     float=FloatType(),
+    real=FloatType(),
     double=DoubleType(),
     date=DateType(),
     timestamp=TimestampType(),
     string=StringType(),
     binary=BinaryType(),
-    decimal=DecimalType()
+    decimal=DecimalType(),
+    dec=DecimalType(),
+    numeric=DecimalType(),
+    struct=StructType(),
 )
 
 
-def string_to_type(string):
-    if string in STRING_TO_TYPE:
-        return STRING_TO_TYPE[string]
-    if string.startswith("decimal("):
-        arguments = string[8:-1]
-        if arguments.count(",") == 1:
-            precision, scale = arguments.split(",")
+def parsed_string_to_type(data_type, arguments):
+    data_type = data_type.lower()
+    if not arguments and data_type in STRING_TO_TYPE:
+        return STRING_TO_TYPE[data_type]
+    if data_type in ("dec", "decimal"):
+        if len(arguments) == 2:
+            precision, scale = arguments
+        elif len(arguments) == 1:
+            precision, scale = arguments[0], 0
         else:
-            precision, scale = arguments, 0
+            raise SqlParsingError("Unrecognized decimal parameters: {0}".format(arguments))
         return DecimalType(precision=int(precision), scale=int(scale))
-    raise ParseException(f"Unable to parse data type {string}")
+    if data_type == "array" and len(arguments) == 1:
+        return ArrayType(arguments[0])
+    if data_type == "map" and len(arguments) == 2:
+        return MapType(arguments[0], arguments[1])
+    if data_type == "struct" and len(arguments) == 1 and all(len(arg) >= 2 for arg in arguments[0]):
+        return StructType([StructField(*arg) for arg in arguments[0]])
+    if data_type in ("char", "varchar") and len(arguments) == 1:
+        return StringType()
+    raise SqlParsingError(
+        "Unable to parse data type {0}{1}".format(data_type, arguments if arguments else "")
+    )
 
 
 # Internal type hierarchy:

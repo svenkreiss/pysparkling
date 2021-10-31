@@ -8,7 +8,7 @@ from .expressions.operators import (
     Or, Pow, StartsWith, Substring, Time
 )
 from .expressions.orders import Asc, AscNullsFirst, AscNullsLast, Desc, DescNullsFirst, DescNullsLast, SortOrder
-from .types import DataType, string_to_type, StructField
+from .types import DataType, StructField
 from .utils import AnalysisException, IllegalArgumentException
 
 
@@ -469,7 +469,7 @@ class Column:
             raise ValueError('Pysparkling does not support alias with metadata')
 
         if len(alias) == 1:
-            return Column(Alias(self, Literal(alias[0])))
+            return Column(Alias(self, alias[0]))
         # pylint: disable=W0511
         # todo: support it
         raise ValueError('Pysparkling does not support multiple aliases')
@@ -511,7 +511,9 @@ class Column:
         """
 
         if isinstance(dataType, str):
-            dataType = string_to_type(dataType)
+            # pylint: disable=import-outside-toplevel, cyclic-import
+            from pysparkling.sql.ast.ast_to_python import parse_data_type
+            dataType = parse_data_type(dataType)
         elif not isinstance(dataType, DataType):
             raise NotImplementedError(f"Unknown cast type: {dataType}")
 
