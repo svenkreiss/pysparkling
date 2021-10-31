@@ -1,5 +1,5 @@
 from ..casts import get_caster
-from ..types import Row, StructType
+from ..types import BooleanType, DoubleType, largest_numeric_type, Row, StringType, StructType
 from .expressions import BinaryOperation, Expression, NullSafeBinaryOperation, TypeSafeBinaryOperation, UnaryExpression
 
 
@@ -10,6 +10,9 @@ class Negate(UnaryExpression):
     def __str__(self):
         return f"(- {self.column})"
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class Add(NullSafeBinaryOperation):
     def unsafe_operation(self, value1, value2):
@@ -17,6 +20,11 @@ class Add(NullSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} + {self.arg2})"
+
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="add")
 
 
 class Minus(NullSafeBinaryOperation):
@@ -26,6 +34,11 @@ class Minus(NullSafeBinaryOperation):
     def __str__(self):
         return f"({self.arg1} - {self.arg2})"
 
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="minus")
+
 
 class Time(NullSafeBinaryOperation):
     def unsafe_operation(self, value1, value2):
@@ -33,6 +46,11 @@ class Time(NullSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} * {self.arg2})"
+
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="multiply")
 
 
 class Divide(NullSafeBinaryOperation):
@@ -42,6 +60,11 @@ class Divide(NullSafeBinaryOperation):
     def __str__(self):
         return f"({self.arg1} / {self.arg2})"
 
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="divide")
+
 
 class Mod(NullSafeBinaryOperation):
     def unsafe_operation(self, value1, value2):
@@ -49,6 +72,11 @@ class Mod(NullSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} % {self.arg2})"
+
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="mod")
 
 
 class Pow(NullSafeBinaryOperation):
@@ -58,6 +86,9 @@ class Pow(NullSafeBinaryOperation):
     def __str__(self):
         return f"POWER({self.arg1}, {self.arg2})"
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Equal(TypeSafeBinaryOperation):
     def unsafe_operation(self, value_1, value_2):
@@ -65,6 +96,9 @@ class Equal(TypeSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} = {self.arg2})"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class LessThan(TypeSafeBinaryOperation):
@@ -74,6 +108,9 @@ class LessThan(TypeSafeBinaryOperation):
     def __str__(self):
         return f"({self.arg1} < {self.arg2})"
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class LessThanOrEqual(TypeSafeBinaryOperation):
     def unsafe_operation(self, value_1, value_2):
@@ -81,6 +118,9 @@ class LessThanOrEqual(TypeSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} <= {self.arg2})"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class GreaterThan(TypeSafeBinaryOperation):
@@ -90,6 +130,9 @@ class GreaterThan(TypeSafeBinaryOperation):
     def __str__(self):
         return f"({self.arg1} > {self.arg2})"
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class GreaterThanOrEqual(TypeSafeBinaryOperation):
     def unsafe_operation(self, value_1, value_2):
@@ -97,6 +140,9 @@ class GreaterThanOrEqual(TypeSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} >= {self.arg2})"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class And(TypeSafeBinaryOperation):
@@ -106,6 +152,9 @@ class And(TypeSafeBinaryOperation):
     def __str__(self):
         return f"({self.arg1} AND {self.arg2})"
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class Or(TypeSafeBinaryOperation):
     def unsafe_operation(self, value_1, value_2):
@@ -113,6 +162,9 @@ class Or(TypeSafeBinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} OR {self.arg2})"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class Invert(UnaryExpression):
@@ -125,6 +177,9 @@ class Invert(UnaryExpression):
     def __str__(self):
         return f"(NOT {self.column})"
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class BitwiseOr(BinaryOperation):
     def eval(self, row, schema):
@@ -132,6 +187,11 @@ class BitwiseOr(BinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} | {self.arg2})"
+
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="bitwise_or")
 
 
 class BitwiseAnd(BinaryOperation):
@@ -141,6 +201,11 @@ class BitwiseAnd(BinaryOperation):
     def __str__(self):
         return f"({self.arg1} & {self.arg2})"
 
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="bitwise_and")
+
 
 class BitwiseXor(BinaryOperation):
     def eval(self, row, schema):
@@ -148,6 +213,11 @@ class BitwiseXor(BinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} ^ {self.arg2})"
+
+    def data_type(self, schema):
+        type1 = self.arg1.data_type(schema)
+        type2 = self.arg2.data_type(schema)
+        return largest_numeric_type(type1, type2, operation="bitwise_xor")
 
 
 class BitwiseNot(UnaryExpression):
@@ -157,6 +227,9 @@ class BitwiseNot(UnaryExpression):
     def __str__(self):
         return f"~{self.column}"
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class EqNullSafe(BinaryOperation):
     def eval(self, row, schema):
@@ -164,6 +237,9 @@ class EqNullSafe(BinaryOperation):
 
     def __str__(self):
         return f"({self.arg1} <=> {self.arg2})"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class GetField(Expression):
@@ -217,6 +293,9 @@ class Contains(Expression):
             self.value
         )
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class StartsWith(Expression):
     pretty_name = "startswith"
@@ -234,6 +313,9 @@ class StartsWith(Expression):
             self.arg1,
             self.substr
         )
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class EndsWith(Expression):
@@ -253,6 +335,9 @@ class EndsWith(Expression):
             self.substr
         )
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class IsIn(Expression):
     def __init__(self, arg1, cols):
@@ -270,6 +355,9 @@ class IsIn(Expression):
     def args(self):
         return [self.arg1] + self.cols
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class IsNotNull(UnaryExpression):
     def eval(self, row, schema):
@@ -277,6 +365,9 @@ class IsNotNull(UnaryExpression):
 
     def __str__(self):
         return f"({self.column} IS NOT NULL)"
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class IsNull(UnaryExpression):
@@ -286,18 +377,25 @@ class IsNull(UnaryExpression):
     def __str__(self):
         return f"({self.column} IS NULL)"
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class Cast(Expression):
     def __init__(self, column, destination_type):
         super().__init__(column)
         self.column = column
         self.destination_type = destination_type
-        self.caster = get_caster(
-            from_type=self.column.data_type, to_type=destination_type, options={}
-        )
 
     def eval(self, row, schema):
-        return self.caster(self.column.eval(row, schema))
+        caster = get_caster(
+            from_type=self.column.data_type(schema),
+            to_type=self.destination_type,
+            options={}
+        )
+        return caster(
+            self.column.eval(row, schema)
+        )
 
     def __str__(self):
         return str(self.column)
@@ -310,6 +408,9 @@ class Cast(Expression):
             self.column,
             self.destination_type
         )
+
+    def data_type(self, schema):
+        return self.destination_type
 
 
 class Substring(Expression):
@@ -331,12 +432,15 @@ class Substring(Expression):
             self.length
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Alias(Expression):
-    def __init__(self, expr, alias):
+    def __init__(self, expr, alias: str):
         super().__init__(expr, alias)
         self.expr = expr
-        self.alias = alias.get_literal_value()
+        self.alias = alias
 
     @property
     def may_output_multiple_cols(self):
@@ -362,6 +466,9 @@ class Alias(Expression):
             self.alias
         )
 
+    def data_type(self, schema):
+        return self.expr.data_type(schema)
+
 
 class UnaryPositive(UnaryExpression):
     def eval(self, row, schema):
@@ -369,6 +476,9 @@ class UnaryPositive(UnaryExpression):
 
     def __str__(self):
         return f"(+ {self.column})"
+
+    def data_type(self, schema):
+        return self.column.data_type(schema)
 
 
 __all__ = [

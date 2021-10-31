@@ -358,20 +358,21 @@ class DataFrameInternal:
 
         def select_mapper(partition_index, partition):
             # Initialize non deterministic functions so that they are reproducible
-            initialized_cols = [col.initialize(partition_index) for col in cols]
-            generators = [col for col in initialized_cols if col.may_output_multiple_rows]
-            non_generators = [col for col in initialized_cols if not col.may_output_multiple_rows]
+            for col in cols:
+                col.initialize(partition_index)
+            generators = [col for col in cols if col.may_output_multiple_rows]
+            non_generators = [col for col in cols if not col.may_output_multiple_rows]
             number_of_generators = len(generators)
             if number_of_generators > 1:
                 raise Exception(
                     "Only one generator allowed per select clause"
-                    f" but found {number_of_generators}: {', '.join(generators)}"
+                    f" but found {number_of_generators}: {', '.join(str(g) for g in generators)}"
                 )
 
             return self.get_select_output_field_lists(
                 partition,
                 non_generators,
-                initialized_cols,
+                cols,
                 generators[0] if generators else None
             )
 
@@ -423,8 +424,8 @@ class DataFrameInternal:
         condition = parse(condition)
 
         def mapper(partition_index, partition):
-            initialized_condition = condition.initialize(partition_index)
-            return (row for row in partition if initialized_condition.eval(row, self.bound_schema))
+            condition.initialize(partition_index)
+            return (row for row in partition if condition.eval(row, self.bound_schema))
 
         return self._with_rdd(
             self._rdd.mapPartitionsWithIndex(mapper),
@@ -637,7 +638,7 @@ class DataFrameInternal:
         output += sep
         output += _generate_show_layout('|', padded_header)
         output += sep
-        output += '\n'.join(_generate_show_layout('|', row) for row in padded_rows)
+        output += ''.join(_generate_show_layout('|', row) for row in padded_rows)
         output += sep
         return output
 

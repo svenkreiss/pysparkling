@@ -18,5 +18,8 @@ class UserDefinedFunction(Expression):
     def args(self):
         return self.exprs
 
+    def data_type(self, schema):
+        return self.return_type
+
 
 __all__ = ["UserDefinedFunction"]
