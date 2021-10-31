@@ -6,7 +6,10 @@ import string
 
 from ...utils import half_even_round, half_up_round, MonotonicallyIncreasingIDGenerator, XORShiftRandom
 from ..internal_utils.column import resolve_column
-from ..types import create_row, StringType
+from ..types import (
+    ArrayType, BinaryType, BooleanType, create_row, DoubleType, IntegerType, LongType, MapType, NullType, StringType,
+    StructField, StructType
+)
 from ..utils import AnalysisException
 from .expressions import Expression, NullSafeColumnOperation, UnaryExpression
 from .operators import Cast
@@ -72,6 +75,9 @@ class CaseWhen(Expression):
             default
         )
 
+    def data_type(self, schema):
+        return self.values[0].data_type(schema)
+
 
 class Otherwise(Expression):
     def __init__(self, conditions, values, default):
@@ -105,6 +111,9 @@ class Otherwise(Expression):
             self.default
         )
 
+    def data_type(self, schema):
+        return self.values[0].data_type(schema)
+
 
 class RegExpExtract(Expression):
     pretty_name = "regexp_extract"
@@ -137,6 +146,9 @@ class RegExpExtract(Expression):
             self.groupIdx
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class RegExpReplace(Expression):
     pretty_name = "regexp_replace"
@@ -161,6 +173,9 @@ class RegExpReplace(Expression):
             self.replacement
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Round(NullSafeColumnOperation):
     pretty_name = "round"
@@ -178,6 +193,9 @@ class Round(NullSafeColumnOperation):
             self.scale
         )
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class Bround(NullSafeColumnOperation):
     pretty_name = "bround"
@@ -194,6 +212,9 @@ class Bround(NullSafeColumnOperation):
             self.column,
             self.scale
         )
+
+    def data_type(self, schema):
+        return self.column.data_type(schema)
 
 
 class FormatNumber(Expression):
@@ -219,6 +240,9 @@ class FormatNumber(Expression):
             self.digits
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class SubstringIndex(Expression):
     pretty_name = "substring_index"
@@ -240,6 +264,9 @@ class SubstringIndex(Expression):
             self.count
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Coalesce(Expression):
     pretty_name = "coalesce"
@@ -258,12 +285,22 @@ class Coalesce(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        for col in self.columns:
+            col_type = col.data_type(schema)
+            if col_type != NullType():
+                return col_type
+        return NullType()
+
 
 class IsNaN(UnaryExpression):
     pretty_name = "isnan"
 
     def eval(self, row, schema):
         return math.isnan(self.eval(row, schema))
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class NaNvl(Expression):
@@ -287,6 +324,9 @@ class NaNvl(Expression):
             self.col2
         )
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Hypot(Expression):
     pretty_name = "hypot"
@@ -305,12 +345,18 @@ class Hypot(Expression):
             self.b
         )
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Sqrt(UnaryExpression):
     pretty_name = "SQRT"
 
     def eval(self, row, schema):
         return math.sqrt(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Cbrt(UnaryExpression):
@@ -319,12 +365,18 @@ class Cbrt(UnaryExpression):
     def eval(self, row, schema):
         return self.column.eval(row, schema) ** 1. / 3.
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Abs(UnaryExpression):
     pretty_name = "ABS"
 
     def eval(self, row, schema):
         return abs(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return self.column.data_type(schema)
 
 
 class Acos(UnaryExpression):
@@ -333,6 +385,9 @@ class Acos(UnaryExpression):
     def eval(self, row, schema):
         return math.acos(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Asin(UnaryExpression):
     pretty_name = "ASIN"
@@ -340,12 +395,18 @@ class Asin(UnaryExpression):
     def eval(self, row, schema):
         return math.asin(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Atan(UnaryExpression):
     pretty_name = "ATAN"
 
     def eval(self, row, schema):
         return math.atan(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Atan2(Expression):
@@ -365,12 +426,18 @@ class Atan2(Expression):
             self.x
         )
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Tan(UnaryExpression):
     pretty_name = "TAN"
 
     def eval(self, row, schema):
         return math.tan(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Tanh(UnaryExpression):
@@ -379,12 +446,18 @@ class Tanh(UnaryExpression):
     def eval(self, row, schema):
         return math.tanh(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Cos(UnaryExpression):
     pretty_name = "COS"
 
     def eval(self, row, schema):
         return math.cos(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Cosh(UnaryExpression):
@@ -393,12 +466,18 @@ class Cosh(UnaryExpression):
     def eval(self, row, schema):
         return math.cosh(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Sin(UnaryExpression):
     pretty_name = "SIN"
 
     def eval(self, row, schema):
         return math.sin(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Sinh(UnaryExpression):
@@ -407,12 +486,18 @@ class Sinh(UnaryExpression):
     def eval(self, row, schema):
         return math.sinh(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Exp(UnaryExpression):
     pretty_name = "EXP"
 
     def eval(self, row, schema):
         return math.exp(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class ExpM1(UnaryExpression):
@@ -421,12 +506,18 @@ class ExpM1(UnaryExpression):
     def eval(self, row, schema):
         return math.expm1(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Factorial(UnaryExpression):
     pretty_name = "factorial"
 
     def eval(self, row, schema):
         return math.factorial(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return LongType()
 
 
 class Floor(UnaryExpression):
@@ -435,12 +526,18 @@ class Floor(UnaryExpression):
     def eval(self, row, schema):
         return math.floor(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return LongType()
+
 
 class Ceil(UnaryExpression):
     pretty_name = "CEIL"
 
     def eval(self, row, schema):
         return math.ceil(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return LongType()
 
 
 class Log(Expression):
@@ -459,11 +556,14 @@ class Log(Expression):
 
     def args(self):
         if self.base == math.e:
-            return (self.value, )
+            return (self.value,)
         return (
             self.base,
             self.value
         )
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Log10(UnaryExpression):
@@ -472,12 +572,18 @@ class Log10(UnaryExpression):
     def eval(self, row, schema):
         return math.log10(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Log2(UnaryExpression):
     pretty_name = "LOG2"
 
     def eval(self, row, schema):
         return math.log(self.column.eval(row, schema), 2)
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Log1p(UnaryExpression):
@@ -486,12 +592,18 @@ class Log1p(UnaryExpression):
     def eval(self, row, schema):
         return math.log1p(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Rint(UnaryExpression):
     pretty_name = "ROUND"
 
     def eval(self, row, schema):
-        return round(self.column.eval(row, schema))
+        return float(round(self.column.eval(row, schema)))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Signum(UnaryExpression):
@@ -505,6 +617,9 @@ class Signum(UnaryExpression):
             return 1.0
         return -1.0
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class ToDegrees(UnaryExpression):
     pretty_name = "DEGREES"
@@ -512,12 +627,18 @@ class ToDegrees(UnaryExpression):
     def eval(self, row, schema):
         return math.degrees(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class ToRadians(UnaryExpression):
     pretty_name = "RADIANS"
 
     def eval(self, row, schema):
         return math.radians(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        return DoubleType()
 
 
 class Rand(Expression):
@@ -537,6 +658,9 @@ class Rand(Expression):
     def args(self):
         return self.seed
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class Randn(Expression):
     pretty_name = "randn"
@@ -555,6 +679,9 @@ class Randn(Expression):
     def args(self):
         return self.seed
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class SparkPartitionID(Expression):
     pretty_name = "SPARK_PARTITION_ID"
@@ -571,6 +698,9 @@ class SparkPartitionID(Expression):
 
     def args(self):
         return ()
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class CreateStruct(Expression):
@@ -591,12 +721,21 @@ class CreateStruct(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        return StructType([
+            StructField(name=str(col), dataType=col.data_type(schema), nullable=True)
+            for col in self.columns
+        ])
+
 
 class Bin(UnaryExpression):
     pretty_name = "bin"
 
     def eval(self, row, schema):
         return format(self.column.eval(row, schema), 'b')
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class ShiftLeft(Expression):
@@ -608,13 +747,16 @@ class ShiftLeft(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        return self.arg.eval(row, schema) << self.num_bits
+        return int(self.arg.eval(row, schema)) << self.num_bits
 
     def args(self):
         return (
             self.arg,
             self.num_bits
         )
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class ShiftRight(Expression):
@@ -626,13 +768,16 @@ class ShiftRight(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        return self.arg.eval(row, schema) >> self.num_bits
+        return int(self.arg.eval(row, schema)) >> self.num_bits
 
     def args(self):
         return (
             self.arg,
             self.num_bits
         )
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class ShiftRightUnsigned(Expression):
@@ -644,7 +789,7 @@ class ShiftRightUnsigned(Expression):
         self.num_bits = num_bits.get_literal_value()
 
     def eval(self, row, schema):
-        rightShifted = self.arg.eval(row, schema) >> self.num_bits
+        rightShifted = int(self.arg.eval(row, schema)) >> self.num_bits
         return rightShifted % JVM_MAX_INTEGER_SIZE
 
     def args(self):
@@ -652,6 +797,9 @@ class ShiftRightUnsigned(Expression):
             self.arg,
             self.num_bits
         )
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class Greatest(Expression):
@@ -668,6 +816,11 @@ class Greatest(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        if not self.columns:
+            return NullType()
+        return self.columns[0].data_type(schema)
+
 
 class Least(Expression):
     pretty_name = "least"
@@ -683,12 +836,20 @@ class Least(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        if not self.columns:
+            return NullType()
+        return self.columns[0].data_type(schema)
+
 
 class Length(UnaryExpression):
     pretty_name = "length"
 
     def eval(self, row, schema):
         return len(str(self.column.eval(row, schema)))
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class Lower(UnaryExpression):
@@ -697,12 +858,18 @@ class Lower(UnaryExpression):
     def eval(self, row, schema):
         return str(self.column.eval(row, schema)).lower()
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Upper(UnaryExpression):
     pretty_name = "upper"
 
     def eval(self, row, schema):
         return str(self.column.eval(row, schema)).upper()
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class Concat(Expression):
@@ -717,6 +884,9 @@ class Concat(Expression):
 
     def args(self):
         return self.columns
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class ConcatWs(Expression):
@@ -735,12 +905,18 @@ class ConcatWs(Expression):
             return [self.sep] + list(self.columns)
         return [self.sep]
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Reverse(UnaryExpression):
     pretty_name = "reverse"
 
     def eval(self, row, schema):
         return str(self.column.eval(row, schema))[::-1]
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class MapKeys(UnaryExpression):
@@ -749,12 +925,18 @@ class MapKeys(UnaryExpression):
     def eval(self, row, schema):
         return list(self.column.eval(row, schema).keys())
 
+    def data_type(self, schema):
+        return ArrayType(elementType=self.column.data_type(schema).keyType)
+
 
 class MapValues(UnaryExpression):
     pretty_name = "map_values"
 
     def eval(self, row, schema):
         return list(self.column.eval(row, schema).values())
+
+    def data_type(self, schema):
+        return ArrayType(elementType=self.column.data_type(schema).valueType)
 
 
 class MapEntries(UnaryExpression):
@@ -763,12 +945,24 @@ class MapEntries(UnaryExpression):
     def eval(self, row, schema):
         return list(self.column.eval(row, schema).items())
 
+    def data_type(self, schema):
+        return ArrayType(elementType=self.column.data_type(schema).valueType)
+
 
 class MapFromEntries(UnaryExpression):
     pretty_name = "map_from_entries"
 
     def eval(self, row, schema):
         return dict(self.column.eval(row, schema))
+
+    def data_type(self, schema):
+        map_type = self.column.data_type(schema)
+        key_type = map_type.keyType
+        value_type = map_type.valueType
+        return ArrayType(elementType=StructType([
+            StructField("key", key_type, True),
+            StructField("value", value_type, True),
+        ]))
 
 
 class MapConcat(Expression):
@@ -788,6 +982,11 @@ class MapConcat(Expression):
 
     def args(self):
         return self.columns
+
+    def data_type(self, schema):
+        if not self.columns:
+            return MapType(keyType=StringType(), valueType=StringType)
+        return self.columns[0].data_type(schema)
 
 
 class StringSplit(Expression):
@@ -815,6 +1014,9 @@ class StringSplit(Expression):
             self.regex,
             self.limit
         )
+
+    def data_type(self, schema):
+        return ArrayType(elementType=StringType())
 
 
 class Conv(Expression):
@@ -916,6 +1118,9 @@ class Conv(Expression):
 
         return returned_string
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Hex(UnaryExpression):
     pretty_name = "hex"
@@ -927,6 +1132,9 @@ class Hex(UnaryExpression):
             to_base=16,
             positive_only=True
         )
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class Unhex(UnaryExpression):
@@ -940,6 +1148,9 @@ class Unhex(UnaryExpression):
             positive_only=True
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class Ascii(UnaryExpression):
     pretty_name = "ascii"
@@ -952,6 +1163,9 @@ class Ascii(UnaryExpression):
         if not value_as_string:
             return None
         return ord(value_as_string[0])
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class MonotonicallyIncreasingID(Expression):
@@ -970,6 +1184,9 @@ class MonotonicallyIncreasingID(Expression):
     def args(self):
         return ()
 
+    def data_type(self, schema):
+        return LongType()
+
 
 class Base64(UnaryExpression):
     pretty_name = "base64"
@@ -979,6 +1196,9 @@ class Base64(UnaryExpression):
         encoded = base64.b64encode(bytes(value, encoding="utf-8"))
         return str(encoded)[2:-1]
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class UnBase64(UnaryExpression):
     pretty_name = "unbase64"
@@ -986,6 +1206,9 @@ class UnBase64(UnaryExpression):
     def eval(self, row, schema):
         value = self.column.eval(row, schema)
         return bytearray(base64.b64decode(value))
+
+    def data_type(self, schema):
+        return BinaryType()
 
 
 class GroupingID(Expression):
@@ -1007,6 +1230,9 @@ class GroupingID(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class Grouping(UnaryExpression):
     pretty_name = "grouping"
@@ -1014,9 +1240,12 @@ class Grouping(UnaryExpression):
     def eval(self, row, schema):
         metadata = row.get_metadata()
         if metadata is None or "grouping" not in metadata:
-            raise AnalysisException("grouping_id() can only be used with GroupingSets/Cube/Rollup")
+            raise AnalysisException("grouping() can only be used with GroupingSets/Cube/Rollup")
         pos = self.column.find_position_in_schema(schema)
         return int(metadata["grouping"][pos])
+
+    def data_type(self, schema):
+        return self.column.data_type(schema)
 
 
 class InputFileName(Expression):
@@ -1030,6 +1259,9 @@ class InputFileName(Expression):
 
     def args(self):
         return ()
+
+    def data_type(self, schema):
+        return StringType()
 
 
 __all__ = [

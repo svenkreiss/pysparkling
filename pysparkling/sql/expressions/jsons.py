@@ -3,6 +3,7 @@ import json
 from ...utils import get_json_encoder
 from ..internal_utils.options import Options
 from ..internal_utils.readers.jsonreader import JSONReader
+from ..types import StringType
 from .expressions import Expression
 
 
@@ -36,6 +37,9 @@ class StructsToJson(Expression):
             self.column,
             self.input_options
         )
+
+    def data_type(self, schema):
+        return StringType()
 
 
 __all__ = ["StructsToJson"]

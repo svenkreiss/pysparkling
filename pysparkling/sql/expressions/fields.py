@@ -20,6 +20,9 @@ class FieldAsExpression(Expression):
     def args(self):
         return (self.field,)
 
+    def data_type(self, schema):
+        return schema[find_position_in_schema(schema, self.field)].dataType
+
 
 def find_position_in_schema(schema, expr):
     if isinstance(expr, str):

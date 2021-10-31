@@ -1,3 +1,5 @@
+from ..column import Column
+from ..types import ArrayType, BooleanType, IntegerType, MapType, NullType, StringType, StructType
 from ..utils import AnalysisException
 from .expressions import BinaryOperation, Expression, UnaryExpression
 
@@ -14,6 +16,9 @@ class ArraysOverlap(BinaryOperation):
         if set1 and set2 and (None in set1 or None in set2):
             return None
         return False
+
+    def data_type(self, schema):
+        return BooleanType()
 
 
 class ArrayContains(Expression):
@@ -36,6 +41,9 @@ class ArrayContains(Expression):
             self.value
         )
 
+    def data_type(self, schema):
+        return BooleanType()
+
 
 class ArrayColumn(Expression):
     pretty_name = "array"
@@ -50,6 +58,11 @@ class ArrayColumn(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        if not self.columns:
+            return ArrayType(elementType=NullType)
+        return ArrayType(elementType=self.columns[0].data_type(schema))
+
 
 class MapColumn(Expression):
     pretty_name = "map"
@@ -57,6 +70,11 @@ class MapColumn(Expression):
     def __init__(self, *columns):
         super().__init__(columns)
         self.columns = columns
+        if len(columns) % 2 != 0:
+            raise AnalysisException(
+                f"Cannot resolve '{self}' due to data type mismatch: "
+                f"map expects a positive even number of arguments."
+            )
         self.keys = columns[::2]
         self.values = columns[1::2]
 
@@ -69,6 +87,14 @@ class MapColumn(Expression):
     def args(self):
         return self.columns
 
+    def data_type(self, schema):
+        if not self.columns:
+            return MapType(keyType=NullType, valueType=NullType)
+        return MapType(
+            keyType=self.keys[0].data_type(schema),
+            valueType=self.values[0].data_type(schema),
+        )
+
 
 class MapFromArraysColumn(Expression):
     pretty_name = "map_from_arrays"
@@ -79,14 +105,26 @@ class MapFromArraysColumn(Expression):
         self.values = values
 
     def eval(self, row, schema):
-        return dict(
-            zip(self.keys.eval(row, schema), self.values.eval(row, schema))
-        )
+        keys = self.keys.eval(row, schema)
+        values = self.values.eval(row, schema)
+        if len(keys) != len(values):
+            raise AnalysisException(
+                f"Error in '{self}':  The key array and value array of MapData must have the same length."
+            )
+        return dict(zip(keys, values))
 
     def args(self):
         return (
             self.keys,
             self.values
+        )
+
+    def data_type(self, schema):
+        if not isinstance(self.keys, Column) and not self.keys:
+            return MapType(keyType=NullType, valueType=NullType)
+        return MapType(
+            keyType=self.keys[0].data_type(schema),
+            valueType=self.values[0].data_type(schema),
         )
 
 
@@ -101,6 +139,9 @@ class Size(UnaryExpression):
             f"{self.column} value should be an array or a map, got {type(column_value)}"
         )
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class ArraySort(UnaryExpression):
     pretty_name = "array_sort"
@@ -108,19 +149,42 @@ class ArraySort(UnaryExpression):
     def eval(self, row, schema):
         return sorted(self.column.eval(row, schema))
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class ArrayMin(UnaryExpression):
     pretty_name = "array_min"
 
     def eval(self, row, schema):
-        return min(self.column.eval(row, schema))
+        column_type = self.column.data_type(schema)
+        column_value = self.column.eval(row, schema)
+        if not column_type == ArrayType:
+            raise AnalysisException(
+                f"Cannot resolve '{self}' due to data type mismatch: argument 1 requires array type, "
+                f"however, '{column_value}' is of {column_type} type."
+            )
+        return min(column_value)
+
+    def data_type(self, schema):
+        return self.column.data_type(schema).elementType()
 
 
 class ArrayMax(UnaryExpression):
     pretty_name = "array_max"
 
     def eval(self, row, schema):
-        return max(self.column.eval(row, schema))
+        column_type = self.column.data_type(schema)
+        column_value = self.column.eval(row, schema)
+        if not column_type == ArrayType:
+            raise AnalysisException(
+                f"Cannot resolve '{self}' due to data type mismatch: argument 1 requires array type, "
+                f"however, '{column_value}' is of {column_type} type."
+            )
+        return max(column_value)
+
+    def data_type(self, schema):
+        return self.column.data_type(schema).elementType()
 
 
 class Slice(Expression):
@@ -142,6 +206,9 @@ class Slice(Expression):
             self.length
         )
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class ArrayRepeat(Expression):
     pretty_name = "array_repeat"
@@ -161,9 +228,12 @@ class ArrayRepeat(Expression):
             self.count
         )
 
+    def data_type(self, schema):
+        return ArrayType(self.col.data_type(schema))
+
 
 class Sequence(Expression):
-    pretty_name = "array_join"
+    pretty_name = "sequence"
 
     def __init__(self, start, stop, step):
         super().__init__(start, stop, step)
@@ -201,6 +271,9 @@ class Sequence(Expression):
             self.step
         )
 
+    def data_type(self, schema):
+        return ArrayType(self.start.data_type(schema))
+
 
 class ArrayJoin(Expression):
     pretty_name = "array_join"
@@ -231,6 +304,9 @@ class ArrayJoin(Expression):
             self.nullReplacement
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class SortArray(Expression):
     pretty_name = "sort_array"
@@ -249,6 +325,9 @@ class SortArray(Expression):
             self.asc
         )
 
+    def data_type(self, schema):
+        return self.col.data_type(schema)
+
 
 class ArraysZip(Expression):
     pretty_name = "arrays_zip"
@@ -259,7 +338,7 @@ class ArraysZip(Expression):
 
     def eval(self, row, schema):
         return [
-            list(combination)
+            dict(enumerate(combination))
             for combination in zip(
                 *(c.eval(row, schema) for c in self.columns)
             )
@@ -267,6 +346,11 @@ class ArraysZip(Expression):
 
     def args(self):
         return self.columns
+
+    def data_type(self, schema):
+        return ArrayType(StructType([
+            col.data_type(schema) for col in self.columns
+        ]))
 
 
 class Flatten(UnaryExpression):
@@ -278,6 +362,9 @@ class Flatten(UnaryExpression):
             for array in self.column.eval(row, schema)
             for value in array
         ]
+
+    def data_type(self, schema):
+        return self.column.data_type(schema).elementType
 
 
 class ArrayPosition(Expression):
@@ -303,6 +390,9 @@ class ArrayPosition(Expression):
             self.value
         )
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class ElementAt(Expression):
     pretty_name = "element_at"
@@ -324,6 +414,9 @@ class ElementAt(Expression):
             self.extraction
         )
 
+    def data_type(self, schema):
+        return self.col.data_type(schema).elementType
+
 
 class ArrayRemove(Expression):
     pretty_name = "array_remove"
@@ -343,12 +436,18 @@ class ArrayRemove(Expression):
             self.element
         )
 
+    def data_type(self, schema):
+        return self.col.data_type(schema)
+
 
 class ArrayDistinct(UnaryExpression):
     pretty_name = "array_distinct"
 
     def eval(self, row, schema):
         return list(set(self.column.eval(row, schema)))
+
+    def data_type(self, schema):
+        return self.column.data_type(schema)
 
 
 class ArrayIntersect(BinaryOperation):
@@ -357,6 +456,9 @@ class ArrayIntersect(BinaryOperation):
     def eval(self, row, schema):
         return list(set(self.arg1.eval(row, schema)) & set(self.arg2.eval(row, schema)))
 
+    def data_type(self, schema):
+        return self.arg1.data_type(schema)
+
 
 class ArrayUnion(BinaryOperation):
     pretty_name = "array_union"
@@ -364,12 +466,18 @@ class ArrayUnion(BinaryOperation):
     def eval(self, row, schema):
         return list(set(self.arg1.eval(row, schema)) | set(self.arg2.eval(row, schema)))
 
+    def data_type(self, schema):
+        return self.arg1.data_type(schema)
+
 
 class ArrayExcept(BinaryOperation):
     pretty_name = "array_except"
 
     def eval(self, row, schema):
         return list(set(self.arg1.eval(row, schema)) - set(self.arg2.eval(row, schema)))
+
+    def data_type(self, schema):
+        return self.arg1.data_type(schema)
 
 
 __all__ = [

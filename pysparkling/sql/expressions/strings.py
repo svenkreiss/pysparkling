@@ -1,7 +1,7 @@
 import string
 
 from ...utils import levenshtein_distance
-from ..types import StringType
+from ..types import IntegerType, StringType
 from .expressions import Expression, UnaryExpression
 from .operators import Cast
 
@@ -12,6 +12,9 @@ class StringTrim(UnaryExpression):
     def eval(self, row, schema):
         return self.column.eval(row, schema).strip()
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class StringLTrim(UnaryExpression):
     pretty_name = "ltrim"
@@ -19,12 +22,18 @@ class StringLTrim(UnaryExpression):
     def eval(self, row, schema):
         return self.column.eval(row, schema).lstrip()
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class StringRTrim(UnaryExpression):
     pretty_name = "rtrim"
 
     def eval(self, row, schema):
         return self.column.eval(row, schema).rstrip()
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class StringInStr(Expression):
@@ -48,6 +57,9 @@ class StringInStr(Expression):
             self.column,
             self.substr
         )
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class StringLocate(Expression):
@@ -77,6 +89,9 @@ class StringLocate(Expression):
             self.start
         )
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class StringLPad(Expression):
     pretty_name = "lpad"
@@ -99,6 +114,9 @@ class StringLPad(Expression):
             self.length,
             self.pad
         )
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class StringRPad(Expression):
@@ -123,6 +141,9 @@ class StringRPad(Expression):
             self.pad
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class StringRepeat(Expression):
     pretty_name = "repeat"
@@ -141,6 +162,9 @@ class StringRepeat(Expression):
             self.column,
             self.n
         )
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class StringTranslate(Expression):
@@ -168,6 +192,9 @@ class StringTranslate(Expression):
             self.replace_string
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class InitCap(UnaryExpression):
     pretty_name = "initcap"
@@ -175,6 +202,9 @@ class InitCap(UnaryExpression):
     def eval(self, row, schema):
         value = Cast(self.column, StringType()).eval(row, schema)
         return " ".join(word.capitalize() for word in value.split())
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class Levenshtein(Expression):
@@ -197,6 +227,9 @@ class Levenshtein(Expression):
             self.column1,
             self.column2
         )
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class SoundEx(UnaryExpression):
@@ -247,6 +280,9 @@ class SoundEx(UnaryExpression):
         Returns None if the letter is not recognized
         """
         return self._soundex_mapping.get(letter)
+
+    def data_type(self, schema):
+        return StringType()
 
 
 __all__ = [

@@ -1,4 +1,4 @@
-from .expressions.expressions import Expression
+from .expressions.expressions import Expression, RegisteredExpressions
 from .expressions.fields import find_position_in_schema
 from .expressions.literals import Literal
 from .expressions.mappers import CaseWhen, StarOperator
@@ -630,7 +630,7 @@ class Column:
             return self.expr.output_fields(schema)
         return [StructField(
             name=self.col_name,
-            dataType=self.data_type,
+            dataType=self.data_type(schema),
             nullable=self.is_nullable
         )]
 
@@ -647,7 +647,6 @@ class Column:
     def initialize(self, partition_index):
         if isinstance(self.expr, Expression):
             self.expr.recursive_initialize(partition_index)
-        return self
 
     def with_pre_evaluation_schema(self, pre_evaluation_schema):
         if isinstance(self.expr, Expression):
@@ -682,11 +681,20 @@ class Column:
 
     __bool__ = __nonzero__
 
-    @property
-    def data_type(self):
-        # pylint: disable=W0511
-        # todo: be more specific
-        return DataType()
+    def data_type(self, schema):
+        if isinstance(self.expr, (Expression, RegisteredExpressions)):
+            return self.expr.data_type(schema)
+        if isinstance(self.expr, str):
+            try:
+                return schema[self.expr].dataType
+            except KeyError:
+                # pylint: disable=raise-missing-from
+                raise AnalysisException(
+                    f"cannot resolve '`{self.expr}`' given input columns: {schema.fields};"
+                )
+        raise AnalysisException(
+            f"cannot resolve '`{self.expr}`' type, expecting str or Expression but got {type(self.expr)};"
+        )
 
     @property
     def is_nullable(self):

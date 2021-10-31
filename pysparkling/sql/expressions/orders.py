@@ -17,6 +17,9 @@ class SortOrder(Expression):
     def args(self):
         return (self.column,)
 
+    def data_type(self, schema):
+        return self.column.data_type(schema)
+
 
 class AscNullsFirst(SortOrder):
     sort_order = "ASC NULLS FIRST"

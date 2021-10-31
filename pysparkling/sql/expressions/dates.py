@@ -5,7 +5,7 @@ import pytz
 
 from ...utils import parse_tz
 from ..casts import get_time_formatter, get_unix_timestamp_parser
-from ..types import DateType, FloatType, TimestampType
+from ..types import DateType, DoubleType, FloatType, IntegerType, LongType, StringType, TimestampType
 from .expressions import Expression, UnaryExpression
 from .operators import Cast
 
@@ -32,6 +32,9 @@ class AddMonths(Expression):
             self.num_months
         )
 
+    def data_type(self, schema):
+        return DateType()
+
 
 class DateAdd(Expression):
     pretty_name = "date_add"
@@ -50,6 +53,9 @@ class DateAdd(Expression):
             self.start_date,
             self.num_days
         )
+
+    def data_type(self, schema):
+        return DateType()
 
 
 class DateSub(Expression):
@@ -70,6 +76,9 @@ class DateSub(Expression):
             self.num_days
         )
 
+    def data_type(self, schema):
+        return DateType()
+
 
 class Year(UnaryExpression):
     pretty_name = "year"
@@ -77,12 +86,18 @@ class Year(UnaryExpression):
     def eval(self, row, schema):
         return Cast(self.column, DateType()).eval(row, schema).year
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class Month(UnaryExpression):
     pretty_name = "month"
 
     def eval(self, row, schema):
         return Cast(self.column, DateType()).eval(row, schema).month
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class Quarter(UnaryExpression):
@@ -92,12 +107,18 @@ class Quarter(UnaryExpression):
         month = Cast(self.column, DateType()).eval(row, schema).month
         return 1 + int((month - 1) / 3)
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class Hour(UnaryExpression):
     pretty_name = "hour"
 
     def eval(self, row, schema):
         return Cast(self.column, TimestampType()).eval(row, schema).hour
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class Minute(UnaryExpression):
@@ -106,6 +127,9 @@ class Minute(UnaryExpression):
     def eval(self, row, schema):
         return Cast(self.column, TimestampType()).eval(row, schema).minute
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class Second(UnaryExpression):
     pretty_name = "second"
@@ -113,12 +137,18 @@ class Second(UnaryExpression):
     def eval(self, row, schema):
         return Cast(self.column, TimestampType()).eval(row, schema).second
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class DayOfMonth(UnaryExpression):
     pretty_name = "dayofmonth"
 
     def eval(self, row, schema):
         return Cast(self.column, DateType()).eval(row, schema).day
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class DayOfYear(UnaryExpression):
@@ -129,6 +159,9 @@ class DayOfYear(UnaryExpression):
         day_from_the_first = value - datetime.date(value.year, 1, 1)
         return 1 + day_from_the_first.days
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class LastDay(UnaryExpression):
     pretty_name = "last_day"
@@ -138,12 +171,18 @@ class LastDay(UnaryExpression):
         first_of_next_month = value + relativedelta(months=1, day=1)
         return first_of_next_month - datetime.timedelta(days=1)
 
+    def data_type(self, schema):
+        return DateType()
+
 
 class WeekOfYear(UnaryExpression):
     pretty_name = "weekofyear"
 
     def eval(self, row, schema):
         return Cast(self.column, DateType()).eval(row, schema).isocalendar()[1]
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class DayOfWeek(UnaryExpression):
@@ -152,6 +191,9 @@ class DayOfWeek(UnaryExpression):
     def eval(self, row, schema):
         date = Cast(self.column, DateType()).eval(row, schema)
         return date.isoweekday() + 1 if date.isoweekday() != 7 else 1
+
+    def data_type(self, schema):
+        return IntegerType()
 
 
 class NextDay(Expression):
@@ -180,6 +222,9 @@ class NextDay(Expression):
             self.column,
             self.day_of_week
         )
+
+    def data_type(self, schema):
+        return DateType()
 
 
 class MonthsBetween(Expression):
@@ -228,6 +273,9 @@ class MonthsBetween(Expression):
             str(self.round_off).lower()
         )
 
+    def data_type(self, schema):
+        return DoubleType()
+
 
 class DateDiff(Expression):
     pretty_name = "datediff"
@@ -253,6 +301,9 @@ class DateDiff(Expression):
             self.column2
         )
 
+    def data_type(self, schema):
+        return IntegerType()
+
 
 class FromUnixTime(Expression):
     pretty_name = "from_unixtime"
@@ -272,6 +323,9 @@ class FromUnixTime(Expression):
             self.column,
             self.format
         )
+
+    def data_type(self, schema):
+        return StringType()
 
 
 class DateFormat(Expression):
@@ -293,6 +347,9 @@ class DateFormat(Expression):
             self.format
         )
 
+    def data_type(self, schema):
+        return StringType()
+
 
 class CurrentTimestamp(Expression):
     pretty_name = "current_timestamp"
@@ -311,6 +368,9 @@ class CurrentTimestamp(Expression):
     def args(self):
         return ()
 
+    def data_type(self, schema):
+        return TimestampType()
+
 
 class CurrentDate(Expression):
     pretty_name = "current_date"
@@ -328,6 +388,9 @@ class CurrentDate(Expression):
 
     def args(self):
         return ()
+
+    def data_type(self, schema):
+        return DateType()
 
 
 class UnixTimestamp(Expression):
@@ -348,6 +411,9 @@ class UnixTimestamp(Expression):
             self.column,
             self.format
         )
+
+    def data_type(self, schema):
+        return LongType()
 
 
 class ParseToTimestamp(Expression):
@@ -373,6 +439,9 @@ class ParseToTimestamp(Expression):
             f"'{self.format}'"
         )
 
+    def data_type(self, schema):
+        return TimestampType()
+
 
 class ParseToDate(Expression):
     pretty_name = "to_date"
@@ -397,6 +466,9 @@ class ParseToDate(Expression):
             f"'{self.format}'"
         )
 
+    def data_type(self, schema):
+        return DateType()
+
 
 class TruncDate(Expression):
     pretty_name = "trunc"
@@ -419,6 +491,9 @@ class TruncDate(Expression):
             self.column,
             self.level
         )
+
+    def data_type(self, schema):
+        return DateType()
 
 
 class TruncTimestamp(Expression):
@@ -475,6 +550,9 @@ class TruncTimestamp(Expression):
             self.column
         )
 
+    def data_type(self, schema):
+        return TimestampType()
+
 
 class FromUTCTimestamp(Expression):
     pretty_name = "from_utc_timestamp"
@@ -499,6 +577,9 @@ class FromUTCTimestamp(Expression):
             self.tz
         )
 
+    def data_type(self, schema):
+        return TimestampType()
+
 
 class ToUTCTimestamp(Expression):
     pretty_name = "to_utc_timestamp"
@@ -522,6 +603,9 @@ class ToUTCTimestamp(Expression):
             self.column,
             self.tz
         )
+
+    def data_type(self, schema):
+        return TimestampType()
 
 
 __all__ = [

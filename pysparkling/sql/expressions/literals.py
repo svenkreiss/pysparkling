@@ -1,3 +1,4 @@
+from ..types import _infer_type
 from ..utils import AnalysisException
 from .expressions import Expression
 
@@ -6,6 +7,7 @@ class Literal(Expression):
     def __init__(self, value):
         super().__init__()
         self.value = value
+        self._data_type = _infer_type(self.value)
 
     def eval(self, row, schema):
         return self.value
@@ -27,6 +29,9 @@ class Literal(Expression):
 
     def args(self):
         return (self.value, )
+
+    def data_type(self, schema):
+        return self._data_type
 
 
 __all__ = ["Literal"]
