@@ -251,21 +251,21 @@ def test_pyspark_compatibility_txt():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt').collect()
     print(kv)
-    assert u"('a', 1)" in kv and u"('b', 2)" in kv and len(kv) == 2
+    assert "('a', 1)" in kv and "('b', 2)" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_bz2():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.bz2').collect()
     print(kv)
-    assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
+    assert "a\t1" in kv and "b\t2" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_gz():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.gz').collect()
     print(kv)
-    assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
+    assert "a\t1" in kv and "b\t2" in kv and len(kv) == 2
 
 
 def test_local_regex_read(tmp_path: pathlib.Path):

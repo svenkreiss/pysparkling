@@ -98,7 +98,7 @@ def main():
         s, v = struct.unpack('If', b)
         return f'sensor{s}', v
 
-    with open('tests/tcpperf_messages.csv', 'w') as f:
+    with open('tests/tcpperf_messages.csv', 'w', encoding='utf8') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
         server_1k = Server(pause=2, values=1000, processes=5)
         for n in reversed(N_CONNECTIONS_1K):
@@ -112,7 +112,7 @@ def main():
             )
             f.write(', '.join(f'{d}' for d in data) + '\n')
 
-    with open('tests/tcpperf_connections.csv', 'w') as f:
+    with open('tests/tcpperf_connections.csv', 'w', encoding='utf8') as f:
         f.write('# messages, hello, text, json, bello, struct\n')
         server = Server()
         for n in reversed(N_CONNECTIONS):
