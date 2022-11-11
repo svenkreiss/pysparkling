@@ -156,16 +156,16 @@ def test_http_textFile():
 
 
 def test_saveAsTextFile(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt'
+    filename = str(tmp_path / 'textfile.txt')
     Context().parallelize(range(10)).saveAsTextFile(filename)
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf8') as f:
         r = f.readlines()
         print(r)
         assert '5\n' in r
 
 
 def test_saveAsTextFile_tar(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.tar'
+    filename = str(tmp_path / 'textfile.txt.tar')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
@@ -174,7 +174,7 @@ def test_saveAsTextFile_tar(tmp_path: pathlib.Path):
 
 @unittest.skipIf(hasattr(sys, 'pypy_version_info'), 'skip on pypy')
 def test_saveAsTextFile_targz(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.tar.gz'
+    filename = str(tmp_path / 'textfile.txt.tar.gz')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
@@ -182,7 +182,7 @@ def test_saveAsTextFile_targz(tmp_path: pathlib.Path):
 
 
 def test_saveAsTextFile_tarbz2(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.tar.bz2'
+    filename = str(tmp_path / 'textfile.txt.tar.bz2')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
@@ -190,14 +190,14 @@ def test_saveAsTextFile_tarbz2(tmp_path: pathlib.Path):
 
 
 def test_saveAsTextFile_gz(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.gz'
+    filename = str(tmp_path / 'textfile.txt.gz')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
 
 
 def test_saveAsTextFile_zip(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.zip'
+    filename = str(tmp_path / 'textfile.txt.zip')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
@@ -205,14 +205,14 @@ def test_saveAsTextFile_zip(tmp_path: pathlib.Path):
 
 
 def test_saveAsTextFile_bz2(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.bz2'
+    filename = str(tmp_path / 'textfile.txt.bz2')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
 
 
 def test_saveAsTextFile_lzma(tmp_path: pathlib.Path):
-    filename = tmp_path / 'textfile.txt.lzma'
+    filename = str(tmp_path / 'textfile.txt.lzma')
     Context().parallelize(range(10)).saveAsTextFile(filename)
     read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
@@ -270,8 +270,8 @@ def test_pyspark_compatibility_gz():
 
 def test_local_regex_read(tmp_path: pathlib.Path):
     # was not working before 0.3.19
-    filename = tmp_path / 'textfile.txt'
+    filename = str(tmp_path / 'textfile.txt')
     Context().parallelize(range(30), 30).saveAsTextFile(filename)
-    d = Context().textFile(filename / 'part-0000*').collect()
+    d = Context().textFile(filename + '/part-0000*').collect()
     print(d)
     assert len(d) == 10
