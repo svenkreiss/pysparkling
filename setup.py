@@ -13,7 +13,6 @@ setup(
     url='https://github.com/svenkreiss/pysparkling',
 
     install_requires=[
-        'boto>=2.36.0',
         'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0'
@@ -21,6 +20,7 @@ setup(
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
         'performance': ['matplotlib>=1.5.3'],
+        's3': ['boto>=2.36.0'],
         'streaming': ['tornado>=4.3'],
         'sql': [
             'numpy',
