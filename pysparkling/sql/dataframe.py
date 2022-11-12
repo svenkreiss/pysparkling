@@ -7,8 +7,7 @@ from .group import GroupedData
 from .internal_utils.joins import CROSS_JOIN, JOIN_TYPES
 from .internals import CUBE_TYPE, InternalGroupedDataFrame, ROLLUP_TYPE
 from .types import (
-    _check_series_convert_timestamps_local_tz, ByteType, FloatType, IntegerType, IntegralType, ShortType,
-    TimestampType
+    _check_series_convert_timestamps_local_tz, ByteType, FloatType, IntegerType, IntegralType, ShortType, TimestampType
 )
 from .utils import AnalysisException, IllegalArgumentException, require_minimum_pandas_version
 
@@ -187,7 +186,8 @@ class DataFrame:
             print(self._jdf.showString(n, int(truncate), vertical))
 
     def __repr__(self):
-        return "DataFrame[%s]" % (", ".join("%s: %s" % c for c in self.dtypes))
+        values = ", ".join(f"{c1}: {c2}" for c1, c2 in self.dtypes)
+        return f"DataFrame[{values}]"
 
     def checkpoint(self, eager=True):
         raise NotImplementedError("Streaming is not supported in PySparkling")
@@ -510,7 +510,7 @@ class DataFrame:
             raise TypeError(
                 "withReplacement (optional), fraction (required) and seed (optional)"
                 " should be a bool, float and number; however, "
-                "got [%s]." % ", ".join(argtypes))
+                f"got [{', '.join(argtypes)}].")
 
         if is_withReplacement_omitted_args:
             if fraction is not None:
@@ -829,7 +829,7 @@ class DataFrame:
         elif isinstance(ascending, list):
             cols = [jc if asc else jc.desc() for asc, jc in zip(ascending, cols)]
         else:
-            raise TypeError("ascending can only be boolean or list, but got %s" % type(ascending))
+            raise TypeError(f"ascending can only be boolean or list, but got {type(ascending)}")
 
         if kwargs:
             raise TypeError(f"Unrecognized arguments: {kwargs}")
@@ -961,7 +961,7 @@ class DataFrame:
             return self.select(*item)
         if isinstance(item, int):
             return Column(FieldAsExpression(self._jdf.bound_schema[item]))
-        raise TypeError("unexpected item type: %s" % type(item))
+        raise TypeError(f"unexpected item type: {type(item)}")
 
     def __getattr__(self, name):
         if name.startswith("_"):
@@ -1452,7 +1452,7 @@ class DataFrame:
         [[2.0, 2.0, 5.0]]
         """
         if not isinstance(col, (str, list, tuple)):
-            raise ValueError("col should be a string, list or tuple, but got %r" % type(col))
+            raise ValueError(f"col should be a string, list or tuple, but got {repr(type(col))}")
 
         isStr = isinstance(col, str)
 
@@ -1463,7 +1463,7 @@ class DataFrame:
 
         for c in col:
             if not isinstance(c, str):
-                raise ValueError("columns should be strings, but got %r" % type(c))
+                raise ValueError(f"columns should be strings, but got {repr(type(c))}")
 
         if not isinstance(probabilities, (list, tuple)):
             raise ValueError("probabilities should be a list or tuple")
@@ -1618,8 +1618,8 @@ class DataFrame:
 
     def transform(self, func):
         result = func(self)
-        assert isinstance(result, DataFrame), "Func returned an instance of type [%s], " \
-                                              "should have been DataFrame." % type(result)
+        assert isinstance(result, DataFrame), (
+            f"Func returned an instance of type [{type(result)}], should have been DataFrame.")
         return result
 
     def toPandas(self):

@@ -461,7 +461,7 @@ class Column:
         """
 
         metadata = kwargs.pop('metadata', None)
-        assert not kwargs, 'Unexpected kwargs where passed: %s' % kwargs
+        assert not kwargs, f'Unexpected kwargs where passed: {kwargs}'
 
         if metadata:
             # pylint: disable=W0511

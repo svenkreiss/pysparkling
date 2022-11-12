@@ -8,13 +8,12 @@ setup(
     packages=find_packages(),
     license='MIT',
     description='Pure Python implementation of the Spark RDD interface.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.rst', 'r', encoding='utf8').read(),
     author='pysparkling contributors',
     url='https://github.com/svenkreiss/pysparkling',
 
     install_requires=[
         'boto>=2.36.0',
-        'future>=0.15',
         'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0'
@@ -30,7 +29,6 @@ setup(
         'tests': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
-            'futures>=3.0.1',
             'pylint',
             'pylzma',
             'memory-profiler>=0.47',

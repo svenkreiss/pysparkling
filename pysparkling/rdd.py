@@ -1840,7 +1840,7 @@ class RDD:
         maxSampleSize = sys.maxsize - int(numStDev * math.sqrt(sys.maxsize))
         if num > maxSampleSize:
             raise ValueError(
-                "Sample size cannot be greater than %d." % maxSampleSize)
+                f"Sample size cannot be greater than {maxSampleSize}.")
 
         fraction = RDD._computeFractionForSampleSize(num, initial_count, withReplacement)
         samples = self.sample(withReplacement, fraction, seed).collect()

@@ -8,7 +8,7 @@ import pysparkling
 
 
 def create_csv(filename, lines=10000000, columns=12):
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf8') as f:
         column_names = ','.join(ascii_uppercase[i] for i in range(columns))
         f.write(f'{column_names}\n')
 

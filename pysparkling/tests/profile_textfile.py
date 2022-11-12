@@ -7,7 +7,7 @@ import pysparkling
 
 @profile
 def main():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
+    tempFile = tempfile.NamedTemporaryFile(delete=True)  # pylint: disable=consider-using-with
     tempFile.close()
 
     sc = pysparkling.Context()

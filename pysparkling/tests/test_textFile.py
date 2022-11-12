@@ -1,9 +1,8 @@
-import logging
 import os
+import pathlib
 import pickle
 import random
 import sys
-import tempfile
 import unittest
 
 import pytest
@@ -156,74 +155,66 @@ def test_http_textFile():
     assert 'TGCTGCGGTGAATGCGTTCCCGGGTCT' in myrdd.collect()
 
 
-def test_saveAsTextFile():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name)
-    with open(tempFile.name, 'r') as f:
+def test_saveAsTextFile(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    with open(filename, 'r', encoding='utf8') as f:
         r = f.readlines()
         print(r)
         assert '5\n' in r
 
 
-def test_saveAsTextFile_tar():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar')
-    read_rdd = Context().textFile(tempFile.name + '.tar')
+def test_saveAsTextFile_tar(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.tar')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
 @unittest.skipIf(hasattr(sys, 'pypy_version_info'), 'skip on pypy')
-def test_saveAsTextFile_targz():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar.gz')
-    read_rdd = Context().textFile(tempFile.name + '.tar.gz')
+def test_saveAsTextFile_targz(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.tar.gz')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
-def test_saveAsTextFile_tarbz2():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.tar.bz2')
-    read_rdd = Context().textFile(tempFile.name + '.tar.bz2')
+def test_saveAsTextFile_tarbz2(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.tar.bz2')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
-def test_saveAsTextFile_gz():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.gz')
-    read_rdd = Context().textFile(tempFile.name + '.gz')
+def test_saveAsTextFile_gz(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.gz')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
 
 
-def test_saveAsTextFile_zip():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.zip')
-    read_rdd = Context().textFile(tempFile.name + '.zip')
+def test_saveAsTextFile_zip(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.zip')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     print(read_rdd.collect())
     assert '5' in read_rdd.collect()
 
 
-def test_saveAsTextFile_bz2():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.bz2')
-    read_rdd = Context().textFile(tempFile.name + '.bz2')
+def test_saveAsTextFile_bz2(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.bz2')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
 
 
-def test_saveAsTextFile_lzma():
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(10)).saveAsTextFile(tempFile.name + '.lzma')
-    read_rdd = Context().textFile(tempFile.name + '.lzma')
+def test_saveAsTextFile_lzma(tmp_path: pathlib.Path):
+    filename = str(tmp_path / 'textfile.txt.lzma')
+    Context().parallelize(range(10)).saveAsTextFile(filename)
+    read_rdd = Context().textFile(filename)
     assert '5' in read_rdd.collect()
 
 
@@ -260,33 +251,27 @@ def test_pyspark_compatibility_txt():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt').collect()
     print(kv)
-    assert u"('a', 1)" in kv and u"('b', 2)" in kv and len(kv) == 2
+    assert "('a', 1)" in kv and "('b', 2)" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_bz2():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.bz2').collect()
     print(kv)
-    assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
+    assert "a\t1" in kv and "b\t2" in kv and len(kv) == 2
 
 
 def test_pyspark_compatibility_gz():
     kv = Context().textFile(
         f'{LOCAL_TEST_PATH}/pyspark/key_value.txt.gz').collect()
     print(kv)
-    assert u"a\t1" in kv and u"b\t2" in kv and len(kv) == 2
+    assert "a\t1" in kv and "b\t2" in kv and len(kv) == 2
 
 
-def test_local_regex_read():
+def test_local_regex_read(tmp_path: pathlib.Path):
     # was not working before 0.3.19
-    tempFile = tempfile.NamedTemporaryFile(delete=True)
-    tempFile.close()
-    Context().parallelize(range(30), 30).saveAsTextFile(tempFile.name)
-    d = Context().textFile(tempFile.name + '/part-0000*').collect()
+    filename = str(tmp_path / 'textfile.txt')
+    Context().parallelize(range(30), 30).saveAsTextFile(filename)
+    d = Context().textFile(filename + '/part-0000*').collect()
     print(d)
     assert len(d) == 10
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    test_local_regex_read()

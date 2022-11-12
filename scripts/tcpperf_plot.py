@@ -17,7 +17,7 @@ class Plot:
         self.frame()
 
     def read(self):
-        with open(self.filename, 'r') as f:
+        with open(self.filename, 'r', encoding='utf8') as f:
             reader = csv.reader(f)
 
             try:

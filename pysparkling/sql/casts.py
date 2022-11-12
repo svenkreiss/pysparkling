@@ -73,12 +73,11 @@ def cast_map(value, from_type, options):
           if sub_value is not None else None))
         for key, sub_value in value.items()
     ]
-    return "[{0}]".format(
-        ", ".join("{0} ->{1}".format(
-            casted_key,
-            f" {casted_value}" if casted_value is not None else ""
-        ) for casted_key, casted_value in casted_values)
+    joined_values = ", ".join(
+        f"{casted_key} ->{(' ' + casted_value) if casted_value is not None else ''}"
+        for casted_key, casted_value in casted_values
     )
+    return f"[{joined_values}]"
 
 
 def cast_sequence(value, from_type, options):

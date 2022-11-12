@@ -228,12 +228,11 @@ def format_cell(value):
     if isinstance(value, Row):
         return f"[{', '.join(format_cell(sub_value) for sub_value in value)}]"
     if isinstance(value, dict):
-        return "[{0}]".format(
-            ", ".join(
-                f"{format_cell(key)} -> {format_cell(sub_value)}"
-                for key, sub_value in value.items()
-            )
+        values = ", ".join(
+            f"{format_cell(key)} -> {format_cell(sub_value)}"
+            for key, sub_value in value.items()
         )
+        return f"[{values}]"
     return str(value)
 
 

@@ -18,7 +18,7 @@ def get_folder_content(folder_path):
         relative_path = root[len(folder_path):]
         for file in files:
             file_path = os.path.join(root, file)
-            with open(file_path, 'r') as file_content:
+            with open(file_path, 'r', encoding='utf8') as file_content:
                 folder_content[os.path.join(relative_path, file)] = file_content.readlines()
     return folder_content
 

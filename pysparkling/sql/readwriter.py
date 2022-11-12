@@ -125,8 +125,8 @@ class DataFrameWriter(OptionUtils):
         return self
 
     def options(self, **options):
-        for k in options:
-            self._jwrite.option(k, options[k])
+        for k, v in options.items():
+            self._jwrite.option(k, v)
         return self
 
     def partitionBy(self, *cols):
