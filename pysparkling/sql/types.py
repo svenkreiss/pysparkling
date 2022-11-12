@@ -203,13 +203,13 @@ class DecimalType(FractionalType):
         self.hasPrecisionInfo = True  # this is public API
 
     def simpleString(self):
-        return f"decimal({self.precision:%d},{self.scale:%d})"
+        return f"decimal({self.precision:d},{self.scale:d})"
 
     def jsonValue(self):
-        return f"decimal({self.precision:%d},{self.scale:%d})"
+        return f"decimal({self.precision:d},{self.scale:d})"
 
     def __repr__(self):
-        return f"DecimalType({self.precision:%d},{self.scale:%d})"
+        return f"DecimalType({self.precision:d},{self.scale:d})"
 
 
 class DoubleType(FractionalType):
@@ -1044,9 +1044,9 @@ def _infer_schema(row, names=None):
             items = zip(row._fields, tuple(row))  # type: ignore
         else:
             if names is None:
-                names = [f'_{i:%d}' for i in range(1, len(row) + 1)]
+                names = [f'_{i}' for i in range(1, len(row) + 1)]
             elif len(names) < len(row):
-                names.extend(f'_{i:%d}' for i in range(len(names) + 1, len(row) + 1))
+                names.extend(f'_{i}' for i in range(len(names) + 1, len(row) + 1))
             items = zip(names, row)
 
     elif hasattr(row, "__dict__"):  # object
