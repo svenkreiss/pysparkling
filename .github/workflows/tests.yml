@@ -48,11 +48,6 @@ jobs:
         python -m pip install -e ".[sql]"
 
     - name: Lint
-      if: matrix.python == '3.9'
-      # https://github.com/PyCQA/pylint/issues/3882
-      run: pylint pysparkling scripts --disable=fixme,unsubscriptable-object
-
-    - name: Lint
       if: matrix.python != '3.9'
       run: pylint pysparkling scripts --disable=fixme
 
