@@ -1299,13 +1299,13 @@ def _make_type_verifier(dataType, nullable=True, name=None):
 
     def assert_acceptable_types(obj):
         assert _type in _acceptable_types, \
-            new_msg(f"unknown datatype: {dataType} for object {obj:r}")
+            new_msg(f"unknown datatype: {dataType} for object {repr(obj)}")
 
     def verify_acceptable_types(obj):
         # subclass of them can not be fromInternal in JVM
         convertible_types = tuple(_acceptable_types[_type])
         if not isinstance(obj, convertible_types):
-            raise TypeError(new_msg(f"{dataType} can not accept object {obj:r} in type {type(obj)}"))
+            raise TypeError(new_msg(f"{dataType} can not accept object {repr(obj)} in type {type(obj)}"))
 
     verify_value = get_verifier(
         dataType,
@@ -1336,7 +1336,7 @@ def get_verifier(dataType, name, new_name,
 
         def verify_udf(obj):
             if not (hasattr(obj, '__UDT__') and obj.__UDT__ == dataType):
-                raise ValueError(new_msg(f"{obj:r} is not an instance of type {dataType:r}"))
+                raise ValueError(new_msg(f"{repr(obj)} is not an instance of type {repr(dataType)}"))
             field_verifier(dataType.toInternal(obj))
 
         verifier = verify_udf
@@ -1427,7 +1427,7 @@ def get_struct_verifier(dataType, new_name, assert_acceptable_types, new_msg):
             for f, verifier in verifiers:
                 verifier(d.get(f))
         else:
-            raise TypeError(new_msg(f"StructType can not accept object {obj:r} in type {type(obj)}"))
+            raise TypeError(new_msg(f"StructType can not accept object {repr(obj)} in type {type(obj)}"))
 
     return verify_struct
 
@@ -1624,7 +1624,7 @@ class Row(tuple):
     def __repr__(self):
         """Printable representation of Row used in Python REPL."""
         if hasattr(self, "__fields__"):
-            fields = ', '.join(f"{k}={v:r}" for k, v in zip(self.__fields__, tuple(self)))
+            fields = ', '.join(f"{k}={repr(v)}" for k, v in zip(self.__fields__, tuple(self)))
             return f"Row({fields})"
         return f"<Row({', '.join(self)})>"
 

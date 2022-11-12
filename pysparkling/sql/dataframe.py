@@ -1452,7 +1452,7 @@ class DataFrame:
         [[2.0, 2.0, 5.0]]
         """
         if not isinstance(col, (str, list, tuple)):
-            raise ValueError(f"col should be a string, list or tuple, but got {type(col):r}")
+            raise ValueError(f"col should be a string, list or tuple, but got {repr(type(col))}")
 
         isStr = isinstance(col, str)
 
@@ -1463,7 +1463,7 @@ class DataFrame:
 
         for c in col:
             if not isinstance(c, str):
-                raise ValueError(f"columns should be strings, but got {type(c):r}")
+                raise ValueError(f"columns should be strings, but got {repr(type(c))}")
 
         if not isinstance(probabilities, (list, tuple)):
             raise ValueError("probabilities should be a list or tuple")
