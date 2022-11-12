@@ -148,7 +148,7 @@ class SparkSession:
             schema = struct
 
         elif not isinstance(schema, StructType):
-            raise TypeError("schema should be StructType or list or None, but got: %s" % schema)
+            raise TypeError(f"schema should be StructType or list or None, but got: {schema}")
 
         # convert python objects to sql data
         rdd = rdd.map(schema.toInternal)
@@ -174,7 +174,7 @@ class SparkSession:
             schema = struct
 
         elif not isinstance(schema, StructType):
-            raise TypeError("schema should be StructType or list or None, but got: %s" % schema)
+            raise TypeError(f"schema should be StructType or list or None, but got: {schema}")
 
         # convert python objects to sql data
         data = [schema.toInternal(row) for row in data]

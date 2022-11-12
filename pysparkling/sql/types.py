@@ -428,7 +428,7 @@ class StructField(DataType):
     def fromInternal(self, obj):
         return self.dataType.fromInternal(obj)
 
-    def typeName(self):
+    def typeName(self):  # pylint: disable=arguments-differ
         raise TypeError(
             "StructField does not have typeName. "
             "Use typeName on its type explicitly instead.")
@@ -790,7 +790,7 @@ class UserDefinedType(DataType):
             schema = {
                 "type": "udt",
                 "class": self.scalaUDT(),
-                "pyClass": "%s.%s" % (self.module(), type(self).__name__),
+                "pyClass": f"{self.module()}.{type(self).__name__}",
                 "sqlType": self.sqlType().jsonValue()
             }
         else:
@@ -887,7 +887,7 @@ def _parse_datatype_json_value(json_value):
             m = _FIXED_DECIMAL.match(json_value)
             assert m is not None
             return DecimalType(int(m.group(1)), int(m.group(2)))
-        raise ValueError("Could not parse datatype: %s" % json_value)
+        raise ValueError(f"Could not parse datatype: {json_value}")
     tpe = json_value["type"]
     if tpe in _all_complex_types:
         return _all_complex_types[tpe].fromJson(json_value)
@@ -1100,8 +1100,8 @@ def _merge_type(a, b, name=None):
         new_msg = lambda msg: msg
         new_name = lambda n: f"field {n}"
     else:
-        new_msg = lambda msg: "%s: %s" % (name, msg)
-        new_name = lambda n: "field %s in %s" % (n, name)
+        new_msg = lambda msg: f"{name}: {msg}"
+        new_name = lambda n: f"field {n} in {name}"
 
     if isinstance(a, NullType):
         return b
@@ -1110,7 +1110,7 @@ def _merge_type(a, b, name=None):
     if type(a) is not type(b):
         # pylint: disable=W0511
         # TODO: type cast (such as int -> long)
-        raise TypeError(new_msg("Can not merge type %s and %s" % (type(a), type(b))))
+        raise TypeError(new_msg(f"Can not merge type {type(a)} and {type(b)}"))
 
     # same type
     if isinstance(a, StructType):
@@ -1126,11 +1126,11 @@ def _merge_type(a, b, name=None):
 
     if isinstance(a, ArrayType):
         return ArrayType(_merge_type(a.elementType, b.elementType,
-                                     name='element in array %s' % name), True)
+                                     name=f'element in array {name}'), True)
 
     if isinstance(a, MapType):
-        return MapType(_merge_type(a.keyType, b.keyType, name='key of map %s' % name),
-                       _merge_type(a.valueType, b.valueType, name='value of map %s' % name),
+        return MapType(_merge_type(a.keyType, b.keyType, name=f'key of map {name}'),
+                       _merge_type(a.valueType, b.valueType, name=f'value of map {name}'),
                        True)
     return a
 
@@ -1199,7 +1199,7 @@ def _create_converter(dataType):
         elif hasattr(obj, "__dict__"):  # object
             d = obj.__dict__
         else:
-            raise TypeError("Unexpected obj type: %s" % type(obj))
+            raise TypeError(f"Unexpected obj type: {type(obj)}")
 
         if convert_fields:
             return tuple(convert(d.get(name)) for name, convert in zip(names, converters))
@@ -1283,10 +1283,10 @@ def _make_type_verifier(dataType, nullable=True, name=None):
 
     if name is None:
         new_msg = lambda msg: msg
-        new_name = lambda n: "field %s" % n
+        new_name = lambda n: f"field {n}"
     else:
-        new_msg = lambda msg: "%s: %s" % (name, msg)
-        new_name = lambda n: "field %s in %s" % (n, name)
+        new_msg = lambda msg: f"{name}: {msg}"
+        new_name = lambda n: f"field {n} in {name}"
 
     def verify_nullability(obj):
         if obj is None:
@@ -1299,14 +1299,13 @@ def _make_type_verifier(dataType, nullable=True, name=None):
 
     def assert_acceptable_types(obj):
         assert _type in _acceptable_types, \
-            new_msg("unknown datatype: %s for object %r" % (dataType, obj))
+            new_msg(f"unknown datatype: {dataType} for object {obj:r}")
 
     def verify_acceptable_types(obj):
         # subclass of them can not be fromInternal in JVM
         convertible_types = tuple(_acceptable_types[_type])
         if not isinstance(obj, convertible_types):
-            raise TypeError(new_msg("%s can not accept object %r in type %s"
-                                    % (dataType, obj, type(obj))))
+            raise TypeError(new_msg(f"{dataType} can not accept object {obj:r} in type {type(obj)}"))
 
     verify_value = get_verifier(
         dataType,
@@ -1337,7 +1336,7 @@ def get_verifier(dataType, name, new_name,
 
         def verify_udf(obj):
             if not (hasattr(obj, '__UDT__') and obj.__UDT__ == dataType):
-                raise ValueError(new_msg("%r is not an instance of type %r" % (obj, dataType)))
+                raise ValueError(new_msg(f"{obj:r} is not an instance of type {dataType:r}"))
             field_verifier(dataType.toInternal(obj))
 
         verifier = verify_udf
@@ -1346,7 +1345,7 @@ def get_verifier(dataType, name, new_name,
             assert_acceptable_types(obj)
             verify_acceptable_types(obj)
             if obj < -128 or obj > 127:
-                raise ValueError(new_msg("object of ByteType out of range, got: %s" % obj))
+                raise ValueError(new_msg(f"object of ByteType out of range, got: {obj}"))
 
         verifier = verify_byte
     elif isinstance(dataType, ShortType):
@@ -1354,7 +1353,7 @@ def get_verifier(dataType, name, new_name,
             assert_acceptable_types(obj)
             verify_acceptable_types(obj)
             if obj < -32768 or obj > 32767:
-                raise ValueError(new_msg("object of ShortType out of range, got: %s" % obj))
+                raise ValueError(new_msg(f"object of ShortType out of range, got: {obj}"))
 
         verifier = verify_short
     elif isinstance(dataType, IntegerType):
@@ -1362,7 +1361,7 @@ def get_verifier(dataType, name, new_name,
             assert_acceptable_types(obj)
             verify_acceptable_types(obj)
             if obj < -2147483648 or obj > 2147483647:
-                raise ValueError(new_msg("object of IntegerType out of range, got: %s" % obj))
+                raise ValueError(new_msg(f"object of IntegerType out of range, got: {obj}"))
 
         verifier = verify_integer
     elif isinstance(dataType, ArrayType):
@@ -1386,7 +1385,7 @@ def get_verifier(dataType, name, new_name,
 
 def get_array_verifier(dataType, name, assert_acceptable_types, verify_acceptable_types):
     element_verifier = _make_type_verifier(
-        dataType.elementType, dataType.containsNull, name="element in array %s" % name)
+        dataType.elementType, dataType.containsNull, name=f"element in array {name}")
 
     def verify_array(obj):
         assert_acceptable_types(obj)
@@ -1420,8 +1419,7 @@ def get_struct_verifier(dataType, new_name, assert_acceptable_types, new_msg):
         elif isinstance(obj, (tuple, list)):
             if len(obj) != len(verifiers):
                 raise ValueError(
-                    new_msg("Length of object (%d) does not match with "
-                            "length of fields (%d)" % (len(obj), len(verifiers))))
+                    new_msg(f"Length of object ({len(obj)}) does not match with length of fields ({len(verifiers)})"))
             for v, (_, verifier) in zip(obj, verifiers):
                 verifier(v)
         elif hasattr(obj, "__dict__"):
@@ -1429,16 +1427,15 @@ def get_struct_verifier(dataType, new_name, assert_acceptable_types, new_msg):
             for f, verifier in verifiers:
                 verifier(d.get(f))
         else:
-            raise TypeError(new_msg("StructType can not accept object %r in type %s"
-                                    % (obj, type(obj))))
+            raise TypeError(new_msg(f"StructType can not accept object {obj:r} in type {type(obj)}"))
 
     return verify_struct
 
 
 def get_map_verifier(dataType, name, assert_acceptable_types, verify_acceptable_types):
-    key_verifier = _make_type_verifier(dataType.keyType, False, name="key of map %s" % name)
+    key_verifier = _make_type_verifier(dataType.keyType, False, name=f"key of map {name}")
     value_verifier = _make_type_verifier(
-        dataType.valueType, dataType.valueContainsNull, name="value of map %s" % name)
+        dataType.valueType, dataType.valueContainsNull, name=f"value of map {name}")
 
     def verify_map(obj):
         assert_acceptable_types(obj)
@@ -1483,7 +1480,7 @@ def create_row(fields, values, metadata=None):
     :return: pysparkling.sql.Row
     """
     new_row = tuple.__new__(Row, values)
-    new_row.__fields__ = tuple(fields)
+    new_row.__fields__ = tuple(fields)  # pylint: disable=attribute-defined-outside-init
     new_row.set_metadata(metadata)
     return new_row
 
@@ -1584,8 +1581,7 @@ class Row(tuple):
     def __call__(self, *args):
         """create new Row object"""
         if len(args) > len(self):
-            raise ValueError("Can not create Row with fields %s, expected %d values "
-                             "but got %s" % (self, len(self), args))
+            raise ValueError(f"Can not create Row with fields {self}, expected {len(self)} values but got {args}")
         return create_row(self, args)
 
     def __getitem__(self, item):
@@ -1628,9 +1624,9 @@ class Row(tuple):
     def __repr__(self):
         """Printable representation of Row used in Python REPL."""
         if hasattr(self, "__fields__"):
-            return "Row(%s)" % ", ".join("%s=%r" % (k, v)
-                                         for k, v in zip(self.__fields__, tuple(self)))
-        return "<Row(%s)>" % ", ".join(self)
+            fields = ', '.join(f"{k}={v:r}" for k, v in zip(self.__fields__, tuple(self)))
+            return f"Row({fields})"
+        return f"<Row({', '.join(self)})>"
 
     def set_grouping(self, grouping):
         # This method is specific to Pysparkling and should not be used by

@@ -42,7 +42,7 @@ class LazyTestInjection:
 
 class Multiprocessing(unittest.TestCase):
     def setUp(self):
-        self.pool = multiprocessing.Pool(4)
+        self.pool = multiprocessing.Pool(4)  # pylint: disable=consider-using-with
         self.sc = pysparkling.Context(pool=self.pool,
                                       serializer=cloudpickle.dumps,
                                       deserializer=pickle.loads)
@@ -66,7 +66,7 @@ def square_op(x):
 
 class MultiprocessingWithoutCloudpickle(unittest.TestCase):
     def setUp(self):
-        self.pool = multiprocessing.Pool(4)
+        self.pool = multiprocessing.Pool(4)  # pylint: disable=consider-using-with
         self.sc = pysparkling.Context(pool=self.pool)
 
     def test_basic(self):

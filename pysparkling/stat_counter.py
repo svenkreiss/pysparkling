@@ -138,8 +138,10 @@ class StatCounter:
         return sqrt(self.sampleVariance())
 
     def __repr__(self):
-        return ("(count: %s, mean: %s, stdev: %s, max: %s, min: %s)" %
-                (self.count(), self.mean(), self.stdev(), self.max(), self.min()))
+        return (
+            f"(count: {self.count()}, mean: {self.mean()}, stdev: {self.stdev()}, max: {self.max()}, "
+            f"min: {self.min()})"
+        )
 
 
 PercentileStats = namedtuple("PercentileStats", ["value", "g", "delta"])

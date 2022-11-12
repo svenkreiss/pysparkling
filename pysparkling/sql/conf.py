@@ -21,8 +21,7 @@ class RuntimeConfig:
 
     def _checkType(self, obj, identifier):
         if not isinstance(obj, str):
-            raise TypeError("expected %s '%s' to be a string (was '%s')" %
-                            (identifier, obj, type(obj).__name__))
+            raise TypeError(f"expected {identifier} '{obj}' to be a string (was '{type(obj).__name__}')")
 
     def isModifiable(self, key):
         raise NotImplementedError("pysparkling does not support yet this feature")

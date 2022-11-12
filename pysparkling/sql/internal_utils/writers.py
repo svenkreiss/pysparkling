@@ -173,7 +173,7 @@ class DataWriter:
 
         success_path = os.path.join(output_path, "_SUCCESS")
 
-        with open(success_path, "w"):
+        with open(success_path, "w", encoding="utf8"):
             pass
 
     def preformat(self, row, schema):
@@ -302,7 +302,7 @@ class CSVWriter(DataWriter):
         #  - escape
         #  - escapeQuotes
 
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf8") as f:
             writer = csv.writer(
                 f,
                 delimiter=self.sep,
@@ -367,6 +367,6 @@ class JSONWriter(DataWriter):
         if not os.path.exists(partition_folder):
             os.makedirs(partition_folder)
 
-        with open(file_path, "a") as f:
+        with open(file_path, "a", encoding="utf8") as f:
             f.writelines(items)
         return len(items)
