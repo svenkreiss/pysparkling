@@ -14,7 +14,6 @@ setup(
 
     install_requires=[
         'boto>=2.36.0',
-        'future>=0.15',
         'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0'

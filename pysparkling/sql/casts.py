@@ -74,7 +74,7 @@ def cast_map(value, from_type, options):
         for key, sub_value in value.items()
     ]
     joined_values = ", ".join(
-        f"{casted_key} ->{casted_value if casted_value is not None else ''}"
+        f"{casted_key} ->{(' ' + casted_value) if casted_value is not None else ''}"
         for casted_key, casted_value in casted_values
     )
     return f"[{joined_values}]"
