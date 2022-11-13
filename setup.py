@@ -13,12 +13,12 @@ setup(
     url='https://github.com/svenkreiss/pysparkling',
 
     install_requires=[
-        'requests>=2.6.0',
         'pytz>=2019.3',
         'python-dateutil>=2.8.0'
     ],
     extras_require={
         'hdfs': ['hdfs>=2.0.0'],
+        'http': ['requests>=2.6.0'],
         'performance': ['matplotlib>=1.5.3'],
         's3': ['boto>=2.36.0'],
         'streaming': ['tornado>=4.3'],
@@ -29,13 +29,14 @@ setup(
         'tests': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
+            'isort',
             'pylint',
             'pylzma',
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
             'pytest-cov',
-            'isort',
+            'requests>=2.6.0',
             'tornado>=4.3',
         ],
         'scripts': [

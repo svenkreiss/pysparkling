@@ -40,7 +40,7 @@ Install
 
 .. code-block:: bash
 
-    python3 -m pip install "pysparkling[s3,hdfs,streaming]"
+    python3 -m pip install "pysparkling[s3,hdfs,http,streaming]"
 
 
 `Documentation <https://pysparkling.trivial.io>`_:
