@@ -1,7 +1,10 @@
 Changelog
 =========
 
-* `master <https://github.com/svenkreiss/pysparkling/compare/v0.6.0...master>`_
+* `main <https://github.com/svenkreiss/pysparkling/compare/v0.6.2...main>`_
+* `v0.6.2 <https://github.com/svenkreiss/pysparkling/compare/v0.6.0...v0.6.2>`_ (2019-11-13)
+    * make dependencies optional: boto, requests
+    * compatibility
 * `v0.6.0 <https://github.com/svenkreiss/pysparkling/compare/v0.5.0...v0.6.0>`_ (2019-07-13)
     * Broadcast, Accumulator and AccumulatorParam by @alexprengere
     * support for increasing partition numbers in coalesce and repartition by @tools4origins
