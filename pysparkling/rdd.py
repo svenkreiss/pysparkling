@@ -1209,13 +1209,15 @@ class RDD:
         """
         _empty = object()
 
+        def f_without_empty(a, b):
+            if a is _empty:
+                return b
+            if b is _empty:
+                return a
+            return f(a, b)
+
         def reducer(values):
-            try:
-                return functools.reduce(f, (v for v in values if v is not _empty))
-            except TypeError as e:
-                if e.args[0] == "reduce() of empty sequence with no initial value":
-                    return _empty
-                raise e
+            return functools.reduce(f_without_empty, values, _empty)
 
         result = self.context.runJob(
             self,
