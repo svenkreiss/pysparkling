@@ -34,10 +34,6 @@ class Broadcast:
     [1, 2, 3, 4, 5]
     >>> sc.parallelize([0, 0]).flatMap(lambda x: b.value).collect()
     [1, 2, 3, 4, 5, 1, 2, 3, 4, 5]
-    >>> b.value += [1]
-    Traceback (most recent call last):
-    ...
-    AttributeError: can't set attribute
     """
     def __init__(self, sc=None, value=None):
         self._value = value
