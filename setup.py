@@ -29,13 +29,14 @@ setup(
         'tests': [
             'backports.tempfile==1.0rc1',
             'cloudpickle>=0.1.0',
+            'isort',
             'pylint',
             'pylzma',
             'memory-profiler>=0.47',
             'pycodestyle',
             'pytest',
             'pytest-cov',
-            'isort',
+            'requests>=2.6.0',
             'tornado>=4.3',
         ],
         'scripts': [
