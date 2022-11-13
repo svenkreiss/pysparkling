@@ -37,11 +37,11 @@ jobs:
         isort . --check --diff
 
     - name: Test pysparkling.rdd
-      run: python -m pytest --pyargs pysparkling.rdd -vv
+      run: python -m pytest pysparkling/rdd.py -vv
 
     - name: Test pysparkling.tests
       if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
-      run: python -m pytest --pyargs pysparkling.tests -vv
+      run: python -m pytest pysparkling/tests -vv
 
     - name: Install SQL Dependencies
       run: |
