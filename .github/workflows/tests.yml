@@ -36,10 +36,10 @@ jobs:
       run: |
         isort . --check --diff
 
-    - name: Test pysparkling.rdd
+    - name: Test pysparkling/rdd.py
       run: python -m pytest pysparkling/rdd.py -vv
 
-    - name: Test pysparkling.tests
+    - name: Test pysparkling/tests
       if: matrix.os == 'ubuntu-latest'  # because of timing sensitivity in stream tests
       run: python -m pytest pysparkling/tests -vv
 
